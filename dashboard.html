@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Mujeres con Propósito</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon-flower.png" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+</head>
+<body class="private-locked" data-private-page="dashboard">
+  <section class="private-access-screen" id="dashboardAccessScreen">
+    <div class="private-access-card">
+      <div class="private-access-icon">🔐</div>
+      <h3>Acceso privado</h3>
+      <p>Inicia sesión con tu cuenta autorizada de Supabase.</p>
+      <div class="private-field private-field-email">
+        <input type="email" id="dashboardAccessEmail" placeholder="Email" autocomplete="email" />
+      </div>
+      <div class="private-field private-field-password">
+        <input type="password" id="dashboardAccessCode" placeholder="Contraseña" />
+      </div>
+      <div class="private-access-actions">
+        <button type="button" class="btn" id="dashboardAdminBtn">Admin</button>
+        <button type="button" class="btn" id="dashboardLoginBtn">Dashboard</button>
+      </div>
+      <button type="button" class="private-cancel-btn" id="dashboardCancelBtn">Cancelar</button>
+      <button type="button" class="private-link-btn" id="dashboardForgotPasswordBtn">Olvidé mi contraseña</button>
+      <div id="dashboardLoginMsg" class="form-message" style="display:none;"></div>
+    </div>
+  </section>
+
+  <div id="pdfArea" style="display:none;"> <!-- 🔥 INICIO DEL ÁREA QUE SE EXPORTA -->
+
+    <div class="page-bg"></div>
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge">✦</div>
+        <div>
+          <h1>Registros de Mujeres con Propósito</h1>
+          <p>Mujeres con Propósito</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="homePageBtn" class="btn btn-soft" type="button">Página principal</button>
+        <button id="dashboardLogoutBtn" class="btn btn-soft" type="button">Cerrar sesión</button>
+        <button id="exportPdfBtn" class="btn btn-primary">Exportar PDF</button>
+      </div>
+    </header>
+
+    <main class="dashboard-shell">
+    
+    <section class="panel filters-panel no-export">
+      <div class="panel-head">
+        <h2>Filtros</h2>
+        <button id="clearFiltersBtn" class="btn btn-soft">Limpiar filtros</button>
+      </div>
+
+      <div class="filters-grid">
+        <div class="field">
+          <label for="searchInput">Buscar</label>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Nombre, apellido, email o teléfono"
+          />
+        </div>
+
+        <div class="field">
+          <label for="paisFilter">País de residencia</label>
+          <select id="paisFilter">
+            <option value="">Todos</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="comunidadFilter">Comunidad</label>
+          <select id="comunidadFilter">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="cristianaFilter">Cristiana</label>
+          <select id="cristianaFilter">
+            <option value="">Todas</option>
+            <option value="Sí">Sí</option>
+            <option value="Todavía">Todavía</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-row export-summary-row">
+      <div class="stat-card">
+        <span class="stat-label">Total de registros</span>
+        <strong id="totalCount">0</strong>
+      </div>
+
+      <div class="stat-card">
+        <span class="stat-label">Mostrando</span>
+        <strong id="filteredCount">0</strong>
+      </div>
+    </section>
+
+   <section class="panel table-panel">
+  <div class="panel-head">
+    <h2>Lista de usuarias</h2>
+    <p id="lastUpdatedText">Cargando datos...</p>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Nombre completo</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>País residencia</th>
+          <th>Comunidad</th>
+          <th>Cristiana</th>
+        </tr>
+      </thead>
+      <tbody id="usersTableBody">
+        <tr>
+          <td colspan="7" class="empty-cell">Cargando registros...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Footer principal -->
+  <div class="table-footer">
+    <p>Total de registros: <strong class="summaryTotalCount"></strong></p>
+  </div>
+
+  <!-- Subfooter “Mostrando X de Y” -->
+  <div class="table-subfooter">
+    <p>
+      Mostrando <strong id="filteredCountFooter"></strong> de 
+      <strong class="summaryTotalCount"></strong> registros
+    </p>
+  </div>
+</section>
+
+      </main>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body>
+
+</html>

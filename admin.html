@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Mujeres con Propósito</title>
+  <link rel="icon" type="image/png" href="assets/images/favicon-flower.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body data-admin-page="true">
+  <header>
+    <div class="header-left">
+      <a href="index.html" class="logo">
+        <img src="assets/images/logo.png" alt="Mujeres con Propósito" />
+      </a>
+      <h1>Admin</h1>
+    </div>
+
+    <nav>
+      <ul id="nav-menu">
+        <li><a href="index.html">Página principal</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="admin-page-main">
+    <section id="admin" class="admin-panel">
+      <div class="admin-hero-premium">
+        <div>
+          <div class="admin-hero-badge">✦ Panel privado</div>
+          <h2>Administración MCP</h2>
+        </div>
+        <p>Gestiona eventos, destacadas y galería desde Supabase.</p>
+      </div>
+
+      <div class="admin-login-card private-access-card" id="adminLoginCard">
+        <div class="private-access-icon">🔐</div>
+        <h3>Acceso privado</h3>
+        <p>Inicia sesión con tu cuenta autorizada de Supabase.</p>
+        <div class="private-field private-field-email">
+          <input type="email" id="adminAccessEmail" placeholder="Email" autocomplete="email" />
+        </div>
+        <div class="private-field private-field-password">
+          <input type="password" id="adminAccessCode" placeholder="Contraseña" />
+        </div>
+        <div class="private-access-actions">
+          <button type="button" class="btn" id="adminLoginBtn">Admin</button>
+          <button type="button" class="btn" id="adminLoginDashboardBtn">Dashboard</button>
+        </div>
+        <button type="button" class="private-cancel-btn" id="adminCancelBtn">Cancelar</button>
+        <button type="button" class="private-link-btn" id="adminForgotPasswordBtn">Olvidé mi contraseña</button>
+        <div id="adminLoginMsg" class="form-message" style="display:none;"></div>
+      </div>
+
+      <div class="admin-dashboard" id="adminDashboard" style="display:none;">
+        <div class="admin-dashboard-head">
+          <div>
+            <span class="admin-dashboard-kicker">Contenido público</span>
+            <h3>Centro de gestión</h3>
+          </div>
+          <button type="button" class="admin-logout-btn" id="adminLogoutBtn">Cerrar sesión</button>
+        </div>
+
+        <div class="admin-tabs">
+          <button type="button" class="admin-tab active" data-admin-tab="eventos"><span>✦</span> Eventos</button>
+          <button type="button" class="admin-tab" data-admin-tab="destacadas"><span>♡</span> Destacadas</button>
+          <button type="button" class="admin-tab" data-admin-tab="galeria"><span>✧</span> Galería</button>
+        </div>
+
+        <div class="admin-tab-panel active" id="admin-eventos">
+          <div class="admin-card">
+            <h3>Nuevo evento</h3>
+            <form id="adminEventForm" class="admin-form">
+              <label>Icono</label>
+              <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
+
+              <label>Imagen de icono</label>
+              <input type="file" id="adminEventoIconoFoto" accept="image/*" />
+
+              <label>Título</label>
+              <input type="text" id="adminEventoTitulo" placeholder="Ej: Oración Matutina" required />
+
+              <label>Horario</label>
+              <input type="text" id="adminEventoHorario" placeholder="Ej: Lunes a Viernes · 5:00 AM" required />
+
+              <label>Link</label>
+              <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." required />
+
+              <label>Orden</label>
+              <input type="number" id="adminEventoOrden" value="1" min="1" />
+
+              <button type="submit" class="btn">Guardar evento</button>
+              <div id="adminEventoMsg" class="form-message" style="display:none;"></div>
+            </form>
+          </div>
+          <div class="admin-card admin-list-card">
+            <h3>Eventos publicados</h3>
+            <button type="button" class="admin-import-btn" data-admin-import="eventos">Importar eventos actuales</button>
+            <div id="adminEventosList" class="admin-content-list"></div>
+          </div>
+        </div>
+
+        <div class="admin-tab-panel" id="admin-destacadas">
+          <div class="admin-card">
+            <h3>Nueva destacada</h3>
+            <form id="adminDestacadaForm" class="admin-form">
+              <label>Nombre</label>
+              <input type="text" id="adminDestacadaNombre" placeholder="Nombre" required />
+
+              <label>Título</label>
+              <input type="text" id="adminDestacadaTitulo" placeholder="Título o tema" />
+
+              <label>Foto</label>
+              <input type="file" id="adminDestacadaFoto" accept="image/*" required />
+
+              <label>Orden</label>
+              <input type="number" id="adminDestacadaOrden" value="1" min="1" />
+
+              <button type="submit" class="btn">Subir destacada</button>
+              <div id="adminDestacadaMsg" class="form-message" style="display:none;"></div>
+            </form>
+          </div>
+          <div class="admin-card admin-list-card">
+            <h3>Destacadas publicadas</h3>
+            <button type="button" class="admin-import-btn" data-admin-import="destacadas">Importar destacadas actuales</button>
+            <div id="adminDestacadasList" class="admin-content-list"></div>
+          </div>
+        </div>
+
+        <div class="admin-tab-panel" id="admin-galeria">
+          <div class="admin-card">
+            <h3>Nueva foto de galería</h3>
+            <form id="adminGaleriaForm" class="admin-form admin-form-clean">
+              <div class="admin-field">
+                <label for="adminGaleriaCategoria">Comunidad</label>
+                <select id="adminGaleriaCategoria" required>
+                  <option value="usa">Estados Unidos</option>
+                  <option value="rd">República Dominicana</option>
+                  <option value="eu">Europa</option>
+                </select>
+              </div>
+
+              <div class="admin-field">
+                <label for="adminGaleriaEventoSelect">Categoría / evento</label>
+                <select id="adminGaleriaEventoSelect">
+                  <option value="">Nueva categoría</option>
+                </select>
+              </div>
+
+              <div class="admin-field admin-field-full">
+                <label for="adminGaleriaTexto">Nombre de la categoría</label>
+                <input type="text" id="adminGaleriaTexto" placeholder="Ej. Picnic de Verano 2024" required />
+              </div>
+
+              <div class="admin-field admin-field-full">
+                <label for="adminGaleriaFoto">Foto</label>
+                <input type="file" id="adminGaleriaFoto" accept="image/*" required />
+              </div>
+
+              <div class="admin-field admin-field-small">
+                <label for="adminGaleriaOrden">Orden</label>
+                <input type="number" id="adminGaleriaOrden" value="1" min="1" />
+              </div>
+
+              <div class="admin-form-actions">
+                <button type="submit" class="btn">Subir foto</button>
+              </div>
+
+              <div id="adminGaleriaMsg" class="form-message" style="display:none;"></div>
+            </form>
+          </div>
+          <div class="admin-card admin-list-card">
+            <h3>Fotos publicadas</h3>
+            <button type="button" class="admin-import-btn" data-admin-import="galeria">Importar galería actual</button>
+            <div id="adminGaleriaList" class="admin-content-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

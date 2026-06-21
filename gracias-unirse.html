@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gracias por Unirte — Mujeres con Propósito</title>
+
+    <style>
+        :root {
+            --main-color: #E7A8A0;
+            --accent-color: #f3d5d1;
+            --light-bg: #fff7f6;
+            --text-color: #333;
+            --white: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.7);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(to bottom, var(--accent-color), var(--light-bg));
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+            max-width: 480px;
+            width: 90%;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #b05f5f;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 17px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: var(--main-color);
+            color: white;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #d98f86;
+            transform: translateY(-3px);
+        }
+
+        .logo {
+            width: 80px;
+            opacity: 0.85;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <img src="assets/images/logo.png" class="logo" alt="Logo Mujeres con Propósito">
+
+        <h1>¡Bienvenida a la Comunidad!</h1>
+
+        <p>
+            Gracias por unirte a Mujeres con Propósito.  
+            Tu registro ha sido recibido con éxito y muy pronto una de nuestras líderes se pondrá en contacto contigo.
+        </p>
+
+        <p>
+            Oramos para que este sea el inicio de una etapa llena de crecimiento, fe y hermandad.
+        </p>
+
+        <a href="index.html" class="btn" id="homeBtn">Volver al Inicio</a>
+    </div>
+
+</body>
+    <script>
+        // Redirección automática después de 3 segundos
+        setTimeout(function() {
+            window.location.href = "index.html";
+        }, 3000);
+
+        // Forzar navegación al hacer click (por si hay bloqueo)
+        document.getElementById("homeBtn").addEventListener("click", function(e) {
+            window.location.href = "index.html";
+        });
+    </script>
+</html>

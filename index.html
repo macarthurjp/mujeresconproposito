@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <title>Mujeres con Propósito</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-flower.png" />
+  <link rel="shortcut icon" type="image/png" href="assets/images/favicon-flower.png" />
+  <link rel="apple-touch-icon" href="assets/images/favicon-flower.png" />
+  <meta name="theme-color" content="#fff7f6" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <style>
+    /* JOIN FORM PREMIUM REDESIGN */
+    .join-modal-content {
+      max-width: 860px;
+      width: min(94vw, 860px);
+      padding: 0;
+      overflow: hidden;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at top right, rgba(231, 168, 160, 0.28), transparent 22rem),
+        linear-gradient(180deg, #fffdfc 0%, #fff7f6 100%);
+      border: 1px solid rgba(169, 80, 69, 0.12);
+      box-shadow: 0 30px 90px rgba(74, 39, 32, 0.18);
+    }
+
+    .join-modal-premium-head {
+      position: relative;
+      padding: 34px 38px 28px;
+      background:
+        linear-gradient(135deg, rgba(169, 80, 69, 0.95), rgba(126, 58, 53, 0.92)),
+        radial-gradient(circle at 85% 10%, rgba(255,255,255,0.28), transparent 20rem);
+      color: #ffffff;
+    }
+
+    .join-modal-premium-head::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -100px;
+      width: 260px;
+      height: 260px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .join-modal-premium-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      font-size: 0.76rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .join-modal-premium-head h3 {
+      margin: 0;
+      color: #ffffff;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: clamp(2rem, 4vw, 3.15rem);
+      line-height: 1;
+      letter-spacing: -0.035em;
+    }
+
+    .join-modal-premium-head p {
+      max-width: 590px;
+      margin: 14px 0 0;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    .join-form-premium {
+      padding: 30px 38px 36px;
+    }
+
+    .join-form-section {
+      padding: 22px;
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(169, 80, 69, 0.10);
+      box-shadow: 0 14px 34px rgba(74, 39, 32, 0.06);
+    }
+
+    .join-form-section + .join-form-section {
+      margin-top: 16px;
+    }
+
+    .join-section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 16px;
+      color: #8e403b;
+      font-weight: 900;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .join-section-title span {
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #fff7f6;
+      border: 1px solid #f1ddda;
+    }
+
+    .join-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 15px;
+    }
+
+    .join-field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .join-field.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .join-field label {
+      margin: 0;
+      color: #5e3d39;
+      font-size: 0.86rem;
+      font-weight: 850;
+    }
+
+    .join-field small {
+      color: #9a7770;
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .join-form-premium input,
+    .join-form-premium select,
+    .join-form-premium textarea {
+      min-height: 48px;
+      border-radius: 16px;
+      border: 1px solid rgba(169, 80, 69, 0.14);
+      background: rgba(255, 255, 255, 0.9);
+      color: #33201d;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .join-form-premium textarea {
+      min-height: 118px;
+      resize: vertical;
+    }
+
+    .join-form-premium input:focus,
+    .join-form-premium select:focus,
+    .join-form-premium textarea:focus {
+      outline: none;
+      border-color: rgba(169, 80, 69, 0.45);
+      box-shadow: 0 0 0 4px rgba(231, 168, 160, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .join-form-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 20px;
+      padding: 18px 4px 0;
+    }
+
+    .join-form-note {
+      max-width: 420px;
+      color: #8b6b64;
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+
+    .join-submit-btn {
+      min-width: 190px;
+      min-height: 54px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #a95045, #7d3a35);
+      box-shadow: 0 16px 38px rgba(169, 80, 69, 0.25);
+    }
+
+    @media (max-width: 720px) {
+      .join-modal-premium-head,
+      .join-form-premium {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .join-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .join-form-footer {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .join-submit-btn {
+        width: 100%;
+      }
+    }
+    /* HERO PREMIUM REDESIGN */
+    .hero.hero-premium {
+      position: relative;
+      width: min(1180px, calc(100% - 44px));
+      max-width: 1180px;
+      min-height: auto;
+      margin: 24px auto 0;
+      padding: clamp(108px, 8vw, 138px) clamp(28px, 4.4vw, 58px) clamp(54px, 6vw, 78px);
+      display: grid;
+      grid-template-columns: minmax(0, 0.98fr) minmax(330px, 0.82fr);
+      align-items: center;
+      gap: clamp(24px, 3.6vw, 46px);
+      overflow: hidden;
+      border-radius: 44px;
+      background:
+        radial-gradient(circle at 88% 20%, rgba(231, 168, 160, 0.34), transparent 30rem),
+        radial-gradient(circle at 18% 18%, rgba(216, 168, 92, 0.15), transparent 28rem),
+        linear-gradient(135deg, #fff9f6 0%, #fff1ed 48%, #fffaf7 100%);
+      box-shadow: 0 30px 90px rgba(74, 39, 32, 0.10);
+    }
+
+    .hero.hero-premium::before {
+      content: "";
+      position: absolute;
+      inset: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.78);
+      border-radius: 42px;
+      pointer-events: none;
+    }
+
+    .hero.hero-premium::after {
+      content: "";
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      right: -120px;
+      bottom: -160px;
+      background: radial-gradient(circle, rgba(169, 80, 69, 0.13), transparent 68%);
+      pointer-events: none;
+    }
+
+    .hero-premium-content,
+    .hero-premium-panel {
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(169, 80, 69, 0.12);
+      color: #8e403b;
+      font-size: 0.8rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 12px 32px rgba(74, 39, 32, 0.07);
+    }
+
+    .hero.hero-premium h2 {
+      max-width: 620px;
+      margin: 0;
+      font-family: "Playfair Display", Georgia, serif;
+      font-size: clamp(3rem, 5.25vw, 5.35rem);
+      line-height: 0.96;
+      letter-spacing: -0.048em;
+      color: #33201d;
+      text-align: left;
+      word-break: normal;
+      overflow-wrap: normal;
+    }
+
+    .hero.hero-premium h2 span {
+      display: block;
+    }
+
+    .hero.hero-premium h2 .hero-title-accent {
+      color: #7a4b67;
+    }
+
+    .hero.hero-premium p {
+      max-width: 600px;
+      margin: 28px 0 0;
+      color: #715853;
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      line-height: 1.75;
+      text-align: left;
+    }
+
+    .hero-premium-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .hero-premium .btn.hero-main-btn {
+      min-height: 58px;
+      padding: 0 28px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #a95045, #7d3a35);
+      color: #ffffff;
+      box-shadow: 0 18px 42px rgba(169, 80, 69, 0.25);
+    }
+
+    .hero-secondary-link {
+      min-height: 58px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 22px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(169, 80, 69, 0.12);
+      color: #8e403b;
+      font-weight: 900;
+      box-shadow: 0 12px 30px rgba(74, 39, 32, 0.07);
+    }
+
+    .hero-premium-panel {
+      min-height: 470px;
+      border-radius: 38px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.44);
+      border: 1px solid rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 28px 80px rgba(74, 39, 32, 0.14);
+      transform: rotate(0.6deg);
+      align-self: stretch;
+    }
+
+    .hero-logo-card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 438px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 30px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.32), rgba(169,80,69,0.08)),
+        radial-gradient(circle at 50% 40%, rgba(255,255,255,0.62), transparent 22rem);
+    }
+
+    .hero-logo-card img {
+      width: min(78%, 430px);
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 22px 40px rgba(74, 39, 32, 0.14));
+      transform: rotate(-1.2deg);
+    }
+
+    .hero-floating-card {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 22px;
+      display: grid;
+      gap: 6px;
+      padding: 18px 20px;
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.86);
+      box-shadow: 0 18px 46px rgba(74, 39, 32, 0.13);
+      backdrop-filter: blur(16px);
+      color: #33201d;
+    }
+
+    .hero-floating-card strong {
+      font-size: 1.08rem;
+      color: #8e403b;
+    }
+
+    .hero-floating-card span {
+      color: #715853;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 680px;
+      margin-top: 42px;
+    }
+
+    .hero-stat {
+      padding: 16px 14px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.64);
+      border: 1px solid rgba(169, 80, 69, 0.10);
+      box-shadow: 0 14px 34px rgba(74, 39, 32, 0.06);
+    }
+
+    .hero-stat strong {
+      display: block;
+      color: #8e403b;
+      font-size: 1.05rem;
+      margin-bottom: 2px;
+    }
+
+    .hero-stat span {
+      color: #715853;
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+
+    @media (max-width: 980px) {
+      .hero.hero-premium {
+        grid-template-columns: 1fr;
+        text-align: center;
+        padding-top: 118px;
+      }
+
+      .hero.hero-premium h2,
+      .hero.hero-premium p {
+        text-align: center;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-premium-actions {
+        justify-content: center;
+      }
+
+      .hero-stats {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-premium-panel {
+        min-height: 420px;
+        transform: none;
+      }
+
+      .hero-logo-card {
+        min-height: 390px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .hero.hero-premium {
+        width: calc(100% - 20px);
+        min-height: auto;
+        margin-top: 12px;
+        padding: 104px 18px 54px;
+        border-radius: 30px;
+      }
+
+      .hero.hero-premium::before {
+        inset: 12px;
+        border-radius: 28px;
+      }
+
+      .hero.hero-premium h2 {
+        font-size: clamp(2.55rem, 13vw, 3.9rem);
+        line-height: 1;
+      }
+
+      .hero.hero-premium p {
+        font-size: 1rem;
+      }
+
+      .hero-premium-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hero-premium .btn.hero-main-btn,
+      .hero-secondary-link {
+        width: 100%;
+      }
+
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-premium-panel {
+        min-height: 330px;
+        padding: 12px;
+        border-radius: 30px;
+      }
+
+      .hero-logo-card {
+        min-height: 306px;
+        border-radius: 24px;
+      }
+
+      .hero-floating-card {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+  </style>
+</head>
+<body id="top">
+
+  <!-- LOADER -->
+  <div id="loadingOverlay" style="display:none;">
+    <div class="spinner"></div>
+    <p>Procesando tu registro...</p>
+  </div>
+
+  <!-- OVERLAY MENÚ -->
+  <div id="menu-overlay"></div>
+
+  <header>
+    <div class="header-left">
+      <a href="#top" class="logo">
+        <img src="assets/images/logo.png" alt="Mujeres con Propósito" />
+      </a>
+      <h1>Mujeres con Propósito</h1>
+    </div>
+
+    <nav>
+      <button class="hamburger" type="button" onclick="toggleMenu()" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+      </button>
+
+      <ul id="nav-menu">
+        <li><a href="#home">Inicio</a></li>
+        <li><a href="#about">Nosotras</a></li>
+        <li><a href="#invitees">Destacadas</a></li>
+        <li><a href="#" id="openJoinModalMenu">Unirse</a></li>
+        <li><a href="#" id="openDonateFromMenu" class="menu-donate-btn">Donar</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section id="home" class="hero hero-premium">
+    <div class="hero-premium-content">
+      <div class="hero-kicker">✦ Comunidad cristiana internacional</div>
+      <h2><span>Bienvenida</span><span class="hero-title-accent">a Mujeres</span><span>con Propósito</span></h2>
+      <p>Un espacio donde la fe, la hermandad y el propósito se unen para transformar vidas, conectar corazones y fortalecer tu caminar con Dios.</p>
+
+      <div class="hero-premium-actions">
+        <button type="button" class="btn hero-main-btn" id="openJoinModalHero">Únete a la Comunidad</button>
+        <a href="#events" class="hero-secondary-link">Ver actividades</a>
+      </div>
+
+      <div class="hero-stats" aria-label="Resumen de la comunidad">
+        <div class="hero-stat">
+          <strong>Fe</strong>
+          <span>Devocionales y oración</span>
+        </div>
+        <div class="hero-stat">
+          <strong>Comunidad</strong>
+          <span>Mujeres creciendo juntas</span>
+        </div>
+        <div class="hero-stat">
+          <strong>Propósito</strong>
+          <span>Encuentros y enseñanzas</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-premium-panel" aria-hidden="true">
+      <div class="hero-logo-card">
+        <img src="assets/images/logo.png" alt="" />
+        <div class="hero-floating-card">
+          <strong>Transformadas con propósito</strong>
+          <span>Una comunidad para inspirarte, acompañarte y recordarte que Dios cumple su obra en ti.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider-glow"></div>
+
+<section id="invitees">
+    <div class="section-header-premium reveal">
+      <h2><span class="icon">✦</span> Destacadas <span class="icon">✦</span></h2>
+    </div>
+
+    <div class="invitees-wrapper">
+      <button class="invitees-arrow left" id="invLeft" type="button">‹</button>
+
+      <!-- FIX: eliminar card-grid -->
+      <div class="invitees-track" id="inviteesTrack">
+        <div class="card" onclick="openInviteeLightbox('assets/images/gabriela.PNG','Gabriela Licón','Conferencista invitada')">
+          <img src="assets/images/gabriela.PNG" alt="Gabriela Licón" />
+          <h3>Gabriela Licón</h3>
+          <p class="invitee-title">Conferencista invitada</p>
+        </div>
+
+        <div class="card" onclick="openInviteeLightbox('assets/images/yunilda.PNG','Yunilda Quiñones','Conferencista invitada')">
+          <img src="assets/images/yunilda.PNG" alt="Yunilda Quiñones" />
+          <h3>Yunilda Quiñones</h3>
+          <p class="invitee-title">Conferencista invitada</p>
+        </div>
+      </div>
+
+      <button class="invitees-arrow right" id="invRight" type="button">›</button>
+    </div>
+</section>
+
+
+  <div class="divider-glow"></div>
+
+  <section class="scripture">
+    <div class="verse-block enhanced">
+      <p>“El Señor cumplirá en mí su propósito. Tu gran amor, Señor, perdura para siempre; ¡no abandones la obra de tus manos!”</p>
+      <div class="author">— Salmo 138:8</div>
+    </div>
+  </section>
+
+  <div class="divider-glow"></div>
+
+  <section id="about">
+    <div class="section-header-premium reveal">
+      <h2><span class="icon">✦</span> Quiénes Somos <span class="icon">✦</span></h2>
+      <p class="subtitle">Nuestra misión, visión y propósito</p>
+    </div>
+    <p>Somos una comunidad de mujeres cristianas dedicadas al crecimiento espiritual, la hermandad y el apoyo mutuo.</p>
+  </section>
+
+  <div class="divider-glow"></div>
+
+  <section class="ofrecemos-section">
+    <h2>✦ Lo Que Hacemos ✦</h2>
+
+    <div class="ofrecemos-grid">
+      <div class="ofrecemos-card">
+        <div class="icon icon-image">
+          <img src="assets/images/emojis/6154ac3c38f4b30e8ea5c4e1005210c5d621b488fd4954d85ad7334c73c98009.png" alt="Devocionales" loading="lazy" />
+        </div>
+        <h3>Devocionales</h3>
+        <p>Reflexiones semanales para fortalecer tu caminar con Dios.</p>
+      </div>
+
+      <div class="ofrecemos-card">
+        <div class="icon icon-image">
+          <img src="assets/images/emojis/73e36c73f2bd73d8892263a6676ff5829d9d7f8cf4e4843692c2b8885ce3f63b.png" alt="Eventos" loading="lazy" />
+        </div>
+        <h3>Eventos</h3>
+        <p>Reuniones y actividades para crecer juntas en fe.</p>
+      </div>
+
+      <div class="ofrecemos-card">
+        <div class="icon icon-image">
+          <img src="assets/images/emojis/c74e5932b4b91daa36e84c6372e80fd906674fd24a38a445dbed44a138867b9d.png" alt="Oración" loading="lazy" />
+        </div>
+        <h3>Oración</h3>
+        <p>Comparte tus peticiones y permite que oremos contigo.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider-glow"></div>
+
+  <section id="join" class="join-section">
+    <div class="join-grid section-header-premium reveal">
+      <div class="join-copy">
+        <span class="join-eyebrow">Únete hoy</span>
+        <h2>Conecta con mujeres que inspiran, crecen y sirven juntas.</h2>
+        <p>Forma parte de una comunidad premium de fe, apoyo y propósito con actividades exclusivas para tu crecimiento personal y espiritual.</p>
+
+        <div class="join-highlights">
+          <div>
+            <strong>+ Mentorías</strong>
+            <span>Charlas mensuales para líderes femeninas.</span>
+          </div>
+          <div>
+            <strong>+ Red de apoyo</strong>
+            <span>Un espacio seguro para crecer juntas.</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-secondary" id="openJoinModalSection">Quiero unirme</button>
+      </div>
+
+      <div class="join-visual">
+        <div class="join-image-card">
+          <img src="assets/images/IMG_8290.jpeg" alt="Reunión de Mujeres con Propósito" />
+          <div class="join-image-overlay">
+            <span>Comunidad en acción</span>
+            <p>Encuentros, oración y transformación espiritual.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider-glow"></div>
+
+<section id="events">
+    <div class="section-header-premium">
+      <h2><span class="icon">✦</span> Eventos <span class="icon">✦</span></h2>
+    </div>
+
+    <div class="events-wrapper events-wrapper-slider">
+      <button class="events-arrow left" id="eventsLeft" type="button">‹</button>
+
+	      <div class="events-track" id="eventsGrid">
+	        <div class="card">
+	          <div class="card-icon premium-icon">✦</div>
+	          <h3>Cargando eventos...</h3>
+	          <p><strong>Contenido administrado desde Supabase.</strong></p>
+	        </div>
+	      </div>
+
+      <button class="events-arrow right" id="eventsRight" type="button">›</button>
+    </div>
+</section>
+
+
+  <div class="divider-glow"></div>
+
+  <section class="youtube-explore">
+    <h2>✨ Canal de YouTube ✨</h2>
+    <p class="youtube-subtitle">
+      Síguenos en YouTube para mensajes, reflexiones y contenido para tu crecimiento espiritual.
+    </p>
+
+    <div class="youtube-carousel">
+      <div class="youtube-item">
+        <div class="thumb-wrapper">
+          <img src="https://img.youtube.com/vi/LEe3mHoKObc/hqdefault.jpg" alt="Video 1" />
+          <div class="play-icon">▶</div>
+        </div>
+        <h4>De vuelta al Génesis</h4>
+        <p>Conferencia con Xiomery Mercedes</p>
+      </div>
+
+      <div class="youtube-item">
+        <div class="thumb-wrapper">
+          <img src="https://img.youtube.com/vi/43l_c5h5crs/hqdefault.jpg" alt="Video 2" />
+          <div class="play-icon">▶</div>
+        </div>
+        <h4>Marexy Pacheco</h4>
+        <p>Reflexión y enseñanza</p>
+      </div>
+
+      <div class="youtube-item">
+        <div class="thumb-wrapper">
+          <img src="https://img.youtube.com/vi/cLrY0E1u0j0/hqdefault.jpg" alt="Video 3" />
+          <div class="play-icon">▶</div>
+        </div>
+        <h4>Mujeres que Emprenden</h4>
+        <p>Conferencia con invitadas especiales</p>
+      </div>
+    </div>
+
+    <a href="https://www.youtube.com/@MujeresconProposito930" class="youtube-more" target="_blank" rel="noopener noreferrer">Ver más videos</a>
+  </section>
+
+  <div class="divider-glow"></div>
+
+  <section id="donate">
+    <div class="section-header-premium">
+      <h2><span class="icon">✦</span> Apoya Nuestra Misión <span class="icon">✦</span></h2>
+    </div>
+
+    <div class="donate-container">
+      <p class="donate-text">
+        Tu generosidad nos permite seguir compartiendo esperanza, fe y propósito con mujeres alrededor del mundo.
+        Cada aporte, grande o pequeño, es una semilla que Dios multiplica.
+      </p>
+
+      <blockquote class="donate-verse">
+        “Cada uno dé como propuso en su corazón; no con tristeza, ni por obligación, porque Dios ama al dador alegre.”
+        <br />— 2 Corintios 9:7
+      </blockquote>
+
+      <button type="button" class="donate-btn-new" id="openDonateModal">Quiero Donar</button>
+    </div>
+  </section>
+
+  <div class="divider-glow"></div>
+
+  <section id="gallery">
+    <div class="section-header-premium">
+      <h2><span class="icon">✦</span> Galería <span class="icon">✦</span></h2>
+    </div>
+
+    <div class="gallery-tabs">
+      <button class="tab active" data-target="usa" type="button">Estados Unidos</button>
+      <button class="tab" data-target="rd" type="button">República Dominicana</button>
+      <button class="tab" data-target="eu" type="button">Europa</button>
+    </div>
+
+    <div class="gallery-content">
+      <div class="gallery-row active" id="usa">
+        <img src="assets/images/IMG_8259.jpeg" alt="Galería Estados Unidos 1" />
+        <img src="assets/images/IMG_8260.jpeg" alt="Galería Estados Unidos 2" />
+        <img src="assets/images/IMG_8253.jpeg" alt="Galería Estados Unidos 3" />
+        <img src="assets/images/IMG_8257.jpeg" alt="Galería Estados Unidos 4" />
+      </div>
+
+      <div class="gallery-row" id="rd">
+        <img src="assets/images/IMG_8285.jpeg" alt="Galería República Dominicana 1" />
+        <img src="assets/images/IMG_8258.jpeg" alt="Galería República Dominicana 2" />
+        <img src="assets/images/IMG_8284.jpeg" alt="Galería República Dominicana 3" />
+        <img src="assets/images/IMG_8254.jpeg" alt="Galería República Dominicana 4" />
+      </div>
+
+      <div class="gallery-row" id="eu">
+        <img src="assets/images/IMG_8285.jpeg" alt="Galería Europa 1" />
+        <img src="assets/images/IMG_8258.jpeg" alt="Galería Europa 2" />
+        <img src="assets/images/IMG_8284.jpeg" alt="Galería Europa 3" />
+        <img src="assets/images/IMG_8254.jpeg" alt="Galería Europa 4" />
+      </div>
+    </div>
+
+    <div class="gallery-nav">
+      <button type="button" class="gallery-arrow" id="galleryPrev">&#10094;</button>
+      <button type="button" class="gallery-arrow" id="galleryNext">&#10095;</button>
+    </div>
+  </section>
+
+  <!-- LIGHTBOX GALERÍA -->
+  <div id="lightbox">
+    <span id="prev" class="arrow">&#10094;</span>
+    <img id="lightbox-img" alt="" />
+    <span id="next" class="arrow">&#10095;</span>
+    <div id="lightbox-counter"></div>
+  </div>  
+
+  <div class="divider-glow"></div>
+
+  <section id="soundcloud">
+  <div class="soundcloud-mini">
+    <div class="sc-mini-head">
+      <div>
+        <h2>Porción - Escucha nuestros audios</h2>
+        <p>Mensajes y reflexiones de Mujeres con Propósito.</p>
+      </div>
+
+      <a
+        class="sc-mini-link"
+        href="https://soundcloud.com/mujeresconproposito930/sets/mujeres-con-proposito-porcion"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Ver playlist
+      </a>
+    </div>
+
+    <div class="sc-mini-player">
+      <div class="sc-mini-now">
+        <span class="sc-mini-badge">Ahora sonando</span>
+        <h3 id="scCurrentTitle">Cargando audio...</h3>
+      </div>
+
+      <div class="sc-mini-controls">
+        <button type="button" id="scPrevBtn" class="sc-mini-btn">⏮</button>
+        <button type="button" id="scPlayBtn" class="sc-mini-btn sc-mini-btn-play">▶</button>
+        <button type="button" id="scNextBtn" class="sc-mini-btn">⏭</button>
+      </div>
+    </div>
+
+    <div id="scTrackList" class="sc-mini-list">
+      <div class="sc-track-placeholder">Cargando audios...</div>
+    </div>
+
+    <div class="sc-hidden-embed">
+      <iframe
+        id="soundcloudWidget"
+        width="100%"
+        height="120"
+        scrolling="no"
+        frameborder="no"
+        allow="autoplay"
+        src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/mujeresconproposito930/sets/mujeres-con-proposito-porcion&color=%23e7a8a0&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false">
+      </iframe>
+    </div>
+  </div>
+</section>
+
+  <div class="divider-glow"></div>
+
+   <section id="contact">
+  <div class="section-header-premium">
+    <h2><span class="icon">✦</span> Contacto <span class="icon">✦</span></h2>
+
+  </div>
+
+  <div class="contact-layout">
+    <div class="contact-form-card">
+      <form id="contactForm">
+        <input type="text" name="nombre" id="cNombre" placeholder="Tu Nombre" required />
+        <input type="email" name="email" id="cEmail" placeholder="Correo Electrónico" required />
+        <textarea name="mensaje" id="cMensaje" placeholder="Tu mensaje" required></textarea>
+
+        <button type="submit" id="cSubmitBtn">Enviar</button>
+        <div id="contactMsg" class="small"></div>
+      </form>
+    </div>
+
+    <aside class="calendar-card calendar-card-premium" id="calendarCard">
+      <div class="calendar-head">
+        <span class="calendar-eyebrow">Hoy</span>
+        <h3>Calendario</h3>
+        <p id="calendarTodayText">Hoy</p>
+      </div>
+
+      <div class="calendar-block calendar-block-featured">
+        <div class="calendar-block-title">
+          <span class="calendar-block-icon">✦</span>
+          <h4>Actividades</h4>
+	        </div>
+	        <div id="todayActivitiesList" class="calendar-list">
+	          <div class="calendar-item">
+	            <span class="calendar-item-mark">✦</span>
+	            <span>
+	              <strong>Cargando actividades</strong>
+	              <span>Contenido administrado desde Supabase.</span>
+	            </span>
+	          </div>
+	        </div>
+      </div>
+
+      <div class="calendar-block">
+        <div class="calendar-block-title">
+          <span class="calendar-block-icon">↗</span>
+          <h4>Próxima actividad</h4>
+        </div>
+        <div id="nextActivityList" class="calendar-list">
+          <div class="calendar-item">
+            <span class="calendar-item-mark">✦</span>
+            <span>
+              <strong>Oración / Encuentro</strong>
+              <span>Próximo encuentro programado de la comunidad</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="calendar-block">
+        <div class="calendar-block-title">
+          <span class="calendar-block-icon">♡</span>
+          <h4>Cumpleaños de hoy</h4>
+        </div>
+        <div id="todayBirthdaysList" class="calendar-list">
+          <div class="calendar-item">
+            <span class="calendar-item-mark">♡</span>
+            <span>
+              <strong>Cumpleaños</strong>
+              <span>Los cumpleaños registrados aparecerán aquí.</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+	  <!-- LIGHTBOX INVITADAS -->
+  <div id="invitee-lightbox">
+    <div id="invitee-lightbox-content">
+      <span id="invitee-lightbox-close">&times;</span>
+      <img id="invitee-lightbox-img" src="" alt="" />
+      <h3 id="invitee-lightbox-name"></h3>
+      <p id="invitee-lightbox-title"></p>
+    </div>
+  </div>
+
+  <!-- MODAL DONACIÓN -->
+  <div id="donateModal" class="modal-overlay">
+    <div class="modal-content">
+      <span id="closeDonateModal" class="close-btn">×</span>
+
+      <h2>Elige tu forma de donar</h2>
+      <p class="donate-subtitle">Selecciona un monto para continuar</p>
+
+      <div class="donate-amounts">
+        <button class="amount" type="button" data-amount="10">$10</button>
+        <button class="amount" type="button" data-amount="20">$20</button>
+        <button class="amount" type="button" data-amount="50">$50</button>
+        <button class="amount" type="button" data-amount="100">$100</button>
+      </div>
+
+      <div class="donate-custom">
+        <label>O escribe tu propio monto:</label>
+        <input type="number" id="customDonateAmount" placeholder="$0.00" min="1" step="0.01" />
+      </div>
+
+      <div class="donate-methods">
+        <div class="method paypal" style="padding:0; background:none; box-shadow:none;">
+          <div id="donate-button-container">
+            <div id="donate-button-helper">
+              Escanea el código QR o toca el botón para donar con PayPal.
+            </div>
+
+            <div id="donate-button"></div>
+
+            <div class="paypal-qr-card">
+              <img
+                class="paypal-qr-image"
+                src="assets/images/paypal-qr.png"
+                alt="Código QR de PayPal"
+              />
+              <p class="paypal-qr-caption">Escanea este QR desde la app de PayPal.</p>
+            </div>
+
+            <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+            <script>
+              (function () {
+                const PAYPAL_HOSTED_BUTTON_ID = 'ZVN8VQZ622B7W';
+                const donateButtonTarget = '#donate-button';
+                const amountButtons = document.querySelectorAll('.donate-amounts .amount');
+                const customAmountInput = document.getElementById('customDonateAmount');
+                const donateButtonHelper = document.getElementById('donate-button-helper');
+
+                function getSelectedAmount() {
+                  const selectedBtn = document.querySelector('.donate-amounts .amount.selected');
+                  if (selectedBtn && selectedBtn.dataset.amount) {
+                    return selectedBtn.dataset.amount;
+                  }
+
+                  const customValue = Number.parseFloat(customAmountInput?.value || '');
+                  if (Number.isFinite(customValue) && customValue > 0) {
+                    return customValue.toFixed(2);
+                  }
+
+                  return '';
+                }
+
+                function renderPayPalDonateButton() {
+                  const container = document.querySelector(donateButtonTarget);
+                  if (!container || typeof PayPal === 'undefined' || !PayPal.Donation?.Button) return;
+
+                  const amount = getSelectedAmount();
+                  container.innerHTML = '';
+
+                  const config = {
+                    env: 'production',
+                    hosted_button_id: PAYPAL_HOSTED_BUTTON_ID,
+                    currency_code: 'USD',
+                    image: {
+                      src: 'https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif',
+                      alt: 'Donate with PayPal button',
+                      title: 'PayPal - The safer, easier way to pay online!'
+                    }
+                  };
+
+                  if (amount) {
+                    config.amount = amount;
+                    if (donateButtonHelper) {
+                      donateButtonHelper.textContent = `Vas a donar $${amount} USD por PayPal.`;
+                    }
+                  } else if (donateButtonHelper) {
+                    donateButtonHelper.textContent = 'Escanea el código QR o toca el botón para donar con PayPal.';
+                  }
+
+                  PayPal.Donation.Button(config).render(donateButtonTarget);
+                }
+
+                amountButtons.forEach((button) => {
+                  button.addEventListener('click', function () {
+                    amountButtons.forEach((btn) => btn.classList.remove('selected'));
+                    this.classList.add('selected');
+                    if (customAmountInput) customAmountInput.value = '';
+                    renderPayPalDonateButton();
+                  });
+                });
+
+                customAmountInput?.addEventListener('input', function () {
+                  amountButtons.forEach((btn) => btn.classList.remove('selected'));
+                  renderPayPalDonateButton();
+                });
+
+                renderPayPalDonateButton();
+              })();
+            </script>
+          </div>
+        </div>
+
+        <!-- <button class="method cashapp" type="button">CashApp</button> -->
+        <!-- <button class="method zelle" type="button">Zelle</button> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL UNIRSE -->
+  <div id="joinModal" class="join-overlay">
+    <div class="modal-content join-modal-content">
+      <span class="close-modal" id="closeJoinModal">&times;</span>
+
+      <div class="join-modal-premium-head">
+        <div class="join-modal-premium-badge">✦ Registro de comunidad</div>
+        <h3>Únete a Mujeres con Propósito</h3>
+        <p>Completa tus datos para formar parte de una comunidad de fe, crecimiento espiritual y conexión entre mujeres con propósito.</p>
+      </div>
+
+      <form
+        id="joinForm"
+        class="join-form join-form-premium"
+        method="POST"
+      >
+        <div class="join-form-section">
+          <div class="join-section-title"><span>1</span> Información personal</div>
+          <div class="join-form-grid">
+            <div class="join-field">
+              <label for="nombre">Nombre</label>
+              <input type="text" id="nombre" name="nombre" autocomplete="given-name" inputmode="text" required />
+            </div>
+
+            <div class="join-field">
+              <label for="apellido">Apellido</label>
+              <input type="text" id="apellido" name="apellido" autocomplete="family-name" inputmode="text" required />
+            </div>
+
+            <div class="join-field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" autocomplete="email" required />
+            </div>
+
+            <div class="join-field">
+              <label for="telefono">Teléfono</label>
+              <input type="tel" id="telefono" name="telefono" autocomplete="tel" inputmode="tel" required />
+            </div>
+
+            <div class="join-field">
+              <label for="fecha_nacimiento">Fecha de nacimiento</label>
+              <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required />
+              <small>Usamos esta fecha para saludarte en tu cumpleaños.</small>
+            </div>
+
+            <div class="join-field">
+              <label for="estatus_matrimonial">Estatus matrimonial</label>
+              <select id="estatus_matrimonial" name="estatus_matrimonial" required>
+                <option value="">Seleccione una opción</option>
+                <option>Casada</option>
+                <option>Soltera</option>
+                <option>Divorciada</option>
+                <option>Viuda</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="join-form-section">
+          <div class="join-section-title"><span>2</span> Comunidad y ubicación</div>
+          <div class="join-form-grid">
+            <div class="join-field">
+              <label for="pais_nacimiento">País de nacimiento</label>
+              <select name="pais_nacimiento" id="pais_nacimiento" required>
+                <option value="">Seleccione un país</option>
+              </select>
+            </div>
+
+            <div class="join-field">
+              <label for="pais_residencia">País de residencia</label>
+              <select name="pais_residencia" id="pais_residencia" required>
+                <option value="">Seleccione un país</option>
+              </select>
+            </div>
+
+            <div class="join-field">
+              <label for="cristiana">¿Eres cristiana?</label>
+              <select id="cristiana" name="cristiana" required>
+                <option value="">Seleccione una opción</option>
+                <option>Sí</option>
+                <option>Todavía</option>
+              </select>
+            </div>
+
+            <div class="join-field">
+              <label for="comunidad">Comunidad a la que quiere pertenecer</label>
+              <select id="comunidad" name="comunidad" required>
+                <option value="">Seleccione una comunidad</option>
+                <option>Europa</option>
+                <option>Estados Unidos</option>
+                <option>República Dominicana</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="join-form-section">
+          <div class="join-section-title"><span>3</span> Detalles adicionales</div>
+          <div class="join-form-grid">
+            <div class="join-field">
+              <label for="hijos">¿Cuántos hijos tiene?</label>
+              <input type="number" id="hijos" name="hijos" min="0" step="1" value="0" />
+            </div>
+
+            <div class="join-field full-width">
+              <label for="comments">Comentarios</label>
+              <textarea id="comments" name="comments" placeholder="Comparte algún comentario adicional si deseas"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div id="joinMessage" class="form-message" style="display:none;"></div>
+
+        <div class="join-form-footer">
+          <p class="join-form-note">Al enviar este formulario, recibiremos tu solicitud y te enviaremos una confirmación por correo.</p>
+          <button type="submit" class="btn join-submit-btn">Enviar solicitud</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="social-follow">
+    <a href="https://instagram.com/mujeresconproposito930" target="_blank" rel="noopener noreferrer" class="social-icon instagram">
+      <i class="fab fa-instagram"></i>
+    </a>
+
+    <a href="https://facebook.com/mujeresconproposito930" target="_blank" rel="noopener noreferrer" class="social-icon facebook">
+      <i class="fab fa-facebook-f"></i>
+    </a>
+  </div>
+
+  <footer>
+    © Mujeres con Propósito — Todos los derechos reservados
+  </footer>
+
+  <a href="https://wa.me/1234567890" class="whatsapp-float" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 32 32" width="28" height="28" fill="white">
+      <path d="M16.001 3.2c-7.064 0-12.8 5.736-12.8 12.8 0 2.256.592 4.448 1.712 6.4l-1.824 6.672 6.848-1.792c1.856.992 3.936 1.52 6.064 1.52h.001c7.064 0 12.8-5.736 12.8-12.8s-5.736-12.8-12.8-12.8zm0 23.2h-.001c-1.888 0-3.728-.496-5.344-1.44l-.384-.224-4.064 1.056 1.088-3.984-.256-.416c-1.04-1.68-1.6-3.6-1.6-5.584 0-5.84 4.76-10.6 10.6-10.6s10.6 4.76 10.6 10.6-4.76 10.6-10.6 10.6zm5.792-7.92c-.32-.16-1.888-.928-2.176-1.04-.288-.112-.496-.16-.704.16-.208.32-.8 1.04-.992 1.248-.192.208-.368.224-.688.08-.32-.16-1.344-.496-2.56-1.584-.944-.84-1.584-1.872-1.776-2.192-.192-.32-.02-.496.144-.656.144-.144.32-.368.48-.56.16-.192.208-.32.32-.528.112-.208.064-.384-.032-.544-.096-.16-.704-1.696-.96-2.32-.256-.624-.512-.528-.704-.528-.192 0-.384-.016-.592-.016-.208 0-.544.08-.832.384-.288.304-1.088 1.056-1.088 2.576s1.12 2.992 1.28 3.2c.16.208 2.208 3.36 5.344 4.704.752.32 1.344.512 1.792.656.752.24 1.44.208 1.984.128.608-.096 1.888-.768 2.16-1.504.272-.736.272-1.376.192-1.504-.08-.128-.288-.208-.608-.368z"/>
+    </svg>
+  </a>
+  <script>
+    (function setCalendarTodayFallback() {
+      function updateCalendarDate() {
+        var calendarDate = document.getElementById("calendarTodayText");
+        if (!calendarDate) return;
+
+        var today = new Date();
+        var formattedDate = today.toLocaleDateString("es-ES", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        });
+
+        calendarDate.textContent = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", updateCalendarDate);
+      } else {
+        updateCalendarDate();
+      }
+        })();
+
+	  </script>
+  <script src="https://w.soundcloud.com/player/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

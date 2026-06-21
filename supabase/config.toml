@@ -1,0 +1,24 @@
+[functions.send-welcome-email]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-welcome-email/index.ts"
+
+[functions.send-admin-notification]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-admin-notification/index.ts"
+
+[functions.send-contact-email]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-contact-email/index.ts"
+
+[functions.send-birthday-emails]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-birthday-emails/index.ts"
+
+[functions.get-today-birthdays]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/get-today-birthdays/index.ts"
