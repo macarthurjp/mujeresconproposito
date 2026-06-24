@@ -173,14 +173,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const minutes = match[2];
     if (Number.isNaN(hour24) || hour24 < 0 || hour24 > 23) return String(timeValue || "").trim();
 
-    const period = hour24 >= 12 ? "PM" : "AM";
-    const hour12 = hour24 % 12 || 12;
-    return `${hour12}:${minutes} ${period}`;
+    return minutes === "00" ? `${hour24}h` : `${hour24}h${minutes}`;
   }
 
   function getTimeInputValue(scheduleText) {
     const value = String(scheduleText || "").trim();
     if (!value) return "";
+
+    const europeanHourMatch = value.match(/\b([01]?\d|2[0-3])h(?:([0-5]\d))?\b/i);
+    if (europeanHourMatch) {
+      return `${europeanHourMatch[1].padStart(2, "0")}:${europeanHourMatch[2] || "00"}`;
+    }
 
     const twentyFourHourMatch = value.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
     if (twentyFourHourMatch) {
@@ -2143,7 +2146,13 @@ function renderContactCalendar(apiData = {}) {
   }
 
   function extractEventTime(scheduleText) {
-    const match = String(scheduleText || "").match(/(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)?)/);
+    const value = String(scheduleText || "");
+    const europeanHourMatch = value.match(/\b([01]?\d|2[0-3])h(?:([0-5]\d))?\b/i);
+    if (europeanHourMatch) {
+      return `${Number(europeanHourMatch[1])}h${europeanHourMatch[2] || ""}`;
+    }
+
+    const match = value.match(/(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)?)/);
     return match ? match[1].replace(/\s+/g, " ").trim() : "Próximamente";
   }
 
