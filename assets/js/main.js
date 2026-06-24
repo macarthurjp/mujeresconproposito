@@ -2386,6 +2386,8 @@ function renderContactCalendar(apiData = {}) {
 	  const adminCancelBtn = document.getElementById("adminCancelBtn");
 	  const adminLogoutBtn = document.getElementById("adminLogoutBtn");
 	  const adminForgotPasswordBtn = document.getElementById("adminForgotPasswordBtn");
+	  const adminUsePasskeyBtn = document.getElementById("adminUsePasskeyBtn");
+	  const adminEnrollPasskeyBtn = document.getElementById("adminEnrollPasskeyBtn");
 
 	  function showAdminMsg(el, text, ok = true) {
 	    if (!el) return;
@@ -3255,6 +3257,22 @@ function renderContactCalendar(apiData = {}) {
 	    return Boolean(data?.session);
 	  }
 
+	  function unlockAdminPanel() {
+	    if (adminLoginCard) adminLoginCard.style.display = "none";
+	    if (adminDashboard) adminDashboard.style.display = "block";
+	    loadAdminContent().catch((error) => {
+	      console.error(error);
+	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
+	    });
+	  }
+
+	  async function requireActiveSessionForPasskey() {
+	    if (await hasPrivateAccessGranted()) return true;
+	    showAdminMsg(adminLoginMsg, "Por seguridad, primero entra con email y contrasena en este dispositivo.", false);
+	    adminAccessEmail?.focus();
+	    return false;
+	  }
+
 	  async function validateAdminPassword() {
 	    const email = adminAccessEmail?.value.trim() || "";
 	    const password = adminAccessCode?.value || "";
@@ -3302,13 +3320,7 @@ function renderContactCalendar(apiData = {}) {
 
 	  adminLoginBtn?.addEventListener("click", async function () {
 	    if (!await validateAdminPassword()) return;
-	
-	    if (adminLoginCard) adminLoginCard.style.display = "none";
-	    if (adminDashboard) adminDashboard.style.display = "block";
-	    loadAdminContent().catch((error) => {
-	      console.error(error);
-	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
-	    });
+	    unlockAdminPanel();
 	  });
 
 	  adminLoginDashboardBtn?.addEventListener("click", async function () {
@@ -3321,6 +3333,39 @@ function renderContactCalendar(apiData = {}) {
 	  });
 
 	  adminForgotPasswordBtn?.addEventListener("click", sendAdminPasswordReset);
+
+	  adminEnrollPasskeyBtn?.addEventListener("click", async function () {
+	    try {
+	      if (!window.McpPasskeyAuth) {
+	        showAdminMsg(adminLoginMsg, "Face ID/huella no esta disponible en este navegador.", false);
+	        return;
+	      }
+
+	      if (!await validateAdminPassword()) return;
+	      await window.McpPasskeyAuth.enroll(adminAccessEmail?.value || "");
+	      showAdminMsg(adminLoginMsg, "Face ID/huella activado en este dispositivo.", true);
+	      unlockAdminPanel();
+	    } catch (error) {
+	      console.error(error);
+	      showAdminMsg(adminLoginMsg, error?.message || "No se pudo activar Face ID/huella.", false);
+	    }
+	  });
+
+	  adminUsePasskeyBtn?.addEventListener("click", async function () {
+	    try {
+	      if (!window.McpPasskeyAuth) {
+	        showAdminMsg(adminLoginMsg, "Face ID/huella no esta disponible en este navegador.", false);
+	        return;
+	      }
+
+	      if (!await requireActiveSessionForPasskey()) return;
+	      await window.McpPasskeyAuth.verify();
+	      unlockAdminPanel();
+	    } catch (error) {
+	      console.error(error);
+	      showAdminMsg(adminLoginMsg, error?.message || "No se pudo verificar Face ID/huella.", false);
+	    }
+	  });
 
 	  adminLogoutBtn?.addEventListener("click", async function () {
 	    const client = getAdminSupabaseClient();

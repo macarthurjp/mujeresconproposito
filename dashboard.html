@@ -9,7 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260624-responsive-1" />
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260624-passkey-1" />
 </head>
 <body class="private-locked" data-private-page="dashboard">
   <section class="private-access-screen" id="dashboardAccessScreen">
@@ -26,6 +26,10 @@
       <div class="private-access-actions">
         <button type="button" class="btn" id="dashboardAdminBtn">Admin</button>
         <button type="button" class="btn" id="dashboardLoginBtn">Dashboard</button>
+      </div>
+      <div class="private-passkey-actions">
+        <button type="button" class="private-passkey-btn" id="dashboardUsePasskeyBtn">Usar Face ID / huella</button>
+        <button type="button" class="private-passkey-btn private-passkey-secondary" id="dashboardEnrollPasskeyBtn">Activar Face ID / huella</button>
       </div>
       <button type="button" class="private-cancel-btn" id="dashboardCancelBtn">Cancelar</button>
       <button type="button" class="private-link-btn" id="dashboardForgotPasswordBtn">Olvidé mi contraseña</button>
@@ -155,7 +159,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/js/dashboard.js?v=20260624-responsive-1"></script>
+  <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
+  <script src="assets/js/dashboard.js?v=20260624-passkey-1"></script>
 </body>
 
 </html>

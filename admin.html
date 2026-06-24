@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260624-gallery-contact-1" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260624-passkey-1" />
 </head>
 <body data-admin-page="true">
   <header>
@@ -51,6 +51,10 @@
         <div class="private-access-actions">
           <button type="button" class="btn" id="adminLoginBtn">Admin</button>
           <button type="button" class="btn" id="adminLoginDashboardBtn">Dashboard</button>
+        </div>
+        <div class="private-passkey-actions">
+          <button type="button" class="private-passkey-btn" id="adminUsePasskeyBtn">Usar Face ID / huella</button>
+          <button type="button" class="private-passkey-btn private-passkey-secondary" id="adminEnrollPasskeyBtn">Activar Face ID / huella</button>
         </div>
         <button type="button" class="private-cancel-btn" id="adminCancelBtn">Cancelar</button>
         <button type="button" class="private-link-btn" id="adminForgotPasswordBtn">Olvidé mi contraseña</button>
@@ -214,6 +218,7 @@
 
   <script src="https://w.soundcloud.com/player/api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/js/main.js?v=20260624-contact-emails-1"></script>
+  <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
+  <script src="assets/js/main.js?v=20260624-passkey-1"></script>
 </body>
 </html>

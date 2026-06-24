@@ -43,6 +43,8 @@ const dashboardAdminBtn = document.getElementById("dashboardAdminBtn");
 const dashboardCancelBtn = document.getElementById("dashboardCancelBtn");
 const dashboardForgotPasswordBtn = document.getElementById("dashboardForgotPasswordBtn");
 const dashboardLoginMsg = document.getElementById("dashboardLoginMsg");
+const dashboardUsePasskeyBtn = document.getElementById("dashboardUsePasskeyBtn");
+const dashboardEnrollPasskeyBtn = document.getElementById("dashboardEnrollPasskeyBtn");
 const pdfArea = document.getElementById("pdfArea");
 let dashboardLoaded = false;
 
@@ -123,6 +125,13 @@ async function hasPrivateAccessGranted() {
   }
 
   return Boolean(data?.session);
+}
+
+async function requireActiveSessionForPasskey() {
+  if (await hasPrivateAccessGranted()) return true;
+  showDashboardLoginMsg("Por seguridad, primero entra con email y contrasena en este dispositivo.");
+  dashboardAccessEmail?.focus();
+  return false;
 }
 
 function unlockDashboard() {
@@ -493,6 +502,43 @@ dashboardCancelBtn?.addEventListener("click", function () {
 });
 
 dashboardForgotPasswordBtn?.addEventListener("click", sendDashboardPasswordReset);
+
+dashboardEnrollPasskeyBtn?.addEventListener("click", async function () {
+  try {
+    if (!window.McpPasskeyAuth) {
+      showDashboardLoginMsg("Face ID/huella no esta disponible en este navegador.");
+      return;
+    }
+
+    if (!await validateDashboardPassword()) return;
+    await window.McpPasskeyAuth.enroll(dashboardAccessEmail?.value || "");
+    if (dashboardLoginMsg) {
+      dashboardLoginMsg.style.display = "block";
+      dashboardLoginMsg.className = "form-message ok";
+      dashboardLoginMsg.textContent = "Face ID/huella activado en este dispositivo.";
+    }
+    unlockDashboard();
+  } catch (error) {
+    console.error(error);
+    showDashboardLoginMsg(error?.message || "No se pudo activar Face ID/huella.");
+  }
+});
+
+dashboardUsePasskeyBtn?.addEventListener("click", async function () {
+  try {
+    if (!window.McpPasskeyAuth) {
+      showDashboardLoginMsg("Face ID/huella no esta disponible en este navegador.");
+      return;
+    }
+
+    if (!await requireActiveSessionForPasskey()) return;
+    await window.McpPasskeyAuth.verify();
+    unlockDashboard();
+  } catch (error) {
+    console.error(error);
+    showDashboardLoginMsg(error?.message || "No se pudo verificar Face ID/huella.");
+  }
+});
 
 dashboardLogoutBtn?.addEventListener("click", async function () {
   const client = getDashboardSupabaseClient();

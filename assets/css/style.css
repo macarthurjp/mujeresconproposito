@@ -5760,6 +5760,31 @@ img:not([src]) {
     box-shadow: 0 20px 42px rgba(176,95,95,0.22) !important;
 }
 
+.private-passkey-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    margin-top: 16px !important;
+}
+
+.private-passkey-btn {
+    width: 100% !important;
+    min-height: 58px !important;
+    border: 1px solid rgba(176,95,95,0.18) !important;
+    border-radius: 999px !important;
+    background: rgba(255,255,255,0.9) !important;
+    color: #7a4f4c !important;
+    font: inherit !important;
+    font-size: clamp(0.9rem, 1.7vw, 1.05rem) !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+    box-shadow: 0 12px 26px rgba(74,39,32,0.08) !important;
+}
+
+.private-passkey-secondary {
+    background: rgba(255,242,240,0.92) !important;
+}
+
 .private-cancel-btn {
     width: 100% !important;
     min-height: 88px !important;
@@ -6388,6 +6413,16 @@ img:not([src]) {
         margin-top: 24px !important;
     }
 
+    .private-passkey-actions {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+        margin-top: 14px !important;
+    }
+
+    .private-passkey-btn {
+        min-height: 52px !important;
+    }
+
     .admin-content-item {
         grid-template-columns: 58px minmax(0, 1fr) !important;
     }
@@ -6676,6 +6711,11 @@ img:not([src]) {
     margin-top: 28px !important;
 }
 
+.private-passkey-actions {
+    gap: 12px !important;
+    margin-top: 12px !important;
+}
+
 .private-access-actions .btn {
     min-height: 72px !important;
     border-radius: 24px !important;
@@ -6703,9 +6743,14 @@ img:not([src]) {
     }
 
     .private-access-actions .btn,
+    .private-passkey-btn,
     .private-cancel-btn {
         min-height: 58px !important;
         border-radius: 20px !important;
+    }
+
+    .private-passkey-actions {
+        grid-template-columns: 1fr !important;
     }
 }
 

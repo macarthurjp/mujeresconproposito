@@ -115,6 +115,31 @@ body {
   box-shadow: 0 20px 42px rgba(176,95,95,0.22);
 }
 
+.private-passkey-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.private-passkey-btn {
+  width: 100%;
+  min-height: 58px;
+  border: 1px solid rgba(176,95,95,0.18);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  color: #7a4f4c;
+  font: inherit;
+  font-size: clamp(0.9rem, 1.7vw, 1.05rem);
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(74,39,32,0.08);
+}
+
+.private-passkey-secondary {
+  background: rgba(255,242,240,0.92);
+}
+
 .private-cancel-btn {
   width: 100%;
   min-height: 88px;
@@ -551,6 +576,16 @@ tbody tr:hover td {
     grid-template-columns: 1fr;
     gap: 12px;
     margin-top: 24px;
+  }
+
+  .private-passkey-actions {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .private-passkey-btn {
+    min-height: 52px;
   }
 
   .topbar {
