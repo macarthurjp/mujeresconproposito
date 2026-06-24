@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
   const body = document.body;
 
-  const CONTACT_EMAIL = "mujeresconproposito930@gmail.com";
+  const CONTACT_EMAILS = ["mujeresconproposito930@gmail.com", "ing.arthur03@gmail.com"];
+  const CONTACT_EMAIL = CONTACT_EMAILS.join(", ");
 
   // Supabase configuration: reemplaza con tu proyecto Supabase.
   // Usa la URL del proyecto y la clave de API pública (Client API Key).
