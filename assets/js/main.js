@@ -165,6 +165,39 @@ document.addEventListener("DOMContentLoaded", function () {
     return data.publicUrl;
   }
 
+  function formatTimeForDisplay(timeValue) {
+    const match = String(timeValue || "").trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return String(timeValue || "").trim();
+
+    const hour24 = Number(match[1]);
+    const minutes = match[2];
+    if (Number.isNaN(hour24) || hour24 < 0 || hour24 > 23) return String(timeValue || "").trim();
+
+    const period = hour24 >= 12 ? "PM" : "AM";
+    const hour12 = hour24 % 12 || 12;
+    return `${hour12}:${minutes} ${period}`;
+  }
+
+  function getTimeInputValue(scheduleText) {
+    const value = String(scheduleText || "").trim();
+    if (!value) return "";
+
+    const twentyFourHourMatch = value.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
+    if (twentyFourHourMatch) {
+      return `${twentyFourHourMatch[1].padStart(2, "0")}:${twentyFourHourMatch[2]}`;
+    }
+
+    const twelveHourMatch = value.match(/\b(1[0-2]|0?[1-9]):([0-5]\d)\s*([AP]\.?M\.?)\b/i);
+    if (!twelveHourMatch) return "";
+
+    let hour = Number(twelveHourMatch[1]);
+    const minutes = twelveHourMatch[2];
+    const period = twelveHourMatch[3].toUpperCase().replace(/\./g, "");
+    if (period === "PM" && hour !== 12) hour += 12;
+    if (period === "AM" && hour === 12) hour = 0;
+    return `${String(hour).padStart(2, "0")}:${minutes}`;
+  }
+
   /* -----------------------------------------
      PAÍSES
   ----------------------------------------- */
@@ -2541,7 +2574,7 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "icono", label: "Icono actual o emoji", value: row.icono || "✦" },
 	        { name: "icono_file", label: "Cambiar icono con imagen (opcional)", type: "file" },
 	        { name: "titulo", label: "Título", value: row.titulo || "" },
-	        { name: "horario", label: "Horario", value: row.horario || "" },
+	        { name: "horario", label: "Horario", type: "time", value: getTimeInputValue(row.horario) },
 	        { name: "link", label: "Link", value: row.link || "" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
 	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
@@ -2619,10 +2652,11 @@ function renderContactCalendar(apiData = {}) {
 	                <label>
 	                  <span>${escapeHtml(field.label)}</span>
 	                  <input
-	                    type="${field.type === "number" ? "number" : "text"}"
+	                    type="${field.type === "number" ? "number" : field.type === "time" ? "time" : "text"}"
 	                    name="${escapeHtml(field.name)}"
 	                    value="${escapeHtml(field.value)}"
 	                    ${field.type === "number" ? "min=\"1\"" : ""}
+	                    ${field.type === "time" ? "required" : ""}
 	                  >
 	                </label>
 	              `;
@@ -2698,7 +2732,7 @@ function renderContactCalendar(apiData = {}) {
 	      await updateAdminRow("eventos", id, {
 	        icono,
 	        titulo: values.titulo || "",
-	        horario: values.horario || "",
+	        horario: formatTimeForDisplay(values.horario),
 	        link: values.link || "",
 	        orden: Number(values.orden || 1),
 	        activa: values.activa !== "false"
@@ -3196,7 +3230,7 @@ function renderContactCalendar(apiData = {}) {
       await window.mcpSaveEvento({
         icono,
         titulo: document.getElementById("adminEventoTitulo")?.value || "",
-        horario: document.getElementById("adminEventoHorario")?.value || "",
+        horario: formatTimeForDisplay(document.getElementById("adminEventoHorario")?.value || ""),
         link: document.getElementById("adminEventoLink")?.value || "",
         orden: document.getElementById("adminEventoOrden")?.value || 1
       });
