@@ -2482,6 +2482,13 @@ body.dark footer {
     margin: 0;
     text-align: center;
     padding-left: 0;
+    min-height: 2.25em;
+    max-width: min(100%, 420px);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.12;
 }
 
 .gallery-stack-card {
@@ -9470,12 +9477,13 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
 
 #timeline .timeline-horizontal {
   --timeline-card-width: clamp(260px, 32vw, 340px);
+  --timeline-line-top: 46px;
   position: relative !important;
   display: flex !important;
   flex-wrap: nowrap !important;
   gap: 24px !important;
   margin-top: 50px !important;
-  padding: 30px 8px 18px !important;
+  padding: 76px 8px 18px !important;
   overflow-x: auto !important;
   overflow-y: visible !important;
   scroll-snap-type: x mandatory !important;
@@ -9488,7 +9496,7 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
 #timeline .timeline-horizontal::before {
   content: "" !important;
   position: absolute !important;
-  top: 38px !important;
+  top: var(--timeline-line-top) !important;
   left: 8% !important;
   right: 8% !important;
   height: 3px !important;
@@ -9530,7 +9538,7 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
 #timeline .timeline-step::before {
   content: "" !important;
   position: absolute !important;
-  top: -16px !important;
+  top: calc((var(--timeline-line-top) * -1) + 1px) !important;
   left: 50% !important;
   width: 22px !important;
   height: 22px !important;
@@ -9539,6 +9547,19 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
   border: 4px solid #ffffff !important;
   background: #e7a8a0 !important;
   box-shadow: 0 0 0 8px rgba(231,168,160,0.18) !important;
+}
+
+#timeline .timeline-step::after {
+  content: "" !important;
+  position: absolute !important;
+  top: calc((var(--timeline-line-top) * -1) - 7px) !important;
+  left: 50% !important;
+  width: 46px !important;
+  height: 46px !important;
+  transform: translateX(-50%) !important;
+  border-radius: 50% !important;
+  background: rgba(231,168,160,0.18) !important;
+  z-index: -1 !important;
 }
 
 #timeline .timeline-step:hover {
@@ -9587,6 +9608,135 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
   }
 
   #timeline .timeline-step::before {
-    top: -12px !important;
+    top: calc((var(--timeline-line-top) * -1) + 1px) !important;
+  }
+}
+
+/* Gallery: fixed title area so long category names do not move the cards */
+.gallery-activity-title {
+  min-height: 2.25em !important;
+  max-width: min(100%, 420px) !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  overflow: hidden !important;
+  line-height: 1.12 !important;
+  text-wrap: balance !important;
+}
+
+@media (max-width: 680px) {
+  .gallery-activity-title {
+    min-height: auto !important;
+  }
+
+  .gallery-activity-block {
+    padding-bottom: 58px !important;
+  }
+
+  .gallery-stack-card {
+    width: min(88vw, 320px) !important;
+    max-width: 320px !important;
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    margin-bottom: 18px !important;
+  }
+
+  .gallery-stack-card .gallery-stack-photo {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    object-fit: cover !important;
+  }
+
+  .gallery-stack-overlay {
+    bottom: -64px !important;
+    gap: 8px !important;
+  }
+
+  .gallery-stack-count {
+    display: block !important;
+    line-height: 1.25 !important;
+    color: #7b6666 !important;
+  }
+}
+
+/* Admin mobile header: keep both navigation links visible as real buttons */
+@media (max-width: 680px) {
+  body[data-admin-page="true"] header {
+    position: sticky !important;
+    top: 10px !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    width: calc(100vw - 20px) !important;
+    min-height: 0 !important;
+    margin: 10px auto 0 !important;
+    padding: 12px !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    overflow: visible !important;
+  }
+
+  body[data-admin-page="true"] .header-left {
+    width: 100% !important;
+    max-width: none !important;
+    justify-content: center !important;
+  }
+
+  body[data-admin-page="true"] header nav {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  body[data-admin-page="true"] #nav-menu {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  body[data-admin-page="true"] #nav-menu li {
+    width: 100% !important;
+    list-style: none !important;
+  }
+
+  body[data-admin-page="true"] #nav-menu a {
+    width: 100% !important;
+    min-height: 46px !important;
+    padding: 10px 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(169,80,69,0.14) !important;
+    color: #5e4140 !important;
+    box-shadow: 0 10px 22px rgba(74,39,32,0.08) !important;
+    font-size: 0.92rem !important;
+    font-weight: 900 !important;
+    line-height: 1.1 !important;
+    text-align: center !important;
+    white-space: normal !important;
   }
 }
