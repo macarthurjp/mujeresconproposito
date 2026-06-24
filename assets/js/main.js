@@ -1170,12 +1170,14 @@ lightbox?.addEventListener("touchcancel", function () {
   function shouldAutoOpenJoinModal() {
     const params = new URLSearchParams(window.location.search);
     const formParam = (params.get("form") || "").toLowerCase();
-    return formParam === "unirse" || formParam === "join";
+    const hash = (window.location.hash || "").toLowerCase();
+    return formParam === "unirse" || formParam === "join" || hash === "#formulario" || hash === "#unirse";
   }
 
   if (shouldAutoOpenJoinModal()) {
     window.setTimeout(() => {
       openJoinModal();
+      document.getElementById("nombre")?.focus();
     }, 250);
   }
 
