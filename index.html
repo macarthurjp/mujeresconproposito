@@ -29,7 +29,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260624-css-cleanup-1" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260624-gallery-contact-1" />
   <style>
     /* JOIN FORM PREMIUM REDESIGN */
     .join-modal-content {
@@ -567,9 +567,6 @@
         <li><a href="#about">Nosotras</a></li>
         <li><a href="#timeline">Historia</a></li>
         <li><a href="#invitees">Destacadas</a></li>
-        <li><a href="#events">Eventos</a></li>
-        <li><a href="#gallery">Galería</a></li>
-        <li><a href="#soundcloud">Audios</a></li>
         <li><a href="#" id="openJoinModalMenu">Unirse</a></li>
         <li><a href="#" id="openDonateFromMenu" class="menu-donate-btn">Donar</a></li>
       </ul>
@@ -665,39 +662,38 @@
 
   <div class="divider-glow"></div>
 
-  <!-- TIMELINE -->
   <section id="timeline" class="timeline-section reveal">
     <div class="section-header-premium">
-        <h2><span>Nuestra Historia</span></h2>
-        <p>El camino que Dios ha trazado para Mujeres con Propósito.</p>
+      <h2><span>Nuestra Historia</span></h2>
+      <p>El camino que Dios ha trazado para Mujeres con Propósito.</p>
     </div>
 
-    <div class="timeline-horizontal">
-        <div class="timeline-step">
-            <span class="year">2021</span>
-            <h3>Nacimiento</h3>
-            <p>Nace Mujeres con Propósito.</p>
-        </div>
+    <div class="timeline-horizontal" aria-label="Historia de Mujeres con Propósito">
+      <div class="timeline-step">
+        <span class="year">2021</span>
+        <h3>Nacimiento</h3>
+        <p>Nace Mujeres con Propósito.</p>
+      </div>
 
-        <div class="timeline-step">
-            <span class="year">2022</span>
-            <h3>Primer Retiro</h3>
-            <p>Primer retiro espiritual.</p>
-        </div>
+      <div class="timeline-step">
+        <span class="year">2022</span>
+        <h3>Primer Retiro</h3>
+        <p>Primer retiro espiritual.</p>
+      </div>
 
-        <div class="timeline-step">
-            <span class="year">2023</span>
-            <h3>Expansión</h3>
-            <p>Expansión a nuevas ciudades.</p>
-        </div>
+      <div class="timeline-step">
+        <span class="year">2023</span>
+        <h3>Expansión</h3>
+        <p>Expansión a nuevas ciudades.</p>
+      </div>
 
-        <div class="timeline-step">
-            <span class="year">2024</span>
-            <h3>Comunidad</h3>
-            <p>Fortalecimiento de la comunidad y crecimiento digital.</p>
-        </div>
+      <div class="timeline-step">
+        <span class="year">2024</span>
+        <h3>Comunidad</h3>
+        <p>Fortalecimiento de la comunidad y crecimiento digital.</p>
+      </div>
     </div>
-</section>
+  </section>
 
   <div class="divider-glow"></div>
 
@@ -1314,25 +1310,14 @@
         calendarDate.textContent = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
       }
 
-      function toggleAdminSection() {
-        var adminSection = document.getElementById("admin");
-        if (!adminSection) return;
-        adminSection.style.display = window.location.hash === "#admin" ? "block" : "none";
-      }
-
       if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", function () {
-          updateCalendarDate();
-          toggleAdminSection();
-        });
+        document.addEventListener("DOMContentLoaded", updateCalendarDate);
       } else {
         updateCalendarDate();
-        toggleAdminSection();
       }
+        })();
 
-      window.addEventListener("hashchange", toggleAdminSection);
-    })();
-  </script>
+	  </script>
   <script src="https://w.soundcloud.com/player/api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/main.js?v=20260624-contact-emails-1"></script>
