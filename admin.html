@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260624-schedule-picker-1" />
 </head>
 <body data-admin-page="true">
   <header>
@@ -85,7 +85,25 @@
               <label>Título</label>
               <input type="text" id="adminEventoTitulo" placeholder="Ej: Oración Matutina" required />
 
-              <label>Horario</label>
+              <label>Frecuencia</label>
+              <select id="adminEventoFrecuencia" required>
+                <option value="diario">Diario</option>
+                <option value="semanal">Semanal</option>
+                <option value="dos-veces">Dos veces a la semana</option>
+              </select>
+
+              <div class="admin-schedule-days" id="adminEventoDias">
+                <span>Día(s)</span>
+                <label><input type="checkbox" value="Lunes" /> Lunes</label>
+                <label><input type="checkbox" value="Martes" /> Martes</label>
+                <label><input type="checkbox" value="Miércoles" /> Miércoles</label>
+                <label><input type="checkbox" value="Jueves" /> Jueves</label>
+                <label><input type="checkbox" value="Viernes" /> Viernes</label>
+                <label><input type="checkbox" value="Sábado" /> Sábado</label>
+                <label><input type="checkbox" value="Domingo" /> Domingo</label>
+              </div>
+
+              <label>Hora</label>
               <input type="time" id="adminEventoHorario" required />
 
               <label>Link</label>
@@ -186,6 +204,6 @@
 
   <script src="https://w.soundcloud.com/player/api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/js/main.js?v=20260624-time-picker-1"></script>
+  <script src="assets/js/main.js?v=20260624-schedule-picker-1"></script>
 </body>
 </html>

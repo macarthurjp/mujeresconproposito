@@ -6397,6 +6397,56 @@ img:not([src]) {
     line-height: 1.35 !important;
 }
 
+.admin-schedule-days,
+.admin-edit-schedule {
+    display: grid !important;
+    gap: 10px !important;
+}
+
+.admin-schedule-days.is-hidden {
+    display: none !important;
+}
+
+.admin-schedule-days > span,
+.admin-edit-schedule > span {
+    color: #5f4641 !important;
+    font-size: 1.05rem !important;
+    font-weight: 850 !important;
+}
+
+.admin-schedule-days {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)) !important;
+    padding: 14px !important;
+    border-radius: 18px !important;
+    border: 1px solid rgba(166,75,67,0.14) !important;
+    background: rgba(255,247,246,0.72) !important;
+}
+
+.admin-schedule-days > span {
+    grid-column: 1 / -1 !important;
+}
+
+.admin-schedule-days label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin: 0 !important;
+    padding: 10px 11px !important;
+    border-radius: 14px !important;
+    background: rgba(255,255,255,0.86) !important;
+    border: 1px solid rgba(166,75,67,0.12) !important;
+    color: #5f4641 !important;
+    font-size: 0.98rem !important;
+    font-weight: 800 !important;
+}
+
+.admin-schedule-days input[type="checkbox"] {
+    width: 18px !important;
+    min-height: 18px !important;
+    accent-color: #a64b43 !important;
+}
+
 .admin-edit-form input,
 .admin-edit-form select {
     width: 100% !important;
@@ -7935,6 +7985,26 @@ body[data-admin-page="true"] .admin-form textarea:focus {
     background: #ffffff !important;
     box-shadow: 0 0 0 4px rgba(231,168,160,0.17), 0 12px 26px rgba(74,39,32,0.055) !important;
     transform: translateY(-1px) !important;
+}
+
+body[data-admin-page="true"] .admin-schedule-days {
+    grid-column: 1 / -1 !important;
+    align-items: stretch !important;
+}
+
+body[data-admin-page="true"] .admin-schedule-days label {
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+}
+
+body[data-admin-page="true"] .admin-schedule-days input[type="checkbox"] {
+    width: 18px !important;
+    max-width: 18px !important;
+    min-height: 18px !important;
+    height: 18px !important;
+    padding: 0 !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
 }
 
 body[data-admin-page="true"] .admin-form input[type="file"] {

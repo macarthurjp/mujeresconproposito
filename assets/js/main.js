@@ -198,6 +198,71 @@ document.addEventListener("DOMContentLoaded", function () {
     return `${String(hour).padStart(2, "0")}:${minutes}`;
   }
 
+  const EVENT_WEEK_DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+  function joinSpanishList(items) {
+    const cleanItems = Array.isArray(items) ? items.filter(Boolean) : [];
+    if (cleanItems.length <= 1) return cleanItems[0] || "";
+    if (cleanItems.length === 2) return `${cleanItems[0]} y ${cleanItems[1]}`;
+    return `${cleanItems.slice(0, -1).join(", ")} y ${cleanItems[cleanItems.length - 1]}`;
+  }
+
+  function getScheduleParts(scheduleText) {
+    const value = String(scheduleText || "").trim();
+    const lowerValue = value.toLowerCase();
+    const days = EVENT_WEEK_DAYS.filter((day) => lowerValue.includes(day.toLowerCase()));
+    const frequency = lowerValue.includes("diario") || lowerValue.includes("lunes a viernes")
+      ? "diario"
+      : days.length >= 2
+        ? "dos-veces"
+        : "semanal";
+
+    return {
+      frequency,
+      days,
+      time: getTimeInputValue(value)
+    };
+  }
+
+  function buildEventSchedule({ frequency, days, time }) {
+    const selectedDays = Array.isArray(days) ? days.filter(Boolean) : [];
+    const displayTime = formatTimeForDisplay(time);
+
+    if (!displayTime) {
+      throw new Error("Selecciona la hora del evento.");
+    }
+
+    if (frequency === "diario") {
+      return `Diario · ${displayTime}`;
+    }
+
+    if (frequency === "semanal") {
+      if (selectedDays.length !== 1) {
+        throw new Error("Para un evento semanal, selecciona exactamente 1 día.");
+      }
+      return `${selectedDays[0]} · ${displayTime}`;
+    }
+
+    if (frequency === "dos-veces") {
+      if (selectedDays.length !== 2) {
+        throw new Error("Para dos veces a la semana, selecciona exactamente 2 días.");
+      }
+      return `${joinSpanishList(selectedDays)} · ${displayTime}`;
+    }
+
+    throw new Error("Selecciona una frecuencia válida.");
+  }
+
+  function updateScheduleDaysVisibility(frequencySelect, daysContainer) {
+    if (!frequencySelect || !daysContainer) return;
+    const isDaily = frequencySelect.value === "diario";
+    daysContainer.classList.toggle("is-hidden", isDaily);
+    daysContainer.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+      checkbox.disabled = isDaily;
+      if (isDaily) checkbox.checked = false;
+    });
+  }
+
   /* -----------------------------------------
      PAÍSES
   ----------------------------------------- */
@@ -2574,7 +2639,7 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "icono", label: "Icono actual o emoji", value: row.icono || "✦" },
 	        { name: "icono_file", label: "Cambiar icono con imagen (opcional)", type: "file" },
 	        { name: "titulo", label: "Título", value: row.titulo || "" },
-	        { name: "horario", label: "Horario", type: "time", value: getTimeInputValue(row.horario) },
+	        { name: "horario", label: "Horario", type: "schedule", value: row.horario || "" },
 	        { name: "link", label: "Link", value: row.link || "" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
 	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
@@ -2648,6 +2713,31 @@ function renderContactCalendar(apiData = {}) {
 	                `;
 	              }
 
+	              if (field.type === "schedule") {
+	                const parts = getScheduleParts(field.value);
+	                const dayCheckboxes = EVENT_WEEK_DAYS.map((day) => `
+	                  <label>
+	                    <input type="checkbox" name="${escapeHtml(field.name)}_dias" value="${escapeHtml(day)}" ${parts.days.includes(day) ? "checked" : ""}>
+	                    ${escapeHtml(day)}
+	                  </label>
+	                `).join("");
+	                return `
+	                  <div class="admin-edit-schedule" data-schedule-group="${escapeHtml(field.name)}">
+	                    <span>${escapeHtml(field.label)}</span>
+	                    <select name="${escapeHtml(field.name)}_frecuencia" data-schedule-frequency>
+	                      <option value="diario" ${parts.frequency === "diario" ? "selected" : ""}>Diario</option>
+	                      <option value="semanal" ${parts.frequency === "semanal" ? "selected" : ""}>Semanal</option>
+	                      <option value="dos-veces" ${parts.frequency === "dos-veces" ? "selected" : ""}>Dos veces a la semana</option>
+	                    </select>
+	                    <div class="admin-schedule-days" data-schedule-days>
+	                      <span>Día(s)</span>
+	                      ${dayCheckboxes}
+	                    </div>
+	                    <input type="time" name="${escapeHtml(field.name)}_hora" value="${escapeHtml(parts.time)}" required>
+	                  </div>
+	                `;
+	              }
+
 	              return `
 	                <label>
 	                  <span>${escapeHtml(field.label)}</span>
@@ -2677,6 +2767,12 @@ function renderContactCalendar(apiData = {}) {
 
 	      document.body.appendChild(modal);
 	      document.body.style.overflow = "hidden";
+	      modal.querySelectorAll("[data-schedule-group]").forEach((group) => {
+	        const frequencySelect = group.querySelector("[data-schedule-frequency]");
+	        const daysContainer = group.querySelector("[data-schedule-days]");
+	        updateScheduleDaysVisibility(frequencySelect, daysContainer);
+	        frequencySelect?.addEventListener("change", () => updateScheduleDaysVisibility(frequencySelect, daysContainer));
+	      });
 	      modal.querySelector("input, select")?.focus();
 
 	      modal.addEventListener("click", (event) => {
@@ -2699,6 +2795,18 @@ function renderContactCalendar(apiData = {}) {
 	          values.icono_file = iconFile;
 	        } else {
 	          delete values.icono_file;
+	        }
+	        if (type === "eventos") {
+	          try {
+	            values.horario = buildEventSchedule({
+	              frequency: values.horario_frecuencia,
+	              days: formData.getAll("horario_dias"),
+	              time: values.horario_hora
+	            });
+	          } catch (error) {
+	            alert(error?.message || "Completa el horario del evento.");
+	            return;
+	          }
 	        }
 	        close(values);
 	      });
@@ -3217,6 +3325,21 @@ function renderContactCalendar(apiData = {}) {
     });
   });
 
+  const adminEventoFrecuencia = document.getElementById("adminEventoFrecuencia");
+  const adminEventoDias = document.getElementById("adminEventoDias");
+  updateScheduleDaysVisibility(adminEventoFrecuencia, adminEventoDias);
+  adminEventoFrecuencia?.addEventListener("change", () => {
+    updateScheduleDaysVisibility(adminEventoFrecuencia, adminEventoDias);
+  });
+
+  function getAdminEventScheduleFromForm() {
+    const frequency = adminEventoFrecuencia?.value || "diario";
+    const days = Array.from(adminEventoDias?.querySelectorAll("input[type='checkbox']:checked") || [])
+      .map((checkbox) => checkbox.value);
+    const time = document.getElementById("adminEventoHorario")?.value || "";
+    return buildEventSchedule({ frequency, days, time });
+  }
+
   document.getElementById("adminEventForm")?.addEventListener("submit", async function (event) {
     event.preventDefault();
     const msg = document.getElementById("adminEventoMsg");
@@ -3230,12 +3353,13 @@ function renderContactCalendar(apiData = {}) {
       await window.mcpSaveEvento({
         icono,
         titulo: document.getElementById("adminEventoTitulo")?.value || "",
-        horario: formatTimeForDisplay(document.getElementById("adminEventoHorario")?.value || ""),
+        horario: getAdminEventScheduleFromForm(),
         link: document.getElementById("adminEventoLink")?.value || "",
         orden: document.getElementById("adminEventoOrden")?.value || 1
-      });
+	      });
 
 	      this.reset();
+	      updateScheduleDaysVisibility(adminEventoFrecuencia, adminEventoDias);
 	      showAdminMsg(msg, "Evento guardado correctamente.", true);
 	      await loadAdminContent();
 	    } catch (error) {
