@@ -42,7 +42,7 @@ alter table public.unirse add column if not exists ultimo_correo_cumpleanos time
 
 create index if not exists unirse_created_at_idx on public.unirse (created_at desc);
 create index if not exists unirse_comunidad_idx on public.unirse (comunidad);
-create unique index if not exists unirse_email_unique on public.unirse (lower(email));
+create index if not exists unirse_email_idx on public.unirse (lower(email));
 
 -- Mensajes del formulario de contacto.
 create table if not exists public.contact_messages (
@@ -129,7 +129,7 @@ create index if not exists galeria_categoria_idx on public.galeria (categoria);
 
 -- Storage usado por el admin web:
 -- Bucket esperado: mcp930-images
--- Carpetas usadas por el codigo: destacadas/ y galeria/
+-- Carpetas usadas por el codigo: eventos/, destacadas/ y galeria/
 
 -- Policies con Supabase Auth:
 -- - El sitio publico puede leer eventos/destacadas/galeria.
@@ -202,6 +202,11 @@ on public.contact_messages for insert
 to anon
 with check (true);
 
+insert into storage.buckets (id, name, public)
+values ('mcp930-images', 'mcp930-images', true)
+on conflict (id) do update
+set public = true;
+
 drop policy if exists "public read mcp930 images" on storage.objects;
 create policy "public read mcp930 images"
 on storage.objects for select
@@ -214,3 +219,16 @@ create policy "authenticated upload mcp930 images"
 on storage.objects for insert
 to authenticated
 with check (bucket_id = 'mcp930-images');
+
+drop policy if exists "authenticated update mcp930 images" on storage.objects;
+create policy "authenticated update mcp930 images"
+on storage.objects for update
+to authenticated
+using (bucket_id = 'mcp930-images')
+with check (bucket_id = 'mcp930-images');
+
+drop policy if exists "authenticated delete mcp930 images" on storage.objects;
+create policy "authenticated delete mcp930 images"
+on storage.objects for delete
+to authenticated
+using (bucket_id = 'mcp930-images');

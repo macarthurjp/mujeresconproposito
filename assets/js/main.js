@@ -244,7 +244,7 @@ function isImageUrl(value) {
   const url = String(value || "").trim();
 
   return /^https?:\/\/.+\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(url)
-    || /^https?:\/\/.+(supabase|googleusercontent|drive\.google|cloudinary|images|img)/i.test(url);
+    || /^https?:\/\/.*(supabase|googleusercontent|drive\.google|cloudinary|images|img)/i.test(url);
 }
    /* -----------------------------------------
      EVENTOS DINÁMICOS + CARRUSEL
@@ -2768,7 +2768,7 @@ function renderContactCalendar(apiData = {}) {
 
 	  function getVisibleEventsForImport() {
 	    return Array.from(document.querySelectorAll("#eventsGrid .card")).map((card, index) => ({
-	      icono: card.querySelector(".card-icon")?.textContent.trim() || "✦",
+	      icono: card.querySelector(".card-icon img")?.getAttribute("src") || card.querySelector(".card-icon")?.textContent.trim() || "✦",
 	      titulo: card.querySelector("h3")?.textContent.trim() || "",
 	      horario: card.querySelector("p")?.textContent.trim() || "",
 	      link: card.querySelector("a")?.getAttribute("href") || "#",
@@ -2778,13 +2778,23 @@ function renderContactCalendar(apiData = {}) {
 	  }
 
 	  function getVisibleInviteesForImport() {
-	    return Array.from(document.querySelectorAll("#inviteesTrack .card")).map((card, index) => ({
+	    const visibleItems = Array.from(document.querySelectorAll("#inviteesTrack .card")).map((card, index) => ({
 	      foto_url: card.dataset.foto || card.querySelector("img")?.getAttribute("src") || "",
 	      nombre: card.dataset.nombre || card.querySelector("h3")?.textContent.trim() || "",
 	      titulo: card.dataset.titulo || card.querySelector(".invitee-title")?.textContent.trim() || "",
 	      orden: index + 1,
 	      activa: true
 	    })).filter((item) => item.foto_url && item.nombre);
+
+	    const fallbackItems = getLocalInviteesFallback().map((item, index) => ({
+	      foto_url: item.foto,
+	      nombre: item.nombre,
+	      titulo: item.titulo,
+	      orden: item.orden || index + 1,
+	      activa: true
+	    }));
+
+	    return [...visibleItems, ...fallbackItems];
 	  }
 
 	  function getVisibleGalleryForImport() {
@@ -2794,7 +2804,7 @@ function renderContactCalendar(apiData = {}) {
 	      { id: "eu", categoria: "eu" }
 	    ];
 
-	    return regions.flatMap((region) => {
+	    const visibleItems = regions.flatMap((region) => {
 	      const container = document.getElementById(region.id);
 	      if (!container) return [];
 
@@ -2826,6 +2836,16 @@ function renderContactCalendar(apiData = {}) {
 	        activa: true
 	      }));
 	    }).filter((item) => item.foto_url);
+
+	    const fallbackItems = getLocalGalleryFallback().map((item, index) => ({
+	      foto_url: item.foto,
+	      categoria: getGalleryRegionKey(item.categoria) || "usa",
+	      texto: item.texto || "Actividad",
+	      orden: item.orden || index + 1,
+	      activa: true
+	    }));
+
+	    return [...visibleItems, ...fallbackItems];
 	  }
 
 	  function isDuplicateAdminItem(type, item) {
@@ -2844,6 +2864,134 @@ function renderContactCalendar(apiData = {}) {
 	    return rows.some((row) => String(row.foto_url || "") === String(item.foto_url || ""));
 	  }
 
+	  function isMcpStorageUrl(value) {
+	    return String(value || "").includes("/storage/v1/object/public/mcp930-images/");
+	  }
+
+	  function shouldCopyImageToStorage(value) {
+	    const raw = String(value || "").trim();
+	    if (!raw || raw === "✦") return false;
+	    if (isMcpStorageUrl(raw)) return false;
+	    return isImageUrl(raw) || raw.startsWith("assets/");
+	  }
+
+	  function buildImportFileName(sourceUrl, fallbackName = "imagen") {
+	    try {
+	      const url = new URL(sourceUrl, window.location.href);
+	      const name = decodeURIComponent(url.pathname.split("/").pop() || fallbackName);
+	      return name.includes(".") ? name : `${name}.jpg`;
+	    } catch (_) {
+	      return `${fallbackName}.jpg`;
+	    }
+	  }
+
+	  function getGoogleDriveImageId(sourceUrl) {
+	    try {
+	      const url = new URL(sourceUrl, window.location.href);
+	      if (!url.hostname.includes("drive.google.com")) return "";
+
+	      const queryId = url.searchParams.get("id");
+	      if (queryId) return queryId;
+
+	      const filePathMatch = url.pathname.match(/\/d\/([^/]+)/);
+	      return filePathMatch?.[1] || "";
+	    } catch (_) {
+	      return "";
+	    }
+	  }
+
+	  function getImportFetchUrl(sourceUrl) {
+	    const driveId = getGoogleDriveImageId(sourceUrl);
+	    if (driveId) return `https://lh3.googleusercontent.com/d/${driveId}=w1200`;
+	    return new URL(sourceUrl, window.location.href).href;
+	  }
+
+	  async function uploadImageUrlToMcpStorage(sourceUrl, folder, fallbackName) {
+	    if (!shouldCopyImageToStorage(sourceUrl)) return sourceUrl;
+
+	    const absoluteUrl = getImportFetchUrl(sourceUrl);
+	    const response = await fetch(absoluteUrl, { cache: "no-store" });
+
+	    if (!response.ok) {
+	      throw new Error(`No pude leer la imagen para importarla al bucket: ${sourceUrl}`);
+	    }
+
+	    const blob = await response.blob();
+	    const type = blob.type || "image/jpeg";
+	    const fileName = buildImportFileName(sourceUrl, fallbackName);
+	    const file = new File([blob], fileName, { type });
+
+	    return uploadImageToSupabaseBucket(file, "mcp930-images", folder);
+	  }
+
+	  function findExistingImportedItem(type, item) {
+	    const rows = adminContentCache[type] || [];
+
+	    if (type === "eventos") {
+	      return rows.find((row) => normalizeGalleryText(row.titulo) === normalizeGalleryText(item.titulo));
+	    }
+
+	    if (type === "destacadas") {
+	      return rows.find((row) =>
+	        normalizeGalleryText(row.nombre) === normalizeGalleryText(item.nombre) ||
+	        String(row.foto_url || "") === String(item.foto_url || "")
+	      );
+	    }
+
+	    return rows.find((row) => String(row.foto_url || "") === String(item.foto_url || ""));
+	  }
+
+	  async function prepareImportedItemForStorage(type, item) {
+	    if (type === "eventos") {
+	      return {
+	        ...item,
+	        icono: await uploadImageUrlToMcpStorage(item.icono, "eventos", item.titulo || "evento")
+	      };
+	    }
+
+	    if (type === "destacadas") {
+	      return {
+	        ...item,
+	        foto_url: await uploadImageUrlToMcpStorage(item.foto_url, "destacadas", item.nombre || "destacada")
+	      };
+	    }
+
+	    return {
+	      ...item,
+	      foto_url: await uploadImageUrlToMcpStorage(item.foto_url, "galeria", item.texto || "galeria")
+	    };
+	  }
+
+	  async function migrateExistingAdminImagesToStorage(type) {
+	    const table = type === "eventos" ? "eventos" : type === "destacadas" ? "destacadas" : "galeria";
+	    const rows = adminContentCache[type] || [];
+	    let updated = 0;
+
+	    for (const row of rows) {
+	      if (type === "eventos") {
+	        if (!shouldCopyImageToStorage(row.icono)) continue;
+	        const icono = await uploadImageUrlToMcpStorage(row.icono, "eventos", row.titulo || "evento");
+	        if (isMcpStorageUrl(icono)) {
+	          await updateAdminRow(table, row.id, { icono });
+	          updated += 1;
+	        }
+	        continue;
+	      }
+
+	      if (!shouldCopyImageToStorage(row.foto_url)) continue;
+	      const folder = type === "destacadas" ? "destacadas" : "galeria";
+	      const fallback = type === "destacadas" ? row.nombre : row.texto;
+	      const fotoUrl = await uploadImageUrlToMcpStorage(row.foto_url, folder, fallback || type);
+
+	      if (isMcpStorageUrl(fotoUrl)) {
+	        await updateAdminRow(table, row.id, { foto_url: fotoUrl });
+	        updated += 1;
+	      }
+	    }
+
+	    return updated;
+	  }
+
 	  async function importVisibleAdminContent(type) {
 	    const table = type === "eventos" ? "eventos" : type === "destacadas" ? "destacadas" : "galeria";
 	    const items = type === "eventos"
@@ -2851,19 +2999,42 @@ function renderContactCalendar(apiData = {}) {
 	      : type === "destacadas"
 	        ? getVisibleInviteesForImport()
 	        : getVisibleGalleryForImport();
-	    const freshItems = items.filter((item) => !isDuplicateAdminItem(type, item));
+	    const freshItems = [];
+	    let updatedItems = await migrateExistingAdminImagesToStorage(type);
 
-	    if (!freshItems.length) {
+	    for (const item of items) {
+	      const existing = findExistingImportedItem(type, item);
+	      const preparedItem = await prepareImportedItemForStorage(type, item);
+
+	      if (!existing) {
+	        freshItems.push(preparedItem);
+	        continue;
+	      }
+
+	      if (type === "eventos" && shouldCopyImageToStorage(existing.icono) && isMcpStorageUrl(preparedItem.icono)) {
+	        await updateAdminRow(table, existing.id, { icono: preparedItem.icono });
+	        updatedItems += 1;
+	      }
+
+	      if (type !== "eventos" && shouldCopyImageToStorage(existing.foto_url) && isMcpStorageUrl(preparedItem.foto_url)) {
+	        await updateAdminRow(table, existing.id, { foto_url: preparedItem.foto_url });
+	        updatedItems += 1;
+	      }
+	    }
+
+	    if (!freshItems.length && !updatedItems) {
 	      window.alert("No encontré contenido nuevo para importar.");
 	      return;
 	    }
 
 	    const client = getAdminSupabaseClient();
-	    const { error } = await client.from(table).insert(freshItems);
-	    if (error) throw error;
+	    if (freshItems.length) {
+	      const { error } = await client.from(table).insert(freshItems);
+	      if (error) throw error;
+	    }
 
 	    await refreshAdminAndSite();
-	    window.alert(`Importados ${freshItems.length} elementos.`);
+	    window.alert(`Importados ${freshItems.length} elementos. Actualizados ${updatedItems} enlaces al bucket.`);
 	  }
 
 	  document.querySelectorAll("[data-admin-import]").forEach((button) => {
