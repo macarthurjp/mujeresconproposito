@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260624-gallery-contact-1" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260624-css-cleanup-1" />
 </head>
 <body data-admin-page="true">
   <header>
@@ -73,38 +73,35 @@
         </div>
 
         <div class="admin-tab-panel active" id="admin-eventos">
-          <div class="admin-card">
+          <div class="admin-card admin-event-card-premium">
             <h3>Nuevo evento</h3>
-            <form id="adminEventForm" class="admin-form">
-              <label>Icono</label>
-              <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
-
-              <label>Imagen de icono</label>
-              <input type="file" id="adminEventoIconoFoto" accept="image/*" />
-
-              <label>Título</label>
-              <input type="text" id="adminEventoTitulo" placeholder="Ej: Oración Matutina" required />
-
-              <label>Frecuencia</label>
-              <select id="adminEventoFrecuencia" required>
-                <option value="diario">Diario</option>
-                <option value="semanal">Semanal</option>
-                <option value="dos-veces">Dos veces a la semana</option>
-              </select>
-
-              <div class="admin-schedule-days" id="adminEventoDias">
-                <span>Día(s)</span>
-                <label><input type="checkbox" value="Lunes" /> Lunes</label>
-                <label><input type="checkbox" value="Martes" /> Martes</label>
-                <label><input type="checkbox" value="Miércoles" /> Miércoles</label>
-                <label><input type="checkbox" value="Jueves" /> Jueves</label>
-                <label><input type="checkbox" value="Viernes" /> Viernes</label>
-                <label><input type="checkbox" value="Sábado" /> Sábado</label>
-                <label><input type="checkbox" value="Domingo" /> Domingo</label>
+            <form id="adminEventForm" class="admin-form admin-form-clean admin-event-form-premium">
+              <div class="admin-field admin-field-icon">
+                <label for="adminEventoIcono">Icono</label>
+                <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
               </div>
 
-              <label>
-                Hora
+              <div class="admin-field admin-field-icon-file">
+                <label for="adminEventoIconoFoto">Imagen de icono</label>
+                <input type="file" id="adminEventoIconoFoto" accept="image/*" />
+              </div>
+
+              <div class="admin-field admin-field-full">
+                <label for="adminEventoTitulo">Título</label>
+                <input type="text" id="adminEventoTitulo" placeholder="Ej: Oración Matutina" required />
+              </div>
+
+              <div class="admin-field">
+                <label for="adminEventoFrecuencia">Frecuencia</label>
+                <select id="adminEventoFrecuencia" required>
+                  <option value="diario">Diario</option>
+                  <option value="semanal">Semanal</option>
+                  <option value="dos-veces">Dos veces a la semana</option>
+                </select>
+              </div>
+
+              <div class="admin-field admin-field-time">
+                <label>Hora</label>
                 <div class="admin-time-selects">
                   <select id="adminEventoHora" required></select>
                   <select id="adminEventoMinutos" required>
@@ -114,15 +111,35 @@
                     <option value="45">45 min</option>
                   </select>
                 </div>
-              </label>
+              </div>
 
-              <label>Link</label>
-              <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." required />
+              <div class="admin-field admin-field-full admin-schedule-days" id="adminEventoDias">
+                <span>Día(s)</span>
+                <div class="admin-days-grid">
+                  <label><input type="checkbox" value="Lunes" /> Lunes</label>
+                  <label><input type="checkbox" value="Martes" /> Martes</label>
+                  <label><input type="checkbox" value="Miércoles" /> Miércoles</label>
+                  <label><input type="checkbox" value="Jueves" /> Jueves</label>
+                  <label><input type="checkbox" value="Viernes" /> Viernes</label>
+                  <label><input type="checkbox" value="Sábado" /> Sábado</label>
+                  <label><input type="checkbox" value="Domingo" /> Domingo</label>
+                </div>
+              </div>
 
-              <label>Orden</label>
-              <input type="number" id="adminEventoOrden" value="1" min="1" />
+              <div class="admin-field admin-field-full">
+                <label for="adminEventoLink">Link</label>
+                <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." required />
+              </div>
 
-              <button type="submit" class="btn">Guardar evento</button>
+              <div class="admin-field admin-field-small">
+                <label for="adminEventoOrden">Orden</label>
+                <input type="number" id="adminEventoOrden" value="1" min="1" />
+              </div>
+
+              <div class="admin-form-actions">
+                <button type="submit" class="btn">Guardar evento</button>
+              </div>
+
               <div id="adminEventoMsg" class="form-message" style="display:none;"></div>
             </form>
           </div>
