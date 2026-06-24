@@ -9430,3 +9430,137 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
     padding: 0 14px !important;
   }
 }
+
+/* =========================================================
+   TIMELINE — HORIZONTAL SCROLL, SCALABLE
+========================================================= */
+#timeline.timeline-section {
+  width: min(1300px, calc(100% - 44px)) !important;
+  max-width: 1300px !important;
+  margin: 100px auto !important;
+  padding: 40px 0 !important;
+  overflow: visible !important;
+}
+
+#timeline .timeline-horizontal {
+  --timeline-card-width: clamp(260px, 32vw, 340px);
+  position: relative !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 24px !important;
+  margin-top: 50px !important;
+  padding: 30px 8px 18px !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  scroll-snap-type: x mandatory !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(166, 75, 67, 0.42) rgba(255, 247, 246, 0.82) !important;
+}
+
+#timeline .timeline-horizontal::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 38px !important;
+  left: 8% !important;
+  right: 8% !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, rgba(231,168,160,0.4), rgba(231,168,160,0.9), rgba(231,168,160,0.4)) !important;
+  z-index: 1 !important;
+}
+
+#timeline .timeline-horizontal::-webkit-scrollbar {
+  height: 10px !important;
+}
+
+#timeline .timeline-horizontal::-webkit-scrollbar-track {
+  border-radius: 999px !important;
+  background: rgba(255,247,246,0.82) !important;
+}
+
+#timeline .timeline-horizontal::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: rgba(166,75,67,0.38) !important;
+}
+
+#timeline .timeline-step {
+  position: relative !important;
+  z-index: 2 !important;
+  flex: 0 0 var(--timeline-card-width) !important;
+  min-width: var(--timeline-card-width) !important;
+  scroll-snap-align: start !important;
+  padding: 30px 20px !important;
+  text-align: center !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(231,168,160,0.20) !important;
+  background: rgba(255,255,255,0.75) !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.06) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+#timeline .timeline-step::before {
+  content: "" !important;
+  position: absolute !important;
+  top: -16px !important;
+  left: 50% !important;
+  width: 22px !important;
+  height: 22px !important;
+  transform: translateX(-50%) !important;
+  border-radius: 50% !important;
+  border: 4px solid #ffffff !important;
+  background: #e7a8a0 !important;
+  box-shadow: 0 0 0 8px rgba(231,168,160,0.18) !important;
+}
+
+#timeline .timeline-step:hover {
+  transform: translateY(-8px) !important;
+  box-shadow: 0 18px 34px rgba(231,168,160,0.15) !important;
+}
+
+#timeline .timeline-step .year {
+  display: inline-block !important;
+  margin-bottom: 14px !important;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  background: rgba(231,168,160,0.14) !important;
+  color: #9b5f5f !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+
+#timeline .timeline-step h3 {
+  margin: 0 0 10px !important;
+  font-size: 22px !important;
+  color: #70485f !important;
+}
+
+#timeline .timeline-step p {
+  margin: 0 !important;
+  color: #715853 !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+}
+
+@media (max-width: 900px) {
+  #timeline.timeline-section {
+    width: calc(100% - 28px) !important;
+    margin: 76px auto !important;
+  }
+
+  #timeline .timeline-horizontal {
+    --timeline-card-width: min(82vw, 340px);
+    gap: 18px !important;
+  }
+
+  #timeline .timeline-horizontal::before {
+    left: 32px !important;
+    right: 32px !important;
+  }
+
+  #timeline .timeline-step::before {
+    top: -12px !important;
+  }
+}
