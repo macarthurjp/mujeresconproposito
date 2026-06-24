@@ -1001,18 +1001,36 @@ tbody tr:hover td {
     padding: 15px !important;
   }
 
+  .brand {
+    min-width: 0 !important;
+  }
+
   .brand-badge {
     width: 48px !important;
     height: 48px !important;
     border-radius: 16px !important;
+    flex: 0 0 48px !important;
   }
 
   .brand h1 {
     font-size: 1.5rem !important;
+    overflow-wrap: anywhere !important;
   }
 
   .brand p {
     font-size: 0.82rem !important;
+  }
+
+  .top-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .top-actions .btn {
+    width: 100% !important;
+    min-height: 48px !important;
   }
 
   .dashboard-shell {
@@ -1041,6 +1059,12 @@ tbody tr:hover td {
     grid-template-columns: 1fr !important;
   }
 
+  .field input,
+  .field select {
+    min-height: 52px !important;
+    font-size: 1rem !important;
+  }
+
   .stat-card {
     border-radius: 22px !important;
   }
@@ -1048,6 +1072,26 @@ tbody tr:hover td {
   .table-wrap {
     border-radius: 20px !important;
     max-height: 520px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .table-wrap::after {
+    content: "Desliza para ver más columnas" !important;
+    position: sticky !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    display: block !important;
+    padding: 10px 12px !important;
+    background: rgba(255, 247, 246, 0.96) !important;
+    color: #8e403b !important;
+    font-size: 0.78rem !important;
+    font-weight: 850 !important;
+    border-top: 1px solid rgba(169,80,69,0.12) !important;
+  }
+
+  table {
+    min-width: 860px !important;
   }
 
   thead th,
@@ -1064,6 +1108,47 @@ tbody tr:hover td {
 
   .private-access-card {
     border-radius: 28px !important;
+    width: min(100%, calc(100vw - 24px)) !important;
+    padding: 26px 18px !important;
+  }
+
+  .private-access-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .brand h1 {
+    font-size: 1.18rem !important;
+  }
+
+  .panel,
+  .filters-panel,
+  .table-panel {
+    padding: 15px !important;
+  }
+
+  .panel-head {
+    display: grid !important;
+    gap: 10px !important;
+  }
+
+  .panel-head .btn {
+    width: 100% !important;
+  }
+
+  .stat-card {
+    padding: 17px 18px !important;
+  }
+
+  .private-access-card h3 {
+    font-size: 2rem !important;
+  }
+
+  .private-access-icon {
+    width: 82px !important;
+    height: 82px !important;
+    font-size: 32px !important;
   }
 }
 

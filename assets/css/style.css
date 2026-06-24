@@ -6447,6 +6447,13 @@ img:not([src]) {
     accent-color: #a64b43 !important;
 }
 
+.admin-time-selects {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+}
+
 .admin-edit-form input,
 .admin-edit-form select {
     width: 100% !important;

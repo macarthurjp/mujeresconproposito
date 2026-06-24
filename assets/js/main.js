@@ -201,6 +201,34 @@ document.addEventListener("DOMContentLoaded", function () {
     return `${String(hour).padStart(2, "0")}:${minutes}`;
   }
 
+  function getHourOptions(selectedHour = "") {
+    const selected = String(selectedHour || "").padStart(2, "0");
+    return Array.from({ length: 24 }, (_, hour) => {
+      const value = String(hour).padStart(2, "0");
+      return `<option value="${value}" ${value === selected ? "selected" : ""}>${hour}h</option>`;
+    }).join("");
+  }
+
+  function getMinuteOptions(selectedMinutes = "00") {
+    const selected = String(selectedMinutes || "00").padStart(2, "0");
+    return ["00", "15", "30", "45"].map((minutes) =>
+      `<option value="${minutes}" ${minutes === selected ? "selected" : ""}>${minutes} min</option>`
+    ).join("");
+  }
+
+  function splitTimeValue(timeValue) {
+    const [hour = "00", minutes = "00"] = String(timeValue || "00:00").split(":");
+    return {
+      hour: hour.padStart(2, "0"),
+      minutes: ["00", "15", "30", "45"].includes(minutes) ? minutes : "00"
+    };
+  }
+
+  function combineTimeParts(hour, minutes) {
+    if (hour === "" || hour == null) return "";
+    return `${String(hour).padStart(2, "0")}:${String(minutes || "00").padStart(2, "0")}`;
+  }
+
   const EVENT_WEEK_DAYS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
   function joinSpanishList(items) {
@@ -2724,6 +2752,7 @@ function renderContactCalendar(apiData = {}) {
 
 	              if (field.type === "schedule") {
 	                const parts = getScheduleParts(field.value);
+	                const timeParts = splitTimeValue(parts.time);
 	                const dayCheckboxes = EVENT_WEEK_DAYS.map((day) => `
 	                  <label>
 	                    <input type="checkbox" name="${escapeHtml(field.name)}_dias" value="${escapeHtml(day)}" ${parts.days.includes(day) ? "checked" : ""}>
@@ -2742,7 +2771,14 @@ function renderContactCalendar(apiData = {}) {
 	                      <span>Día(s)</span>
 	                      ${dayCheckboxes}
 	                    </div>
-	                    <input type="time" name="${escapeHtml(field.name)}_hora" value="${escapeHtml(parts.time)}" required>
+	                    <div class="admin-time-selects">
+	                      <select name="${escapeHtml(field.name)}_hora" required>
+	                        ${getHourOptions(timeParts.hour)}
+	                      </select>
+	                      <select name="${escapeHtml(field.name)}_minutos" required>
+	                        ${getMinuteOptions(timeParts.minutes)}
+	                      </select>
+	                    </div>
 	                  </div>
 	                `;
 	              }
@@ -2810,7 +2846,7 @@ function renderContactCalendar(apiData = {}) {
 	            values.horario = buildEventSchedule({
 	              frequency: values.horario_frecuencia,
 	              days: formData.getAll("horario_dias"),
-	              time: values.horario_hora
+	              time: combineTimeParts(values.horario_hora, values.horario_minutos)
 	            });
 	          } catch (error) {
 	            alert(error?.message || "Completa el horario del evento.");
@@ -3336,6 +3372,11 @@ function renderContactCalendar(apiData = {}) {
 
   const adminEventoFrecuencia = document.getElementById("adminEventoFrecuencia");
   const adminEventoDias = document.getElementById("adminEventoDias");
+  const adminEventoHora = document.getElementById("adminEventoHora");
+  const adminEventoMinutos = document.getElementById("adminEventoMinutos");
+  if (adminEventoHora && !adminEventoHora.options.length) {
+    adminEventoHora.innerHTML = getHourOptions("19");
+  }
   updateScheduleDaysVisibility(adminEventoFrecuencia, adminEventoDias);
   adminEventoFrecuencia?.addEventListener("change", () => {
     updateScheduleDaysVisibility(adminEventoFrecuencia, adminEventoDias);
@@ -3345,7 +3386,7 @@ function renderContactCalendar(apiData = {}) {
     const frequency = adminEventoFrecuencia?.value || "diario";
     const days = Array.from(adminEventoDias?.querySelectorAll("input[type='checkbox']:checked") || [])
       .map((checkbox) => checkbox.value);
-    const time = document.getElementById("adminEventoHorario")?.value || "";
+    const time = combineTimeParts(adminEventoHora?.value || "", adminEventoMinutos?.value || "00");
     return buildEventSchedule({ frequency, days, time });
   }
 
