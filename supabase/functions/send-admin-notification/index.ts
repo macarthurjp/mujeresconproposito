@@ -119,6 +119,8 @@ Deno.serve(async (req) => {
     const comments = String(data.comments || "").trim();
 
     const fullName = [nombre, apellido].filter(Boolean).join(" ") || "Nuevo registro";
+    const safeEmail = escapeHtml(email);
+    const dashboardUrl = "https://macarthurjp.github.io/mujeresconproposito/dashboard.html";
 
     const providerResponse = await sendEmail({
       to: contactEmail,
@@ -141,28 +143,61 @@ Deno.serve(async (req) => {
         `Comentarios: ${comments}`,
       ].join("\n"),
       html: `
-        <div style="font-family:Arial,sans-serif;color:#333;line-height:1.6;padding:20px;background:#fff7f6;">
-          <div style="max-width:650px;margin:0 auto;background:#ffffff;border-radius:18px;padding:32px;border:1px solid #f3d5d1;box-shadow:0 6px 18px rgba(0,0,0,0.08);">
-            <h2 style="color:#b05f5f;margin-top:0;">Nuevo formulario recibido</h2>
+        <!doctype html>
+        <html lang="es">
+          <body style="margin:0;padding:0;background-color:#f8f4f3;color:#354052;font-family:Arial,Helvetica,sans-serif;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8f4f3;">
+              <tr>
+                <td align="center" style="padding:38px 16px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:700px;background:#ffffff;border:1px solid #ecd8d4;border-radius:28px;overflow:hidden;box-shadow:0 18px 50px rgba(105,65,60,0.08);">
+                    <tr>
+                      <td align="center" style="padding:42px 34px 38px;background:linear-gradient(135deg,#fffaf8 0%,#fff4f2 100%);border-bottom:1px solid #f0ddda;">
+                        <div style="margin:0 0 16px;color:#ad7671;font-size:14px;font-weight:800;letter-spacing:4px;text-transform:uppercase;">Mujeres con Propósito</div>
+                        <h1 style="margin:0;color:#b55d5e;font-family:Georgia,'Times New Roman',serif;font-size:38px;line-height:1.15;">Nuevo formulario recibido</h1>
+                        <p style="margin:18px 0 0;color:#687180;font-size:17px;line-height:1.55;">
+                          <strong style="color:#354052;">${escapeHtml(fullName)}</strong> desea formar parte de la comunidad.
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:36px 34px 42px;">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;border:1px solid #efdcda;border-radius:20px;overflow:hidden;">
+                          <tr style="background:#fff8f6;"><td style="width:42%;padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Nombre</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(nombre)}</td></tr>
+                          <tr><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Apellido</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(apellido)}</td></tr>
+                          <tr style="background:#fff8f6;"><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Email</td><td style="padding:14px 16px;border-bottom:1px solid #f1e1df;"><a href="mailto:${safeEmail}" style="color:#a94f52;text-decoration:underline;word-break:break-all;">${safeEmail}</a></td></tr>
+                          <tr><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Teléfono</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(telefono)}</td></tr>
+                          <tr style="background:#fff8f6;"><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Fecha de nacimiento</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(fechaNacimiento)}</td></tr>
+                          <tr><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Estatus matrimonial</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(estatusMatrimonial)}</td></tr>
+                          <tr style="background:#fff8f6;"><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">País de nacimiento</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(paisNacimiento)}</td></tr>
+                          <tr><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">País de residencia</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(paisResidencia)}</td></tr>
+                          <tr style="background:#fff8f6;"><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Cristiana</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(cristiana)}</td></tr>
+                          <tr><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Comunidad</td><td style="padding:14px 16px;color:#a94f52;font-weight:800;border-bottom:1px solid #f1e1df;">${escapeHtml(comunidad)}</td></tr>
+                          <tr style="background:#fff8f6;"><td style="padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Hijos</td><td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${escapeHtml(hijos)}</td></tr>
+                          <tr><td style="padding:14px 16px;color:#775f5c;font-weight:800;vertical-align:top;">Comentarios</td><td style="padding:14px 16px;color:#354052;line-height:1.6;">${escapeHtml(comments) || "Sin comentarios"}</td></tr>
+                        </table>
 
-            <table style="width:100%;border-collapse:collapse;">
-              <tr><td style="padding:8px;font-weight:bold;">Nombre</td><td style="padding:8px;">${escapeHtml(nombre)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Apellido</td><td style="padding:8px;">${escapeHtml(apellido)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Email</td><td style="padding:8px;">${escapeHtml(email)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Teléfono</td><td style="padding:8px;">${escapeHtml(telefono)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Fecha de nacimiento</td><td style="padding:8px;">${escapeHtml(fechaNacimiento)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Estatus matrimonial</td><td style="padding:8px;">${escapeHtml(estatusMatrimonial)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">País de nacimiento</td><td style="padding:8px;">${escapeHtml(paisNacimiento)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">País de residencia</td><td style="padding:8px;">${escapeHtml(paisResidencia)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Cristiana</td><td style="padding:8px;">${escapeHtml(cristiana)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Comunidad</td><td style="padding:8px;">${escapeHtml(comunidad)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Hijos</td><td style="padding:8px;">${escapeHtml(hijos)}</td></tr>
-              <tr><td style="padding:8px;font-weight:bold;">Comentarios</td><td style="padding:8px;">${escapeHtml(comments)}</td></tr>
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:32px auto 22px;">
+                          <tr>
+                            ${email ? `<td align="center" bgcolor="#e7a39a" style="border-radius:999px;"><a href="mailto:${safeEmail}" style="display:inline-block;padding:15px 26px;color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;border-radius:999px;">Responder por correo</a></td><td width="12"></td>` : ""}
+                            <td align="center" bgcolor="#8f4547" style="border-radius:999px;"><a href="${dashboardUrl}" target="_blank" style="display:inline-block;padding:15px 26px;color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;border-radius:999px;">Abrir dashboard</a></td>
+                          </tr>
+                        </table>
+
+                        <p style="margin:0;text-align:center;color:#7a8290;font-size:13px;line-height:1.6;">Este registro fue enviado desde el formulario de Mujeres con Propósito.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="center" style="padding:22px 30px;background:#8f4547;color:#ffffff;">
+                        <p style="margin:0 0 5px;font-size:15px;font-weight:800;">Mujeres con Propósito</p>
+                        <p style="margin:0;color:#f5dddd;font-size:13px;">Notificación privada de registro</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
             </table>
-
-            <p style="margin-top:24px;">Este registro fue enviado desde el formulario de Mujeres con Propósito.</p>
-          </div>
-        </div>
+          </body>
+        </html>
       `,
     });
 
