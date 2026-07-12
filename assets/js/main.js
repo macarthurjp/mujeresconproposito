@@ -664,6 +664,7 @@ function isImageUrl(value) {
   let inviteesStartX = 0;
   let inviteesCurrentX = 0;
   let inviteesIsDragging = false;
+	  let inviteesAutoplay = null;
 	  let inviteesMoved = false;
 	  let hasSupabaseInviteesResponse = false;
 
@@ -735,11 +736,32 @@ function isImageUrl(value) {
     updateInviteesCarousel(true);
   }
 
+  function stopInviteesAutoplay() {
+    if (!inviteesAutoplay) return;
+    window.clearInterval(inviteesAutoplay);
+    inviteesAutoplay = null;
+  }
+
+  function startInviteesAutoplay() {
+    stopInviteesAutoplay();
+    if (!inviteesTrack || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const cards = Array.from(inviteesTrack.querySelectorAll(".card"));
+    if (cards.length <= getInviteesVisibleCount()) return;
+
+    inviteesAutoplay = window.setInterval(() => {
+      const maxIndex = getInviteesMaxIndex();
+      inviteesIndex = inviteesIndex >= maxIndex ? 0 : inviteesIndex + 1;
+      updateInviteesCarousel(true);
+    }, 5000);
+  }
+
   function bindInviteesSwipe() {
     if (!inviteesTrack || inviteesTrack.dataset.swipeBound === "invitees") return;
 
     inviteesTrack.addEventListener("touchstart", (e) => {
       if (!e.touches.length) return;
+      stopInviteesAutoplay();
       inviteesIsDragging = true;
       inviteesMoved = false;
       inviteesStartX = e.touches[0].clientX;
@@ -782,12 +804,14 @@ function isImageUrl(value) {
       setTimeout(() => {
         inviteesMoved = false;
       }, 0);
+      startInviteesAutoplay();
     });
 
       inviteesTrack.addEventListener("touchcancel", () => {
       inviteesIsDragging = false;
       updateInviteesCarousel(true);
       inviteesMoved = false;
+      startInviteesAutoplay();
     });
 
     inviteesTrack.dataset.swipeBound = "invitees";
@@ -806,20 +830,32 @@ function isImageUrl(value) {
 
     if (inviteesLeft.dataset.bound !== "true") {
       inviteesLeft.onclick = () => {
+        stopInviteesAutoplay();
         goToInviteesIndex(inviteesIndex - 1);
+        startInviteesAutoplay();
       };
       inviteesLeft.dataset.bound = "true";
     }
 
     if (inviteesRight.dataset.bound !== "true") {
       inviteesRight.onclick = () => {
+        stopInviteesAutoplay();
         goToInviteesIndex(inviteesIndex + 1);
+        startInviteesAutoplay();
       };
       inviteesRight.dataset.bound = "true";
     }
 
+    inviteesTrack.onmouseenter = stopInviteesAutoplay;
+    inviteesTrack.onmouseleave = startInviteesAutoplay;
+    inviteesLeft.onmouseenter = stopInviteesAutoplay;
+    inviteesRight.onmouseenter = stopInviteesAutoplay;
+    inviteesLeft.onmouseleave = startInviteesAutoplay;
+    inviteesRight.onmouseleave = startInviteesAutoplay;
+
     bindInviteesSwipe();
     refreshInviteesCarousel();
+    startInviteesAutoplay();
   }
 
   /* -----------------------------------------
@@ -1925,6 +1961,7 @@ function renderGaleria(galeria) {
 	    }
 
 	    if (!normalizedInvitees.length) {
+	      stopInviteesAutoplay();
 	      grid.innerHTML = `
 	        <div class="card">
 	          <h3>Sin destacadas publicadas</h3>
@@ -2209,6 +2246,26 @@ function renderContactCalendar(apiData = {}) {
     return match ? match[1].replace(/\s+/g, " ").trim() : "Próximamente";
   }
 
+  function getEventTimeMinutes(scheduleText) {
+    const value = String(scheduleText || "");
+    const europeanHourMatch = value.match(/\b([01]?\d|2[0-3])h(?:([0-5]\d))?\b/i);
+    if (europeanHourMatch) {
+      return Number(europeanHourMatch[1]) * 60 + Number(europeanHourMatch[2] || 0);
+    }
+
+    const timeMatch = value.match(/\b(\d{1,2}):(\d{2})\s*(AM|PM)?\b/i);
+    if (!timeMatch) return Number.MAX_SAFE_INTEGER;
+
+    let hour = Number(timeMatch[1]);
+    const minutes = Number(timeMatch[2]);
+    const meridiem = String(timeMatch[3] || "").toUpperCase();
+
+    if (meridiem === "AM" && hour === 12) hour = 0;
+    if (meridiem === "PM" && hour < 12) hour += 12;
+
+    return hour * 60 + minutes;
+  }
+
   function getNextActivity(itemDays = []) {
     if (!itemDays.length) return null;
 
@@ -2245,6 +2302,7 @@ function renderContactCalendar(apiData = {}) {
       title: item.title,
       schedule,
       time: extractEventTime(schedule),
+      timeMinutes: getEventTimeMinutes(schedule),
       description: schedule
         ? `${schedule}${item.description ? ` · ${item.description}` : ""}`
         : (item.description || "Actividad de Mujeres con Propósito."),
@@ -2262,7 +2320,7 @@ function renderContactCalendar(apiData = {}) {
       if (a.nextInfo.distance !== b.nextInfo.distance) {
         return a.nextInfo.distance - b.nextInfo.distance;
       }
-      return a.time.localeCompare(b.time, undefined, { numeric: true, sensitivity: "base" });
+      return a.timeMinutes - b.timeMinutes;
     });
 
   const nextActivity = upcomingActivities[0] || null;
