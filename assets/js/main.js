@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function sendJoinToSupabase(payload) {
     return supabaseInsert("unirse", {
+      id: payload.id,
       nombre: payload.nombre,
       apellido: payload.apellido,
       email: payload.email,
@@ -106,6 +107,14 @@ document.addEventListener("DOMContentLoaded", function () {
       apellido: payload.apellido || "",
       email: payload.email || "",
       comunidad: payload.comunidad || ""
+    });
+  }
+
+  async function sendBirthdayEmailForNewMember(payload) {
+    if (!payload.id) return { ok: false, skipped: true };
+
+    return invokeEmailEdgeFunction("send-birthday-emails", {
+      memberId: payload.id
     });
   }
 
@@ -1354,6 +1363,17 @@ lightbox?.addEventListener("touchcancel", function () {
     return String(value || "").replace(/[^\d]/g, "");
   }
 
+  function createRegistrationId() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0"));
+    return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10).join("")}`;
+  }
+
   function bindJoinInputSanitizers() {
     const nameFields = [
       document.getElementById("nombre"),
@@ -1464,6 +1484,7 @@ lightbox?.addEventListener("touchcancel", function () {
     const originalBtnText = submitBtn ? submitBtn.textContent : "Enviar";
 
     const payload = {
+      id: createRegistrationId(),
       action: "register",
       nombre: sanitizeJoinName(document.getElementById("nombre")?.value || "").trim(),
       apellido: sanitizeJoinName(document.getElementById("apellido")?.value || "").trim(),
@@ -1521,7 +1542,8 @@ lightbox?.addEventListener("touchcancel", function () {
 
       const emailResults = await Promise.allSettled([
         sendWelcomeEmailWithEdgeFunction(payload),
-        sendAdminRegistrationEmailWithEdgeFunction(payload)
+        sendAdminRegistrationEmailWithEdgeFunction(payload),
+        sendBirthdayEmailForNewMember(payload)
       ]);
 
       emailResults.forEach((result) => {

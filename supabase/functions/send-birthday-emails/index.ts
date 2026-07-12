@@ -71,6 +71,16 @@ function getLuxembourgTodayISO() {
   return `${year}-${month}-${day}`;
 }
 
+function getLuxembourgHour() {
+  const hour = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Luxembourg",
+    hour: "2-digit",
+    hour12: false,
+  }).format(new Date());
+
+  return Number(hour);
+}
+
 function wasSentToday(value: string | null) {
   if (!value) return false;
 
@@ -142,9 +152,18 @@ Deno.serve(async (req) => {
   try {
     const cronSecret = requiredEnv("BIRTHDAY_CRON_SECRET");
     const requestSecret = req.headers.get("x-cron-secret") || "";
+    const payload = await req.json().catch(() => ({}));
+    const memberId = String(payload?.memberId || "").trim();
+    const scheduled = payload?.scheduled === true;
+    const validMemberId = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(memberId);
+    const validCronSecret = Boolean(requestSecret) && requestSecret === cronSecret;
 
-    if (requestSecret !== cronSecret) {
+    if (!validCronSecret && !validMemberId && !scheduled) {
       return jsonResponse({ ok: false, error: "Unauthorized" }, 401);
+    }
+
+    if (scheduled && !validCronSecret && getLuxembourgHour() !== 8) {
+      return jsonResponse({ ok: true, skipped: true, reason: "outside_luxembourg_08_hour" });
     }
 
     const supabaseUrl = requiredEnv("SUPABASE_URL");
@@ -154,11 +173,17 @@ Deno.serve(async (req) => {
     const todayMonthDay = getLuxembourgTodayMonthDay();
     const todayISO = getLuxembourgTodayISO();
 
-    const { data, error } = await supabase
+    let membersQuery = supabase
       .from("unirse")
       .select("id,nombre,apellido,email,fecha_nacimiento,ultimo_correo_cumpleanos")
       .not("email", "is", null)
       .not("fecha_nacimiento", "is", null);
+
+    if (validMemberId) {
+      membersQuery = membersQuery.eq("id", memberId);
+    }
+
+    const { data, error } = await membersQuery;
 
     if (error) throw error;
 
@@ -246,7 +271,7 @@ Deno.serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      results.push({ id: member.id, email: member.email, providerResponse });
+      results.push({ id: member.id, providerResponse });
     }
 
     return jsonResponse({
@@ -255,7 +280,7 @@ Deno.serve(async (req) => {
       birthdayKey: todayMonthDay,
       checked: (data || []).length,
       sent: results.length,
-      results,
+      results: validCronSecret ? results : results.map(({ id }) => ({ id })),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
