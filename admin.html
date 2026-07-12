@@ -15,7 +15,7 @@
   <header>
     <div class="header-left">
       <a href="index.html" class="logo">
-        <img src="assets/images/logo.png" alt="Mujeres con Propósito" />
+        <img src="assets/images/logo.webp" alt="Mujeres con Propósito" />
       </a>
       <h1>Admin</h1>
     </div>
@@ -107,18 +107,18 @@
                 <label><input type="checkbox" value="Domingo" /> Domingo</label>
               </div>
 
-              <label>
-                Hora
+              <div class="admin-time-field">
+                <span>Hora</span>
                 <div class="admin-time-selects">
-                  <select id="adminEventoHora" required></select>
-                  <select id="adminEventoMinutos" required>
+                  <select id="adminEventoHora" aria-label="Hora del evento" required></select>
+                  <select id="adminEventoMinutos" aria-label="Minutos del evento" required>
                     <option value="00">00 min</option>
                     <option value="15">15 min</option>
                     <option value="30">30 min</option>
                     <option value="45">45 min</option>
                   </select>
                 </div>
-              </label>
+              </div>
 
               <label>Link</label>
               <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." required />
@@ -219,6 +219,6 @@
   <script src="https://w.soundcloud.com/player/api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
-  <script src="assets/js/main.js?v=20260624-passkey-1"></script>
+  <script src="assets/js/main.js?v=20260712-soundcloud-1"></script>
 </body>
 </html>

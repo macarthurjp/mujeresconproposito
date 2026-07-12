@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Supabase configuration: reemplaza con tu proyecto Supabase.
   // Usa la URL del proyecto y la clave de API pública (Client API Key).
   const SUPABASE_URL = "https://jkunywiyiyidhyodsbfh.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprdW55d2l5aXlpZGh5b2RzYmZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4Nzk5OTYsImV4cCI6MjA5NzQ1NTk5Nn0.e0w2FTvxbeKmAIUBY-xKPgnG5Txy3JIpiHi6HSeoT68";
+  const SUPABASE_ANON_KEY = "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
 
   async function supabaseInsert(table, record) {
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -1510,7 +1510,9 @@ lightbox?.addEventListener("touchcancel", function () {
 
         const error = new Error(`Error Supabase ${response.status}: ${text || response.statusText}`);
 
-        if (response.status === 409 || errorBody.code === "23505") {
+        if (response.status === 401) {
+          error.userMessage = "El registro no está disponible temporalmente. Intenta nuevamente más tarde.";
+        } else if (response.status === 409 || errorBody.code === "23505") {
           error.userMessage = "Este correo ya esta registrado. Si ya llenaste el formulario, no necesitas enviarlo otra vez.";
         }
 
@@ -3544,7 +3546,7 @@ function renderContactCalendar(apiData = {}) {
     /* -----------------------------------------
      SOUNDCLOUD MINI PLAYER
   ----------------------------------------- */
-  function initSoundCloudPlayer() {
+  function initSoundCloudPlayer(attempt = 0) {
     const iframe = document.getElementById("soundcloudWidget");
     const trackList = document.getElementById("scTrackList");
     // Limitar altura del listado (estilo Spotify compacto)
@@ -3553,7 +3555,24 @@ function renderContactCalendar(apiData = {}) {
     const prevBtn = document.getElementById("scPrevBtn");
     const nextBtn = document.getElementById("scNextBtn");
 
-    if (!iframe || !trackList || !title || !playBtn || !prevBtn || !nextBtn || !window.SC) return;
+    if (!iframe || !trackList || !title || !playBtn || !prevBtn || !nextBtn) return;
+
+    if (!window.SC?.Widget) {
+      if (attempt < 20) {
+        window.setTimeout(() => initSoundCloudPlayer(attempt + 1), 300);
+        return;
+      }
+
+      title.textContent = "No se pudo conectar con SoundCloud";
+      trackList.innerHTML = '<div class="sc-track-placeholder">Abre la playlist para escuchar los audios.</div>';
+      playBtn.disabled = true;
+      prevBtn.disabled = true;
+      nextBtn.disabled = true;
+      return;
+    }
+
+    if (iframe.dataset.scInitialized === "true") return;
+    iframe.dataset.scInitialized = "true";
 
     const widget = window.SC.Widget(iframe);
     let sounds = [];
@@ -3596,11 +3615,19 @@ function renderContactCalendar(apiData = {}) {
       });
     }
 
+    const readyTimeout = window.setTimeout(() => {
+      title.textContent = "SoundCloud tardó demasiado en responder";
+      trackList.innerHTML = '<div class="sc-track-placeholder">Usa “Ver playlist” para escuchar los audios.</div>';
+    }, 12000);
+
     widget.bind(window.SC.Widget.Events.READY, () => {
+      window.clearTimeout(readyTimeout);
       widget.getSounds(data => {
         sounds = Array.isArray(data) ? data : [];
         if (sounds.length) {
           title.textContent = sounds[0].title;
+        } else {
+          title.textContent = "No hay audios disponibles";
         }
         render();
       });

@@ -47,7 +47,7 @@ body::before {
     content: "";
     position: fixed;
     inset: 0;
-    background-image: url('../images/logo.png');
+    background-image: url('../images/logo.webp');
     background-repeat: no-repeat;
     background-position: center;
     background-size: 70%;
@@ -3537,7 +3537,7 @@ body {
 }
 
 body::before {
-    background-image: url('../images/logo.png') !important;
+    background-image: url('../images/logo.webp') !important;
     background-size: min(680px, 72vw) !important;
     opacity: 0.035 !important;
 }
@@ -5922,7 +5922,8 @@ img:not([src]) {
     box-shadow: none !important;
 }
 
-.admin-form label {
+.admin-form label,
+.admin-form .admin-time-field {
     display: grid !important;
     gap: 8px !important;
     margin: 0 !important;
@@ -7815,7 +7816,8 @@ body[data-admin-page="true"] .admin-form {
     width: 100% !important;
 }
 
-body[data-admin-page="true"] .admin-form label {
+body[data-admin-page="true"] .admin-form label,
+body[data-admin-page="true"] .admin-form .admin-time-field {
     display: grid !important;
     gap: 8px !important;
     margin: 0 !important;
@@ -9468,7 +9470,10 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
 }
 
 #soundcloud .sc-hidden-embed {
-  height: 0 !important;
+  width: 1px !important;
+  height: 1px !important;
+  position: absolute !important;
+  left: -9999px !important;
   overflow: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;

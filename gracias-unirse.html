@@ -87,7 +87,7 @@
 <body>
 
     <div class="container">
-        <img src="assets/images/logo.png" class="logo" alt="Logo Mujeres con Propósito">
+        <img src="assets/images/logo.webp" class="logo" alt="Logo Mujeres con Propósito">
 
         <h1>¡Bienvenida a la Comunidad!</h1>
 
@@ -100,19 +100,31 @@
             Oramos para que este sea el inicio de una etapa llena de crecimiento, fe y hermandad.
         </p>
 
+        <p id="redirectMessage" aria-live="polite">
+            Volverás automáticamente a la página principal en <strong id="redirectCountdown">5</strong> segundos.
+        </p>
+
         <a href="index.html" class="btn" id="homeBtn">Volver al Inicio</a>
     </div>
 
-</body>
     <script>
-        // Redirección automática después de 3 segundos
-        setTimeout(function() {
-            window.location.href = "index.html";
-        }, 3000);
+        const redirectCountdown = document.getElementById("redirectCountdown");
+        let secondsRemaining = 5;
+
+        const countdownTimer = setInterval(function() {
+            secondsRemaining -= 1;
+            redirectCountdown.textContent = String(secondsRemaining);
+
+            if (secondsRemaining <= 0) {
+                clearInterval(countdownTimer);
+                window.location.replace("index.html");
+            }
+        }, 1000);
 
         // Forzar navegación al hacer click (por si hay bloqueo)
-        document.getElementById("homeBtn").addEventListener("click", function(e) {
-            window.location.href = "index.html";
+        document.getElementById("homeBtn").addEventListener("click", function() {
+            window.location.replace("index.html");
         });
     </script>
+</body>
 </html>
