@@ -217,50 +217,56 @@ Deno.serve(async (req) => {
           "Mujeres con Propósito",
         ].join("\n"),
         html: `
-          <div style="margin:0; padding:30px 20px; background:#fff7f6; font-family:Arial,sans-serif; color:#333;">
-            <div style="max-width:620px; margin:0 auto; background:linear-gradient(180deg, #ffffff 0%, #fffafa 100%); border:1px solid #f3d5d1; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.08); overflow:hidden;">
-              <div style="background:linear-gradient(135deg, #e7a8a0 0%, #f3d5d1 100%); padding:38px 30px; text-align:center;">
-                <div style="font-size:44px; line-height:1; margin-bottom:10px;">🎂</div>
-                <h1 style="margin:0; font-size:30px; color:#ffffff; font-weight:700;">¡Feliz Cumpleaños!</h1>
-                <p style="margin:12px 0 0 0; color:#fffaf9; font-size:16px;">Celebramos tu vida con mucho amor</p>
-              </div>
+          <!doctype html>
+          <html lang="es">
+            <body style="margin:0;padding:0;background-color:#f8f4f3;color:#354052;font-family:Arial,Helvetica,sans-serif;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8f4f3;">
+                <tr>
+                  <td align="center" style="padding:38px 16px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:680px;background:#ffffff;border:1px solid #ecd8d4;border-radius:28px;overflow:hidden;box-shadow:0 18px 50px rgba(105,65,60,0.08);">
+                      <tr>
+                        <td align="center" style="padding:44px 34px 40px;background:linear-gradient(135deg,#fffaf8 0%,#fff4f2 100%);border-bottom:1px solid #f0ddda;">
+                          <div style="margin:0 0 16px;color:#ad7671;font-size:14px;font-weight:800;letter-spacing:4px;text-transform:uppercase;">Mujeres con Propósito</div>
+                          <div style="margin:0 0 14px;font-size:42px;line-height:1;">🎂</div>
+                          <h1 style="margin:0;color:#b55d5e;font-family:Georgia,'Times New Roman',serif;font-size:42px;line-height:1.12;font-weight:700;">¡Feliz cumpleaños!</h1>
+                          <p style="margin:18px 0 0;color:#687180;font-size:19px;line-height:1.55;">Celebramos tu vida con mucho amor</p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:42px 38px 46px;">
+                          <p style="margin:0 0 22px;color:#354052;font-size:18px;line-height:1.75;">
+                            Querida <strong style="color:#a94f52;">${displayName}</strong>,
+                          </p>
+                          <p style="margin:0 0 28px;color:#354052;font-size:18px;line-height:1.75;">
+                            Hoy damos gracias a Dios por tu vida. Eres una bendición y oramos para que este nuevo año venga lleno de paz, amor, salud, crecimiento espiritual y propósito.
+                          </p>
 
-              <div style="padding:36px 32px;">
-                <p style="font-size:18px; margin-top:0; margin-bottom:18px;">
-                  Querida <strong style="color:#b05f5f;">${displayName}</strong>
-                </p>
+                          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 30px;background:#fff8f6;border:1px solid #efd5d1;border-left:6px solid #e7a39a;border-radius:20px;">
+                            <tr>
+                              <td align="center" style="padding:28px 24px;">
+                                <p style="margin:0 0 12px;color:#704f4c;font-family:Georgia,'Times New Roman',serif;font-size:20px;line-height:1.55;font-style:italic;">“El Señor te bendiga y te guarde.”</p>
+                                <p style="margin:0;color:#b55d5e;font-size:17px;font-weight:800;">— Números 6:24</p>
+                              </td>
+                            </tr>
+                          </table>
 
-                <p style="font-size:16px; line-height:1.8; margin:0 0 18px 0;">
-                  Hoy damos gracias a Dios por tu vida${nombreCompleto ? `, <strong>${nombreCompleto}</strong>` : ""}.
-                  Eres una bendición y oramos para que este nuevo año venga lleno de paz, amor, salud,
-                  crecimiento espiritual y propósito.
-                </p>
-
-                <div style="margin:26px 0; padding:22px 20px; background:#fff7f6; border-left:5px solid #e7a8a0; border-radius:14px; text-align:center;">
-                  <p style="margin:0; font-size:19px; font-style:italic; color:#6a4a4a; line-height:1.8;">
-                    “El Señor te bendiga y te guarde.”
-                  </p>
-                  <p style="margin:10px 0 0 0; font-size:15px; font-weight:bold; color:#b05f5f;">
-                    — Números 6:24
-                  </p>
-                </div>
-
-                <p style="font-size:16px; line-height:1.8; margin:0 0 20px 0;">
-                  Que el amor de Dios te acompañe siempre y que cada paso que des esté lleno de gracia y favor.
-                </p>
-
-                <div style="text-align:center; margin:30px 0 10px 0;">
-                  <span style="display:inline-block; padding:12px 26px; background:linear-gradient(135deg, #e7a8a0 0%, #f3d5d1 100%); color:#ffffff; border-radius:999px; font-size:15px; font-weight:700;">
-                    Mujeres con Propósito
-                  </span>
-                </div>
-
-                <p style="margin:30px 0 0 0; text-align:center; font-size:14px; color:#888;">
-                  Con mucho cariño y bendiciones 💖
-                </p>
-              </div>
-            </div>
-          </div>
+                          <p style="margin:0;color:#354052;font-size:18px;line-height:1.75;">
+                            Que el amor de Dios te acompañe siempre y que cada paso que des esté lleno de gracia y favor.
+                          </p>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td align="center" style="padding:24px 30px;background:#8f4547;color:#ffffff;">
+                          <p style="margin:0 0 6px;font-size:15px;font-weight:800;">Mujeres con Propósito</p>
+                          <p style="margin:0;color:#f5dddd;font-size:13px;line-height:1.5;">Con mucho cariño y bendiciones 💖</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+          </html>
         `,
       });
 
