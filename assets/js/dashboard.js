@@ -199,7 +199,12 @@ function normalizeUser(user, index) {
     telefono: pick(user, ["telefono", "phone", "phoneNumber"]),
     paisResidencia: pick(user, ["pais_residencia", "paisResidencia", "paisVive", "pais", "country"]),
     comunidad: pick(user, ["comunidad", "community"]),
-    cristiana: pick(user, ["cristiana", "cristianaStatus", "faithStatus"])
+    cristiana: pick(user, ["cristiana", "cristianaStatus", "faithStatus"]),
+    fechaNacimiento: pick(user, ["fecha_nacimiento", "fechaNacimiento", "birthDate"]),
+    paisNacimiento: pick(user, ["pais_nacimiento", "paisNacimiento", "birthCountry"]),
+    estatusMatrimonial: pick(user, ["estatus_matrimonial", "estatusMatrimonial", "maritalStatus"]),
+    hijos: pick(user, ["hijos", "children"]),
+    comentarios: pick(user, ["comments", "comentarios"])
   };
 }
 
@@ -227,29 +232,91 @@ function fillSelectOptions(select, values, defaultLabel = "Todos") {
   }
 }
 
+function getInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  return parts.slice(0, 2).map((part) => part[0].toUpperCase()).join("");
+}
+
+function cristianaStatusClass(value) {
+  const normalized = normalizeText(value);
+  if (normalized === "si") return "status-si";
+  if (normalized === "todavia") return "status-todavia";
+  if (normalized === "no") return "status-no";
+  return "status-default";
+}
+
 function renderTable(users) {
   if (!usersTableBody) return;
 
   if (!users.length) {
-    usersTableBody.innerHTML = `
-      <tr>
-        <td colspan="7" class="empty-cell">No hay registros para mostrar.</td>
-      </tr>
-    `;
+    usersTableBody.innerHTML = `<p class="empty-cell">No hay registros para mostrar.</p>`;
     return;
   }
 
   usersTableBody.innerHTML = users.map((user) => `
-    <tr>
-      <td>${escapeHtml(formatDate(user.timestamp))}</td>
-      <td>${escapeHtml(user.nombreCompleto)}</td>
-      <td>${escapeHtml(user.email)}</td>
-      <td>${escapeHtml(user.telefono)}</td>
-      <td>${escapeHtml(user.paisResidencia)}</td>
-      <td>${escapeHtml(user.comunidad)}</td>
-      <td>${escapeHtml(user.cristiana)}</td>
-    </tr>
+    <div class="user-row">
+      <div class="user-row-id">
+        <div class="user-avatar">${escapeHtml(getInitials(user.nombreCompleto))}</div>
+        <div class="user-row-main">
+          <span class="user-row-date">${escapeHtml(formatDate(user.timestamp))}</span>
+          <strong class="user-row-name">${escapeHtml(user.nombreCompleto)}</strong>
+          <span class="user-row-sub">${escapeHtml(user.email)}</span>
+        </div>
+      </div>
+      <div class="user-row-fields">
+        <div class="field-block">
+          <span class="field-label">Teléfono</span>
+          <strong>${escapeHtml(user.telefono)}</strong>
+        </div>
+        <div class="field-block">
+          <span class="field-label">País residencia</span>
+          <strong>${escapeHtml(user.paisResidencia)}</strong>
+        </div>
+        <div class="field-block">
+          <span class="field-label">Comunidad</span>
+          <strong>${escapeHtml(user.comunidad)}</strong>
+        </div>
+        <div class="field-block">
+          <span class="field-label">Cristiana</span>
+          <span class="status-pill ${cristianaStatusClass(user.cristiana)}">${escapeHtml(user.cristiana) || "—"}</span>
+        </div>
+      </div>
+      <button type="button" class="user-row-toggle" aria-expanded="false" aria-label="Ver más detalles">
+        <span class="user-row-toggle-arrow">⌄</span>
+      </button>
+      <div class="user-row-extra">
+        <div class="field-block">
+          <span class="field-label">Fecha de nacimiento</span>
+          <strong>${escapeHtml(formatDate(user.fechaNacimiento))}</strong>
+        </div>
+        <div class="field-block">
+          <span class="field-label">País de nacimiento</span>
+          <strong>${escapeHtml(user.paisNacimiento)}</strong>
+        </div>
+        <div class="field-block">
+          <span class="field-label">Estatus matrimonial</span>
+          <strong>${escapeHtml(user.estatusMatrimonial)}</strong>
+        </div>
+        <div class="field-block">
+          <span class="field-label">Hijos</span>
+          <strong>${escapeHtml(user.hijos)}</strong>
+        </div>
+        <div class="field-block field-block-wide">
+          <span class="field-label">Comentarios</span>
+          <strong>${escapeHtml(user.comentarios) || "—"}</strong>
+        </div>
+      </div>
+    </div>
   `).join("");
+}
+
+function toggleUserRow(toggleBtn) {
+  const row = toggleBtn.closest(".user-row");
+  if (!row) return;
+
+  const expanded = row.classList.toggle("expanded");
+  toggleBtn.setAttribute("aria-expanded", String(expanded));
 }
 
 function updateCounters() {
@@ -353,11 +420,7 @@ async function loadDashboardData() {
 
     const message = error?.message || "Error cargando datos del dashboard.";
     if (usersTableBody) {
-      usersTableBody.innerHTML = `
-        <tr>
-          <td colspan="7" class="empty-cell">${message}</td>
-        </tr>
-      `;
+      usersTableBody.innerHTML = `<p class="empty-cell">${escapeHtml(message)}</p>`;
     }
 
     if (lastUpdatedText) {
@@ -480,6 +543,11 @@ while (yOffset < imgHeight) {
     }
   }
 }
+
+usersTableBody?.addEventListener("click", function (event) {
+  const toggleBtn = event.target.closest(".user-row-toggle");
+  if (toggleBtn) toggleUserRow(toggleBtn);
+});
 
 searchInput?.addEventListener("input", applyFilters);
 paisFilter?.addEventListener("change", applyFilters);
