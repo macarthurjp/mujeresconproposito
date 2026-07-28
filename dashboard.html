@@ -8,8 +8,9 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 
-  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260714-rowcards-2" />
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260728-dashboard-redesign" />
 </head>
 <body class="private-locked" data-private-page="dashboard">
   <section class="private-access-screen" id="dashboardAccessScreen">
@@ -37,114 +38,87 @@
     </div>
   </section>
 
-  <div id="pdfArea" style="display:none;"> <!-- 🔥 INICIO DEL ÁREA QUE SE EXPORTA -->
-
-    <div class="page-bg"></div>
-
-    <header class="topbar">
-      <div class="brand">
+  <div id="pdfArea" style="display:none;">
+    <aside class="sidebar no-export" id="dashboardSidebar">
+      <div class="sidebar-brand">
         <div class="brand-badge">✦</div>
-        <div>
-          <h1>Registros de Mujeres con Propósito</h1>
-          <p>Mujeres con Propósito</p>
+        <strong>Mujeres<br />con Propósito</strong>
+      </div>
+      <nav class="sidebar-nav" aria-label="Navegación del dashboard">
+        <button id="sidebarHomeBtn" class="nav-item active" type="button"><i data-lucide="house"></i><span>Página principal</span></button>
+        <button id="sidebarRefreshBtn" class="nav-item" type="button"><i data-lucide="users-round"></i><span>Actualizar registros</span></button>
+        <button id="sidebarLogoutBtn" class="nav-item" type="button"><i data-lucide="log-out"></i><span>Cerrar sesión</span></button>
+      </nav>
+      <button id="sidebarExportBtn" class="nav-item sidebar-export" type="button"><i data-lucide="file-text"></i><span>Exportar PDF</span></button>
+      <div class="sidebar-flourish" aria-hidden="true">⌇</div>
+      <p class="sidebar-quote">Mujeres que inspiran,<br />comunidades que transforman.</p>
+    </aside>
+
+    <div class="app-main">
+      <header class="app-bar no-export">
+        <button id="sidebarToggleBtn" class="icon-btn menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false"><i data-lucide="menu"></i></button>
+        <div class="account">
+          <span class="account-avatar"><i data-lucide="user-round"></i></span>
+          <strong>Mujeres con Propósito</strong>
+          <i data-lucide="chevron-down"></i>
         </div>
-      </div>
+      </header>
 
-      <div class="top-actions">
-        <button id="homePageBtn" class="btn btn-soft" type="button">Página principal</button>
-        <button id="dashboardRefreshBtn" class="btn btn-soft" type="button">Actualizar registros</button>
-        <button id="dashboardLogoutBtn" class="btn btn-soft" type="button">Cerrar sesión</button>
-        <button id="exportPdfBtn" class="btn btn-primary">Exportar PDF</button>
-      </div>
-    </header>
+      <main class="dashboard-shell">
+        <header class="page-header">
+          <div class="page-title">
+            <h1>Registros de Mujeres con Propósito</h1>
+            <p>Mujeres con Propósito</p>
+          </div>
+          <div class="top-actions no-export">
+            <button id="homePageBtn" class="btn btn-soft" type="button">Página principal</button>
+            <button id="dashboardRefreshBtn" class="btn btn-soft" type="button">Actualizar registros</button>
+            <button id="dashboardLogoutBtn" class="btn btn-soft" type="button">Cerrar sesión</button>
+            <button id="exportPdfBtn" class="btn btn-primary" type="button"><i data-lucide="download"></i>Exportar PDF</button>
+          </div>
+        </header>
 
-    <main class="dashboard-shell">
-    
-    <section class="panel filters-panel no-export">
-      <div class="panel-head">
-        <h2>Filtros</h2>
-        <button id="clearFiltersBtn" class="btn btn-soft">Limpiar filtros</button>
-      </div>
+        <section class="panel filters-panel no-export">
+          <div class="panel-head">
+            <h2><i data-lucide="list-filter"></i>Filtros</h2>
+            <button id="clearFiltersBtn" class="btn btn-clear" type="button"><i data-lucide="rotate-ccw"></i>Limpiar filtros</button>
+          </div>
+          <div class="filters-grid">
+            <div class="field search-field">
+              <label for="searchInput">Buscar</label>
+              <div class="input-wrap"><i data-lucide="search"></i><input type="text" id="searchInput" placeholder="Nombre, apellido, email o teléfono" /></div>
+            </div>
+            <div class="field"><label for="paisFilter">País de residencia</label><select id="paisFilter"><option value="">Todos</option></select></div>
+            <div class="field"><label for="comunidadFilter">Comunidad</label><select id="comunidadFilter"><option value="">Todas</option></select></div>
+            <div class="field"><label for="cristianaFilter">Cristiana</label><select id="cristianaFilter"><option value="">Todas</option><option value="Sí">Sí</option><option value="Todavía">Todavía</option><option value="No">No</option></select></div>
+          </div>
+        </section>
 
-      <div class="filters-grid">
-        <div class="field">
-          <label for="searchInput">Buscar</label>
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Nombre, apellido, email o teléfono"
-          />
-        </div>
+        <section class="stats-row export-summary-row">
+          <div class="stat-card"><span class="stat-icon rose"><i data-lucide="users-round"></i></span><div><span class="stat-label">Total de registros</span><strong id="totalCount">0</strong></div></div>
+          <div class="stat-card"><span class="stat-icon blush"><i data-lucide="list"></i></span><div><span class="stat-label">Mostrando</span><strong id="filteredCount">0</strong></div></div>
+          <div class="stat-card"><span class="stat-icon cream"><i data-lucide="globe-2"></i></span><div><span class="stat-label">Países representados</span><strong id="countriesCount">0</strong></div></div>
+          <div class="stat-card"><span class="stat-icon gold"><i data-lucide="heart"></i></span><div><span class="stat-label">Comunidades activas</span><strong id="communitiesCount">0</strong></div></div>
+        </section>
 
-        <div class="field">
-          <label for="paisFilter">País de residencia</label>
-          <select id="paisFilter">
-            <option value="">Todos</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="comunidadFilter">Comunidad</label>
-          <select id="comunidadFilter">
-            <option value="">Todas</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="cristianaFilter">Cristiana</label>
-          <select id="cristianaFilter">
-            <option value="">Todas</option>
-            <option value="Sí">Sí</option>
-            <option value="Todavía">Todavía</option>
-            <option value="No">No</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <section class="stats-row export-summary-row">
-      <div class="stat-card">
-        <span class="stat-label">Total de registros</span>
-        <strong id="totalCount">0</strong>
-      </div>
-
-      <div class="stat-card">
-        <span class="stat-label">Mostrando</span>
-        <strong id="filteredCount">0</strong>
-      </div>
-    </section>
-
-   <section class="panel table-panel">
-  <div class="panel-head">
-    <h2>Lista de usuarias</h2>
-    <p id="lastUpdatedText">Cargando datos...</p>
-  </div>
-
-  <div class="users-list" id="usersTableBody">
-    <p class="empty-cell">Cargando registros...</p>
-  </div>
-
-  <!-- Footer principal -->
-  <div class="table-footer">
-    <p>Total de registros: <strong class="summaryTotalCount"></strong></p>
-  </div>
-
-  <!-- Subfooter “Mostrando X de Y” -->
-  <div class="table-subfooter">
-    <p>
-      Mostrando <strong id="filteredCountFooter"></strong> de 
-      <strong class="summaryTotalCount"></strong> registros
-    </p>
-  </div>
-</section>
-
+        <section class="panel table-panel">
+          <div class="panel-head table-title">
+            <h2><i data-lucide="users-round"></i>Lista de usuarias</h2>
+            <p id="lastUpdatedText">Cargando datos...</p>
+          </div>
+          <div class="table-labels" aria-hidden="true"><span>Usuaria</span><span>Teléfono</span><span>País residencia</span><span>Comunidad</span><span>Cristiana</span><span></span></div>
+          <div class="users-list" id="usersTableBody"><p class="empty-cell">Cargando registros...</p></div>
+          <div class="table-footer"><p>Total de registros: <strong class="summaryTotalCount"></strong></p></div>
+          <div class="table-subfooter"><p>Mostrando <strong id="filteredCountFooter"></strong> de <strong class="summaryTotalCount"></strong> registros</p></div>
+        </section>
       </main>
-
+    </div>
+    <button class="sidebar-backdrop no-export" id="sidebarBackdrop" type="button" aria-label="Cerrar menú"></button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
-  <script src="assets/js/dashboard.js?v=20260714-rowcards-1"></script>
+  <script src="assets/js/dashboard.js?v=20260728-dashboard-redesign"></script>
 </body>
 
 </html>

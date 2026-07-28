@@ -18,13 +18,15 @@
 
         body {
             margin: 0;
-            padding: 0;
+            padding: 16px;
             font-family: "Segoe UI", Arial, sans-serif;
             background: linear-gradient(to bottom, var(--accent-color), var(--light-bg));
-            height: 100vh;
+            min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: center;
+            box-sizing: border-box;
             text-align: center;
             color: var(--text-color);
         }
@@ -38,8 +40,28 @@
             border: 1px solid var(--glass-border);
             box-shadow: 0 8px 28px rgba(0,0,0,0.15);
             max-width: 480px;
-            width: 90%;
+            width: 100%;
+            box-sizing: border-box;
             animation: fadeIn 0.8s ease forwards;
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 28px 20px;
+            }
+
+            h1 {
+                font-size: 25px;
+            }
+
+            p {
+                font-size: 16px;
+                margin-bottom: 20px;
+            }
         }
 
         @keyframes fadeIn {

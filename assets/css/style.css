@@ -7704,6 +7704,12 @@ video {
     section form select {
         font-size: 16px !important;
     }
+
+    body[data-admin-page="true"] .admin-hero-premium h2 {
+        max-width: 100% !important;
+        font-size: clamp(1.7rem, 9vw, 2.15rem) !important;
+        overflow-wrap: anywhere !important;
+    }
 }
 
 /* =========================================================

@@ -29,6 +29,8 @@ const usersTableBody = document.getElementById("usersTableBody");
 const summaryTotalCountEls = document.querySelectorAll(".summaryTotalCount");
 const totalCount = document.getElementById("totalCount");
 const filteredCount = document.getElementById("filteredCount");
+const countriesCount = document.getElementById("countriesCount");
+const communitiesCount = document.getElementById("communitiesCount");
 const filteredCountFooter = document.getElementById("filteredCountFooter");
 const clearFiltersBtn = document.getElementById("clearFiltersBtn");
 const homePageBtn = document.getElementById("homePageBtn");
@@ -47,6 +49,12 @@ const dashboardLoginMsg = document.getElementById("dashboardLoginMsg");
 const dashboardUsePasskeyBtn = document.getElementById("dashboardUsePasskeyBtn");
 const dashboardEnrollPasskeyBtn = document.getElementById("dashboardEnrollPasskeyBtn");
 const pdfArea = document.getElementById("pdfArea");
+const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
+const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+const sidebarHomeBtn = document.getElementById("sidebarHomeBtn");
+const sidebarRefreshBtn = document.getElementById("sidebarRefreshBtn");
+const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
+const sidebarExportBtn = document.getElementById("sidebarExportBtn");
 let dashboardLoaded = false;
 
 function showDashboardLoginMsg(text) {
@@ -327,6 +335,12 @@ function updateCounters() {
   }
   if (totalCount) totalCount.textContent = allUsers.length;
   if (filteredCount) filteredCount.textContent = filteredUsers.length;
+  if (countriesCount) {
+    countriesCount.textContent = new Set(allUsers.map((user) => normalizeText(user.paisResidencia)).filter(Boolean)).size;
+  }
+  if (communitiesCount) {
+    communitiesCount.textContent = new Set(allUsers.map((user) => normalizeText(user.comunidad)).filter(Boolean)).size;
+  }
   if (filteredCountFooter) filteredCountFooter.textContent = filteredUsers.length;
 }
 
@@ -559,6 +573,30 @@ homePageBtn?.addEventListener("click", function () {
 });
 exportPdfBtn?.addEventListener("click", exportPDF);
 dashboardRefreshBtn?.addEventListener("click", loadDashboardData);
+sidebarHomeBtn?.addEventListener("click", () => homePageBtn?.click());
+sidebarRefreshBtn?.addEventListener("click", () => {
+  dashboardRefreshBtn?.click();
+  closeSidebar();
+});
+sidebarLogoutBtn?.addEventListener("click", () => dashboardLogoutBtn?.click());
+sidebarExportBtn?.addEventListener("click", () => {
+  exportPdfBtn?.click();
+  closeSidebar();
+});
+
+function closeSidebar() {
+  document.body.classList.remove("sidebar-open");
+  sidebarToggleBtn?.setAttribute("aria-expanded", "false");
+}
+
+sidebarToggleBtn?.addEventListener("click", function () {
+  const isOpen = document.body.classList.toggle("sidebar-open");
+  sidebarToggleBtn.setAttribute("aria-expanded", String(isOpen));
+});
+sidebarBackdrop?.addEventListener("click", closeSidebar);
+window.addEventListener("resize", function () {
+  if (window.innerWidth > 760) closeSidebar();
+});
 
 document.addEventListener("visibilitychange", function () {
   if (!document.hidden && dashboardLoaded) {
@@ -652,3 +690,7 @@ hasPrivateAccessGranted().then((hasSession) => {
 
   dashboardAccessEmail?.focus();
 });
+
+if (window.lucide) {
+  window.lucide.createIcons();
+}
