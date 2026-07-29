@@ -158,11 +158,15 @@ Deno.serve(async (req) => {
     const validMemberId = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(memberId);
     const validCronSecret = Boolean(requestSecret) && requestSecret === cronSecret;
 
-    if (!validCronSecret && !validMemberId && !scheduled) {
+    if (scheduled && !validCronSecret) {
+      return jsonResponse({ ok: false, error: "Unauthorized scheduled request" }, 401);
+    }
+
+    if (!validCronSecret && !validMemberId) {
       return jsonResponse({ ok: false, error: "Unauthorized" }, 401);
     }
 
-    if (scheduled && !validCronSecret && getLuxembourgHour() !== 8) {
+    if (scheduled && getLuxembourgHour() !== 8) {
       return jsonResponse({ ok: true, skipped: true, reason: "outside_luxembourg_08_hour" });
     }
 

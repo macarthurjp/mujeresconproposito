@@ -1,179 +1,29 @@
 document.addEventListener("DOMContentLoaded", function () {
   const body = document.body;
+  const isAdminPage = body?.dataset.adminPage === "true";
 
-  const CONTACT_EMAILS = ["mujeresconproposito930@gmail.com", "ing.arthur03@gmail.com"];
-  const CONTACT_EMAIL = CONTACT_EMAILS.join(", ");
-
-  // Supabase configuration: reemplaza con tu proyecto Supabase.
-  // Usa la URL del proyecto y la clave de API pública (Client API Key).
-  const SUPABASE_URL = "https://jkunywiyiyidhyodsbfh.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
-
-  async function supabaseInsert(table, record) {
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      throw new Error("Supabase no está configurado.");
-    }
-
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify(record)
+  document.querySelectorAll("img[data-external-fallback]").forEach((image) => {
+    image.addEventListener("error", function useLocalFallback() {
+      const fallback = this.dataset.externalFallback;
+      if (!fallback || this.dataset.fallbackApplied === "true") return;
+      this.dataset.fallbackApplied = "true";
+      this.src = fallback;
     });
+  });
 
-    return response;
-  }
-
-  function hasSupabaseConfig() {
-    return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL.startsWith("https://"));
-  }
-
-  async function sendJoinToSupabase(payload) {
-    return supabaseInsert("unirse", {
-      id: payload.id,
-      nombre: payload.nombre,
-      apellido: payload.apellido,
-      email: payload.email,
-      telefono: payload.telefono,
-      fecha_nacimiento: payload.fecha_nacimiento || null,
-      estatus_matrimonial: payload.estatus_matrimonial || null,
-      pais_nacimiento: payload.pais_nacimiento,
-      pais_residencia: payload.pais_residencia,
-      cristiana: payload.cristiana,
-      comunidad: payload.comunidad,
-      comments: payload.comments || null,
-      hijos: payload.hijos ? Number(payload.hijos) : 0
-    });
-  }
-
-
-  async function sendContactToSupabase(payload) {
-    return supabaseInsert("contact_messages", {
-      nombre: payload.nombre,
-      email: payload.email,
-      mensaje: payload.mensaje,
-      destino: payload.destino,
-      source: "web"
-    });
-  }
-
-  function getSupabaseBrowserClient() {
-    if (!window.supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
-    if (!window.mcpSupabaseClient) {
-      window.mcpSupabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-    return window.mcpSupabaseClient;
-  }
-
-  async function invokeEmailEdgeFunction(functionName, payload) {
-    const client = getSupabaseBrowserClient();
-    if (!client?.functions) {
-      throw new Error("Supabase Functions no está disponible.");
-    }
-
-    const { data, error } = await client.functions.invoke(functionName, {
-      body: payload
-    });
-
-    if (error) {
-      let details = "";
-
-      if (error.context) {
-        try {
-          const errorBody = await error.context.clone().json();
-          details = errorBody?.error || errorBody?.message || JSON.stringify(errorBody);
-        } catch (_) {
-          try {
-            details = await error.context.clone().text();
-          } catch (_) {
-            details = "";
-          }
-        }
-      }
-
-      throw new Error(details || error.message || "Error llamando Edge Function.");
-    }
-
-    return data;
-  }
-
-  async function sendWelcomeEmailWithEdgeFunction(payload) {
-    return invokeEmailEdgeFunction("send-welcome-email", {
-      nombre: payload.nombre || "",
-      apellido: payload.apellido || "",
-      email: payload.email || "",
-      comunidad: payload.comunidad || ""
-    });
-  }
-
-  async function sendBirthdayEmailForNewMember(payload) {
-    if (!payload.id) return { ok: false, skipped: true };
-
-    return invokeEmailEdgeFunction("send-birthday-emails", {
-      memberId: payload.id
-    });
-  }
-
-  async function sendAdminRegistrationEmailWithEdgeFunction(payload) {
-    return invokeEmailEdgeFunction("send-admin-notification", {
-      nombre: payload.nombre || "",
-      apellido: payload.apellido || "",
-      email: payload.email || "",
-      telefono: payload.telefono || "",
-      fecha_nacimiento: payload.fecha_nacimiento || "",
-      estatus_matrimonial: payload.estatus_matrimonial || "",
-      pais_nacimiento: payload.pais_nacimiento || "",
-      pais_residencia: payload.pais_residencia || "",
-      cristiana: payload.cristiana || "",
-      comunidad: payload.comunidad || "",
-      comments: payload.comments || "",
-      hijos: payload.hijos || "0"
-    });
-  }
-
-  async function sendContactEmailWithEdgeFunction(payload) {
-    return invokeEmailEdgeFunction("send-contact-email", {
-      nombre: payload.nombre || "",
-      email: payload.email || "",
-      mensaje: payload.mensaje || "",
-      destino: payload.destino || CONTACT_EMAIL
-    });
-  }
-
-  async function getTodayBirthdaysFromEdgeFunction() {
-    return invokeEmailEdgeFunction("get-today-birthdays", {});
-  }
-
-  async function uploadImageToSupabaseBucket(file, bucket, folder = "uploads") {
-    const client = getSupabaseBrowserClient();
-    if (!client) throw new Error("Supabase JS no está cargado o configurado.");
-    if (!file) throw new Error("No se seleccionó archivo.");
-
-    const safeName = file.name
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-zA-Z0-9._-]/g, "-")
-      .toLowerCase();
-
-    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}-${safeName}`;
-
-    const { error: uploadError } = await client.storage
-      .from(bucket)
-      .upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: file.type || "image/jpeg"
-      });
-
-    if (uploadError) throw uploadError;
-
-    const { data } = client.storage.from(bucket).getPublicUrl(path);
-    return data.publicUrl;
-  }
+  const {
+    CONTACT_EMAIL,
+    getSupabaseBrowserClient,
+    getTodayBirthdaysFromEdgeFunction,
+    hasSupabaseConfig,
+    sendAdminRegistrationEmailWithEdgeFunction,
+    sendBirthdayEmailForNewMember,
+    sendContactEmailWithEdgeFunction,
+    sendContactToSupabase,
+    sendJoinToSupabase,
+    sendWelcomeEmailWithEdgeFunction,
+    uploadImageToSupabaseBucket
+  } = window.McpSupabase || {};
 
   function formatTimeForDisplay(timeValue) {
     const match = String(timeValue || "").trim().match(/^(\d{1,2}):(\d{2})$/);
@@ -1269,6 +1119,7 @@ lightbox?.addEventListener("touchcancel", function () {
     }
     closeMenu();
     donateModal?.classList.add("open");
+    donateModal?.dispatchEvent(new CustomEvent("mcp:open"));
     body.style.overflow = "hidden";
   }
 
@@ -1709,20 +1560,20 @@ function getGalleryOrder(item, fallbackIndex) {
 
 function getLocalInviteesFallback() {
   return [
-    { foto: "assets/images/gabriela.PNG", nombre: "Gabriela", titulo: "Líder de Comunidad", activa: true, orden: 1 },
-    { foto: "assets/images/yunilda.PNG", nombre: "Yunilda", titulo: "Mentora Espiritual", activa: true, orden: 2 },
-    { foto: "assets/images/tu-foto.JPG", nombre: "Invitada Especial", titulo: "Conferencista", activa: true, orden: 3 }
+    { foto: "assets/images/gabriela.webp", nombre: "Gabriela", titulo: "Líder de Comunidad", activa: true, orden: 1 },
+    { foto: "assets/images/yunilda.webp", nombre: "Yunilda", titulo: "Mentora Espiritual", activa: true, orden: 2 },
+    { foto: "assets/images/tu-foto.webp", nombre: "Invitada Especial", titulo: "Conferencista", activa: true, orden: 3 }
   ];
 }
 
 function getLocalGalleryFallback() {
   return [
-    { categoria: "Estados Unidos", foto: "assets/images/IMG_8253.jpeg", texto: "Reunión de Liderazgo", orden: 1 },
-    { categoria: "Estados Unidos", foto: "assets/images/IMG_8254.jpeg", texto: "Círculo de Oración", orden: 2 },
-    { categoria: "República Dominicana", foto: "assets/images/IMG_8260.jpeg", texto: "Encuentro de Mujeres", orden: 1 },
-    { categoria: "República Dominicana", foto: "assets/images/IMG_8257.jpeg", texto: "Taller de Propósito", orden: 2 },
-    { categoria: "Europa", foto: "assets/images/IMG_8290.jpeg", texto: "Retiro Espiritual", orden: 1 },
-    { categoria: "Europa", foto: "assets/images/IMG_8291.jpeg", texto: "Jornada de Fe", orden: 2 }
+    { categoria: "Estados Unidos", foto: "assets/images/IMG_8253.webp", texto: "Reunión de Liderazgo", orden: 1 },
+    { categoria: "Estados Unidos", foto: "assets/images/IMG_8254.webp", texto: "Círculo de Oración", orden: 2 },
+    { categoria: "República Dominicana", foto: "assets/images/IMG_8260.webp", texto: "Encuentro de Mujeres", orden: 1 },
+    { categoria: "República Dominicana", foto: "assets/images/IMG_8257.webp", texto: "Taller de Propósito", orden: 2 },
+    { categoria: "Europa", foto: "assets/images/IMG_8290.webp", texto: "Retiro Espiritual", orden: 1 },
+    { categoria: "Europa", foto: "assets/images/IMG_8291.webp", texto: "Jornada de Fe", orden: 2 }
   ];
 }
 
@@ -2053,9 +1904,9 @@ function renderGaleria(galeria) {
 
     if (supabaseBrowserClient) {
       try {
-        const [inviteesResult, galleryResult, eventsResult, birthdaysResult] = await Promise.all([
-	          supabaseBrowserClient
-	            .from("destacadas")
+        const [inviteesRequest, galleryRequest, eventsRequest, birthdaysRequest] = await Promise.allSettled([
+		          supabaseBrowserClient
+		            .from("destacadas")
 	            .select("fotoUrl:foto_url,nombre,titulo,orden,activa")
 	            .eq("activa", true)
 	            .order("orden", { ascending: true }),
@@ -2069,25 +1920,36 @@ function renderGaleria(galeria) {
             .select("icon:icono,title:titulo,schedule:horario,link,activa,orden")
             .eq("activa", true)
             .order("orden", { ascending: true }),
-          getTodayBirthdaysFromEdgeFunction()
-        ]);
+	          getTodayBirthdaysFromEdgeFunction()
+	        ]);
 
-	        if (!inviteesResult.error && Array.isArray(inviteesResult.data)) {
-	          hasSupabaseInviteesResponse = true;
-	          invitadas = inviteesResult.data;
-	        }
+        const inviteesResult = inviteesRequest.status === "fulfilled" ? inviteesRequest.value : null;
+        const galleryResult = galleryRequest.status === "fulfilled" ? galleryRequest.value : null;
+        const eventsResult = eventsRequest.status === "fulfilled" ? eventsRequest.value : null;
+        const birthdaysResult = birthdaysRequest.status === "fulfilled" ? birthdaysRequest.value : null;
 
-        if (!galleryResult.error && Array.isArray(galleryResult.data) && galleryResult.data.length) {
+		        if (inviteesResult && !inviteesResult.error && Array.isArray(inviteesResult.data)) {
+		          hasSupabaseInviteesResponse = true;
+		          invitadas = inviteesResult.data;
+		        }
+
+        if (galleryResult && !galleryResult.error && Array.isArray(galleryResult.data) && galleryResult.data.length) {
           galeria = galleryResult.data;
         }
 
-        if (!eventsResult.error && Array.isArray(eventsResult.data)) {
+        if (eventsResult && !eventsResult.error && Array.isArray(eventsResult.data)) {
           eventos = eventsResult.data;
         }
 
         if (birthdaysResult?.ok && Array.isArray(birthdaysResult.cumpleanerasHoy)) {
           data.cumpleanerasHoy = birthdaysResult.cumpleanerasHoy;
         }
+
+        [inviteesRequest, galleryRequest, eventsRequest, birthdaysRequest].forEach((request) => {
+          if (request.status === "rejected") {
+            console.warn("Un servicio dinámico no respondió; se mantiene el contenido disponible.", request.reason);
+          }
+        });
       } catch (error) {
         console.error("Error cargando contenido desde Supabase:", error);
       }
@@ -2421,7 +2283,6 @@ function renderContactCalendar(apiData = {}) {
       activa: true
     });
     if (error) throw error;
-    await loadDynamicContent();
     return fotoUrl;
   };
 
@@ -2436,7 +2297,6 @@ function renderContactCalendar(apiData = {}) {
       activa: true
     });
     if (error) throw error;
-    await loadDynamicContent();
     return fotoUrl;
   };
 
@@ -2451,7 +2311,6 @@ function renderContactCalendar(apiData = {}) {
       activa: true
     });
     if (error) throw error;
-    await loadDynamicContent();
     return true;
   };
 
@@ -2750,10 +2609,9 @@ function renderContactCalendar(apiData = {}) {
 	    }
 	  }
 
-	  async function refreshAdminAndSite() {
-	    await loadDynamicContent();
-	    await loadAdminContent();
-	  }
+		  async function refreshAdminAndSite() {
+		    await loadAdminContent();
+		  }
 
 	  function getAdminEditFields(type, row) {
 	    if (type === "eventos") {
@@ -3524,6 +3382,7 @@ function renderContactCalendar(apiData = {}) {
     const iconFile = document.getElementById("adminEventoIconoFoto")?.files?.[0];
 
     try {
+      if (iconFile) showAdminMsg(msg, "Optimizando y subiendo imagen...", true);
       const icono = iconFile
         ? await uploadImageToSupabaseBucket(iconFile, "mcp930-images", "eventos")
         : document.getElementById("adminEventoIcono")?.value || "✦";
@@ -3553,6 +3412,7 @@ function renderContactCalendar(apiData = {}) {
     const file = document.getElementById("adminDestacadaFoto")?.files?.[0];
 
     try {
+      showAdminMsg(msg, "Optimizando y subiendo imagen...", true);
       await window.mcpUploadDestacada({
         file,
         nombre: document.getElementById("adminDestacadaNombre")?.value || "",
@@ -3592,6 +3452,7 @@ function renderContactCalendar(apiData = {}) {
     const eventTitle = getCanonicalGalleryEventTitle(community, selectedEvent || typedEvent);
 
     try {
+      showAdminMsg(msg, "Optimizando y subiendo imagen...", true);
       await window.mcpUploadGaleria({
         file,
         categoria: community,
@@ -3864,8 +3725,37 @@ function renderContactCalendar(apiData = {}) {
   });
 })();
 
-initSoundCloudPlayer();
-loadDynamicContent();
+if (!isAdminPage) {
+  const soundcloudSection = document.getElementById("soundcloud");
+  if (soundcloudSection) {
+    const loadSoundCloud = async () => {
+      try {
+        const iframe = document.getElementById("soundcloudWidget");
+        if (iframe?.dataset.src && !iframe.getAttribute("src")) {
+          iframe.src = iframe.dataset.src;
+        }
+        await window.McpScripts.load("https://w.soundcloud.com/player/api.js");
+        initSoundCloudPlayer();
+      } catch (error) {
+        console.error(error);
+        const title = document.getElementById("scCurrentTitle");
+        if (title) title.textContent = "No se pudo conectar con SoundCloud";
+      }
+    };
+
+    if ("IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        loadSoundCloud();
+      }, { rootMargin: "500px 0px" });
+      observer.observe(soundcloudSection);
+    } else {
+      loadSoundCloud();
+    }
+  }
+  loadDynamicContent();
+}
 
 /* -----------------------------------------
    FORMULARIO CONTACTO

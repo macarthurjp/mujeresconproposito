@@ -211,6 +211,54 @@ La migración `20260712213500_schedule_luxembourg_birthday_emails.sql` crea un c
 
 Esto evita problemas por horario de verano y cubre casos en los que el envío inmediato haya fallado. La marca `ultimo_correo_cumpleanos` impide duplicados durante el mismo día.
 
+La migración `20260729170000_secure_cron_and_keepalive.sql` endurece ese cron y añade un keepalive independiente:
+
+- exige `x-cron-secret` en todas las ejecuciones programadas;
+- obtiene el secreto cifrado desde Supabase Vault;
+- llama la RPC segura `mcp_keepalive` a las 06:23 y 18:23 UTC;
+- no expone datos de usuarias ni permite escrituras.
+
+Antes de aplicar la migración, guarda en Vault el mismo valor configurado como
+`BIRTHDAY_CRON_SECRET` en las Edge Functions:
+
+```sql
+select vault.create_secret(
+  'REEMPLAZAR_CON_EL_MISMO_SECRETO_DE_LA_EDGE_FUNCTION',
+  'birthday_cron_secret',
+  'Autoriza el cron de cumpleaños MCP930'
+);
+```
+
+No incluyas el valor real en migraciones, documentación ni commits.
+
+Comprobar los jobs:
+
+```sql
+select jobid, jobname, schedule, active
+from cron.job
+where jobname in (
+  'mcp930-birthday-emails-hourly-check',
+  'mcp930-database-keepalive'
+);
+```
+
+Comprobar las últimas ejecuciones:
+
+```sql
+select jobid, status, start_time, end_time, return_message
+from cron.job_run_details
+where jobid in (
+  select jobid
+  from cron.job
+  where jobname in (
+    'mcp930-birthday-emails-hourly-check',
+    'mcp930-database-keepalive'
+  )
+)
+order by start_time desc
+limit 20;
+```
+
 ## Secretos de Supabase
 
 Configurar con `supabase secrets set`. Documentar nombres, nunca valores.
@@ -236,7 +284,21 @@ supabase secrets list --project-ref jkunywiyiyidhyodsbfh
 
 ## Desarrollo local
 
-Este proyecto no tiene `package.json`. Para ejecutarlo localmente:
+### Pruebas automáticas
+
+La suite Playwright cubre responsive, modales, carga diferida, optimización de
+imágenes y dashboard sin depender de datos privados reales.
+
+```bash
+npm install
+npm test
+```
+
+GitHub Actions ejecuta las mismas pruebas automáticamente en cada push y pull
+request contra `main`.
+
+El proyecto incluye `package.json` para las pruebas automáticas. Para servir el
+sitio localmente sin ejecutar la suite:
 
 ```bash
 python3 -m http.server 4173 --bind 127.0.0.1
@@ -482,4 +544,3 @@ No guardar `SUPABASE_SERVICE_ROLE_KEY` en el repositorio.
 - Rotar una clave si fue expuesta fuera de un entorno autorizado.
 - Mantener la lectura de registros limitada al rol `authenticated`.
 - Las passkeys complementan la sesión de Supabase; no reemplazan la autorización del backend.
-

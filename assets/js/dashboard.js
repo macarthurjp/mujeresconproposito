@@ -445,19 +445,30 @@ async function loadDashboardData() {
   }
 }
 
+async function loadPdfDependencies() {
+  if (!window.McpScripts) throw new Error("El cargador de recursos no está disponible.");
+  await Promise.all([
+    window.McpScripts.load("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"),
+    window.McpScripts.load("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js")
+  ]);
+  if (!window.jspdf || !window.html2canvas) {
+    throw new Error("Las librerías PDF no se cargaron correctamente.");
+  }
+}
+
 async function exportPDF() {
   const area = document.getElementById("pdfArea");
-  if (!area || typeof window.jspdf === "undefined" || typeof window.html2canvas === "undefined") {
+  if (!area) {
     alert("No se pudo exportar el PDF.");
     return;
   }
-
-  const { jsPDF } = window.jspdf;
 
   try {
     if (exportPdfBtn) {
       exportPdfBtn.disabled = true;
     }
+    await loadPdfDependencies();
+    const { jsPDF } = window.jspdf;
 
     document.body.classList.add("exporting-pdf");
 

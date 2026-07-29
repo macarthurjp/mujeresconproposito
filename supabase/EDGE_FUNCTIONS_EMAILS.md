@@ -14,6 +14,17 @@ supabase secrets set CONTACT_EMAIL="correo-admin@tu-dominio.com"
 supabase secrets set BIRTHDAY_CRON_SECRET="un-secreto-largo"
 ```
 
+Guarda exactamente el mismo valor en Supabase Vault para que `pg_cron`
+pueda enviarlo sin almacenarlo en el repositorio:
+
+```sql
+select vault.create_secret(
+  'un-secreto-largo',
+  'birthday_cron_secret',
+  'Autoriza el cron de cumpleaños MCP930'
+);
+```
+
 Tambien puedes guardar `EMAIL_FROM` con este formato si prefieres mantenerlo en una sola variable:
 
 ```bash
