@@ -114,7 +114,8 @@ create table if not exists public.galeria (
   categoria text not null,
   texto text,
   orden integer not null default 1,
-  activa boolean not null default true
+  activa boolean not null default true,
+  portada boolean not null default false
 );
 
 alter table public.galeria add column if not exists created_at timestamptz not null default now();
@@ -123,6 +124,7 @@ alter table public.galeria add column if not exists categoria text;
 alter table public.galeria add column if not exists texto text;
 alter table public.galeria add column if not exists orden integer not null default 1;
 alter table public.galeria add column if not exists activa boolean not null default true;
+alter table public.galeria add column if not exists portada boolean not null default false;
 
 create index if not exists galeria_activa_orden_idx on public.galeria (activa, orden);
 create index if not exists galeria_categoria_idx on public.galeria (categoria);

@@ -1515,6 +1515,11 @@ function getGalleryPhotoUrl(item) {
   return getGalleryField(item, ["fotoUrl", "fotoURL", "FotoURL", "foto", "Foto", "photo", "photoUrl", "photoURL", "image", "imagen", "url", "img", "imagenUrl", "imageUrl"]);
 }
 
+function isGalleryPortada(item) {
+  const rawValue = normalizeGalleryText(getGalleryField(item, ["portada", "Portada"]));
+  return ["si", "sí", "true", "1"].includes(rawValue);
+}
+
 function isGalleryItemActive(item) {
   const rawValue = normalizeGalleryText(
     getGalleryField(item, ["activa", "Activa", "active", "estado"])
@@ -1592,7 +1597,8 @@ function createGalleryBlock(title, items) {
   stack.setAttribute("tabindex", "0");
   stack.setAttribute("aria-label", `Abrir galería de ${title}`);
 
-  const imageList = items.map(item => getGalleryPhotoUrl(item)).filter(Boolean);
+  const sortedItems = [...items].sort((a, b) => Number(isGalleryPortada(b)) - Number(isGalleryPortada(a)));
+  const imageList = sortedItems.map(item => getGalleryPhotoUrl(item)).filter(Boolean);
   stack.dataset.images = JSON.stringify(imageList);
   stack.dataset.title = title;
 
@@ -1912,7 +1918,7 @@ function renderGaleria(galeria) {
 	            .order("orden", { ascending: true }),
           supabaseBrowserClient
             .from("galeria")
-            .select("foto:foto_url,categoria,texto,orden,activa")
+            .select("foto:foto_url,categoria,texto,orden,activa,portada")
             .eq("activa", true)
             .order("orden", { ascending: true }),
           supabaseBrowserClient
@@ -2286,15 +2292,19 @@ function renderContactCalendar(apiData = {}) {
     return fotoUrl;
   };
 
-  window.mcpUploadGaleria = async function ({ file, categoria, texto, orden }) {
+  window.mcpUploadGaleria = async function ({ file, categoria, texto, orden, portada }) {
     const fotoUrl = await uploadImageToSupabaseBucket(file, "mcp930-images", "galeria");
     const client = getAdminSupabaseClient();
+    if (portada) {
+      await client.from("galeria").update({ portada: false }).eq("categoria", categoria).eq("texto", texto);
+    }
     const { error } = await client.from("galeria").insert({
       foto_url: fotoUrl,
       categoria,
       texto,
       orden: Number(orden || 1),
-      activa: true
+      activa: true,
+      portada: !!portada
     });
     if (error) throw error;
     return fotoUrl;
@@ -2407,6 +2417,7 @@ function renderContactCalendar(apiData = {}) {
 
 	      return `
 	        <div class="admin-content-item" data-admin-type="${type}" data-admin-id="${escapeHtml(row.id)}">
+	          <span class="admin-drag-handle" aria-hidden="true">⠿</span>
 	          <div class="admin-item-media">${image}</div>
 	          <div class="admin-item-body">
 	            <strong>${escapeHtml(title)}</strong>
@@ -2481,6 +2492,7 @@ function renderContactCalendar(apiData = {}) {
 	        });
 
 	      const eventMarkup = events.map((eventGroup, eventIndex) => {
+	        const eventKey = normalizeGalleryText(eventGroup.title) || "sin-categoria";
 	        const rowsMarkup = eventGroup.rows
 	          .sort((a, b) => Number(a.orden || 1) - Number(b.orden || 1))
 	          .map((row) => {
@@ -2489,16 +2501,18 @@ function renderContactCalendar(apiData = {}) {
 	              ? `<img src="${escapeHtml(row.foto_url)}" alt="${escapeHtml(title)}" loading="lazy">`
 	              : `<span class="admin-item-icon">✦</span>`;
 
-	            return `
+            return `
 	              <div class="admin-content-item" data-admin-type="galeria" data-admin-id="${escapeHtml(row.id)}">
+	                <span class="admin-drag-handle" aria-hidden="true">⠿</span>
 	                <div class="admin-item-media">${image}</div>
 	                <div class="admin-item-body">
 	                  <strong>${escapeHtml(title)}</strong>
 	                  <span>${escapeHtml(community.label)}</span>
-	                  <small>Orden ${escapeHtml(row.orden || 1)} · ${row.activa === false ? "Oculto" : "Visible"}</small>
+	                  <small>Orden ${escapeHtml(row.orden || 1)} · ${row.activa === false ? "Oculto" : "Visible"}${row.portada ? ' · <span class="admin-portada-badge">★ Portada</span>' : ""}</small>
 	                </div>
 	                <div class="admin-item-actions">
 	                  <button type="button" data-admin-action="edit">Editar</button>
+	                  <button type="button" data-admin-action="portada" class="${row.portada ? "is-portada" : ""}">${row.portada ? "★ Portada" : "Marcar portada"}</button>
 	                  <button type="button" data-admin-action="toggle">${row.activa === false ? "Mostrar" : "Ocultar"}</button>
 	                  <button type="button" data-admin-action="delete" class="danger">Borrar</button>
 	                </div>
@@ -2507,8 +2521,9 @@ function renderContactCalendar(apiData = {}) {
 	          }).join("");
 
 	        return `
-	          <details class="admin-gallery-event" ${eventIndex === 0 ? "open" : ""}>
+	          <details class="admin-gallery-event" data-gallery-event-key="${escapeHtml(eventKey)}" ${eventIndex === 0 ? "open" : ""}>
 	            <summary>
+	              <span class="admin-drag-handle" aria-hidden="true">⠿</span>
 	              <span>${escapeHtml(eventGroup.title)}</span>
 	              <small>${eventGroup.rows.length} ${eventGroup.rows.length === 1 ? "foto" : "fotos"}</small>
 	            </summary>
@@ -2613,6 +2628,130 @@ function renderContactCalendar(apiData = {}) {
 		    await loadAdminContent();
 		  }
 
+		  async function persistAdminOrder(type, orderedIds) {
+		    try {
+		      await Promise.all(orderedIds.map((id, index) => updateAdminRow(type, id, { orden: index + 1 })));
+		    } catch (error) {
+		      console.error(error);
+		      window.alert("No se pudo guardar el nuevo orden. Intenta de nuevo.");
+		    } finally {
+		      await refreshAdminAndSite();
+		    }
+		  }
+
+		  async function persistGalleryCategoryOrder(communityKey, orderedEventKeys) {
+		    try {
+		      const rows = adminContentCache.galeria || [];
+		      const updates = [];
+
+		      orderedEventKeys.forEach((eventKey, categoryIndex) => {
+		        const categoryRows = rows
+		          .filter((row) => {
+		            const rowCommunity = getGalleryRegionKey(row.categoria) || "sin-comunidad";
+		            const rowEventTitle = String(row.texto || "Sin categoría").trim() || "Sin categoría";
+		            const rowEventKey = normalizeGalleryText(rowEventTitle) || "sin-categoria";
+		            return rowCommunity === communityKey && rowEventKey === eventKey;
+		          })
+		          .sort((a, b) => Number(a.orden || 1) - Number(b.orden || 1));
+
+		        categoryRows.forEach((row, photoIndex) => {
+		          const newOrden = categoryIndex * 1000 + photoIndex + 1;
+		          if (Number(row.orden || 1) !== newOrden) {
+		            updates.push(updateAdminRow("galeria", row.id, { orden: newOrden }));
+		          }
+		        });
+		      });
+
+		      await Promise.all(updates);
+		    } catch (error) {
+		      console.error(error);
+		      window.alert("No se pudo guardar el nuevo orden de categorías. Intenta de nuevo.");
+		    } finally {
+		      await refreshAdminAndSite();
+		    }
+		  }
+
+		  const ADMIN_SORTABLE_ITEM_SELECTOR = ".admin-content-item, .admin-gallery-event";
+
+		  function getAdminSortableItemId(el) {
+		    return el.classList.contains("admin-gallery-event")
+		      ? el.dataset.galleryEventKey
+		      : el.dataset.adminId;
+		  }
+
+		  function initAdminDragReorder(rootContainer, { onReorder } = {}) {
+		    if (!rootContainer || rootContainer.dataset.sortableBound === "true") return;
+		    rootContainer.dataset.sortableBound = "true";
+
+		    let dragEl = null;
+		    let dragParent = null;
+		    let dragItemClass = null;
+
+		    function getSiblingItems() {
+		      return Array.from(dragParent.children).filter((el) => el.classList.contains(dragItemClass));
+		    }
+
+		    function onPointerMove(event) {
+		      if (!dragEl || !dragParent) return;
+		      const pointerY = event.clientY;
+		      const siblings = getSiblingItems().filter((el) => el !== dragEl);
+		      let insertBeforeEl = null;
+
+		      for (const sibling of siblings) {
+		        const rect = sibling.getBoundingClientRect();
+		        if (pointerY < rect.top + rect.height / 2) {
+		          insertBeforeEl = sibling;
+		          break;
+		        }
+		      }
+
+		      if (insertBeforeEl) {
+		        if (insertBeforeEl !== dragEl.nextElementSibling) dragParent.insertBefore(dragEl, insertBeforeEl);
+		      } else if (dragEl !== dragParent.lastElementChild) {
+		        dragParent.appendChild(dragEl);
+		      }
+		    }
+
+		    function finishDrag() {
+		      if (!dragEl || !dragParent) return;
+		      dragEl.classList.remove("is-dragging");
+		      document.removeEventListener("pointermove", onPointerMove);
+		      document.removeEventListener("pointerup", finishDrag);
+		      document.removeEventListener("pointercancel", finishDrag);
+
+		      const isCategory = dragItemClass === "admin-gallery-event";
+		      const communityKey = isCategory
+		        ? dragParent.closest(".admin-gallery-community")?.dataset.galleryCommunity
+		        : null;
+		      const orderedIds = getSiblingItems().map(getAdminSortableItemId);
+		      dragEl = null;
+		      dragParent = null;
+		      dragItemClass = null;
+		      onReorder?.(orderedIds, { isCategory, communityKey });
+		    }
+
+		    rootContainer.addEventListener("click", (event) => {
+		      if (event.target.closest(".admin-drag-handle")) event.preventDefault();
+		    });
+
+		    rootContainer.addEventListener("pointerdown", (event) => {
+		      const handle = event.target.closest(".admin-drag-handle");
+		      if (!handle) return;
+		      const item = handle.closest(ADMIN_SORTABLE_ITEM_SELECTOR);
+		      if (!item) return;
+
+		      event.preventDefault();
+		      dragEl = item;
+		      dragParent = item.parentElement;
+		      dragItemClass = dragEl.classList.contains("admin-gallery-event") ? "admin-gallery-event" : "admin-content-item";
+		      dragEl.classList.add("is-dragging");
+
+		      document.addEventListener("pointermove", onPointerMove);
+		      document.addEventListener("pointerup", finishDrag);
+		      document.addEventListener("pointercancel", finishDrag);
+		    });
+		  }
+
 	  function getAdminEditFields(type, row) {
 	    if (type === "eventos") {
 	      return [
@@ -2643,7 +2782,8 @@ function renderContactCalendar(apiData = {}) {
 	      { name: "categoria", label: "Comunidad", type: "select-category", value: row.categoria || "usa" },
 	      { name: "texto", label: "Categoría / evento", value: row.texto || "" },
 	      { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	      { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
+	      { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" },
+	      { name: "portada", label: "Usar como foto de portada de esta categoría", type: "checkbox", value: row.portada ? "true" : "false" }
 	    ];
 	  }
 
@@ -2679,6 +2819,15 @@ function renderContactCalendar(apiData = {}) {
 	                      <option value="rd" ${field.value === "rd" ? "selected" : ""}>RD</option>
 	                      <option value="eu" ${field.value === "eu" ? "selected" : ""}>EU</option>
 	                    </select>
+	                  </label>
+	                `;
+	              }
+
+	              if (field.type === "checkbox") {
+	                return `
+	                  <label class="admin-checkbox-label">
+	                    <input type="checkbox" name="${escapeHtml(field.name)}" ${field.value === "true" ? "checked" : ""}>
+	                    ${escapeHtml(field.label)}
 	                  </label>
 	                `;
 	              }
@@ -2784,6 +2933,10 @@ function renderContactCalendar(apiData = {}) {
 	        } else {
 	          delete values.icono_file;
 	        }
+	        fields.filter((field) => field.type === "checkbox").forEach((field) => {
+	          const checkboxInput = event.currentTarget.querySelector(`input[name="${field.name}"]`);
+	          values[field.name] = checkboxInput?.checked ? "true" : "false";
+	        });
 	        if (type === "eventos") {
 	          try {
 	            values.horario = buildEventSchedule({
@@ -2848,12 +3001,20 @@ function renderContactCalendar(apiData = {}) {
 
 	    if (type === "galeria") {
 	      const fotoUrl = await resolveEditedPhotoUrl(values, row.foto_url, "galeria");
+	      const categoria = values.categoria || "usa";
+	      const texto = values.texto || "";
+	      const isPortada = values.portada === "true";
+	      if (isPortada) {
+	        const client = getAdminSupabaseClient();
+	        await client.from("galeria").update({ portada: false }).eq("categoria", categoria).eq("texto", texto).neq("id", id);
+	      }
 	      await updateAdminRow("galeria", id, {
 	        foto_url: fotoUrl,
-	        categoria: values.categoria || "usa",
-	        texto: values.texto || "",
+	        categoria,
+	        texto,
 	        orden: Number(values.orden || 1),
-	        activa: values.activa !== "false"
+	        activa: values.activa !== "false",
+	        portada: isPortada
 	      });
 	    }
 
@@ -2879,6 +3040,16 @@ function renderContactCalendar(apiData = {}) {
 
 	      if (action === "toggle") {
 	        await updateAdminRow(type, id, { activa: row.activa === false });
+	        await refreshAdminAndSite();
+	      }
+
+	      if (action === "portada" && type === "galeria") {
+	        const makePortada = !row.portada;
+	        if (makePortada) {
+	          const client = getAdminSupabaseClient();
+	          await client.from("galeria").update({ portada: false }).eq("categoria", row.categoria).eq("texto", row.texto);
+	        }
+	        await updateAdminRow("galeria", id, { portada: makePortada });
 	        await refreshAdminAndSite();
 	      }
 
@@ -3445,24 +3616,38 @@ function renderContactCalendar(apiData = {}) {
   document.getElementById("adminGaleriaForm")?.addEventListener("submit", async function (event) {
     event.preventDefault();
     const msg = document.getElementById("adminGaleriaMsg");
-    const file = document.getElementById("adminGaleriaFoto")?.files?.[0];
+    const files = Array.from(document.getElementById("adminGaleriaFoto")?.files || []);
     const community = document.getElementById("adminGaleriaCategoria")?.value || "usa";
     const selectedEvent = document.getElementById("adminGaleriaEventoSelect")?.value || "";
     const typedEvent = document.getElementById("adminGaleriaTexto")?.value || "";
     const eventTitle = getCanonicalGalleryEventTitle(community, selectedEvent || typedEvent);
+    const baseOrden = Number(document.getElementById("adminGaleriaOrden")?.value || 1);
+    const markPortada = document.getElementById("adminGaleriaPortada")?.checked || false;
+
+    if (!files.length) {
+      showAdminMsg(msg, "Selecciona al menos una foto.", false);
+      return;
+    }
 
     try {
-      showAdminMsg(msg, "Optimizando y subiendo imagen...", true);
-      await window.mcpUploadGaleria({
-        file,
-        categoria: community,
-        texto: eventTitle,
-        orden: document.getElementById("adminGaleriaOrden")?.value || 1
-      });
+      for (let i = 0; i < files.length; i++) {
+        showAdminMsg(
+          msg,
+          files.length > 1 ? `Subiendo foto ${i + 1} de ${files.length}...` : "Optimizando y subiendo imagen...",
+          true
+        );
+        await window.mcpUploadGaleria({
+          file: files[i],
+          categoria: community,
+          texto: eventTitle,
+          orden: baseOrden + i,
+          portada: markPortada && i === 0
+        });
+      }
 
 	      this.reset();
 	      populateAdminGalleryEventOptions();
-	      showAdminMsg(msg, "Foto subida correctamente.", true);
+	      showAdminMsg(msg, files.length > 1 ? `${files.length} fotos subidas correctamente.` : "Foto subida correctamente.", true);
 	      await loadAdminContent();
 	    } catch (error) {
       console.error(error);
@@ -3472,6 +3657,22 @@ function renderContactCalendar(apiData = {}) {
 	  document.getElementById("adminEventosList")?.addEventListener("click", handleAdminListAction);
 	  document.getElementById("adminDestacadasList")?.addEventListener("click", handleAdminListAction);
 	  document.getElementById("adminGaleriaList")?.addEventListener("click", handleAdminListAction);
+
+	  initAdminDragReorder(document.getElementById("adminEventosList"), {
+	    onReorder: (orderedIds) => persistAdminOrder("eventos", orderedIds)
+	  });
+	  initAdminDragReorder(document.getElementById("adminDestacadasList"), {
+	    onReorder: (orderedIds) => persistAdminOrder("destacadas", orderedIds)
+	  });
+	  initAdminDragReorder(document.getElementById("adminGaleriaList"), {
+	    onReorder: (orderedIds, meta) => {
+	      if (meta?.isCategory) {
+	        if (meta.communityKey) persistGalleryCategoryOrder(meta.communityKey, orderedIds);
+	      } else {
+	        persistAdminOrder("galeria", orderedIds);
+	      }
+	    }
+	  });
 	  /* -----------------------------------------
      ADMIN PANEL SAFETY INIT
   ----------------------------------------- */

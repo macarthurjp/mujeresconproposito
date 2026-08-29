@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260729-css-split-1" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260829-drag-reorder-2" />
 </head>
 <body data-admin-page="true">
   <header>
@@ -133,6 +133,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Eventos publicados</h3>
+            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="eventos">Importar eventos actuales</button>
             <div id="adminEventosList" class="admin-content-list"></div>
           </div>
@@ -160,6 +161,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Destacadas publicadas</h3>
+            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="destacadas">Importar destacadas actuales</button>
             <div id="adminDestacadasList" class="admin-content-list"></div>
           </div>
@@ -191,13 +193,20 @@
               </div>
 
               <div class="admin-field admin-field-full">
-                <label for="adminGaleriaFoto">Foto</label>
-                <input type="file" id="adminGaleriaFoto" accept="image/*" required />
+                <label for="adminGaleriaFoto">Foto(s)</label>
+                <input type="file" id="adminGaleriaFoto" accept="image/*" multiple required />
               </div>
 
               <div class="admin-field admin-field-small">
                 <label for="adminGaleriaOrden">Orden</label>
                 <input type="number" id="adminGaleriaOrden" value="1" min="1" />
+              </div>
+
+              <div class="admin-checkbox-field">
+                <label class="admin-checkbox-label">
+                  <input type="checkbox" id="adminGaleriaPortada" />
+                  Usar como foto de portada de esta categoría
+                </label>
               </div>
 
               <div class="admin-form-actions">
@@ -209,6 +218,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Fotos publicadas</h3>
+            <p class="admin-reorder-hint">Arrastra ⠿ para reordenar las categorías, o las fotos dentro de cada una.</p>
             <button type="button" class="admin-import-btn" data-admin-import="galeria">Importar galería actual</button>
             <div id="adminGaleriaList" class="admin-content-list"></div>
           </div>
@@ -220,6 +230,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260729-resilience-1"></script>
+  <script src="assets/js/main.js?v=20260829-drag-reorder-2"></script>
 </body>
 </html>
