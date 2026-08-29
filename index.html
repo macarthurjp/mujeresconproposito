@@ -788,42 +788,68 @@
   <div class="divider-glow"></div>
 
   <section class="youtube-explore">
-    <h2>✨ Canal de YouTube ✨</h2>
+    <span class="yt-kicker">✦ Canal de YouTube</span>
+    <h2>Mensajes que fortalecen tu fe</h2>
     <p class="youtube-subtitle">
       Síguenos en YouTube para mensajes, reflexiones y contenido para tu crecimiento espiritual.
     </p>
 
-    <div class="youtube-carousel">
-      <div class="youtube-item">
-        <div class="thumb-wrapper">
-          <img src="https://img.youtube.com/vi/LEe3mHoKObc/hqdefault.jpg" alt="Video 1" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
-          <div class="play-icon">▶</div>
+    <div class="yt-grid">
+      <article class="yt-card" tabindex="0" role="button" data-video-id="LEe3mHoKObc" data-title="De vuelta al Génesis" data-sub="Conferencia con Xiomery Mercedes" aria-label="Reproducir: De vuelta al Génesis">
+        <div class="yt-thumb yt-grad-1">
+          <img src="https://img.youtube.com/vi/LEe3mHoKObc/hqdefault.jpg" alt="" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
+          <span class="yt-tag">Conferencia</span>
+          <div class="yt-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <h4>De vuelta al Génesis</h4>
-        <p>Conferencia con Xiomery Mercedes</p>
-      </div>
+        <div class="yt-body">
+          <h3>De vuelta al Génesis</h3>
+          <p>Conferencia con Xiomery Mercedes</p>
+        </div>
+      </article>
 
-      <div class="youtube-item">
-        <div class="thumb-wrapper">
-          <img src="https://img.youtube.com/vi/43l_c5h5crs/hqdefault.jpg" alt="Video 2" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
-          <div class="play-icon">▶</div>
+      <article class="yt-card" tabindex="0" role="button" data-video-id="43l_c5h5crs" data-title="Finanzas de Pareja" data-sub="Conferencia con Diana Rosario" aria-label="Reproducir: Finanzas de Pareja">
+        <div class="yt-thumb yt-grad-2">
+          <img src="https://img.youtube.com/vi/43l_c5h5crs/hqdefault.jpg" alt="" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
+          <span class="yt-tag">Conferencia</span>
+          <div class="yt-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <h4>Marexy Pacheco</h4>
-        <p>Reflexión y enseñanza</p>
-      </div>
+        <div class="yt-body">
+          <h3>Finanzas de Pareja</h3>
+          <p>Conferencia con Diana Rosario</p>
+        </div>
+      </article>
 
-      <div class="youtube-item">
-        <div class="thumb-wrapper">
-          <img src="https://img.youtube.com/vi/cLrY0E1u0j0/hqdefault.jpg" alt="Video 3" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
-          <div class="play-icon">▶</div>
+      <article class="yt-card" tabindex="0" role="button" data-video-id="cLrY0E1u0j0" data-title="Mujeres que Emprenden" data-sub="Conferencia con Merary Pacheco" aria-label="Reproducir: Mujeres que Emprenden">
+        <div class="yt-thumb yt-grad-3">
+          <img src="https://img.youtube.com/vi/cLrY0E1u0j0/hqdefault.jpg" alt="" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
+          <span class="yt-tag">Conferencia</span>
+          <div class="yt-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
-        <h4>Mujeres que Emprenden</h4>
-        <p>Conferencia con invitadas especiales</p>
-      </div>
+        <div class="yt-body">
+          <h3>Mujeres que Emprenden</h3>
+          <p>Conferencia con Merary Pacheco</p>
+        </div>
+      </article>
     </div>
 
     <a href="https://www.youtube.com/@MujeresconProposito930" class="youtube-more" target="_blank" rel="noopener noreferrer">Ver más videos</a>
   </section>
+
+  <div class="yt-lightbox" id="ytLightbox">
+    <div class="yt-lightbox-card">
+      <div class="yt-player-stage" id="ytPlayerStage"></div>
+      <div class="yt-lightbox-footer">
+        <div>
+          <h4 id="ytLightboxTitle">Título</h4>
+          <span id="ytLightboxSub">Subtítulo</span>
+        </div>
+        <div class="yt-lightbox-actions">
+          <a class="yt-watch" id="ytWatchLink" href="https://www.youtube.com/@MujeresconProposito930" target="_blank" rel="noopener noreferrer">Ver en YouTube</a>
+          <button type="button" class="yt-close" id="ytLightboxClose">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="divider-glow"></div>
 
@@ -921,6 +947,13 @@
       <div class="sc-mini-now">
         <span class="sc-mini-badge">Ahora sonando</span>
         <h3 id="scCurrentTitle">Cargando audio...</h3>
+        <div class="sc-progress-track" id="scProgressTrack">
+          <div class="sc-progress-fill" id="scProgressFill"></div>
+        </div>
+        <div class="sc-time-row">
+          <span id="scTimeCurrent">0:00</span>
+          <span id="scTimeTotal">0:00</span>
+        </div>
       </div>
 
       <div class="sc-mini-controls">
@@ -1296,9 +1329,30 @@
     </a>
   </div>
 
-  <footer>
-    © Mujeres con Propósito — Todos los derechos reservados
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="assets/images/logo.webp" alt="" class="footer-logo" />
+        <p>Una comunidad cristiana internacional donde la fe, la hermandad y el propósito se unen para transformar vidas.</p>
+      </div>
+
+      <nav class="footer-links" aria-label="Enlaces del sitio">
+        <a href="#home">Inicio</a>
+        <a href="#events">Eventos</a>
+        <a href="#gallery">Galería</a>
+        <a href="#join">Únete</a>
+        <a href="#contact">Contacto</a>
+      </nav>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© <span id="footerYear"></span> Mujeres con Propósito — Todos los derechos reservados</span>
+    </div>
   </footer>
+
+  <button type="button" class="back-to-top" id="backToTopBtn" aria-label="Volver arriba">
+    <svg viewBox="0 0 24 24"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+  </button>
 
   <a href="https://wa.me/1234567890" class="whatsapp-float" target="_blank" rel="noopener noreferrer">
     <svg viewBox="0 0 32 32" width="28" height="28" fill="white">
@@ -1328,6 +1382,27 @@
         updateCalendarDate();
       }
         })();
+
+    (function setFooterYear() {
+      var footerYear = document.getElementById("footerYear");
+      if (footerYear) footerYear.textContent = String(new Date().getFullYear());
+    })();
+
+    (function initBackToTop() {
+      var backToTopBtn = document.getElementById("backToTopBtn");
+      if (!backToTopBtn) return;
+
+      function toggleVisibility() {
+        backToTopBtn.classList.toggle("visible", window.scrollY > 480);
+      }
+
+      window.addEventListener("scroll", toggleVisibility, { passive: true });
+      toggleVisibility();
+
+      backToTopBtn.addEventListener("click", function () {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    })();
 
 	  </script>
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>

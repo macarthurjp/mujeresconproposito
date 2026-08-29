@@ -1083,25 +1083,51 @@ lightbox?.addEventListener("touchcancel", function () {
   });
 
   /* -----------------------------------------
-     YOUTUBE AUTO SLIDE
+     YOUTUBE LIGHTBOX
   ----------------------------------------- */
-  const ytCarousel = document.querySelector(".youtube-carousel");
-  let ytOffset = 0;
+  (function initYoutubeLightbox() {
+    const ytLightbox = document.getElementById("ytLightbox");
+    const ytStage = document.getElementById("ytPlayerStage");
+    const ytTitleEl = document.getElementById("ytLightboxTitle");
+    const ytSubEl = document.getElementById("ytLightboxSub");
+    const ytWatchLink = document.getElementById("ytWatchLink");
+    const ytCloseBtn = document.getElementById("ytLightboxClose");
+    if (!ytLightbox || !ytStage) return;
 
-  function autoSlideYouTube() {
-    if (!ytCarousel) return;
-    ytOffset += 320;
-    if (ytOffset >= ytCarousel.scrollWidth) ytOffset = 0;
+    function openYoutubeVideo(card) {
+      const videoId = card.dataset.videoId;
+      if (!videoId) return;
 
-    ytCarousel.scrollTo({
-      left: ytOffset,
-      behavior: "smooth"
+      ytStage.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" title="${escapeHtml(card.dataset.title || "Video")}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+      if (ytTitleEl) ytTitleEl.textContent = card.dataset.title || "";
+      if (ytSubEl) ytSubEl.textContent = card.dataset.sub || "";
+      if (ytWatchLink) ytWatchLink.href = `https://www.youtube.com/watch?v=${videoId}`;
+      ytLightbox.classList.add("open");
+    }
+
+    function closeYoutubeVideo() {
+      ytLightbox.classList.remove("open");
+      ytStage.innerHTML = "";
+    }
+
+    document.querySelectorAll(".yt-card").forEach((card) => {
+      card.addEventListener("click", () => openYoutubeVideo(card));
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openYoutubeVideo(card);
+        }
+      });
     });
-  }
 
-  if (ytCarousel) {
-    setInterval(autoSlideYouTube, 3000);
-  }
+    ytCloseBtn?.addEventListener("click", closeYoutubeVideo);
+    ytLightbox.addEventListener("click", (event) => {
+      if (event.target === ytLightbox) closeYoutubeVideo();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && ytLightbox.classList.contains("open")) closeYoutubeVideo();
+    });
+  })();
 
   /* -----------------------------------------
      MODAL DONACIÓN
@@ -3780,8 +3806,19 @@ function renderContactCalendar(apiData = {}) {
     const playBtn = document.getElementById("scPlayBtn");
     const prevBtn = document.getElementById("scPrevBtn");
     const nextBtn = document.getElementById("scNextBtn");
+    const progressTrack = document.getElementById("scProgressTrack");
+    const progressFill = document.getElementById("scProgressFill");
+    const timeCurrent = document.getElementById("scTimeCurrent");
+    const timeTotal = document.getElementById("scTimeTotal");
 
     if (!iframe || !trackList || !title || !playBtn || !prevBtn || !nextBtn) return;
+
+    function formatDuration(ms) {
+      const totalSeconds = Math.max(0, Math.floor((ms || 0) / 1000));
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${String(seconds).padStart(2, "0")}`;
+    }
 
     if (!window.SC?.Widget) {
       if (attempt < 20) {
@@ -3827,7 +3864,8 @@ function renderContactCalendar(apiData = {}) {
         ? sounds.map((s, i) => `
             <div class="sc-track ${i === current ? "active" : ""}" data-i="${i}">
               <span class="sc-track-index">${i === current ? "▶" : String(i + 1).padStart(2, "0")}</span>
-              <span class="sc-track-title">${s.title}</span>
+              <span class="sc-track-title">${escapeHtml(s.title)}</span>
+              <span class="sc-track-duration">${formatDuration(s.duration)}</span>
             </div>
           `).join("")
         : `<div class="sc-track-placeholder">No se encontraron audios.</div>`;
@@ -3846,12 +3884,19 @@ function renderContactCalendar(apiData = {}) {
       trackList.innerHTML = '<div class="sc-track-placeholder">Usa “Ver playlist” para escuchar los audios.</div>';
     }, 12000);
 
+    function setProgress(ratio, currentMs, totalMs) {
+      if (progressFill) progressFill.style.width = `${Math.min(100, Math.max(0, ratio * 100))}%`;
+      if (timeCurrent) timeCurrent.textContent = formatDuration(currentMs);
+      if (timeTotal) timeTotal.textContent = formatDuration(totalMs);
+    }
+
     widget.bind(window.SC.Widget.Events.READY, () => {
       window.clearTimeout(readyTimeout);
       widget.getSounds(data => {
         sounds = Array.isArray(data) ? data : [];
         if (sounds.length) {
           title.textContent = sounds[0].title;
+          setProgress(0, 0, sounds[0].duration);
         } else {
           title.textContent = "No hay audios disponibles";
         }
@@ -3868,6 +3913,7 @@ function renderContactCalendar(apiData = {}) {
         title.textContent = s.title;
         const found = sounds.findIndex(x => x.id === s.id);
         if (found !== -1) current = found;
+        setProgress(0, 0, s.duration);
         render();
       });
     });
@@ -3875,6 +3921,25 @@ function renderContactCalendar(apiData = {}) {
     widget.bind(window.SC.Widget.Events.PAUSE, () => {
       playing = false;
       playBtn.textContent = "▶";
+    });
+
+    widget.bind(window.SC.Widget.Events.PLAY_PROGRESS, (progressData) => {
+      const totalMs = sounds[current]?.duration || 0;
+      const ratio = totalMs ? progressData.currentPosition / totalMs : 0;
+      setProgress(ratio, progressData.currentPosition, totalMs);
+    });
+
+    widget.bind(window.SC.Widget.Events.FINISH, () => {
+      setProgress(0, 0, sounds[current]?.duration || 0);
+    });
+
+    progressTrack?.addEventListener("click", (event) => {
+      const totalMs = sounds[current]?.duration || 0;
+      if (!totalMs) return;
+      const rect = progressTrack.getBoundingClientRect();
+      const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
+      widget.seekTo(ratio * totalMs);
+      setProgress(ratio, ratio * totalMs, totalMs);
     });
 
     playBtn.onclick = () => {
@@ -3904,7 +3969,7 @@ function renderContactCalendar(apiData = {}) {
 ----------------------------------------- */
 (function initHiddenPrivateAccess() {
   const ADMIN_URL = "admin.html";
-  const footer = document.querySelector("footer");
+  const footer = document.querySelector(".footer-bottom") || document.querySelector("footer");
 
   let footerTapCount = 0;
   let footerTapTimer = null;
