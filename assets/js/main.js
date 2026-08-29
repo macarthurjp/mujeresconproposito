@@ -2580,6 +2580,88 @@ function renderContactCalendar(apiData = {}) {
 	    return existing?.texto || String(eventTitle || "").trim();
 	  }
 
+	  function computeGalleryCategoryStats(rows) {
+	    const groups = new Map();
+
+	    rows.forEach((row) => {
+	      const communityKey = getGalleryRegionKey(row.categoria) || "sin-comunidad";
+	      const eventTitle = String(row.texto || "Sin categoría").trim() || "Sin categoría";
+	      const eventKey = normalizeGalleryText(eventTitle) || "sin-categoria";
+	      const key = `${communityKey}::${eventKey}`;
+
+	      if (!groups.has(key)) groups.set(key, { hasPortada: false });
+	      if (row.portada) groups.get(key).hasPortada = true;
+	    });
+
+	    const total = groups.size;
+	    const missing = Array.from(groups.values()).filter((group) => !group.hasPortada).length;
+	    return { total, missing };
+	  }
+
+	  function setAdminStatValue(id, value) {
+	    const el = document.getElementById(id);
+	    if (el) el.textContent = String(value);
+	  }
+
+	  function renderAdminStats() {
+	    const eventos = adminContentCache.eventos || [];
+	    const destacadas = adminContentCache.destacadas || [];
+	    const galeria = adminContentCache.galeria || [];
+
+	    const eventosActivos = eventos.filter((row) => row.activa !== false).length;
+	    const { total: totalCategorias, missing: categoriasSinPortada } = computeGalleryCategoryStats(galeria);
+
+	    setAdminStatValue("statEventos", eventosActivos);
+	    setAdminStatValue("statDestacadas", destacadas.length);
+	    setAdminStatValue("statFotos", galeria.length);
+	    setAdminStatValue("statPortadaFaltante", categoriasSinPortada);
+
+	    const tile = document.getElementById("statPortadaTile");
+	    const pill = document.getElementById("statPortadaPill");
+	    if (!tile || !pill) return;
+
+	    if (!totalCategorias) {
+	      tile.classList.remove("is-warning");
+	      pill.style.display = "none";
+	      return;
+	    }
+
+	    const isComplete = categoriasSinPortada === 0;
+	    tile.classList.toggle("is-warning", !isComplete);
+	    pill.style.display = "";
+	    pill.className = `admin-stat-pill ${isComplete ? "ok" : "warn"}`;
+	    pill.textContent = isComplete ? "Completo" : "Revisar";
+	  }
+
+	  function getAdminToastStack() {
+	    let stack = document.getElementById("adminToastStack");
+	    if (!stack) {
+	      stack = document.createElement("div");
+	      stack.id = "adminToastStack";
+	      stack.className = "admin-toast-stack";
+	      document.body.appendChild(stack);
+	    }
+	    return stack;
+	  }
+
+	  function showAdminToast(kind, title, message) {
+	    const stack = getAdminToastStack();
+	    const toast = document.createElement("div");
+	    toast.className = `admin-toast ${kind}`;
+	    const icon = kind === "success" ? "✓" : kind === "error" ? "!" : "✦";
+	    toast.innerHTML = `
+	      <div class="admin-toast-icon">${icon}</div>
+	      <div class="admin-toast-text"><strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span></div>
+	      <button type="button" class="admin-toast-close" aria-label="Cerrar">✕</button>
+	      <div class="admin-toast-bar"></div>
+	    `;
+	    stack.appendChild(toast);
+
+	    const remove = () => toast.remove();
+	    toast.querySelector(".admin-toast-close")?.addEventListener("click", remove);
+	    window.setTimeout(remove, kind === "error" ? 7000 : 4500);
+	  }
+
 	  function renderAdminError(containerId, error) {
 	    const container = document.getElementById(containerId);
 	    if (!container) return;
@@ -2622,6 +2704,8 @@ function renderContactCalendar(apiData = {}) {
 	    if (results[2].status === "fulfilled") {
 	      populateAdminGalleryEventOptions(galeria);
 	    }
+
+	    renderAdminStats();
 	  }
 
 		  async function refreshAdminAndSite() {
@@ -2633,7 +2717,7 @@ function renderContactCalendar(apiData = {}) {
 		      await Promise.all(orderedIds.map((id, index) => updateAdminRow(type, id, { orden: index + 1 })));
 		    } catch (error) {
 		      console.error(error);
-		      window.alert("No se pudo guardar el nuevo orden. Intenta de nuevo.");
+		      showAdminToast("error", "No se pudo guardar", "No se pudo guardar el nuevo orden. Intenta de nuevo.");
 		    } finally {
 		      await refreshAdminAndSite();
 		    }
@@ -2665,7 +2749,7 @@ function renderContactCalendar(apiData = {}) {
 		      await Promise.all(updates);
 		    } catch (error) {
 		      console.error(error);
-		      window.alert("No se pudo guardar el nuevo orden de categorías. Intenta de nuevo.");
+		      showAdminToast("error", "No se pudo guardar", "No se pudo guardar el nuevo orden de categorías. Intenta de nuevo.");
 		    } finally {
 		      await refreshAdminAndSite();
 		    }
@@ -3065,7 +3149,7 @@ function renderContactCalendar(apiData = {}) {
 	        error?.hint,
 	        error?.code
 	      ].filter(Boolean).join("\n");
-	      window.alert(`No se pudo completar la acción.\n\n${details || "Revisa Supabase y las políticas de permisos."}`);
+	      showAdminToast("error", "No se pudo completar la acción", details || "Revisa Supabase y las políticas de permisos.");
 	    }
 	  }
 
@@ -3326,7 +3410,7 @@ function renderContactCalendar(apiData = {}) {
 	    }
 
 	    if (!freshItems.length && !updatedItems) {
-	      window.alert("No encontré contenido nuevo para importar.");
+	      showAdminToast("info", "Nada que importar", "No encontré contenido nuevo para importar.");
 	      return;
 	    }
 
@@ -3337,7 +3421,7 @@ function renderContactCalendar(apiData = {}) {
 	    }
 
 	    await refreshAdminAndSite();
-	    window.alert(`Importados ${freshItems.length} elementos. Actualizados ${updatedItems} enlaces al bucket.`);
+	    showAdminToast("success", "Importación completa", `Importados ${freshItems.length} elementos. Actualizados ${updatedItems} enlaces al bucket.`);
 	  }
 
 	  document.querySelectorAll("[data-admin-import]").forEach((button) => {
@@ -3352,7 +3436,7 @@ function renderContactCalendar(apiData = {}) {
 	          error?.hint,
 	          error?.code
 	        ].filter(Boolean).join("\n");
-	        window.alert(`No se pudo importar.\n\n${details || "Revisa permisos de insert en Supabase."}`);
+	        showAdminToast("error", "No se pudo importar", details || "Revisa permisos de insert en Supabase.");
 	      }
 	    });
 	  });

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260829-drag-reorder-2" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260830-stats-toasts-1" />
 </head>
 <body data-admin-page="true">
   <header>
@@ -69,6 +69,38 @@
             <h3>Centro de gestión</h3>
           </div>
           <button type="button" class="admin-logout-btn" id="adminLogoutBtn">Cerrar sesión</button>
+        </div>
+
+        <div class="admin-stats-grid" id="adminStatsGrid">
+          <div class="admin-stat-tile">
+            <div class="admin-stat-top">
+              <div class="admin-stat-icon">✦</div>
+            </div>
+            <div class="admin-stat-value" id="statEventos">0</div>
+            <div class="admin-stat-label">Eventos activos</div>
+          </div>
+          <div class="admin-stat-tile">
+            <div class="admin-stat-top">
+              <div class="admin-stat-icon">♡</div>
+            </div>
+            <div class="admin-stat-value" id="statDestacadas">0</div>
+            <div class="admin-stat-label">Destacadas</div>
+          </div>
+          <div class="admin-stat-tile">
+            <div class="admin-stat-top">
+              <div class="admin-stat-icon">✧</div>
+            </div>
+            <div class="admin-stat-value" id="statFotos">0</div>
+            <div class="admin-stat-label">Fotos en galería</div>
+          </div>
+          <div class="admin-stat-tile" id="statPortadaTile">
+            <div class="admin-stat-top">
+              <div class="admin-stat-icon">◐</div>
+              <span class="admin-stat-pill" id="statPortadaPill" style="display:none;"></span>
+            </div>
+            <div class="admin-stat-value" id="statPortadaFaltante">0</div>
+            <div class="admin-stat-label">Categorías sin portada</div>
+          </div>
         </div>
 
         <div class="admin-tabs">
@@ -230,6 +262,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260829-drag-reorder-2"></script>
+  <script src="assets/js/main.js?v=20260830-stats-toasts-1"></script>
 </body>
 </html>
