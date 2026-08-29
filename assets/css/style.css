@@ -1207,12 +1207,12 @@ section p {
     min-height: 78px;
     border-radius: 24px;
     background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.34), transparent 40%),
-        linear-gradient(135deg, #E7A8A0, #f3d5d1);
-    border: 1px solid rgba(255,255,255,0.58);
+        radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 40%),
+        linear-gradient(135deg, #a64b43, #7b3732);
+    border: 1px solid rgba(255,255,255,0.28);
     box-shadow:
-        0 16px 34px rgba(176,95,95,0.20),
-        inset 0 1px 0 rgba(255,255,255,0.35);
+        0 16px 34px rgba(74,39,32,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.20);
     transition: transform 0.28s ease, box-shadow 0.28s ease, filter 0.28s ease;
 }
 
@@ -5749,8 +5749,10 @@ img:not([src]) {
     align-items: center;
     justify-content: center;
     min-height: 34px;
+    max-width: calc(100% - 56px);
     padding: 0 14px;
     margin-bottom: 16px;
+    margin-right: 56px;
     border-radius: 999px;
     background: rgba(216,168,92,0.15);
     border: 1px solid rgba(166,75,67,0.10);
@@ -5759,6 +5761,7 @@ img:not([src]) {
     font-weight: 900;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    box-sizing: border-box;
 }
 
 /* Formulario en grid */
