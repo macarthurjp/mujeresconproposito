@@ -117,6 +117,19 @@ test("contact verification appears immediately before submit", async ({ page }) 
   expect(visualOrder.submitTop).toBeGreaterThanOrEqual(visualOrder.turnstileBottom);
 });
 
+test("mission and values copy is justified on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto("/index.html");
+  await page.locator("#openVisionModal").click();
+
+  await expect(page.locator("#visionModal")).toHaveClass(/open/);
+  const alignment = await page.evaluate(() => ({
+    paragraph: getComputedStyle(document.querySelector("#visionModal .modal-content > p")).textAlign,
+    value: getComputedStyle(document.querySelector("#visionModal .modal-values-list li")).textAlign
+  }));
+  expect(alignment).toEqual({ paragraph: "justify", value: "justify" });
+});
+
 test("image uploads are converted and resized", async ({ page }) => {
   await page.goto("/admin.html");
 

@@ -6146,6 +6146,16 @@ img:not([src]) {
         margin-right: auto !important;
     }
 
+    #visionModal .modal-content > p,
+    #visionModal .modal-values-list li {
+        text-align: justify !important;
+        text-align-last: left !important;
+        text-justify: inter-word !important;
+        hyphens: auto !important;
+        -webkit-hyphens: auto !important;
+        overflow-wrap: break-word !important;
+    }
+
     .join-modal-content::before,
     .modal-content::before {
         margin-left: 0 !important;
