@@ -130,6 +130,56 @@ test("mission and values copy is justified on mobile", async ({ page }) => {
   expect(alignment).toEqual({ paragraph: "justify", value: "justify" });
 });
 
+test("mission and vision paragraphs begin with an indent", async ({ page }) => {
+  await page.goto("/index.html");
+  await page.locator("#openVisionModal").click();
+
+  const indents = await page.locator("#visionModal .modal-content h3 + p").evaluateAll((paragraphs) =>
+    paragraphs.map((paragraph) => parseFloat(getComputedStyle(paragraph).textIndent))
+  );
+  expect(indents).toHaveLength(2);
+  indents.forEach((indent) => expect(indent).toBeGreaterThan(0));
+});
+
+test("mobile timeline shows every year in a vertical list", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto("/index.html");
+
+  const years = page.locator("#timeline .timeline-step .year");
+  await expect(years).toHaveCount(4);
+  await expect(years).toHaveText(["2023", "2024", "2025", "2026"]);
+  for (let index = 0; index < 4; index += 1) {
+    await expect(years.nth(index)).toBeVisible();
+  }
+
+  const layout = await page.locator("#timeline .timeline-horizontal").evaluate((timeline) => ({
+    overflowX: getComputedStyle(timeline).overflowX,
+    columns: getComputedStyle(timeline).gridTemplateColumns,
+    width: timeline.getBoundingClientRect().width,
+    scrollWidth: timeline.scrollWidth
+  }));
+  expect(layout.overflowX).toBe("visible");
+  expect(layout.scrollWidth).toBeLessThanOrEqual(Math.ceil(layout.width));
+});
+
+test("join image overlay copy remains white", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto("/index.html");
+
+  const colors = await page.evaluate(() => ({
+    title: getComputedStyle(document.querySelector(".join-image-overlay span")).color,
+    copy: getComputedStyle(document.querySelector(".join-image-overlay p")).color
+  }));
+  expect(colors).toEqual({ title: "rgb(255, 255, 255)", copy: "rgb(255, 255, 255)" });
+});
+
+test("layout hides the decorative background watermark", async ({ page }) => {
+  await page.goto("/index.html");
+
+  const watermarkDisplay = await page.evaluate(() => getComputedStyle(document.body, "::before").display);
+  expect(watermarkDisplay).toBe("none");
+});
+
 test("image uploads are converted and resized", async ({ page }) => {
   await page.goto("/admin.html");
 

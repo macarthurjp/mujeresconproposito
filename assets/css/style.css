@@ -890,11 +890,18 @@ section p {
     font-size: 0.95rem;
 }
 
-.join-image-overlay p {
+.join-section .join-image-overlay p {
     margin: 0;
     line-height: 1.5;
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.88);
+    color: #ffffff !important;
+    font-weight: 650;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
+}
+
+.join-section .join-image-overlay span {
+    color: #ffffff !important;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
 }
 
 .btn.btn-secondary {
@@ -3934,9 +3941,7 @@ body {
 }
 
 body::before {
-    background-image: url('../images/logo.webp') !important;
-    background-size: min(680px, 72vw) !important;
-    opacity: 0.035 !important;
+    display: none !important;
 }
 
 body::after {
@@ -5855,6 +5860,10 @@ img:not([src]) {
     margin-top: 0 !important;
 }
 
+#visionModal .modal-content h3 + p {
+    text-indent: 2.5em !important;
+}
+
 .modal-values-list {
     max-width: 100% !important;
     margin: 0 0 24px !important;
@@ -6154,6 +6163,10 @@ img:not([src]) {
         hyphens: auto !important;
         -webkit-hyphens: auto !important;
         overflow-wrap: break-word !important;
+    }
+
+    #visionModal .modal-content h3 + p {
+        text-indent: 1.75em !important;
     }
 
     .join-modal-content::before,
@@ -8936,17 +8949,48 @@ video {
   }
 
   #timeline .timeline-horizontal {
-    --timeline-card-width: min(82vw, 340px);
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     gap: 18px !important;
+    margin-top: 34px !important;
+    padding: 10px 0 10px 42px !important;
+    overflow: visible !important;
+    scroll-snap-type: none !important;
   }
 
   #timeline .timeline-horizontal::before {
-    left: 32px !important;
-    right: 32px !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 14px !important;
+    right: auto !important;
+    width: 3px !important;
+    height: auto !important;
+    background: linear-gradient(180deg, rgba(231,168,160,0.4), rgba(231,168,160,0.95), rgba(231,168,160,0.4)) !important;
+  }
+
+  #timeline .timeline-step {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 24px 18px !important;
+    text-align: left !important;
+    scroll-snap-align: none !important;
   }
 
   #timeline .timeline-step::before {
-    top: calc((var(--timeline-line-top) * -1) + 1px) !important;
+    top: 50% !important;
+    left: -28px !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  #timeline .timeline-step::after {
+    display: none !important;
+  }
+
+  #timeline .timeline-step h3,
+  #timeline .timeline-step p {
+    text-align: left !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 }
 
