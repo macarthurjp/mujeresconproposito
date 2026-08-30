@@ -2266,11 +2266,31 @@ section .verse-block {
     flex: 0 0 auto !important;
 }
 
+.footer-brand-text {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+}
+
 .footer-brand p {
     margin: 4px 0 0 !important;
     color: rgba(255,255,255,0.78) !important;
     font-size: 0.9rem !important;
     line-height: 1.55 !important;
+}
+
+.footer-email {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    color: rgba(255,255,255,0.9) !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+.footer-email:hover {
+    text-decoration: underline !important;
 }
 
 .footer-links {
