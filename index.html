@@ -212,10 +212,13 @@
     }
 
     /* Gana especificidad sobre #joinModal .join-form-premium input, que fuerza
-       padding: 0 15px y taparía el espacio reservado para la bandera */
+       padding: 0 15px y taparía el espacio reservado para la bandera.
+       El valor real lo calcula intl-tel-input por país (varía el ancho del
+       código de marcado, ej. +1 vs +352) y se sincroniza en --telefono-padding-left
+       vía MutationObserver en initPhoneCountrySelect(). */
     #joinModal .join-form-premium input#telefono,
     .join-form-premium input#telefono {
-      padding-left: 96px !important;
+      padding-left: var(--telefono-padding-left, 96px) !important;
       padding-right: 15px !important;
     }
 
@@ -1499,6 +1502,6 @@
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/js/intlTelInputWithUtils.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase.js?v=20260830-turnstile-1"></script>
-  <script src="assets/js/main.js?v=20260830-turnstile-1"></script>
+  <script src="assets/js/main.js?v=20260830-phone-fix-1"></script>
 </body>
 </html>

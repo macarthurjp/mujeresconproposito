@@ -1431,6 +1431,17 @@ lightbox?.addEventListener("touchcancel", function () {
     });
 
     window.mcpPhoneInput = iti;
+
+    function syncTelefonoPadding() {
+      const paddingLeft = phoneField.style.paddingLeft;
+      if (paddingLeft && phoneField.style.getPropertyValue("--telefono-padding-left") !== paddingLeft) {
+        phoneField.style.setProperty("--telefono-padding-left", paddingLeft);
+      }
+    }
+
+    new MutationObserver(syncTelefonoPadding).observe(phoneField, { attributes: true, attributeFilter: ["style"] });
+    syncTelefonoPadding();
+
     return iti;
   }
 
@@ -1498,6 +1509,10 @@ lightbox?.addEventListener("touchcancel", function () {
     const phoneClean = normalizeJoinPhone(payload.telefono);
     if (!/^\+?\d{7,15}$/.test(phoneClean)) {
       return "El teléfono no es válido.";
+    }
+
+    if (window.mcpPhoneInput?.isValidNumber && !window.mcpPhoneInput.isValidNumber()) {
+      return "El teléfono no es válido para el país seleccionado.";
     }
 
     if (!/^\d+$/.test(String(payload.hijos || "0")) || Number(payload.hijos || 0) < 0) {
