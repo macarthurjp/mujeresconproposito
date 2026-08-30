@@ -1432,14 +1432,21 @@ lightbox?.addEventListener("touchcancel", function () {
 
     window.mcpPhoneInput = iti;
 
+    const selectedCountryEl = phoneField.closest(".iti")?.querySelector(".iti__selected-country");
+
     function syncTelefonoPadding() {
-      const paddingLeft = phoneField.style.paddingLeft;
-      if (paddingLeft && phoneField.style.getPropertyValue("--telefono-padding-left") !== paddingLeft) {
-        phoneField.style.setProperty("--telefono-padding-left", paddingLeft);
-      }
+      if (!selectedCountryEl) return;
+      const selectedRect = selectedCountryEl.getBoundingClientRect();
+      const inputRect = phoneField.getBoundingClientRect();
+      if (!selectedRect.width || !inputRect.width) return;
+      const padding = Math.ceil(selectedRect.right - inputRect.left) + 10;
+      phoneField.style.setProperty("--telefono-padding-left", `${padding}px`);
     }
 
-    new MutationObserver(syncTelefonoPadding).observe(phoneField, { attributes: true, attributeFilter: ["style"] });
+    if (selectedCountryEl && typeof ResizeObserver === "function") {
+      new ResizeObserver(syncTelefonoPadding).observe(selectedCountryEl);
+    }
+    phoneField.addEventListener("countrychange", syncTelefonoPadding);
     syncTelefonoPadding();
 
     return iti;
