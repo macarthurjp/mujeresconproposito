@@ -18,7 +18,7 @@ module.exports = defineConfig({
     trace: "retain-on-failure"
   },
   webServer: {
-    command: "npx http-server -a 127.0.0.1 -p 4173 -c-1 --silent",
+    command: "./node_modules/.bin/http-server -a 127.0.0.1 -p 4173 -c-1 --silent",
     url: "http://127.0.0.1:4173/index.html",
     reuseExistingServer: true,
     timeout: 15000

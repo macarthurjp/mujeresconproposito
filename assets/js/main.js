@@ -1591,18 +1591,19 @@ lightbox?.addEventListener("touchcancel", function () {
 
       payload.turnstileToken = joinTurnstileToken;
 
-      await submitJoinSecure(payload);
+      const result = await submitJoinSecure(payload);
 
       // --- Begin new success flow for gracias-unirse.html ---
       const nombreBienvenida = encodeURIComponent(payload.nombre || "");
       const emailBienvenida = encodeURIComponent(payload.email || "");
+      const notificationStatus = result?.notificationsSent === false ? "&avisos=pendientes" : "";
 
       closeJoinModal();
       if (loadingOverlay) loadingOverlay.style.display = "none";
       if (joinForm) joinForm.reset();
 
       setTimeout(function () {
-        window.location.href = `gracias-unirse.html?nombre=${nombreBienvenida}&email=${emailBienvenida}`;
+        window.location.href = `gracias-unirse.html?nombre=${nombreBienvenida}&email=${emailBienvenida}${notificationStatus}`;
       }, 500);
       // --- End new success flow ---
     } catch (error) {
@@ -1760,7 +1761,10 @@ function renderYoutubeVideos(videos) {
     ? videos.filter((item) => item && item.video_id && item.activa !== false)
     : [];
 
-  if (!items.length) {
+  // Use the bundled examples only when the remote source was unavailable.
+  // A successful empty result means the administrator intentionally removed
+  // or disabled every video, so the section must stay empty.
+  if (!Array.isArray(videos)) {
     items = getLocalYoutubeFallback();
   }
 
@@ -2120,7 +2124,7 @@ function renderGaleria(galeria) {
             : [];
 
     let eventos = [];
-    let youtubeVideos = [];
+    let youtubeVideos = null;
 
     const supabaseBrowserClient = getSupabaseBrowserClient();
 
@@ -4567,11 +4571,13 @@ if (contactForm) {
 
       payload.turnstileToken = contactTurnstileToken;
 
-      await submitContactSecure(payload);
+      const result = await submitContactSecure(payload);
 
       if (msg) {
-        msg.textContent = "Mensaje enviado correctamente.";
-        msg.style.color = "#2f8f4b";
+        msg.textContent = result?.notificationSent === false
+          ? "Mensaje recibido correctamente. La notificación por correo quedó pendiente."
+          : "Mensaje enviado correctamente.";
+        msg.style.color = result?.notificationSent === false ? "#9a6500" : "#2f8f4b";
       }
 
       if (contactForm) {
@@ -4582,7 +4588,9 @@ if (contactForm) {
       if (msg) {
         msg.textContent = error.message === "Verificación de seguridad fallida."
           ? "No pudimos verificar que eres humano. Intenta de nuevo."
-          : "Ocurrió un error al enviar tu mensaje. Intenta de nuevo.";
+          : error.message === "Por favor completa la verificación de seguridad antes de enviar."
+            ? error.message
+            : "Ocurrió un error al enviar tu mensaje. Intenta de nuevo.";
         msg.style.color = "#b72e2e";
       }
     } finally {

@@ -94,6 +94,11 @@ test("external media is deferred", async ({ page }) => {
   expect(initial).toEqual({ paypal: false, soundcloud: false, iframe: null });
 });
 
+test("an empty YouTube catalog stays empty", async ({ page }) => {
+  await page.goto("/index.html");
+  await expect(page.locator("#ytGrid .yt-card")).toHaveCount(0);
+});
+
 test("image uploads are converted and resized", async ({ page }) => {
   await page.goto("/admin.html");
 

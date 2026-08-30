@@ -7,10 +7,10 @@ const EXPECTED_ACTION = "join";
 async function invokeSiblingFunction(name: string, body: unknown) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!supabaseUrl || !anonKey) return;
+  if (!supabaseUrl || !anonKey) return false;
 
   try {
-    await fetch(`${supabaseUrl}/functions/v1/${name}`, {
+    const response = await fetch(`${supabaseUrl}/functions/v1/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,8 +19,14 @@ async function invokeSiblingFunction(name: string, body: unknown) {
       },
       body: JSON.stringify(body),
     });
+    if (!response.ok) {
+      console.error(`${name} respondió con estado ${response.status}`);
+      return false;
+    }
+    return true;
   } catch (error) {
     console.error(`No se pudo invocar ${name}`, error);
+    return false;
   }
 }
 
@@ -109,13 +115,17 @@ Deno.serve(async (req) => {
       hijos: payload.hijos || "0",
     };
 
-    await Promise.allSettled([
+    const notificationResults = await Promise.all([
       invokeSiblingFunction("send-welcome-email", emailPayload),
       invokeSiblingFunction("send-admin-notification", emailPayload),
       invokeSiblingFunction("send-birthday-emails", { memberId: payload.id }),
     ]);
 
-    return jsonResponse({ ok: true });
+    return jsonResponse({
+      ok: true,
+      notificationsSent: notificationResults.every(Boolean),
+      notificationFailures: notificationResults.filter((sent) => !sent).length,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
     console.error(error);

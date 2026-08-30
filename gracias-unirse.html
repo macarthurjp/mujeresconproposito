@@ -122,6 +122,10 @@
             Oramos para que este sea el inicio de una etapa llena de crecimiento, fe y hermandad.
         </p>
 
+        <p id="notificationWarning" role="status" style="display:none;color:#8a5a00;">
+            Tu registro quedó guardado, pero uno o más correos de notificación quedaron pendientes. No necesitas registrarte otra vez.
+        </p>
+
         <p id="redirectMessage" aria-live="polite">
             Volverás automáticamente a la página principal en <strong id="redirectCountdown">5</strong> segundos.
         </p>
@@ -130,6 +134,11 @@
     </div>
 
     <script>
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("avisos") === "pendientes") {
+            document.getElementById("notificationWarning").style.display = "block";
+        }
+
         const redirectCountdown = document.getElementById("redirectCountdown");
         let secondsRemaining = 5;
 

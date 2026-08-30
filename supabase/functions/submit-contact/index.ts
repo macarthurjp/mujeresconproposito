@@ -7,10 +7,10 @@ const EXPECTED_ACTION = "contact";
 async function invokeSiblingFunction(name: string, body: unknown) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!supabaseUrl || !anonKey) return;
+  if (!supabaseUrl || !anonKey) return false;
 
   try {
-    await fetch(`${supabaseUrl}/functions/v1/${name}`, {
+    const response = await fetch(`${supabaseUrl}/functions/v1/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,8 +19,14 @@ async function invokeSiblingFunction(name: string, body: unknown) {
       },
       body: JSON.stringify(body),
     });
+    if (!response.ok) {
+      console.error(`${name} respondió con estado ${response.status}`);
+      return false;
+    }
+    return true;
   } catch (error) {
     console.error(`No se pudo invocar ${name}`, error);
+    return false;
   }
 }
 
@@ -79,9 +85,14 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: false, error: "No se pudo guardar el mensaje." }, 500);
     }
 
-    await invokeSiblingFunction("send-contact-email", { nombre, email, mensaje, destino: payload.destino || "" });
+    const notificationSent = await invokeSiblingFunction("send-contact-email", {
+      nombre,
+      email,
+      mensaje,
+      destino: payload.destino || "",
+    });
 
-    return jsonResponse({ ok: true });
+    return jsonResponse({ ok: true, notificationSent });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
     console.error(error);

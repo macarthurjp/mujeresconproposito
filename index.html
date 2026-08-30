@@ -215,7 +215,7 @@
        padding: 0 15px y taparía el espacio reservado para la bandera.
        El valor real lo calcula intl-tel-input por país (varía el ancho del
        código de marcado, ej. +1 vs +352) y se sincroniza en --telefono-padding-left
-       vía MutationObserver en initPhoneCountrySelect(). */
+       vía ResizeObserver en initPhoneCountrySelect(). */
     #joinModal .join-form-premium input#telefono,
     .join-form-premium input#telefono {
       padding-left: var(--telefono-padding-left, 96px) !important;
