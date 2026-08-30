@@ -94,6 +94,21 @@ test("external media is deferred", async ({ page }) => {
   expect(initial).toEqual({ paypal: false, soundcloud: false, iframe: null });
 });
 
+test("Google Analytics loads only after consent", async ({ page }) => {
+  await page.route("**/googletagmanager.com/gtag/js**", (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: ""
+  }));
+  await page.goto("/index.html");
+
+  await expect(page.locator("#analyticsConsentBanner")).toBeVisible();
+  await expect(page.locator('script[data-ga-id="G-Y4EMQGHWVQ"]')).toHaveCount(0);
+  await page.locator(".analytics-consent-accept").click();
+  await expect(page.locator("#analyticsConsentBanner")).toHaveCount(0);
+  await expect(page.locator('script[data-ga-id="G-Y4EMQGHWVQ"]')).toHaveCount(1);
+  expect(await page.evaluate(() => localStorage.getItem("mcp930-analytics-consent"))).toBe("granted");
+});
+
 test("an empty YouTube catalog stays empty", async ({ page }) => {
   await page.goto("/index.html");
   await expect(page.locator("#ytGrid .yt-card")).toHaveCount(0);

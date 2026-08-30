@@ -1153,6 +1153,7 @@ lightbox?.addEventListener("touchcancel", function () {
     donateModal?.classList.add("open");
     donateModal?.dispatchEvent(new CustomEvent("mcp:open"));
     body.style.overflow = "hidden";
+    window.mcpTrackAnalytics?.("begin_checkout", { currency: "EUR", value: 0, item_name: "Donación" });
   }
 
   function closeDonateModal(e) {
@@ -1292,6 +1293,7 @@ lightbox?.addEventListener("touchcancel", function () {
     closeMenu();
     joinModal?.classList.add("open");
     body.style.overflow = "hidden";
+    window.mcpTrackAnalytics?.("form_start", { form_name: "unirse" });
     renderJoinTurnstileIfNeeded();
   }
 
@@ -1592,6 +1594,7 @@ lightbox?.addEventListener("touchcancel", function () {
       payload.turnstileToken = joinTurnstileToken;
 
       const result = await submitJoinSecure(payload);
+      window.mcpTrackAnalytics?.("generate_lead", { form_name: "unirse" });
 
       // --- Begin new success flow for gracias-unirse.html ---
       const nombreBienvenida = encodeURIComponent(payload.nombre || "");
@@ -4572,6 +4575,7 @@ if (contactForm) {
       payload.turnstileToken = contactTurnstileToken;
 
       const result = await submitContactSecure(payload);
+      window.mcpTrackAnalytics?.("generate_lead", { form_name: "contacto" });
 
       if (msg) {
         msg.textContent = result?.notificationSent === false
