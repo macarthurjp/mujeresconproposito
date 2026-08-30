@@ -99,6 +99,24 @@ test("an empty YouTube catalog stays empty", async ({ page }) => {
   await expect(page.locator("#ytGrid .yt-card")).toHaveCount(0);
 });
 
+test("contact verification appears immediately before submit", async ({ page }) => {
+  await page.goto("/index.html");
+
+  const order = await page.locator("#contactForm").evaluate((form) =>
+    Array.from(form.children).map((element) => element.id)
+  );
+  expect(order.indexOf("contactTurnstile")).toBe(order.indexOf("cSubmitBtn") - 1);
+
+  const visualOrder = await page.evaluate(() => ({
+    messageBottom: document.getElementById("cMensaje").getBoundingClientRect().bottom,
+    turnstileTop: document.getElementById("contactTurnstile").getBoundingClientRect().top,
+    turnstileBottom: document.getElementById("contactTurnstile").getBoundingClientRect().bottom,
+    submitTop: document.getElementById("cSubmitBtn").getBoundingClientRect().top
+  }));
+  expect(visualOrder.turnstileTop).toBeGreaterThanOrEqual(visualOrder.messageBottom);
+  expect(visualOrder.submitTop).toBeGreaterThanOrEqual(visualOrder.turnstileBottom);
+});
+
 test("image uploads are converted and resized", async ({ page }) => {
   await page.goto("/admin.html");
 

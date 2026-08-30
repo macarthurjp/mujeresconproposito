@@ -6607,7 +6607,6 @@ img:not([src]) {
     width: 100%;
     display: flex;
     justify-content: center;
-    order: -1;
 }
 
 #contactForm .cf-turnstile-wrap {
