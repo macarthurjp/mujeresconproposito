@@ -1173,6 +1173,46 @@ lightbox?.addEventListener("touchcancel", function () {
   });
 
   /* -----------------------------------------
+     MODAL VISIÓN
+  ----------------------------------------- */
+  const visionModal = document.getElementById("visionModal");
+  const openVisionModalBtn = document.getElementById("openVisionModal");
+  const closeVisionModalBtn = document.getElementById("closeVisionModal");
+  const visionModalContent = document.querySelector("#visionModal .modal-content");
+
+  function openVisionModal(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    closeMenu();
+    visionModal?.classList.add("open");
+    body.style.overflow = "hidden";
+  }
+
+  function closeVisionModal(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    visionModal?.classList.remove("open");
+    body.style.overflow = "";
+  }
+
+  openVisionModalBtn?.addEventListener("click", openVisionModal);
+  closeVisionModalBtn?.addEventListener("click", closeVisionModal);
+
+  visionModal?.addEventListener("click", function (e) {
+    if (e.target === visionModal) {
+      closeVisionModal();
+    }
+  });
+
+  visionModalContent?.addEventListener("click", function (e) {
+    e.stopPropagation();
+  });
+
+  /* -----------------------------------------
      MODAL UNIRSE
   ----------------------------------------- */
   const joinModal = document.getElementById("joinModal");
@@ -1216,6 +1256,7 @@ lightbox?.addEventListener("touchcancel", function () {
   });
 
   joinModalContent?.addEventListener("click", function (e) {
+    if (e.target.closest(".iti")) return;
     e.stopPropagation();
   });
 
@@ -1292,7 +1333,6 @@ lightbox?.addEventListener("touchcancel", function () {
       document.getElementById("nombre"),
       document.getElementById("apellido")
     ];
-    const phoneField = document.getElementById("telefono");
     const childrenField = document.getElementById("hijos");
 
     nameFields.forEach((field) => {
@@ -1302,11 +1342,6 @@ lightbox?.addEventListener("touchcancel", function () {
       });
     });
 
-    phoneField?.addEventListener("input", function () {
-      const sanitized = sanitizeJoinPhone(this.value);
-      if (this.value !== sanitized) this.value = sanitized;
-    });
-
     childrenField?.addEventListener("input", function () {
       const sanitized = sanitizeJoinChildren(this.value);
       if (this.value !== sanitized) this.value = sanitized;
@@ -1314,6 +1349,41 @@ lightbox?.addEventListener("touchcancel", function () {
   }
 
   bindJoinInputSanitizers();
+
+  async function initPhoneCountrySelect() {
+    const phoneField = document.getElementById("telefono");
+    if (!phoneField || typeof window.intlTelInput !== "function") return null;
+
+    let i18n;
+    try {
+      const module = await import("https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/js/i18n/es/index.js");
+      i18n = module.default;
+    } catch (error) {
+      console.warn("No se pudo cargar el idioma español del selector de país.", error);
+    }
+
+    const iti = window.intlTelInput(phoneField, {
+      initialCountry: "us",
+      preferredCountries: ["us", "do", "es"],
+      separateDialCode: true,
+      dropdownContainer: document.body,
+      ...(i18n ? { i18n } : {})
+    });
+
+    window.mcpPhoneInput = iti;
+    return iti;
+  }
+
+  initPhoneCountrySelect();
+
+  function getJoinPhoneValue() {
+    const phoneField = document.getElementById("telefono");
+    if (window.mcpPhoneInput?.getNumber) {
+      const fullNumber = window.mcpPhoneInput.getNumber();
+      if (fullNumber) return fullNumber;
+    }
+    return sanitizeJoinPhone(phoneField?.value || "").trim();
+  }
 
   function isAdultBirthDate(dateString) {
     if (!dateString) return false;
@@ -1402,7 +1472,7 @@ lightbox?.addEventListener("touchcancel", function () {
       nombre: sanitizeJoinName(document.getElementById("nombre")?.value || "").trim(),
       apellido: sanitizeJoinName(document.getElementById("apellido")?.value || "").trim(),
       email: document.getElementById("email")?.value.trim() || "",
-      telefono: sanitizeJoinPhone(document.getElementById("telefono")?.value || "").trim(),
+      telefono: getJoinPhoneValue(),
       fecha_nacimiento: document.getElementById("fecha_nacimiento")?.value.trim() || "",
       estatus_matrimonial: document.getElementById("estatus_matrimonial")?.value.trim() || "",
       pais_nacimiento: document.getElementById("pais_nacimiento")?.value.trim() || "",
@@ -2036,6 +2106,7 @@ function renderGaleria(galeria) {
       closeMenu();
       if (joinModal?.classList.contains("open")) closeJoinModal();
       if (donateModal?.classList.contains("open")) closeDonateModal();
+      if (visionModal?.classList.contains("open")) closeVisionModal();
       if (lightbox?.classList.contains("open")) lightbox.classList.remove("open");
       if (inviteeLightbox?.classList.contains("open")) inviteeLightbox.classList.remove("open");
     }

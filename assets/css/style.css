@@ -4028,6 +4028,21 @@ header {
     flex: 0 0 auto !important;
 }
 
+.header-title-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+}
+
+.header-subtitle {
+    color: #9a7770 !important;
+    font-size: 0.6rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em !important;
+    white-space: nowrap !important;
+}
+
 .logo,
 .header-left .logo {
     width: 92px !important;
@@ -4560,6 +4575,30 @@ form button:hover,
     max-width: 780px !important;
     margin-left: auto !important;
     margin-right: auto !important;
+}
+
+.about-more-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-top: 22px !important;
+    padding: 0 26px !important;
+    min-height: 46px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, var(--mcp-brand), var(--mcp-brand-dark)) !important;
+    color: #ffffff !important;
+    font-size: 0.92rem !important;
+    font-weight: 850 !important;
+    letter-spacing: 0.01em !important;
+    box-shadow: 0 14px 30px rgba(166,75,67,0.24) !important;
+    cursor: pointer !important;
+    transition: transform 0.22s ease, box-shadow 0.22s ease !important;
+}
+
+.about-more-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 18px 36px rgba(166,75,67,0.3) !important;
 }
 
 .verse-block p {
@@ -5741,6 +5780,17 @@ img:not([src]) {
     text-align: left !important;
 }
 
+.modal-content h3 {
+    max-width: 560px !important;
+    margin: 0 0 10px !important;
+    font-family: "Playfair Display", Georgia, serif !important;
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem) !important;
+    line-height: 1.05 !important;
+    letter-spacing: -0.03em !important;
+    color: #b26464 !important;
+    text-align: left !important;
+}
+
 /* Badge superior si existe */
 .join-modal-content::before,
 .modal-content::before {
@@ -6002,10 +6052,13 @@ img:not([src]) {
 
     .join-modal-content::before,
     .modal-content::before {
-        margin-left: auto !important;
-        margin-right: auto !important;
-        display: flex !important;
-        width: fit-content !important;
+        margin-left: 0 !important;
+        margin-right: 56px !important;
+        display: inline-flex !important;
+        width: auto !important;
+        max-width: calc(100% - 56px) !important;
+        white-space: normal !important;
+        text-align: center !important;
     }
 
     .close-modal,
