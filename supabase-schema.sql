@@ -129,6 +129,28 @@ alter table public.galeria add column if not exists portada boolean not null def
 create index if not exists galeria_activa_orden_idx on public.galeria (activa, orden);
 create index if not exists galeria_categoria_idx on public.galeria (categoria);
 
+-- Videos de YouTube administrables desde la web.
+create table if not exists public.youtube (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  video_id text not null,
+  titulo text not null,
+  subtitulo text,
+  etiqueta text not null default 'Conferencia',
+  orden integer not null default 1,
+  activa boolean not null default true
+);
+
+alter table public.youtube add column if not exists created_at timestamptz not null default now();
+alter table public.youtube add column if not exists video_id text;
+alter table public.youtube add column if not exists titulo text;
+alter table public.youtube add column if not exists subtitulo text;
+alter table public.youtube add column if not exists etiqueta text not null default 'Conferencia';
+alter table public.youtube add column if not exists orden integer not null default 1;
+alter table public.youtube add column if not exists activa boolean not null default true;
+
+create index if not exists youtube_activa_orden_idx on public.youtube (activa, orden);
+
 -- Storage usado por el admin web:
 -- Bucket esperado: mcp930-images
 -- Carpetas usadas por el codigo: eventos/, destacadas/ y galeria/
@@ -141,6 +163,7 @@ create index if not exists galeria_categoria_idx on public.galeria (categoria);
 alter table public.eventos enable row level security;
 alter table public.destacadas enable row level security;
 alter table public.galeria enable row level security;
+alter table public.youtube enable row level security;
 alter table public.unirse enable row level security;
 alter table public.contact_messages enable row level security;
 
@@ -186,23 +209,30 @@ to authenticated
 using (true)
 with check (true);
 
+drop policy if exists "public read youtube" on public.youtube;
+create policy "public read youtube"
+on public.youtube for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "authenticated write youtube" on public.youtube;
+create policy "authenticated write youtube"
+on public.youtube for all
+to authenticated
+using (true)
+with check (true);
+
 drop policy if exists "authenticated read unirse" on public.unirse;
 create policy "authenticated read unirse"
 on public.unirse for select
 to authenticated
 using (true);
 
+-- Los inserts públicos ya NO se permiten directo por "anon": los formularios
+-- "Únete" y "Contacto" pasan por las Edge Functions submit-join / submit-contact,
+-- que verifican Cloudflare Turnstile y usan la service role key para insertar.
 drop policy if exists "public insert unirse" on public.unirse;
-create policy "public insert unirse"
-on public.unirse for insert
-to anon
-with check (true);
-
 drop policy if exists "public insert contact_messages" on public.contact_messages;
-create policy "public insert contact_messages"
-on public.contact_messages for insert
-to anon
-with check (true);
 
 insert into storage.buckets (id, name, public)
 values ('mcp930-images', 'mcp930-images', true)

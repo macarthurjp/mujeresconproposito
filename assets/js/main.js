@@ -22,6 +22,8 @@ document.addEventListener("DOMContentLoaded", function () {
     sendContactToSupabase,
     sendJoinToSupabase,
     sendWelcomeEmailWithEdgeFunction,
+    submitContactSecure,
+    submitJoinSecure,
     uploadImageToSupabaseBucket
   } = window.McpSupabase || {};
 
@@ -1110,14 +1112,18 @@ lightbox?.addEventListener("touchcancel", function () {
       ytStage.innerHTML = "";
     }
 
-    document.querySelectorAll(".yt-card").forEach((card) => {
-      card.addEventListener("click", () => openYoutubeVideo(card));
-      card.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          openYoutubeVideo(card);
-        }
-      });
+    const ytGrid = document.getElementById("ytGrid");
+    ytGrid?.addEventListener("click", (event) => {
+      const card = event.target.closest(".yt-card");
+      if (card) openYoutubeVideo(card);
+    });
+    ytGrid?.addEventListener("keydown", (event) => {
+      const card = event.target.closest(".yt-card");
+      if (!card) return;
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openYoutubeVideo(card);
+      }
     });
 
     ytCloseBtn?.addEventListener("click", closeYoutubeVideo);
@@ -1225,6 +1231,59 @@ lightbox?.addEventListener("touchcancel", function () {
   const openJoinModalSectionBtn = document.getElementById("openJoinModalSection");
   const closeJoinModalBtn = document.getElementById("closeJoinModal");
 
+  const TURNSTILE_SITEKEY = "0x4AAAAAAEh_oJLzQvnRIJsH";
+  let joinTurnstileWidgetId = null;
+  let joinTurnstileToken = "";
+  let contactTurnstileWidgetId = null;
+  let contactTurnstileToken = "";
+
+  function renderJoinTurnstileIfNeeded() {
+    const container = document.getElementById("joinTurnstile");
+    if (!container || joinTurnstileWidgetId !== null || !window.turnstile) return;
+    joinTurnstileWidgetId = window.turnstile.render(container, {
+      sitekey: TURNSTILE_SITEKEY,
+      action: "join",
+      callback: function (token) { joinTurnstileToken = token; },
+      "expired-callback": function () { joinTurnstileToken = ""; },
+      "error-callback": function () { joinTurnstileToken = ""; }
+    });
+  }
+
+  function resetJoinTurnstile() {
+    joinTurnstileToken = "";
+    if (window.turnstile && joinTurnstileWidgetId !== null) {
+      window.turnstile.reset(joinTurnstileWidgetId);
+    }
+  }
+
+  function renderContactTurnstileIfNeeded() {
+    const container = document.getElementById("contactTurnstile");
+    if (!container || contactTurnstileWidgetId !== null || !window.turnstile) return;
+    contactTurnstileWidgetId = window.turnstile.render(container, {
+      sitekey: TURNSTILE_SITEKEY,
+      action: "contact",
+      callback: function (token) { contactTurnstileToken = token; },
+      "expired-callback": function () { contactTurnstileToken = ""; },
+      "error-callback": function () { contactTurnstileToken = ""; }
+    });
+  }
+
+  function resetContactTurnstile() {
+    contactTurnstileToken = "";
+    if (window.turnstile && contactTurnstileWidgetId !== null) {
+      window.turnstile.reset(contactTurnstileWidgetId);
+    }
+  }
+
+  window.mcpOnTurnstileLoad = function () {
+    renderContactTurnstileIfNeeded();
+    if (joinModal?.classList.contains("open")) renderJoinTurnstileIfNeeded();
+  };
+
+  if (window.mcpTurnstileReady) {
+    window.mcpOnTurnstileLoad();
+  }
+
   function openJoinModal(e) {
     if (e) {
       e.preventDefault();
@@ -1233,6 +1292,7 @@ lightbox?.addEventListener("touchcancel", function () {
     closeMenu();
     joinModal?.classList.add("open");
     body.style.overflow = "hidden";
+    renderJoinTurnstileIfNeeded();
   }
 
   function closeJoinModal(e) {
@@ -1501,39 +1561,15 @@ lightbox?.addEventListener("touchcancel", function () {
         throw new Error("Supabase no está configurado.");
       }
 
-      const response = await sendJoinToSupabase(payload);
-      if (!response.ok) {
-        const text = await response.text();
-        let errorBody = {};
-
-        try {
-          errorBody = text ? JSON.parse(text) : {};
-        } catch (_) {
-          errorBody = {};
-        }
-
-        const error = new Error(`Error Supabase ${response.status}: ${text || response.statusText}`);
-
-        if (response.status === 401) {
-          error.userMessage = "El registro no está disponible temporalmente. Intenta nuevamente más tarde.";
-        } else if (response.status === 409 || errorBody.code === "23505") {
-          error.userMessage = "Este correo ya esta registrado. Si ya llenaste el formulario, no necesitas enviarlo otra vez.";
-        }
-
+      if (!joinTurnstileToken) {
+        const error = new Error("Falta verificación de seguridad.");
+        error.userMessage = "Por favor completa la verificación de seguridad antes de enviar.";
         throw error;
       }
 
-      const emailResults = await Promise.allSettled([
-        sendWelcomeEmailWithEdgeFunction(payload),
-        sendAdminRegistrationEmailWithEdgeFunction(payload),
-        sendBirthdayEmailForNewMember(payload)
-      ]);
+      payload.turnstileToken = joinTurnstileToken;
 
-      emailResults.forEach((result) => {
-        if (result.status === "rejected") {
-          console.warn("No se pudo enviar un correo desde Edge Function.", result.reason);
-        }
-      });
+      await submitJoinSecure(payload);
 
       // --- Begin new success flow for gracias-unirse.html ---
       const nombreBienvenida = encodeURIComponent(payload.nombre || "");
@@ -1549,10 +1585,18 @@ lightbox?.addEventListener("touchcancel", function () {
       // --- End new success flow ---
     } catch (error) {
       if (loadingOverlay) loadingOverlay.style.display = "none";
+
+      if (error.message === "duplicate") {
+        error.userMessage = "Este correo ya esta registrado. Si ya llenaste el formulario, no necesitas enviarlo otra vez.";
+      } else if (error.message === "Verificación de seguridad fallida.") {
+        error.userMessage = "No pudimos verificar que eres humano. Intenta de nuevo.";
+      }
+
       showJoinMessage(error.userMessage || "Ocurrió un error al enviar el formulario. Intenta de nuevo.", "err");
       console.error("Error en registro:", error);
       // Do NOT close the join modal on error
     } finally {
+      resetJoinTurnstile();
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.textContent = originalBtnText;
@@ -1676,6 +1720,59 @@ function getLocalGalleryFallback() {
     { categoria: "Europa", foto: "assets/images/IMG_8290.webp", texto: "Retiro Espiritual", orden: 1 },
     { categoria: "Europa", foto: "assets/images/IMG_8291.webp", texto: "Jornada de Fe", orden: 2 }
   ];
+}
+
+function getLocalYoutubeFallback() {
+  return [
+    { video_id: "LEe3mHoKObc", titulo: "De vuelta al Génesis", subtitulo: "Conferencia con Xiomery Mercedes", etiqueta: "Conferencia", orden: 1, activa: true },
+    { video_id: "43l_c5h5crs", titulo: "Finanzas de Pareja", subtitulo: "Conferencia con Diana Rosario", etiqueta: "Conferencia", orden: 2, activa: true },
+    { video_id: "cLrY0E1u0j0", titulo: "Mujeres que Emprenden", subtitulo: "Conferencia con Merary Pacheco", etiqueta: "Conferencia", orden: 3, activa: true }
+  ];
+}
+
+function renderYoutubeVideos(videos) {
+  const grid = document.getElementById("ytGrid");
+  if (!grid) return;
+
+  let items = Array.isArray(videos)
+    ? videos.filter((item) => item && item.video_id && item.activa !== false)
+    : [];
+
+  if (!items.length) {
+    items = getLocalYoutubeFallback();
+  }
+
+  const gradients = ["yt-grad-1", "yt-grad-2", "yt-grad-3"];
+
+  grid.innerHTML = items.map((item, index) => {
+    const videoId = escapeHtml(item.video_id);
+    const title = item.titulo || "Video";
+    const sub = item.subtitulo || "";
+    const tag = item.etiqueta || "Conferencia";
+
+    return `
+      <article class="yt-card" tabindex="0" role="button" data-video-id="${videoId}" data-title="${escapeHtml(title)}" data-sub="${escapeHtml(sub)}" aria-label="Reproducir: ${escapeHtml(title)}">
+        <div class="yt-thumb ${gradients[index % gradients.length]}">
+          <img src="https://img.youtube.com/vi/${videoId}/hqdefault.jpg" alt="" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
+          <span class="yt-tag">${escapeHtml(tag)}</span>
+          <div class="yt-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        </div>
+        <div class="yt-body">
+          <h3>${escapeHtml(title)}</h3>
+          <p>${escapeHtml(sub)}</p>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  grid.querySelectorAll("img[data-external-fallback]").forEach((image) => {
+    image.addEventListener("error", function useLocalFallback() {
+      const fallback = this.dataset.externalFallback;
+      if (!fallback || this.dataset.fallbackApplied === "true") return;
+      this.dataset.fallbackApplied = "true";
+      this.src = fallback;
+    });
+  });
 }
 
 function createGalleryBlock(title, items) {
@@ -2001,12 +2098,13 @@ function renderGaleria(galeria) {
             : [];
 
     let eventos = [];
+    let youtubeVideos = [];
 
     const supabaseBrowserClient = getSupabaseBrowserClient();
 
     if (supabaseBrowserClient) {
       try {
-        const [inviteesRequest, galleryRequest, eventsRequest, birthdaysRequest] = await Promise.allSettled([
+        const [inviteesRequest, galleryRequest, eventsRequest, youtubeRequest, birthdaysRequest] = await Promise.allSettled([
 		          supabaseBrowserClient
 		            .from("destacadas")
 	            .select("fotoUrl:foto_url,nombre,titulo,orden,activa")
@@ -2022,12 +2120,18 @@ function renderGaleria(galeria) {
             .select("icon:icono,title:titulo,schedule:horario,link,activa,orden")
             .eq("activa", true)
             .order("orden", { ascending: true }),
+          supabaseBrowserClient
+            .from("youtube")
+            .select("video_id,titulo,subtitulo,etiqueta,orden,activa")
+            .eq("activa", true)
+            .order("orden", { ascending: true }),
 	          getTodayBirthdaysFromEdgeFunction()
 	        ]);
 
         const inviteesResult = inviteesRequest.status === "fulfilled" ? inviteesRequest.value : null;
         const galleryResult = galleryRequest.status === "fulfilled" ? galleryRequest.value : null;
         const eventsResult = eventsRequest.status === "fulfilled" ? eventsRequest.value : null;
+        const youtubeResult = youtubeRequest.status === "fulfilled" ? youtubeRequest.value : null;
         const birthdaysResult = birthdaysRequest.status === "fulfilled" ? birthdaysRequest.value : null;
 
 		        if (inviteesResult && !inviteesResult.error && Array.isArray(inviteesResult.data)) {
@@ -2043,11 +2147,15 @@ function renderGaleria(galeria) {
           eventos = eventsResult.data;
         }
 
+        if (youtubeResult && !youtubeResult.error && Array.isArray(youtubeResult.data)) {
+          youtubeVideos = youtubeResult.data;
+        }
+
         if (birthdaysResult?.ok && Array.isArray(birthdaysResult.cumpleanerasHoy)) {
           data.cumpleanerasHoy = birthdaysResult.cumpleanerasHoy;
         }
 
-        [inviteesRequest, galleryRequest, eventsRequest, birthdaysRequest].forEach((request) => {
+        [inviteesRequest, galleryRequest, eventsRequest, youtubeRequest, birthdaysRequest].forEach((request) => {
           if (request.status === "rejected") {
             console.warn("Un servicio dinámico no respondió; se mantiene el contenido disponible.", request.reason);
           }
@@ -2060,6 +2168,7 @@ function renderGaleria(galeria) {
     renderInvitees(invitadas);
     renderGaleria(galeria);
     renderEvents(eventos);
+    renderYoutubeVideos(youtubeVideos);
     renderContactCalendar({ ...data, eventos });
   }
 
@@ -2421,6 +2530,44 @@ function renderContactCalendar(apiData = {}) {
     return true;
   };
 
+  function extractYouTubeVideoId(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    if (/^[\w-]{11}$/.test(raw)) return raw;
+
+    try {
+      const url = new URL(raw);
+      if (url.hostname.includes("youtu.be")) {
+        return url.pathname.replace(/^\//, "").split("/")[0] || "";
+      }
+      if (url.searchParams.get("v")) return url.searchParams.get("v");
+      const match = url.pathname.match(/\/(embed|shorts)\/([\w-]{11})/);
+      if (match) return match[2];
+    } catch (_) {
+      // no es una URL válida; seguimos con el fallback de abajo
+    }
+
+    const fallbackMatch = raw.match(/[\w-]{11}/);
+    return fallbackMatch ? fallbackMatch[0] : "";
+  }
+
+  window.mcpSaveYoutube = async function ({ link, titulo, subtitulo, etiqueta, orden }) {
+    const videoId = extractYouTubeVideoId(link);
+    if (!videoId) throw new Error("No se pudo reconocer el link o ID de YouTube.");
+
+    const client = getAdminSupabaseClient();
+    const { error } = await client.from("youtube").insert({
+      video_id: videoId,
+      titulo,
+      subtitulo: subtitulo || "",
+      etiqueta: etiqueta || "Conferencia",
+      orden: Number(orden || 1),
+      activa: true
+    });
+    if (error) throw error;
+    return true;
+  };
+
     /* -----------------------------------------
      ADMIN PANEL UI SUPABASE
   ----------------------------------------- */
@@ -2505,10 +2652,14 @@ function renderContactCalendar(apiData = {}) {
 	        ? row.horario || ""
 	        : type === "destacadas"
 	          ? row.nombre || ""
-	          : row.categoria || "";
-	      const image = row.foto_url
-	        ? `<img src="${escapeHtml(row.foto_url)}" alt="${escapeHtml(title)}" loading="lazy">`
-	        : isImageUrl(row.icono)
+	          : type === "youtube"
+	            ? row.subtitulo || row.etiqueta || ""
+	            : row.categoria || "";
+	      const image = type === "youtube"
+	        ? `<img src="https://img.youtube.com/vi/${escapeHtml(row.video_id)}/hqdefault.jpg" alt="${escapeHtml(title)}" loading="lazy">`
+	        : row.foto_url
+	          ? `<img src="${escapeHtml(row.foto_url)}" alt="${escapeHtml(title)}" loading="lazy">`
+	          : isImageUrl(row.icono)
             ? `<img src="${escapeHtml(row.icono)}" alt="${escapeHtml(title)}" loading="lazy">`
             : `<span class="admin-item-icon">${escapeHtml(row.icono || "✦")}</span>`;
 
@@ -2677,6 +2828,55 @@ function renderContactCalendar(apiData = {}) {
 	    return existing?.texto || String(eventTitle || "").trim();
 	  }
 
+	  function getNextGalleryOrder(community, eventTitle) {
+	    const normalizedTitle = normalizeGalleryText(eventTitle);
+	    const existing = (adminContentCache.galeria || []).filter((row) =>
+	      getGalleryRegionKey(row.categoria) === community &&
+	      normalizeGalleryText(row.texto) === normalizedTitle
+	    );
+	    if (!existing.length) return 1;
+	    return Math.max(...existing.map((row) => Number(row.orden) || 0)) + 1;
+	  }
+
+	  async function normalizeGalleryOrder(rows) {
+	    const groups = new Map();
+
+	    rows.forEach((row) => {
+	      const communityKey = getGalleryRegionKey(row.categoria) || "sin-comunidad";
+	      const eventTitle = String(row.texto || "Sin categoría").trim() || "Sin categoría";
+	      const eventKey = normalizeGalleryText(eventTitle) || "sin-categoria";
+	      const key = `${communityKey}::${eventKey}`;
+	      if (!groups.has(key)) groups.set(key, []);
+	      groups.get(key).push(row);
+	    });
+
+	    const updates = [];
+	    groups.forEach((groupRows) => {
+	      const ordenValues = groupRows.map((row) => Number(row.orden) || 0);
+	      const hasDuplicates = new Set(ordenValues).size !== ordenValues.length;
+	      if (!hasDuplicates) return;
+
+	      groupRows
+	        .slice()
+	        .sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0) || String(a.id).localeCompare(String(b.id)))
+	        .forEach((row, index) => {
+	          const newOrden = index + 1;
+	          if (Number(row.orden) !== newOrden) {
+	            row.orden = newOrden;
+	            updates.push(updateAdminRow("galeria", row.id, { orden: newOrden }));
+	          }
+	        });
+	    });
+
+	    if (!updates.length) return;
+
+	    try {
+	      await Promise.all(updates);
+	    } catch (error) {
+	      console.error("No se pudo normalizar el orden de la galería", error);
+	    }
+	  }
+
 	  function computeGalleryCategoryStats(rows) {
 	    const groups = new Map();
 
@@ -2704,6 +2904,7 @@ function renderContactCalendar(apiData = {}) {
 	    const eventos = adminContentCache.eventos || [];
 	    const destacadas = adminContentCache.destacadas || [];
 	    const galeria = adminContentCache.galeria || [];
+	    const youtube = adminContentCache.youtube || [];
 
 	    const eventosActivos = eventos.filter((row) => row.activa !== false).length;
 	    const { total: totalCategorias, missing: categoriasSinPortada } = computeGalleryCategoryStats(galeria);
@@ -2711,6 +2912,7 @@ function renderContactCalendar(apiData = {}) {
 	    setAdminStatValue("statEventos", eventosActivos);
 	    setAdminStatValue("statDestacadas", destacadas.length);
 	    setAdminStatValue("statFotos", galeria.length);
+	    setAdminStatValue("statYoutube", youtube.filter((row) => row.activa !== false).length);
 	    setAdminStatValue("statPortadaFaltante", categoriasSinPortada);
 
 	    const tile = document.getElementById("statPortadaTile");
@@ -2773,21 +2975,28 @@ function renderContactCalendar(apiData = {}) {
 	  let adminContentCache = {
 	    eventos: [],
 	    destacadas: [],
-	    galeria: []
+	    galeria: [],
+	    youtube: []
 	  };
 
 	  async function loadAdminContent() {
 	    const results = await Promise.allSettled([
 	      fetchAdminRows("eventos"),
 	      fetchAdminRows("destacadas"),
-	      fetchAdminRows("galeria")
+	      fetchAdminRows("galeria"),
+	      fetchAdminRows("youtube")
 	    ]);
 
 	    const eventos = results[0].status === "fulfilled" ? results[0].value : [];
 	    const destacadas = results[1].status === "fulfilled" ? results[1].value : [];
 	    const galeria = results[2].status === "fulfilled" ? results[2].value : [];
+	    const youtube = results[3].status === "fulfilled" ? results[3].value : [];
 
-	    adminContentCache = { eventos, destacadas, galeria };
+	    adminContentCache = { eventos, destacadas, galeria, youtube };
+
+	    if (results[2].status === "fulfilled") {
+	      await normalizeGalleryOrder(galeria);
+	    }
 
 	    results[0].status === "fulfilled"
 	      ? renderAdminList("adminEventosList", eventos, "eventos")
@@ -2801,6 +3010,9 @@ function renderContactCalendar(apiData = {}) {
 	    if (results[2].status === "fulfilled") {
 	      populateAdminGalleryEventOptions(galeria);
 	    }
+	    results[3].status === "fulfilled"
+	      ? renderAdminList("adminYoutubeList", youtube, "youtube")
+	      : renderAdminError("adminYoutubeList", results[3].reason);
 
 	    renderAdminStats();
 	  }
@@ -2952,6 +3164,17 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "foto_file", label: "Cambiar foto en Supabase (opcional)", type: "file" },
 	        { name: "nombre", label: "Nombre", value: row.nombre || "" },
 	        { name: "titulo", label: "Título", value: row.titulo || "" },
+	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
+	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
+	      ];
+	    }
+
+	    if (type === "youtube") {
+	      return [
+	        { name: "link", label: "Link o ID del video de YouTube", value: row.video_id || "" },
+	        { name: "titulo", label: "Título", value: row.titulo || "" },
+	        { name: "subtitulo", label: "Subtítulo", value: row.subtitulo || "" },
+	        { name: "etiqueta", label: "Etiqueta", value: row.etiqueta || "Conferencia" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
 	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
 	      ];
@@ -3199,6 +3422,22 @@ function renderContactCalendar(apiData = {}) {
 	      });
 	    }
 
+	    if (type === "youtube") {
+	      const videoId = extractYouTubeVideoId(values.link);
+	      if (!videoId) {
+	        showAdminToast("error", "Link inválido", "No se pudo reconocer el link o ID de YouTube.");
+	        return;
+	      }
+	      await updateAdminRow("youtube", id, {
+	        video_id: videoId,
+	        titulo: values.titulo || "",
+	        subtitulo: values.subtitulo || "",
+	        etiqueta: values.etiqueta || "Conferencia",
+	        orden: Number(values.orden || 1),
+	        activa: values.activa !== "false"
+	      });
+	    }
+
 	    await refreshAdminAndSite();
 	  }
 
@@ -3259,6 +3498,28 @@ function renderContactCalendar(apiData = {}) {
 	      orden: index + 1,
 	      activa: true
 	    })).filter((item) => item.titulo);
+	  }
+
+	  function getVisibleYoutubeForImport() {
+	    const visibleItems = Array.from(document.querySelectorAll("#ytGrid .yt-card")).map((card, index) => ({
+	      video_id: card.dataset.videoId || "",
+	      titulo: card.dataset.title || card.querySelector("h3")?.textContent.trim() || "",
+	      subtitulo: card.dataset.sub || card.querySelector("p")?.textContent.trim() || "",
+	      etiqueta: card.querySelector(".yt-tag")?.textContent.trim() || "Conferencia",
+	      orden: index + 1,
+	      activa: true
+	    })).filter((item) => item.video_id && item.titulo);
+
+	    if (visibleItems.length) return visibleItems;
+
+	    return getLocalYoutubeFallback().map((item, index) => ({
+	      video_id: item.video_id,
+	      titulo: item.titulo,
+	      subtitulo: item.subtitulo || "",
+	      etiqueta: item.etiqueta || "Conferencia",
+	      orden: item.orden || index + 1,
+	      activa: true
+	    }));
 	  }
 
 	  function getVisibleInviteesForImport() {
@@ -3422,6 +3683,10 @@ function renderContactCalendar(apiData = {}) {
 	      );
 	    }
 
+	    if (type === "youtube") {
+	      return rows.find((row) => String(row.video_id || "") === String(item.video_id || ""));
+	    }
+
 	    return rows.find((row) => String(row.foto_url || "") === String(item.foto_url || ""));
 	  }
 
@@ -3440,6 +3705,10 @@ function renderContactCalendar(apiData = {}) {
 	      };
 	    }
 
+	    if (type === "youtube") {
+	      return { ...item };
+	    }
+
 	    return {
 	      ...item,
 	      foto_url: await uploadImageUrlToMcpStorage(item.foto_url, "galeria", item.texto || "galeria")
@@ -3447,6 +3716,8 @@ function renderContactCalendar(apiData = {}) {
 	  }
 
 	  async function migrateExistingAdminImagesToStorage(type) {
+	    if (type === "youtube") return 0;
+
 	    const table = type === "eventos" ? "eventos" : type === "destacadas" ? "destacadas" : "galeria";
 	    const rows = adminContentCache[type] || [];
 	    let updated = 0;
@@ -3477,12 +3748,14 @@ function renderContactCalendar(apiData = {}) {
 	  }
 
 	  async function importVisibleAdminContent(type) {
-	    const table = type === "eventos" ? "eventos" : type === "destacadas" ? "destacadas" : "galeria";
+	    const table = type === "eventos" ? "eventos" : type === "destacadas" ? "destacadas" : type === "youtube" ? "youtube" : "galeria";
 	    const items = type === "eventos"
 	      ? getVisibleEventsForImport()
 	      : type === "destacadas"
 	        ? getVisibleInviteesForImport()
-	        : getVisibleGalleryForImport();
+	        : type === "youtube"
+	          ? getVisibleYoutubeForImport()
+	          : getVisibleGalleryForImport();
 	    const freshItems = [];
 	    let updatedItems = await migrateExistingAdminImagesToStorage(type);
 
@@ -3500,7 +3773,7 @@ function renderContactCalendar(apiData = {}) {
 	        updatedItems += 1;
 	      }
 
-	      if (type !== "eventos" && shouldCopyImageToStorage(existing.foto_url) && isMcpStorageUrl(preparedItem.foto_url)) {
+	      if (type !== "eventos" && type !== "youtube" && shouldCopyImageToStorage(existing.foto_url) && isMcpStorageUrl(preparedItem.foto_url)) {
 	        await updateAdminRow(table, existing.id, { foto_url: preparedItem.foto_url });
 	        updatedItems += 1;
 	      }
@@ -3659,6 +3932,30 @@ function renderContactCalendar(apiData = {}) {
 	    }
 	  });
 
+	  document.getElementById("adminShareJoinLink")?.addEventListener("click", async function () {
+	    const joinLink = `${window.location.origin}${window.location.pathname.replace(/admin\.html$/, "index.html")}?form=unirse`;
+
+	    if (navigator.share) {
+	      try {
+	        await navigator.share({
+	          title: "Únete a Mujeres con Propósito",
+	          text: "Completa tu registro con este link:",
+	          url: joinLink
+	        });
+	        return;
+	      } catch (error) {
+	        if (error?.name === "AbortError") return;
+	      }
+	    }
+
+	    try {
+	      await navigator.clipboard.writeText(joinLink);
+	      showAdminToast("success", "Link copiado", "Pégalo donde quieras enviarlo (WhatsApp, correo, etc).");
+	    } catch (error) {
+	      window.prompt("Copia este link para compartir el formulario:", joinLink);
+	    }
+	  });
+
 	  adminLogoutBtn?.addEventListener("click", async function () {
 	    const client = getAdminSupabaseClient();
 	    await client.auth.signOut();
@@ -3802,7 +4099,7 @@ function renderContactCalendar(apiData = {}) {
     const selectedEvent = document.getElementById("adminGaleriaEventoSelect")?.value || "";
     const typedEvent = document.getElementById("adminGaleriaTexto")?.value || "";
     const eventTitle = getCanonicalGalleryEventTitle(community, selectedEvent || typedEvent);
-    const baseOrden = Number(document.getElementById("adminGaleriaOrden")?.value || 1);
+    const baseOrden = getNextGalleryOrder(community, eventTitle);
     const markPortada = document.getElementById("adminGaleriaPortada")?.checked || false;
 
     if (!files.length) {
@@ -3838,6 +4135,7 @@ function renderContactCalendar(apiData = {}) {
 	  document.getElementById("adminEventosList")?.addEventListener("click", handleAdminListAction);
 	  document.getElementById("adminDestacadasList")?.addEventListener("click", handleAdminListAction);
 	  document.getElementById("adminGaleriaList")?.addEventListener("click", handleAdminListAction);
+	  document.getElementById("adminYoutubeList")?.addEventListener("click", handleAdminListAction);
 
 	  initAdminDragReorder(document.getElementById("adminEventosList"), {
 	    onReorder: (orderedIds) => persistAdminOrder("eventos", orderedIds)
@@ -3852,6 +4150,34 @@ function renderContactCalendar(apiData = {}) {
 	      } else {
 	        persistAdminOrder("galeria", orderedIds);
 	      }
+	    }
+	  });
+	  initAdminDragReorder(document.getElementById("adminYoutubeList"), {
+	    onReorder: (orderedIds) => persistAdminOrder("youtube", orderedIds)
+	  });
+
+	  document.getElementById("adminYoutubeForm")?.addEventListener("submit", async function (event) {
+	    event.preventDefault();
+	    const msg = document.getElementById("adminYoutubeMsg");
+
+	    try {
+	      await window.mcpSaveYoutube({
+	        link: document.getElementById("adminYoutubeLink")?.value || "",
+	        titulo: document.getElementById("adminYoutubeTitulo")?.value || "",
+	        subtitulo: document.getElementById("adminYoutubeSubtitulo")?.value || "",
+	        etiqueta: document.getElementById("adminYoutubeEtiqueta")?.value || "Conferencia",
+	        orden: document.getElementById("adminYoutubeOrden")?.value || 1
+	      });
+
+	      this.reset();
+	      const etiquetaField = document.getElementById("adminYoutubeEtiqueta");
+	      if (etiquetaField) etiquetaField.value = "Conferencia";
+	      showAdminMsg(msg, "Video guardado correctamente.", true);
+	      await loadAdminContent();
+	    } catch (error) {
+	      console.error(error);
+	      const detail = error?.message ? ` ${error.message}` : "";
+	      showAdminMsg(msg, `No se pudo guardar el video.${detail}`, false);
 	    }
 	  });
 	  /* -----------------------------------------
@@ -3975,9 +4301,12 @@ function renderContactCalendar(apiData = {}) {
       });
     });
 
+    const SC_PLAY_ICON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    const SC_PAUSE_ICON = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+
     widget.bind(window.SC.Widget.Events.PLAY, () => {
       playing = true;
-      playBtn.textContent = "❚❚";
+      playBtn.innerHTML = SC_PAUSE_ICON;
 
       widget.getCurrentSound(s => {
         if (!s) return;
@@ -3991,7 +4320,7 @@ function renderContactCalendar(apiData = {}) {
 
     widget.bind(window.SC.Widget.Events.PAUSE, () => {
       playing = false;
-      playBtn.textContent = "▶";
+      playBtn.innerHTML = SC_PLAY_ICON;
     });
 
     widget.bind(window.SC.Widget.Events.PLAY_PROGRESS, (progressData) => {
@@ -4210,13 +4539,13 @@ if (contactForm) {
         throw new Error("Supabase no está configurado.");
       }
 
-      const response = await sendContactToSupabase(payload);
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Error Supabase ${response.status}: ${text || response.statusText}`);
+      if (!contactTurnstileToken) {
+        throw new Error("Por favor completa la verificación de seguridad antes de enviar.");
       }
 
-      await sendContactEmailWithEdgeFunction(payload);
+      payload.turnstileToken = contactTurnstileToken;
+
+      await submitContactSecure(payload);
 
       if (msg) {
         msg.textContent = "Mensaje enviado correctamente.";
@@ -4229,10 +4558,13 @@ if (contactForm) {
     } catch (error) {
       console.error("Error enviando contacto:", error);
       if (msg) {
-        msg.textContent = "Ocurrió un error al enviar tu mensaje. Intenta de nuevo.";
+        msg.textContent = error.message === "Verificación de seguridad fallida."
+          ? "No pudimos verificar que eres humano. Intenta de nuevo."
+          : "Ocurrió un error al enviar tu mensaje. Intenta de nuevo.";
         msg.style.color = "#b72e2e";
       }
     } finally {
+      resetContactTurnstile();
       if (btn) {
         btn.disabled = false;
         btn.textContent = "Enviar";

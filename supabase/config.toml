@@ -22,3 +22,13 @@ entrypoint = "./functions/send-birthday-emails/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/get-today-birthdays/index.ts"
+
+[functions.submit-join]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/submit-join/index.ts"
+
+[functions.submit-contact]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/submit-contact/index.ts"

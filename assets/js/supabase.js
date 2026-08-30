@@ -66,6 +66,14 @@
     });
   }
 
+  function submitJoinSecure(payload) {
+    return invokeEmailEdgeFunction("submit-join", payload);
+  }
+
+  function submitContactSecure(payload) {
+    return invokeEmailEdgeFunction("submit-contact", payload);
+  }
+
   async function invokeEmailEdgeFunction(functionName, payload) {
     const client = getSupabaseBrowserClient();
     if (!client?.functions) throw new Error("Supabase Functions no está disponible.");
@@ -244,6 +252,8 @@
     sendContactToSupabase,
     sendJoinToSupabase,
     sendWelcomeEmailWithEdgeFunction,
+    submitContactSecure,
+    submitJoinSecure,
     uploadImageToSupabaseBucket
   };
 

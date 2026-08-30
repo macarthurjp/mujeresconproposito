@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
   <title>Mujeres con Propósito</title>
+  <script>
+    window.mcpTurnstileReady = false;
+    window.mcpOnTurnstileLoad = function () { window.mcpTurnstileReady = true; };
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=mcpOnTurnstileLoad" async defer></script>
   <meta name="description" content="Una comunidad cristiana internacional donde la fe, la hermandad y el propósito se unen para transformar vidas." />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Mujeres con Propósito" />
@@ -30,7 +35,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/css/intlTelInput.css" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260830-turnstile-1" />
   <style>
     /* JOIN FORM PREMIUM REDESIGN */
     .join-modal-content {
@@ -692,7 +697,9 @@
     </div>
 
     <div class="invitees-wrapper">
-      <button class="invitees-arrow left" id="invLeft" type="button">‹</button>
+      <button class="invitees-arrow left" id="invLeft" type="button" aria-label="Anterior">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline></svg>
+      </button>
 
       <!-- FIX: eliminar card-grid -->
       <div class="invitees-track" id="inviteesTrack">
@@ -709,7 +716,9 @@
         </div>
       </div>
 
-      <button class="invitees-arrow right" id="invRight" type="button">›</button>
+      <button class="invitees-arrow right" id="invRight" type="button" aria-label="Siguiente">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+      </button>
     </div>
 </section>
 
@@ -737,11 +746,23 @@
   <div id="visionModal" class="modal-overlay">
     <div class="modal-content">
       <span id="closeVisionModal" class="close-btn">×</span>
-      <h2>Visión de Mujeres con Propósito</h2>
-      <p>Ser una comunidad internacional de mujeres transformadas por Dios, que caminan en su propósito, crecen integralmente y generan un impacto social que transforma vidas, familias y comunidades.</p>
+      <h2>Misión, Visión y Valores</h2>
+      <div class="modal-title-divider"></div>
 
       <h3>Misión</h3>
       <p>Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades.</p>
+
+      <h3>Visión</h3>
+      <p>Ser una comunidad internacional de mujeres transformadas por Dios, que caminan en su propósito, crecen integralmente y generan un impacto social que transforma vidas, familias y comunidades.</p>
+
+      <h3>Nuestros Valores</h3>
+      <ul class="modal-values-list">
+        <li><strong>Amor</strong> — Amamos a Dios y a las personas, sirviendo con compasión y empatía.</li>
+        <li><strong>Unidad</strong> — Caminamos juntas, valorando nuestras diferencias y construyendo juntas.</li>
+        <li><strong>Hermandad</strong> — Nos acompañamos, apoyamos y fortalecemos unas a otras.</li>
+        <li><strong>Transparencia</strong> — Actuamos con apertura, integridad y claridad en nuestras relaciones.</li>
+        <li><strong>Honestidad</strong> — Vivimos y nos relacionamos con verdad, respeto y coherencia.</li>
+      </ul>
     </div>
   </div>
 
@@ -787,24 +808,24 @@
 
     <div class="ofrecemos-grid">
       <div class="ofrecemos-card">
-        <div class="icon icon-image">
-          <img src="assets/images/emojis/6154ac3c38f4b30e8ea5c4e1005210c5d621b488fd4954d85ad7334c73c98009.png" alt="Devocionales" loading="lazy" />
+        <div class="icon">
+          <i class="fa-solid fa-book-open" aria-hidden="true"></i>
         </div>
         <h3>Devocionales</h3>
         <p>Reflexiones semanales para fortalecer tu caminar con Dios.</p>
       </div>
 
       <div class="ofrecemos-card">
-        <div class="icon icon-image">
-          <img src="assets/images/emojis/73e36c73f2bd73d8892263a6676ff5829d9d7f8cf4e4843692c2b8885ce3f63b.png" alt="Eventos" loading="lazy" />
+        <div class="icon">
+          <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
         </div>
         <h3>Eventos</h3>
         <p>Reuniones y actividades para crecer juntas en fe.</p>
       </div>
 
       <div class="ofrecemos-card">
-        <div class="icon icon-image">
-          <img src="assets/images/emojis/c74e5932b4b91daa36e84c6372e80fd906674fd24a38a445dbed44a138867b9d.png" alt="Oración" loading="lazy" />
+        <div class="icon">
+          <i class="fa-solid fa-hands-praying" aria-hidden="true"></i>
         </div>
         <h3>Oración</h3>
         <p>Comparte tus peticiones y permite que oremos contigo.</p>
@@ -819,7 +840,7 @@
       <div class="join-copy">
         <span class="join-eyebrow">Únete hoy</span>
         <h2>Conecta con mujeres que inspiran, crecen y sirven juntas.</h2>
-        <p>Forma parte de una comunidad premium de fe, apoyo y propósito con actividades exclusivas para tu crecimiento personal y espiritual.</p>
+        <p>Forma parte de una comunidad de fe, apoyo y propósito con actividades exclusivas para tu crecimiento personal y espiritual.</p>
 
         <div class="join-highlights">
           <div>
@@ -855,7 +876,9 @@
     </div>
 
     <div class="events-wrapper events-wrapper-slider">
-      <button class="events-arrow left" id="eventsLeft" type="button">‹</button>
+      <button class="events-arrow left" id="eventsLeft" type="button" aria-label="Anterior">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline></svg>
+      </button>
 
 	      <div class="events-track" id="eventsGrid">
 	        <div class="card">
@@ -865,7 +888,9 @@
 	        </div>
 	      </div>
 
-      <button class="events-arrow right" id="eventsRight" type="button">›</button>
+      <button class="events-arrow right" id="eventsRight" type="button" aria-label="Siguiente">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+      </button>
     </div>
 </section>
 
@@ -879,43 +904,7 @@
       Síguenos en YouTube para mensajes, reflexiones y contenido para tu crecimiento espiritual.
     </p>
 
-    <div class="yt-grid">
-      <article class="yt-card" tabindex="0" role="button" data-video-id="LEe3mHoKObc" data-title="De vuelta al Génesis" data-sub="Conferencia con Xiomery Mercedes" aria-label="Reproducir: De vuelta al Génesis">
-        <div class="yt-thumb yt-grad-1">
-          <img src="https://img.youtube.com/vi/LEe3mHoKObc/hqdefault.jpg" alt="" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
-          <span class="yt-tag">Conferencia</span>
-          <div class="yt-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="yt-body">
-          <h3>De vuelta al Génesis</h3>
-          <p>Conferencia con Xiomery Mercedes</p>
-        </div>
-      </article>
-
-      <article class="yt-card" tabindex="0" role="button" data-video-id="43l_c5h5crs" data-title="Finanzas de Pareja" data-sub="Conferencia con Diana Rosario" aria-label="Reproducir: Finanzas de Pareja">
-        <div class="yt-thumb yt-grad-2">
-          <img src="https://img.youtube.com/vi/43l_c5h5crs/hqdefault.jpg" alt="" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
-          <span class="yt-tag">Conferencia</span>
-          <div class="yt-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="yt-body">
-          <h3>Finanzas de Pareja</h3>
-          <p>Conferencia con Diana Rosario</p>
-        </div>
-      </article>
-
-      <article class="yt-card" tabindex="0" role="button" data-video-id="cLrY0E1u0j0" data-title="Mujeres que Emprenden" data-sub="Conferencia con Merary Pacheco" aria-label="Reproducir: Mujeres que Emprenden">
-        <div class="yt-thumb yt-grad-3">
-          <img src="https://img.youtube.com/vi/cLrY0E1u0j0/hqdefault.jpg" alt="" loading="lazy" decoding="async" data-external-fallback="assets/images/og-preview.png" />
-          <span class="yt-tag">Conferencia</span>
-          <div class="yt-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-        <div class="yt-body">
-          <h3>Mujeres que Emprenden</h3>
-          <p>Conferencia con Merary Pacheco</p>
-        </div>
-      </article>
-    </div>
+    <div class="yt-grid" id="ytGrid"></div>
 
     <a href="https://www.youtube.com/@MujeresconProposito930" class="youtube-more" target="_blank" rel="noopener noreferrer">Ver más videos</a>
   </section>
@@ -995,16 +984,24 @@
     </div>
 
     <div class="gallery-nav">
-      <button type="button" class="gallery-arrow" id="galleryPrev">&#10094;</button>
-      <button type="button" class="gallery-arrow" id="galleryNext">&#10095;</button>
+      <button type="button" class="gallery-arrow" id="galleryPrev" aria-label="Anterior">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline></svg>
+      </button>
+      <button type="button" class="gallery-arrow" id="galleryNext" aria-label="Siguiente">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+      </button>
     </div>
   </section>
 
   <!-- LIGHTBOX GALERÍA -->
   <div id="lightbox">
-    <span id="prev" class="arrow">&#10094;</span>
+    <span id="prev" class="arrow" role="button" aria-label="Anterior">
+      <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline></svg>
+    </span>
     <img id="lightbox-img" alt="" />
-    <span id="next" class="arrow">&#10095;</span>
+    <span id="next" class="arrow" role="button" aria-label="Siguiente">
+      <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+    </span>
     <div id="lightbox-counter"></div>
   </div>  
 
@@ -1042,9 +1039,15 @@
       </div>
 
       <div class="sc-mini-controls">
-        <button type="button" id="scPrevBtn" class="sc-mini-btn">⏮</button>
-        <button type="button" id="scPlayBtn" class="sc-mini-btn sc-mini-btn-play">▶</button>
-        <button type="button" id="scNextBtn" class="sc-mini-btn">⏭</button>
+        <button type="button" id="scPrevBtn" class="sc-mini-btn" aria-label="Audio anterior">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button type="button" id="scPlayBtn" class="sc-mini-btn sc-mini-btn-play" aria-label="Reproducir">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button type="button" id="scNextBtn" class="sc-mini-btn" aria-label="Siguiente audio">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
       </div>
     </div>
 
@@ -1082,6 +1085,7 @@
         <input type="email" name="email" id="cEmail" placeholder="Correo Electrónico" required />
         <textarea name="mensaje" id="cMensaje" placeholder="Tu mensaje" required></textarea>
 
+        <div id="contactTurnstile" class="cf-turnstile-wrap"></div>
         <button type="submit" id="cSubmitBtn">Enviar</button>
         <div id="contactMsg" class="small"></div>
       </form>
@@ -1397,6 +1401,7 @@
         <div id="joinMessage" class="form-message" style="display:none;"></div>
 
         <div class="join-form-footer">
+          <div id="joinTurnstile" class="cf-turnstile-wrap"></div>
           <p class="join-form-note">Al enviar este formulario, recibiremos tu solicitud y te enviaremos una confirmación por correo.</p>
           <button type="submit" class="btn join-submit-btn">Enviar solicitud</button>
         </div>
@@ -1493,7 +1498,7 @@
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/js/intlTelInputWithUtils.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260830-stats-toasts-1"></script>
+  <script src="assets/js/supabase.js?v=20260830-turnstile-1"></script>
+  <script src="assets/js/main.js?v=20260830-turnstile-1"></script>
 </body>
 </html>

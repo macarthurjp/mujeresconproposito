@@ -237,7 +237,7 @@
 
 .admin-stats-grid {
     display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     gap: 14px !important;
     margin: 0 0 26px !important;
 }
@@ -482,10 +482,10 @@
     gap: 8px !important;
     margin: 0 !important;
     color: #6f5650 !important;
-    font-size: 0.78rem !important;
-    font-weight: 900 !important;
-    letter-spacing: 0.055em !important;
-    text-transform: uppercase !important;
+    font-size: 0.86rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
     text-align: left !important;
 }
 
@@ -508,6 +508,16 @@
     grid-column: 1 / -1 !important;
 }
 
+.admin-form .admin-time-field {
+    grid-column: 1 / -1 !important;
+}
+
+.admin-form .admin-time-field .admin-time-selects {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+}
+
 .admin-list-card {
     margin-top: 22px !important;
 }
@@ -524,10 +534,18 @@
     margin-bottom: 16px !important;
 }
 
-.admin-logout-btn {
+.admin-dashboard-actions {
     position: absolute !important;
     top: 22px !important;
     right: 24px !important;
+    display: flex !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+}
+
+.admin-logout-btn {
+    position: static !important;
     min-height: 48px !important;
     padding: 0 20px !important;
     border: 1px solid rgba(166,75,67,0.16) !important;
@@ -543,6 +561,19 @@
 .admin-logout-btn:hover {
     background: #ffffff !important;
     transform: translateY(-1px) !important;
+}
+
+.admin-share-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    background: #a64b43 !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+}
+
+.admin-share-btn:hover {
+    background: #8e403b !important;
 }
 
 .admin-import-btn {
@@ -1011,6 +1042,12 @@
         padding-top: 86px !important;
     }
 
+    .admin-dashboard-actions {
+        position: static !important;
+        justify-content: center !important;
+        margin-top: 14px !important;
+    }
+
     .admin-logout-btn {
         top: 18px !important;
         right: 18px !important;
@@ -1255,12 +1292,18 @@ body[data-admin-page="true"] .admin-form .admin-time-field {
     gap: 8px !important;
     margin: 0 !important;
     color: #5e3d39 !important;
-    font-size: 0.82rem !important;
-    font-weight: 950 !important;
-    letter-spacing: 0.055em !important;
-    text-transform: uppercase !important;
+    font-size: 0.9rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
     line-height: 1.2 !important;
     text-align: left !important;
+}
+
+body[data-admin-page="true"] .admin-form label.admin-checkbox-label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
 }
 
 body[data-admin-page="true"] .admin-form label:has(input[type="file"]),
@@ -1336,6 +1379,10 @@ body[data-admin-page="true"] .admin-form input[type="file"] {
     padding: 14px 18px !important;
     min-height: 58px !important;
     cursor: pointer !important;
+    color: #8b6d68 !important;
+    font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
 }
 
 body[data-admin-page="true"] .admin-form input[type="file"]::file-selector-button {
@@ -1450,6 +1497,7 @@ body[data-admin-page="true"] .admin-dashboard-head {
     max-width: 980px !important;
     margin-left: auto !important;
     margin-right: auto !important;
+    padding-bottom: 56px !important;
 }
 
 body[data-admin-page="true"] .admin-logout-btn,
@@ -1474,8 +1522,8 @@ body[data-admin-page="true"] #adminGaleriaForm.admin-form-clean {
     grid-template-areas:
         "comunidad categoria"
         "nombre foto"
-        "orden accion"
         "portada portada"
+        "accion accion"
         "mensaje mensaje" !important;
     gap: 22px 26px !important;
     align-items: end !important;
@@ -1505,18 +1553,18 @@ body[data-admin-page="true"] #adminGaleriaForm .admin-field:nth-of-type(4) {
     grid-column: auto !important;
 }
 
-body[data-admin-page="true"] #adminGaleriaForm .admin-field:nth-of-type(5),
-body[data-admin-page="true"] #adminGaleriaForm .admin-field-small {
-    grid-area: orden !important;
-    grid-column: auto !important;
-    max-width: none !important;
-}
-
 body[data-admin-page="true"] #adminGaleriaForm .admin-checkbox-field {
     grid-area: portada !important;
     grid-column: auto !important;
     display: flex !important;
     align-items: center !important;
+}
+
+body[data-admin-page="true"] #adminGaleriaForm input[type="checkbox"] {
+    width: 20px !important;
+    height: 20px !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
 }
 
 body[data-admin-page="true"] #adminGaleriaForm .admin-form-actions {
@@ -1539,10 +1587,10 @@ body[data-admin-page="true"] #adminGaleriaForm .admin-field label {
     display: block !important;
     margin: 0 !important;
     color: #5e3d39 !important;
-    font-size: 0.82rem !important;
-    font-weight: 950 !important;
-    letter-spacing: 0.055em !important;
-    text-transform: uppercase !important;
+    font-size: 0.9rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
     line-height: 1.2 !important;
     text-align: left !important;
 }
@@ -1581,7 +1629,6 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
             "categoria"
             "nombre"
             "foto"
-            "orden"
             "portada"
             "accion"
             "mensaje" !important;
@@ -1597,6 +1644,10 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
 
 /* Admin mobile header: keep both navigation links visible as real buttons */
 @media (max-width: 680px) {
+  body[data-admin-page="true"] .admin-dashboard-head {
+    padding-bottom: 0 !important;
+  }
+
   body[data-admin-page="true"] header {
     position: sticky !important;
     top: 10px !important;

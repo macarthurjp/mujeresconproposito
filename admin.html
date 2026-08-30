@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260830-stats-toasts-1" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260830-share-btn-overlap-fix-1" />
 </head>
 <body data-admin-page="true">
   <header>
@@ -68,7 +68,10 @@
             <span class="admin-dashboard-kicker">Contenido público</span>
             <h3>Centro de gestión</h3>
           </div>
-          <button type="button" class="admin-logout-btn" id="adminLogoutBtn">Cerrar sesión</button>
+          <div class="admin-dashboard-actions">
+            <button type="button" class="admin-logout-btn admin-share-btn" id="adminShareJoinLink"><i class="fa-solid fa-share-nodes"></i> Compartir formulario</button>
+            <button type="button" class="admin-logout-btn" id="adminLogoutBtn">Cerrar sesión</button>
+          </div>
         </div>
 
         <div class="admin-stats-grid" id="adminStatsGrid">
@@ -93,6 +96,13 @@
             <div class="admin-stat-value" id="statFotos">0</div>
             <div class="admin-stat-label">Fotos en galería</div>
           </div>
+          <div class="admin-stat-tile">
+            <div class="admin-stat-top">
+              <div class="admin-stat-icon">▶</div>
+            </div>
+            <div class="admin-stat-value" id="statYoutube">0</div>
+            <div class="admin-stat-label">Videos de YouTube</div>
+          </div>
           <div class="admin-stat-tile" id="statPortadaTile">
             <div class="admin-stat-top">
               <div class="admin-stat-icon">◐</div>
@@ -107,6 +117,7 @@
           <button type="button" class="admin-tab active" data-admin-tab="eventos"><span>✦</span> Eventos</button>
           <button type="button" class="admin-tab" data-admin-tab="destacadas"><span>♡</span> Destacadas</button>
           <button type="button" class="admin-tab" data-admin-tab="galeria"><span>✧</span> Galería</button>
+          <button type="button" class="admin-tab" data-admin-tab="youtube"><span>▶</span> YouTube</button>
         </div>
 
         <div class="admin-tab-panel active" id="admin-eventos">
@@ -229,11 +240,6 @@
                 <input type="file" id="adminGaleriaFoto" accept="image/*" multiple required />
               </div>
 
-              <div class="admin-field admin-field-small">
-                <label for="adminGaleriaOrden">Orden</label>
-                <input type="number" id="adminGaleriaOrden" value="1" min="1" />
-              </div>
-
               <div class="admin-checkbox-field">
                 <label class="admin-checkbox-label">
                   <input type="checkbox" id="adminGaleriaPortada" />
@@ -255,6 +261,37 @@
             <div id="adminGaleriaList" class="admin-content-list"></div>
           </div>
         </div>
+
+        <div class="admin-tab-panel" id="admin-youtube">
+          <div class="admin-card">
+            <h3>Nuevo video</h3>
+            <form id="adminYoutubeForm" class="admin-form">
+              <label>Link o ID del video de YouTube</label>
+              <input type="text" id="adminYoutubeLink" placeholder="https://www.youtube.com/watch?v=..." required />
+
+              <label>Título</label>
+              <input type="text" id="adminYoutubeTitulo" placeholder="Ej: De vuelta al Génesis" required />
+
+              <label>Subtítulo</label>
+              <input type="text" id="adminYoutubeSubtitulo" placeholder="Ej: Conferencia con..." />
+
+              <label>Etiqueta</label>
+              <input type="text" id="adminYoutubeEtiqueta" placeholder="Conferencia" value="Conferencia" />
+
+              <label>Orden</label>
+              <input type="number" id="adminYoutubeOrden" value="1" min="1" />
+
+              <button type="submit" class="btn">Guardar video</button>
+              <div id="adminYoutubeMsg" class="form-message" style="display:none;"></div>
+            </form>
+          </div>
+          <div class="admin-card admin-list-card">
+            <h3>Videos publicados</h3>
+            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
+            <button type="button" class="admin-import-btn" data-admin-import="youtube">Importar videos actuales</button>
+            <div id="adminYoutubeList" class="admin-content-list"></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -262,6 +299,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260830-stats-toasts-1"></script>
+  <script src="assets/js/main.js?v=20260830-share-link-1"></script>
 </body>
 </html>

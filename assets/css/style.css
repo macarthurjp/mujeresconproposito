@@ -660,12 +660,19 @@ section p {
 .arrow {
     position: absolute;
     top: 50%;
-    font-size: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: white;
     cursor: pointer;
     user-select: none;
     padding: 10px;
     transform: translateY(-50%);
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.arrow svg {
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
 }
 
 #prev { left: 20px; }
@@ -673,6 +680,7 @@ section p {
 
 .arrow:hover {
     color: #E7A8A0;
+    transform: translateY(-50%) scale(1.12);
 }
 
 #lightbox-counter {
@@ -3830,12 +3838,9 @@ section p,
     line-height: 1;
 }
 
-#invitees .invitees-arrow.left::before {
-    content: "‹";
-}
-
+#invitees .invitees-arrow.left::before,
 #invitees .invitees-arrow.right::before {
-    content: "›";
+    content: none !important;
 }
 
 #invitees .invitees-arrow:hover {
@@ -4545,6 +4550,11 @@ form button:hover,
     background: rgba(216, 168, 92, 0.14) !important;
     font-size: 2rem !important;
     text-align: center !important;
+}
+
+.ofrecemos-card .icon i {
+    color: var(--mcp-brand) !important;
+    font-size: 1.7rem !important;
 }
 
 .ofrecemos-card .icon.icon-image {
@@ -5560,6 +5570,13 @@ img:not([src]) {
 #events .card-icon {
     width: 58px !important;
     height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+    max-width: 58px !important;
+    max-height: 58px !important;
+    flex: 0 0 58px !important;
+    aspect-ratio: 1 / 1 !important;
+    overflow: hidden !important;
     border-radius: 20px !important;
     background:
         radial-gradient(circle at 35% 25%, rgba(255,255,255,0.95), rgba(255,255,255,0.55)),
@@ -5725,6 +5742,12 @@ img:not([src]) {
     width: 8px !important;
 }
 
+.join-modal-content::-webkit-scrollbar-track,
+.modal-content::-webkit-scrollbar-track {
+    margin: 26px 0 !important;
+    background: transparent !important;
+}
+
 .join-modal-content::-webkit-scrollbar-thumb,
 .modal-content::-webkit-scrollbar-thumb {
     background: rgba(166, 75, 67, 0.24) !important;
@@ -5777,18 +5800,71 @@ img:not([src]) {
     color: #795f58 !important;
     font-size: 1rem !important;
     line-height: 1.7 !important;
-    text-align: left !important;
+    text-align: justify !important;
+    text-align-last: left !important;
+}
+
+/* El modal genérico (.modal-content) es más angosto que el de únete
+   (.join-modal-content), así que el texto no debe topar en 560/580px:
+   eso deja un hueco grande a la derecha. Que ocupe todo el ancho. */
+.modal-content h2,
+.modal-content > p {
+    max-width: 100% !important;
 }
 
 .modal-content h3 {
-    max-width: 560px !important;
-    margin: 0 0 10px !important;
+    max-width: 100% !important;
+    margin: 22px 0 10px !important;
     font-family: "Playfair Display", Georgia, serif !important;
     font-size: clamp(1.4rem, 2.6vw, 1.9rem) !important;
     line-height: 1.05 !important;
     letter-spacing: -0.03em !important;
     color: #b26464 !important;
     text-align: left !important;
+}
+
+.modal-title-divider {
+    width: 84px !important;
+    height: 3px !important;
+    margin: 4px 0 20px !important;
+    border-radius: 999px !important;
+    background: linear-gradient(90deg, var(--mcp-gold), var(--mcp-brand)) !important;
+}
+
+.modal-content h3:first-of-type {
+    margin-top: 0 !important;
+}
+
+.modal-values-list {
+    max-width: 100% !important;
+    margin: 0 0 24px !important;
+    padding: 0 !important;
+    list-style: none !important;
+    display: grid !important;
+    gap: 12px !important;
+}
+
+.modal-values-list li {
+    padding-left: 22px !important;
+    position: relative !important;
+    color: #795f58 !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    text-align: left !important;
+}
+
+.modal-values-list li::before {
+    content: "✦" !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 1px !important;
+    color: var(--mcp-gold) !important;
+    font-size: 0.85rem !important;
+}
+
+.modal-values-list li strong {
+    color: #b26464 !important;
+    font-weight: 850 !important;
 }
 
 /* Badge superior si existe */
@@ -6501,9 +6577,21 @@ img:not([src]) {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
+    flex-wrap: wrap !important;
     gap: 18px !important;
     margin-top: 18px !important;
     padding: 14px 4px 0 !important;
+}
+
+.cf-turnstile-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    order: -1;
+}
+
+#contactForm .cf-turnstile-wrap {
+    margin: 4px 0;
 }
 
 #joinModal .join-form-note {
