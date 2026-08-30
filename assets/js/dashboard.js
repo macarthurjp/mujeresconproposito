@@ -20,6 +20,8 @@ async function fetchDashboardDataFromSupabase() {
 
 let allUsers = [];
 let filteredUsers = [];
+let pageSize = 10;
+let currentPage = 1;
 
 const searchInput = document.getElementById("searchInput");
 const paisFilter = document.getElementById("paisFilter");
@@ -31,12 +33,28 @@ const totalCount = document.getElementById("totalCount");
 const filteredCount = document.getElementById("filteredCount");
 const countriesCount = document.getElementById("countriesCount");
 const communitiesCount = document.getElementById("communitiesCount");
+const monthlyCount = document.getElementById("monthlyCount");
+const upcomingBirthdaysCount = document.getElementById("upcomingBirthdaysCount");
+const communityBreakdown = document.getElementById("communityBreakdown");
+const upcomingBirthdaysList = document.getElementById("upcomingBirthdaysList");
+const sortUsersSelect = document.getElementById("sortUsersSelect");
 const filteredCountFooter = document.getElementById("filteredCountFooter");
 const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+const mobileFiltersBtn = document.getElementById("mobileFiltersBtn");
+const filtersPanel = document.querySelector(".filters-panel");
+const activeFilterChips = document.getElementById("activeFilterChips");
+const dashboardToast = document.getElementById("dashboardToast");
+const dashboardPagination = document.getElementById("dashboardPagination");
+const paginationSummary = document.getElementById("paginationSummary");
+const paginationPageText = document.getElementById("paginationPageText");
+const paginationPrevBtn = document.getElementById("paginationPrevBtn");
+const paginationNextBtn = document.getElementById("paginationNextBtn");
+const pageSizeSelect = document.getElementById("pageSizeSelect");
 const homePageBtn = document.getElementById("homePageBtn");
 const dashboardRefreshBtn = document.getElementById("dashboardRefreshBtn");
 const dashboardLogoutBtn = document.getElementById("dashboardLogoutBtn");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
+const exportCsvBtn = document.getElementById("exportCsvBtn");
 const lastUpdatedText = document.getElementById("lastUpdatedText");
 const dashboardAccessScreen = document.getElementById("dashboardAccessScreen");
 const dashboardAccessEmail = document.getElementById("dashboardAccessEmail");
@@ -55,7 +73,17 @@ const sidebarHomeBtn = document.getElementById("sidebarHomeBtn");
 const sidebarRefreshBtn = document.getElementById("sidebarRefreshBtn");
 const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
 const sidebarExportBtn = document.getElementById("sidebarExportBtn");
+const sidebarCsvBtn = document.getElementById("sidebarCsvBtn");
 let dashboardLoaded = false;
+let toastTimer = null;
+
+function showDashboardToast(message) {
+  if (!dashboardToast) return;
+  dashboardToast.textContent = message;
+  dashboardToast.classList.add("visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => dashboardToast.classList.remove("visible"), 3000);
+}
 
 function showDashboardLoginMsg(text) {
   if (!dashboardLoginMsg) return;
@@ -254,6 +282,37 @@ function cristianaStatusClass(value) {
   return "status-default";
 }
 
+function phoneDigits(value) {
+  return String(value || "").replace(/\D/g, "");
+}
+
+const COUNTRY_DIAL_CODES = {
+  "alemania": "49", "andorra": "376", "argentina": "54", "australia": "61", "austria": "43",
+  "belgica": "32", "bolivia": "591", "brasil": "55", "canada": "1", "chile": "56", "china": "86",
+  "colombia": "57", "costa rica": "506", "cuba": "53", "dinamarca": "45", "ecuador": "593",
+  "el salvador": "503", "espana": "34", "estados unidos": "1", "finlandia": "358", "francia": "33",
+  "guatemala": "502", "haiti": "509", "honduras": "504", "irlanda": "353", "italia": "39",
+  "luxemburgo": "352", "mexico": "52", "nicaragua": "505", "noruega": "47", "paises bajos": "31",
+  "panama": "507", "paraguay": "595", "peru": "51", "polonia": "48", "portugal": "351",
+  "reino unido": "44", "republica dominicana": "1", "rumania": "40", "suecia": "46", "suiza": "41",
+  "uruguay": "598", "venezuela": "58"
+};
+
+function internationalPhone(phone, country) {
+  const raw = String(phone || "").trim();
+  if (!raw) return "";
+
+  const digits = phoneDigits(raw);
+  if (!digits) return raw;
+  if (raw.startsWith("+")) return `+${digits}`;
+
+  const dialCode = COUNTRY_DIAL_CODES[normalizeText(country)];
+  if (!dialCode) return raw;
+  if (digits.startsWith(dialCode)) return `+${digits}`;
+
+  return `+${dialCode} ${digits.replace(/^0+/, "")}`;
+}
+
 function renderTable(users) {
   if (!usersTableBody) return;
 
@@ -262,7 +321,9 @@ function renderTable(users) {
     return;
   }
 
-  usersTableBody.innerHTML = users.map((user) => `
+  usersTableBody.innerHTML = users.map((user) => {
+    const displayPhone = internationalPhone(user.telefono, user.paisResidencia);
+    return `
     <div class="user-row">
       <div class="user-row-id">
         <div class="user-avatar">${escapeHtml(getInitials(user.nombreCompleto))}</div>
@@ -275,7 +336,7 @@ function renderTable(users) {
       <div class="user-row-fields">
         <div class="field-block">
           <span class="field-label">Teléfono</span>
-          <strong>${escapeHtml(user.telefono)}</strong>
+          <strong>${escapeHtml(displayPhone) || "—"}</strong>
         </div>
         <div class="field-block">
           <span class="field-label">País residencia</span>
@@ -294,6 +355,11 @@ function renderTable(users) {
         <span class="user-row-toggle-arrow">⌄</span>
       </button>
       <div class="user-row-extra">
+        <div class="field-block field-block-wide user-quick-actions">
+          ${user.email ? `<a href="mailto:${escapeHtml(user.email)}">Enviar correo</a>` : ""}
+          ${displayPhone ? `<a href="tel:${escapeHtml(displayPhone.replace(/\s/g, ""))}">Llamar</a>` : ""}
+          ${phoneDigits(displayPhone) ? `<a href="https://wa.me/${phoneDigits(displayPhone)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
+        </div>
         <div class="field-block">
           <span class="field-label">Fecha de nacimiento</span>
           <strong>${escapeHtml(formatDate(user.fechaNacimiento))}</strong>
@@ -316,7 +382,76 @@ function renderTable(users) {
         </div>
       </div>
     </div>
-  `).join("");
+  `;
+  }).join("");
+}
+
+function renderPagination() {
+  if (!dashboardPagination) return;
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  currentPage = Math.min(currentPage, totalPages);
+  const start = filteredUsers.length ? (currentPage - 1) * pageSize + 1 : 0;
+  const end = Math.min(currentPage * pageSize, filteredUsers.length);
+
+  dashboardPagination.hidden = filteredUsers.length <= pageSize;
+  if (paginationSummary) paginationSummary.textContent = `Mostrando ${start}–${end} de ${filteredUsers.length}`;
+  if (paginationPageText) paginationPageText.textContent = `Página ${currentPage} de ${totalPages}`;
+  if (paginationPrevBtn) paginationPrevBtn.disabled = currentPage <= 1;
+  if (paginationNextBtn) paginationNextBtn.disabled = currentPage >= totalPages;
+}
+
+function renderCurrentPage() {
+  const start = (currentPage - 1) * pageSize;
+  renderTable(filteredUsers.slice(start, start + pageSize));
+  renderPagination();
+}
+
+function sortFilteredUsers() {
+  const mode = sortUsersSelect?.value || "newest";
+  const textSort = (field) => (a, b) => String(a[field] || "").localeCompare(String(b[field] || ""), "es", { sensitivity: "base" });
+  const time = (user) => new Date(user.timestamp).getTime() || 0;
+  const sorts = {
+    newest: (a, b) => time(b) - time(a), oldest: (a, b) => time(a) - time(b),
+    "name-asc": textSort("nombreCompleto"), "name-desc": (a, b) => textSort("nombreCompleto")(b, a),
+    country: textSort("paisResidencia"), community: textSort("comunidad")
+  };
+  filteredUsers.sort(sorts[mode] || sorts.newest);
+}
+
+function isUpcomingBirthday(value) {
+  if (!value) return false;
+  const birth = new Date(`${String(value).slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(birth.getTime())) return false;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let next = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+  if (next < today) next.setFullYear(now.getFullYear() + 1);
+  return (next - today) / 86400000 <= 30;
+}
+
+function daysUntilBirthday(value) {
+  if (!value) return Infinity;
+  const birth = new Date(`${String(value).slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(birth.getTime())) return Infinity;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let next = new Date(now.getFullYear(), birth.getMonth(), birth.getDate());
+  if (next < today) next.setFullYear(now.getFullYear() + 1);
+  return Math.round((next - today) / 86400000);
+}
+
+function renderDashboardInsights() {
+  if (communityBreakdown) {
+    const counts = new Map();
+    allUsers.forEach((user) => { const name = user.comunidad || "Sin comunidad"; counts.set(name, (counts.get(name) || 0) + 1); });
+    const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+    const max = Math.max(1, ...rows.map((row) => row[1]));
+    communityBreakdown.innerHTML = rows.length ? rows.map(([name, count]) => `<div class="community-row"><strong>${escapeHtml(name)}</strong><div class="community-bar"><span style="width:${Math.round(count / max * 100)}%"></span></div><span>${count}</span></div>`).join("") : `<p class="empty-cell">Sin datos de comunidad.</p>`;
+  }
+  if (upcomingBirthdaysList) {
+    const people = allUsers.map((user) => ({ user, days: daysUntilBirthday(user.fechaNacimiento) })).filter((item) => item.days <= 30).sort((a, b) => a.days - b.days).slice(0, 5);
+    upcomingBirthdaysList.innerHTML = people.length ? people.map(({ user, days }) => `<div class="birthday-row"><strong>${escapeHtml(user.nombreCompleto)}</strong><span>${days === 0 ? "Hoy" : `En ${days} día${days === 1 ? "" : "s"}`}</span></div>`).join("") : `<p class="empty-cell">No hay cumpleaños en los próximos 30 días.</p>`;
+  }
 }
 
 function toggleUserRow(toggleBtn) {
@@ -325,6 +460,7 @@ function toggleUserRow(toggleBtn) {
 
   const expanded = row.classList.toggle("expanded");
   toggleBtn.setAttribute("aria-expanded", String(expanded));
+  toggleBtn.setAttribute("aria-label", expanded ? "Ocultar detalles" : "Ver detalles");
 }
 
 function updateCounters() {
@@ -341,7 +477,13 @@ function updateCounters() {
   if (communitiesCount) {
     communitiesCount.textContent = new Set(allUsers.map((user) => normalizeText(user.comunidad)).filter(Boolean)).size;
   }
+  if (monthlyCount) {
+    const now = new Date();
+    monthlyCount.textContent = allUsers.filter((user) => { const date = new Date(user.timestamp); return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear(); }).length;
+  }
+  if (upcomingBirthdaysCount) upcomingBirthdaysCount.textContent = allUsers.filter((user) => isUpcomingBirthday(user.fechaNacimiento)).length;
   if (filteredCountFooter) filteredCountFooter.textContent = filteredUsers.length;
+  renderDashboardInsights();
 }
 
 function applyFilters() {
@@ -349,6 +491,12 @@ function applyFilters() {
   const pais = paisFilter?.value || "";
   const comunidad = comunidadFilter?.value || "";
   const cristiana = cristianaFilter?.value || "";
+  const activeFilterCount = [search, pais, comunidad, cristiana].filter(Boolean).length;
+  if (mobileFiltersBtn) mobileFiltersBtn.lastChild.textContent = activeFilterCount ? `Filtros (${activeFilterCount})` : "Más filtros";
+  if (activeFilterChips) {
+    const chips = [search && ["search", `Búsqueda: ${searchInput.value.trim()}`], pais && ["pais", `País: ${pais}`], comunidad && ["comunidad", `Comunidad: ${comunidad}`], cristiana && ["cristiana", `Cristiana: ${cristiana}`]].filter(Boolean);
+    activeFilterChips.innerHTML = chips.map(([key, label]) => `<button type="button" data-clear-filter="${key}">${escapeHtml(label)} ×</button>`).join("");
+  }
 
   filteredUsers = allUsers.filter((user) => {
     const haystack = normalizeText([
@@ -370,8 +518,21 @@ function applyFilters() {
     return matchesSearch && matchesPais && matchesComunidad && matchesCristiana;
   });
 
-  renderTable(filteredUsers);
+  sortFilteredUsers();
+  currentPage = 1;
+  renderCurrentPage();
   updateCounters();
+}
+
+function csvCell(value) { return `"${String(value ?? "").replace(/"/g, '""')}"`; }
+function exportCSV() {
+  const headers = ["Nombre", "Email", "Teléfono", "País residencia", "Comunidad", "Cristiana", "Fecha nacimiento", "País nacimiento", "Estatus matrimonial", "Hijos", "Comentarios", "Fecha registro"];
+  const rows = filteredUsers.map((u) => [u.nombreCompleto, u.email, u.telefono, u.paisResidencia, u.comunidad, u.cristiana, u.fechaNacimiento, u.paisNacimiento, u.estatusMatrimonial, u.hijos, u.comentarios, u.timestamp]);
+  const blob = new Blob(["\uFEFF" + [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = Object.assign(document.createElement("a"), { href: url, download: `mujeres-con-proposito-${new Date().toISOString().slice(0, 10)}.csv` });
+  link.click(); URL.revokeObjectURL(url);
+  showDashboardToast(`CSV descargado con ${filteredUsers.length} registros.`);
 }
 
 function clearFilters() {
@@ -388,6 +549,7 @@ async function loadDashboardData() {
     if (lastUpdatedText) {
       lastUpdatedText.textContent = "Cargando datos desde Supabase...";
     }
+    if (usersTableBody) usersTableBody.innerHTML = Array.from({ length: 3 }, () => `<div class="user-row skeleton"><div class="skeleton-block skeleton-avatar"></div><div class="skeleton-lines"><span class="skeleton-block"></span><span class="skeleton-block"></span></div></div>`).join("");
 
     const data = await fetchDashboardDataFromSupabase();
 
@@ -423,11 +585,12 @@ async function loadDashboardData() {
     fillSelectOptions(comunidadFilter, allUsers.map((u) => u.comunidad), "Todas");
     fillSelectOptions(cristianaFilter, allUsers.map((u) => u.cristiana), "Todas");
 
-    renderTable(filteredUsers);
+    currentPage = 1;
+    renderCurrentPage();
     updateCounters();
 
     if (lastUpdatedText) {
-      lastUpdatedText.textContent = "Actualizado correctamente";
+      lastUpdatedText.textContent = `Actualizado ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
     }
   } catch (error) {
     console.error("ERROR DASHBOARD:", error);
@@ -467,6 +630,7 @@ async function exportPDF() {
     if (exportPdfBtn) {
       exportPdfBtn.disabled = true;
     }
+    renderTable(filteredUsers);
     await loadPdfDependencies();
     const { jsPDF } = window.jspdf;
 
@@ -562,6 +726,7 @@ while (yOffset < imgHeight) {
     alert("No se pudo generar el PDF.");
   } finally {
     document.body.classList.remove("exporting-pdf");
+    renderCurrentPage();
 
     if (exportPdfBtn) {
       exportPdfBtn.disabled = false;
@@ -571,18 +736,55 @@ while (yOffset < imgHeight) {
 
 usersTableBody?.addEventListener("click", function (event) {
   const toggleBtn = event.target.closest(".user-row-toggle");
-  if (toggleBtn) toggleUserRow(toggleBtn);
+  if (toggleBtn) {
+    toggleUserRow(toggleBtn);
+    return;
+  }
+
+  const identity = event.target.closest(".user-row-id");
+  const identityToggle = identity?.closest(".user-row")?.querySelector(".user-row-toggle");
+  if (identityToggle && window.matchMedia("(max-width: 760px)").matches) {
+    toggleUserRow(identityToggle);
+  }
 });
 
 searchInput?.addEventListener("input", applyFilters);
 paisFilter?.addEventListener("change", applyFilters);
 comunidadFilter?.addEventListener("change", applyFilters);
 cristianaFilter?.addEventListener("change", applyFilters);
+sortUsersSelect?.addEventListener("change", function () { sortFilteredUsers(); currentPage = 1; renderCurrentPage(); });
 clearFiltersBtn?.addEventListener("click", clearFilters);
+activeFilterChips?.addEventListener("click", function (event) {
+  const key = event.target.closest("[data-clear-filter]")?.dataset.clearFilter;
+  if (key === "search" && searchInput) searchInput.value = "";
+  if (key === "pais" && paisFilter) paisFilter.value = "";
+  if (key === "comunidad" && comunidadFilter) comunidadFilter.value = "";
+  if (key === "cristiana" && cristianaFilter) cristianaFilter.value = "";
+  if (key) applyFilters();
+});
+mobileFiltersBtn?.addEventListener("click", function () {
+  const open = filtersPanel?.classList.toggle("filters-open") || false;
+  this.setAttribute("aria-expanded", String(open));
+  this.lastChild.textContent = open ? "Menos filtros" : "Más filtros";
+});
+paginationPrevBtn?.addEventListener("click", function () {
+  if (currentPage <= 1) return;
+  currentPage -= 1;
+  renderCurrentPage();
+  usersTableBody?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+paginationNextBtn?.addEventListener("click", function () {
+  if (currentPage * pageSize >= filteredUsers.length) return;
+  currentPage += 1;
+  renderCurrentPage();
+  usersTableBody?.scrollIntoView({ behavior: "smooth", block: "start" });
+});
+pageSizeSelect?.addEventListener("change", function () { pageSize = Number(this.value) || 10; currentPage = 1; renderCurrentPage(); });
 homePageBtn?.addEventListener("click", function () {
   window.location.href = "index.html";
 });
 exportPdfBtn?.addEventListener("click", exportPDF);
+exportCsvBtn?.addEventListener("click", exportCSV);
 dashboardRefreshBtn?.addEventListener("click", loadDashboardData);
 sidebarHomeBtn?.addEventListener("click", () => homePageBtn?.click());
 sidebarRefreshBtn?.addEventListener("click", () => {
@@ -594,6 +796,7 @@ sidebarExportBtn?.addEventListener("click", () => {
   exportPdfBtn?.click();
   closeSidebar();
 });
+sidebarCsvBtn?.addEventListener("click", () => { exportCSV(); closeSidebar(); });
 
 function closeSidebar() {
   document.body.classList.remove("sidebar-open");

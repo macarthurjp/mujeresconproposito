@@ -47,28 +47,51 @@ document.addEventListener("DOMContentLoaded", function () {
       return `${europeanHourMatch[1].padStart(2, "0")}:${europeanHourMatch[2] || "00"}`;
     }
 
+    const twelveHourMatch = value.match(/\b(1[0-2]|0?[1-9]):([0-5]\d)\s*([AP]\.?M\.?)\b/i);
+    if (twelveHourMatch) {
+      let hour = Number(twelveHourMatch[1]);
+      const minutes = twelveHourMatch[2];
+      const period = twelveHourMatch[3].toUpperCase().replace(/\./g, "");
+      if (period === "PM" && hour !== 12) hour += 12;
+      if (period === "AM" && hour === 12) hour = 0;
+      return `${String(hour).padStart(2, "0")}:${minutes}`;
+    }
+
     const twentyFourHourMatch = value.match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/);
     if (twentyFourHourMatch) {
       return `${twentyFourHourMatch[1].padStart(2, "0")}:${twentyFourHourMatch[2]}`;
     }
 
-    const twelveHourMatch = value.match(/\b(1[0-2]|0?[1-9]):([0-5]\d)\s*([AP]\.?M\.?)\b/i);
-    if (!twelveHourMatch) return "";
-
-    let hour = Number(twelveHourMatch[1]);
-    const minutes = twelveHourMatch[2];
-    const period = twelveHourMatch[3].toUpperCase().replace(/\./g, "");
-    if (period === "PM" && hour !== 12) hour += 12;
-    if (period === "AM" && hour === 12) hour = 0;
-    return `${String(hour).padStart(2, "0")}:${minutes}`;
+    return "";
   }
 
   function getHourOptions(selectedHour = "") {
     const selected = String(selectedHour || "").padStart(2, "0");
     return Array.from({ length: 24 }, (_, hour) => {
       const value = String(hour).padStart(2, "0");
-      return `<option value="${value}" ${value === selected ? "selected" : ""}>${hour}h</option>`;
+      const hour12 = hour % 12 || 12;
+      const period = hour < 12 ? "AM" : "PM";
+      const label = hour <= 12 ? `${hour12}:00 ${period}` : `${hour}h`;
+      return `<option value="${value}" ${value === selected ? "selected" : ""}>${label}</option>`;
     }).join("");
+  }
+
+  function formatScheduleForAdmin(scheduleText) {
+    const schedule = String(scheduleText || "").trim();
+    const time = getTimeInputValue(schedule);
+    if (!time) return schedule;
+
+    const [hourText, minutes = "00"] = time.split(":");
+    const hour24 = Number(hourText);
+    const hour12 = hour24 % 12 || 12;
+    const period = hour24 < 12 ? "AM" : "PM";
+    const displayTime = hour24 <= 12
+      ? `${hour12}:${minutes} ${period}`
+      : (minutes === "00" ? `${hour24}h` : `${hour24}h${minutes}`);
+
+    return schedule
+      .replace(/\b([01]?\d|2[0-3])h(?:[0-5]\d)?\b/i, displayTime)
+      .replace(/\b([01]?\d|2[0-3]):[0-5]\d(?:\s*[AP]\.?M\.?)?\b/i, displayTime);
   }
 
   function getMinuteOptions(selectedMinutes = "00") {
@@ -2678,7 +2701,7 @@ function renderContactCalendar(apiData = {}) {
 	        ? (row.texto || row.categoria || "Foto de galería")
 	        : (row.titulo || row.nombre || "Contenido");
 	      const subtitle = type === "eventos"
-	        ? row.horario || ""
+	        ? formatScheduleForAdmin(row.horario || "")
 	        : type === "destacadas"
 	          ? row.nombre || ""
 	          : type === "youtube"

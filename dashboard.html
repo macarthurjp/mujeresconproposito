@@ -8,7 +8,7 @@
 
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js';"></script>
 
-  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260728-dashboard-redesign" />
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260830-table-columns-1" />
 </head>
 <body class="private-locked" data-private-page="dashboard">
   <section class="private-access-screen" id="dashboardAccessScreen">
@@ -39,7 +39,7 @@
   <div id="pdfArea" style="display:none;">
     <aside class="sidebar no-export" id="dashboardSidebar">
       <div class="sidebar-brand">
-        <div class="brand-badge">✦</div>
+        <img class="dashboard-brand-logo" src="assets/images/logo.webp" alt="Mujeres con Propósito" />
         <strong>Mujeres<br />con Propósito</strong>
       </div>
       <nav class="sidebar-nav" aria-label="Navegación del dashboard">
@@ -47,6 +47,7 @@
         <button id="sidebarRefreshBtn" class="nav-item" type="button"><i data-lucide="users-round"></i><span>Actualizar registros</span></button>
         <button id="sidebarLogoutBtn" class="nav-item" type="button"><i data-lucide="log-out"></i><span>Cerrar sesión</span></button>
       </nav>
+      <button id="sidebarCsvBtn" class="nav-item" type="button"><i data-lucide="sheet"></i><span>Exportar CSV</span></button>
       <button id="sidebarExportBtn" class="nav-item sidebar-export" type="button"><i data-lucide="file-text"></i><span>Exportar PDF</span></button>
       <div class="sidebar-flourish" aria-hidden="true">⌇</div>
       <p class="sidebar-quote">Mujeres que inspiran,<br />comunidades que transforman.</p>
@@ -55,6 +56,7 @@
     <div class="app-main">
       <header class="app-bar no-export">
         <button id="sidebarToggleBtn" class="icon-btn menu-btn" type="button" aria-label="Abrir menú" aria-expanded="false"><i data-lucide="menu"></i></button>
+        <a class="mobile-dashboard-brand" href="index.html" aria-label="Ir a Mujeres con Propósito"><img src="assets/images/logo.webp" alt="" /></a>
         <div class="account">
           <span class="account-avatar"><i data-lucide="user-round"></i></span>
           <strong>Mujeres con Propósito</strong>
@@ -72,6 +74,7 @@
             <button id="homePageBtn" class="btn btn-soft" type="button">Página principal</button>
             <button id="dashboardRefreshBtn" class="btn btn-soft" type="button">Actualizar registros</button>
             <button id="dashboardLogoutBtn" class="btn btn-soft" type="button">Cerrar sesión</button>
+            <button id="exportCsvBtn" class="btn btn-soft" type="button"><i data-lucide="sheet"></i>Exportar CSV</button>
             <button id="exportPdfBtn" class="btn btn-primary" type="button"><i data-lucide="download"></i>Exportar PDF</button>
           </div>
         </header>
@@ -79,7 +82,10 @@
         <section class="panel filters-panel no-export">
           <div class="panel-head">
             <h2><i data-lucide="list-filter"></i>Filtros</h2>
-            <button id="clearFiltersBtn" class="btn btn-clear" type="button"><i data-lucide="rotate-ccw"></i>Limpiar filtros</button>
+            <div class="filter-actions">
+              <button id="mobileFiltersBtn" class="btn btn-clear mobile-filters-btn" type="button" aria-expanded="false"><i data-lucide="sliders-horizontal"></i>Más filtros</button>
+              <button id="clearFiltersBtn" class="btn btn-clear" type="button"><i data-lucide="rotate-ccw"></i>Limpiar</button>
+            </div>
           </div>
           <div class="filters-grid">
             <div class="field search-field">
@@ -90,6 +96,7 @@
             <div class="field"><label for="comunidadFilter">Comunidad</label><select id="comunidadFilter"><option value="">Todas</option></select></div>
             <div class="field"><label for="cristianaFilter">Cristiana</label><select id="cristianaFilter"><option value="">Todas</option><option value="Sí">Sí</option><option value="Todavía">Todavía</option><option value="No">No</option></select></div>
           </div>
+          <div class="active-filter-chips" id="activeFilterChips" aria-live="polite"></div>
         </section>
 
         <section class="stats-row export-summary-row">
@@ -97,27 +104,51 @@
           <div class="stat-card"><span class="stat-icon blush"><i data-lucide="list"></i></span><div><span class="stat-label">Mostrando</span><strong id="filteredCount">0</strong></div></div>
           <div class="stat-card"><span class="stat-icon cream"><i data-lucide="globe-2"></i></span><div><span class="stat-label">Países representados</span><strong id="countriesCount">0</strong></div></div>
           <div class="stat-card"><span class="stat-icon gold"><i data-lucide="heart"></i></span><div><span class="stat-label">Comunidades activas</span><strong id="communitiesCount">0</strong></div></div>
+          <div class="stat-card"><span class="stat-icon blush"><i data-lucide="calendar-plus"></i></span><div><span class="stat-label">Registros este mes</span><strong id="monthlyCount">0</strong></div></div>
+          <div class="stat-card"><span class="stat-icon cream"><i data-lucide="cake-slice"></i></span><div><span class="stat-label">Cumpleaños próximos</span><strong id="upcomingBirthdaysCount">0</strong></div></div>
+        </section>
+
+        <section class="dashboard-insights">
+          <article class="panel insight-card">
+            <div class="insight-head"><h2><i data-lucide="chart-no-axes-column"></i>Por comunidad</h2></div>
+            <div id="communityBreakdown" class="community-breakdown"><p class="empty-cell">Cargando...</p></div>
+          </article>
+          <article class="panel insight-card">
+            <div class="insight-head"><h2><i data-lucide="cake-slice"></i>Próximos cumpleaños</h2></div>
+            <div id="upcomingBirthdaysList" class="birthday-list"><p class="empty-cell">Cargando...</p></div>
+          </article>
         </section>
 
         <section class="panel table-panel">
           <div class="panel-head table-title">
             <h2><i data-lucide="users-round"></i>Lista de usuarias</h2>
-            <p id="lastUpdatedText">Cargando datos...</p>
+            <div class="table-title-actions"><label for="sortUsersSelect">Ordenar</label><select id="sortUsersSelect"><option value="newest">Más recientes</option><option value="oldest">Más antiguos</option><option value="name-asc">Nombre A–Z</option><option value="name-desc">Nombre Z–A</option><option value="country">País</option><option value="community">Comunidad</option></select><p id="lastUpdatedText">Cargando datos...</p></div>
           </div>
           <div class="table-labels" aria-hidden="true"><span>Usuaria</span><span>Teléfono</span><span>País residencia</span><span>Comunidad</span><span>Cristiana</span><span></span></div>
           <div class="users-list" id="usersTableBody"><p class="empty-cell">Cargando registros...</p></div>
+          <div class="dashboard-pagination no-export" id="dashboardPagination" hidden>
+            <p id="paginationSummary"></p>
+            <div class="pagination-actions">
+              <label for="pageSizeSelect">Por página</label>
+              <select id="pageSizeSelect"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+              <button type="button" id="paginationPrevBtn" aria-label="Página anterior">‹</button>
+              <span id="paginationPageText"></span>
+              <button type="button" id="paginationNextBtn" aria-label="Página siguiente">›</button>
+            </div>
+          </div>
           <div class="table-footer"><p>Total de registros: <strong class="summaryTotalCount"></strong></p></div>
           <div class="table-subfooter"><p>Mostrando <strong id="filteredCountFooter"></strong> de <strong class="summaryTotalCount"></strong> registros</p></div>
         </section>
       </main>
     </div>
     <button class="sidebar-backdrop no-export" id="sidebarBackdrop" type="button" aria-label="Cerrar menú"></button>
+    <div class="dashboard-toast no-export" id="dashboardToast" role="status" aria-live="polite"></div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>
-  <script src="assets/js/dashboard.js?v=20260729-lazy-scripts-1"></script>
+  <script src="assets/js/dashboard.js?v=20260830-country-code-1"></script>
 </body>
 
 </html>

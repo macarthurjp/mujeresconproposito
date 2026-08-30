@@ -222,15 +222,15 @@ test("image uploads are converted and resized", async ({ page }) => {
 });
 
 test("dashboard layout is responsive without a live session", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 568 });
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/dashboard.html");
   await page.evaluate(() => {
     document.getElementById("dashboardAccessScreen").style.display = "none";
     document.getElementById("pdfArea").style.display = "block";
     renderTable([{
-      nombreCompleto: "Ana Martinez",
-      email: "ana@example.com",
-      telefono: "+352 621 000",
+      nombreCompleto: "Xiomery Mercedes de Jean Pierre",
+      email: "xiomerymjeanpierre@icloud.com",
+      telefono: "621 000",
       paisResidencia: "Luxemburgo",
       comunidad: "Europa",
       cristiana: "Sí",
@@ -239,8 +239,71 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
   });
 
   await expect(page.locator(".user-row")).toHaveCount(1);
-  const overflow = await page.evaluate(() =>
-    document.documentElement.scrollWidth > window.innerWidth
-  );
-  expect(overflow).toBe(false);
+  await expect(page.locator(".mobile-dashboard-brand img")).toBeVisible();
+  await expect(page.locator(".user-row-name")).toContainText("Xiomery Mercedes");
+  await expect(page.locator(".user-row-sub")).toContainText("xiomerymjeanpierre@icloud.com");
+  await expect(page.locator(".user-row-fields")).toBeHidden();
+  await expect(page.locator(".user-row-extra")).toBeHidden();
+
+  await page.locator(".user-row-main").click();
+  await expect(page.locator(".user-row")).toHaveClass(/expanded/);
+  await expect(page.locator(".user-row-fields")).toBeVisible();
+  await expect(page.locator(".user-row-extra")).toBeVisible();
+  await expect(page.locator(".user-row-fields").getByText("+352 621000")).toBeVisible();
+  await expect(page.locator('.user-quick-actions a[href^="mailto:"]')).toHaveCount(1);
+  await expect(page.locator('.user-quick-actions a[href="tel:+352621000"]')).toHaveCount(1);
+  await expect(page.locator('.user-quick-actions a[href="https://wa.me/352621000"]')).toHaveCount(1);
+
+  const layout = await page.evaluate(() => {
+    const row = document.querySelector(".user-row").getBoundingClientRect();
+    const panel = document.querySelector(".table-panel").getBoundingClientRect();
+    const nameStyle = getComputedStyle(document.querySelector(".user-row-name"));
+    return {
+      pageOverflows: document.documentElement.scrollWidth > window.innerWidth,
+      rowInsidePanel: row.left >= panel.left && row.right <= panel.right + 1,
+      nameWhiteSpace: nameStyle.whiteSpace,
+      toggleLabel: document.querySelector(".user-row-toggle").getAttribute("aria-label"),
+      fieldColumns: getComputedStyle(document.querySelector(".user-row-fields")).gridTemplateColumns.split(" ").length
+    };
+  });
+  expect(layout).toEqual({
+    pageOverflows: false,
+    rowInsidePanel: true,
+    nameWhiteSpace: "normal",
+    toggleLabel: "Ocultar detalles",
+    fieldColumns: 2
+  });
+});
+
+test("dashboard mobile filters and pagination stay compact", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/dashboard.html");
+  await page.evaluate(() => {
+    document.getElementById("dashboardAccessScreen").style.display = "none";
+    document.getElementById("pdfArea").style.display = "block";
+    allUsers = Array.from({ length: 12 }, (_, index) => normalizeUser({
+      nombre: `Mujer ${index + 1}`,
+      email: `mujer${index + 1}@example.com`,
+      telefono: `+352621000${index}`,
+      pais_residencia: "Luxemburgo",
+      comunidad: "Europa",
+      cristiana: "Sí"
+    }, index));
+    filteredUsers = [...allUsers];
+    currentPage = 1;
+    renderCurrentPage();
+  });
+
+  await expect(page.locator(".user-row")).toHaveCount(10);
+  await expect(page.locator("#paginationSummary")).toHaveText("Mostrando 1–10 de 12");
+  await page.locator("#paginationNextBtn").click();
+  await expect(page.locator(".user-row")).toHaveCount(2);
+  await expect(page.locator("#paginationSummary")).toHaveText("Mostrando 11–12 de 12");
+  await page.locator("#pageSizeSelect").selectOption("25");
+  await expect(page.locator(".user-row")).toHaveCount(12);
+  await expect(page.locator("#dashboardPagination")).toBeHidden();
+
+  await expect(page.locator("#paisFilter")).toBeHidden();
+  await page.locator("#mobileFiltersBtn").click();
+  await expect(page.locator("#paisFilter")).toBeVisible();
 });
