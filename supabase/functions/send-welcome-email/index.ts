@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
 
     const safeName = escapeHtml(nombre);
     const safeCommunity = escapeHtml(comunidad);
-    const siteUrl = "https://macarthurjp.github.io/mujeresconproposito/";
+    const siteUrl = "https://mcp930.org/";
 
     const providerResponse = await sendEmail({
       to: email,

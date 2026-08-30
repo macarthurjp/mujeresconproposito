@@ -1,7 +1,7 @@
 import { corsHeaders, jsonResponse } from "../_shared/http.ts";
 import { getClientIp, verifyTurnstile } from "../_shared/turnstile.ts";
 
-const ALLOWED_HOSTNAMES = new Set(["macarthurjp.github.io"]);
+const ALLOWED_HOSTNAMES = new Set(["macarthurjp.github.io", "mcp930.org", "www.mcp930.org"]);
 const EXPECTED_ACTION = "join";
 
 async function invokeSiblingFunction(name: string, body: unknown) {

@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
 
     const fullName = [nombre, apellido].filter(Boolean).join(" ") || "Nuevo registro";
     const safeEmail = escapeHtml(email);
-    const dashboardUrl = "https://macarthurjp.github.io/mujeresconproposito/dashboard.html";
+    const dashboardUrl = "https://mcp930.org/dashboard.html";
 
     const providerResponse = await sendEmail({
       to: contactEmail,

@@ -23,13 +23,13 @@ Deno.serve(async (req) => {
 
     const safeNombre = escapeHtml(nombre);
     const safeEmail = escapeHtml(email);
-    const safeMensaje = escapeHtml(mensaje);
+    const safeMensaje = escapeHtml(mensaje).replace(/\n/g, "<br>");
 
     const providerResponse = await sendEmail({
       to: contactEmail,
-      subject: `Nuevo mensaje de ${nombre} - Mujeres con Proposito`,
+      subject: `Nuevo mensaje de ${nombre} - Mujeres con Propósito`,
       text: [
-        "Nuevo mensaje desde el formulario",
+        "Nuevo mensaje desde el formulario de contacto",
         "",
         `Nombre: ${nombre}`,
         `Email: ${email}`,
@@ -38,20 +38,67 @@ Deno.serve(async (req) => {
         mensaje,
       ].join("\n"),
       html: `
-        <div style="margin:0;padding:24px;background:#fff7f6;font-family:Arial,sans-serif;color:#333;">
-          <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #f3d5d1;border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.08);">
-            <div style="padding:24px 28px;background:linear-gradient(135deg,#e7a8a0,#f3d5d1);color:#ffffff;">
-              <div style="font-size:28px;font-weight:800;line-height:1.2;">Mujeres con Proposito</div>
-              <div style="font-size:15px;opacity:0.95;">Nuevo mensaje recibido</div>
-            </div>
-            <div style="padding:28px;">
-              <p><strong>Nombre:</strong> ${safeNombre}</p>
-              <p><strong>Email:</strong> ${safeEmail}</p>
-              <p><strong>Mensaje:</strong></p>
-              <div style="padding:14px;background:#fffafa;border-radius:12px;border:1px solid #f3d5d1;white-space:pre-wrap;">${safeMensaje}</div>
-            </div>
-          </div>
-        </div>
+        <!doctype html>
+        <html lang="es">
+          <body style="margin:0;padding:0;background-color:#f8f4f3;color:#354052;font-family:Arial,Helvetica,sans-serif;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8f4f3;">
+              <tr>
+                <td align="center" style="padding:38px 16px;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:680px;background:#ffffff;border:1px solid #ecd8d4;border-radius:28px;overflow:hidden;box-shadow:0 18px 50px rgba(105,65,60,0.08);">
+                    <tr>
+                      <td align="center" style="padding:44px 34px 38px;background:linear-gradient(135deg,#fffaf8 0%,#fff4f2 100%);border-bottom:1px solid #f0ddda;">
+                        <div style="margin:0 0 16px;color:#ad7671;font-size:14px;font-weight:800;letter-spacing:4px;text-transform:uppercase;">Mujeres con Propósito</div>
+                        <h1 style="margin:0;color:#b55d5e;font-family:Georgia,'Times New Roman',serif;font-size:38px;line-height:1.15;font-weight:700;">Nuevo mensaje de contacto</h1>
+                        <p style="margin:18px 0 0;color:#687180;font-size:17px;line-height:1.55;">
+                          <strong style="color:#354052;">${safeNombre}</strong> escribió a través del formulario del sitio.
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:40px 38px 46px;">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;margin:0 0 28px;border:1px solid #efdcda;border-radius:20px;overflow:hidden;">
+                          <tr style="background:#fff8f6;">
+                            <td style="width:34%;padding:14px 16px;color:#775f5c;font-weight:800;border-bottom:1px solid #f1e1df;">Nombre</td>
+                            <td style="padding:14px 16px;color:#354052;border-bottom:1px solid #f1e1df;">${safeNombre}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding:14px 16px;color:#775f5c;font-weight:800;">Email</td>
+                            <td style="padding:14px 16px;"><a href="mailto:${safeEmail}" style="color:#a94f52;text-decoration:underline;word-break:break-all;">${safeEmail}</a></td>
+                          </tr>
+                        </table>
+
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 34px;background:#fff8f6;border:1px solid #efd5d1;border-left:6px solid #e7a39a;border-radius:20px;">
+                          <tr>
+                            <td style="padding:26px 24px;">
+                              <p style="margin:0 0 10px;color:#8e403b;font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;">Mensaje</p>
+                              <p style="margin:0;color:#354052;font-size:17px;line-height:1.7;">${safeMensaje}</p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
+                          <tr>
+                            <td align="center" bgcolor="#e7a39a" style="border-radius:999px;">
+                              <a href="mailto:${safeEmail}" style="display:inline-block;padding:17px 34px;color:#ffffff;font-size:17px;font-weight:800;text-decoration:none;border-radius:999px;">
+                                Responder por correo
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="center" style="padding:24px 30px;background:#8f4547;color:#ffffff;">
+                        <p style="margin:0 0 6px;font-size:15px;font-weight:800;">Mujeres con Propósito</p>
+                        <p style="margin:0;color:#f5dddd;font-size:13px;line-height:1.5;">Notificación privada del formulario de contacto</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
       `,
     });
 
