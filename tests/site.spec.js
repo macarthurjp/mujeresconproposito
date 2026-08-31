@@ -20,10 +20,12 @@ async function mockSupabase(page) {
           };
           return {
             from() { return Object.create(query); },
+            rpc() { return Promise.resolve({ data: "read_only", error: null }); },
             functions: { invoke() { return Promise.resolve({ data: { ok: true, cumpleanerasHoy: [] }, error: null }); } },
             storage: { from() { return { upload() { return Promise.resolve({ error: null }); }, getPublicUrl(path) { return { data: { publicUrl: path } }; } }; } },
             auth: {
               getSession() { return Promise.resolve({ data: { session: null }, error: null }); },
+              getUser() { return Promise.resolve({ data: { user: { email: "persona@example.com", user_metadata: { full_name: "Ana Pérez" } } }, error: null }); },
               signInWithPassword() { return Promise.resolve({ error: null }); },
               signOut() { return Promise.resolve({ error: null }); },
               resetPasswordForEmail() { return Promise.resolve({ error: null }); }
@@ -112,6 +114,27 @@ test("Google Analytics loads only after consent", async ({ page }) => {
 test("an empty YouTube catalog stays empty", async ({ page }) => {
   await page.goto("/index.html");
   await expect(page.locator("#ytGrid .yt-card")).toHaveCount(0);
+});
+
+test("private login and password reset keep only the intended controls", async ({ page }) => {
+  await page.goto("/admin.html");
+  await expect(page.locator(".admin-site-header")).toBeHidden();
+  await expect(page.locator(".admin-hero-premium")).toBeHidden();
+  await expect(page.locator("#adminLoginCard")).toBeVisible();
+  await expect(page.locator("#adminLoginCard .private-access-brand")).toBeVisible();
+
+  await page.goto("/reset-password.html");
+  await expect(page.getByRole("button", { name: "Guardar" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Admin" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Página principal" })).toHaveCount(0);
+  await expect(page.locator("button")).toHaveCount(1);
+});
+
+test("dashboard shows the signed-in user and friendly role name", async ({ page }) => {
+  await page.goto("/dashboard.html");
+  await page.evaluate(() => loadDashboardRole());
+  await expect(page.locator("#dashboardUserName")).toHaveText("Ana Pérez");
+  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Vista simple");
 });
 
 test("contact verification appears immediately before submit", async ({ page }) => {
@@ -257,11 +280,11 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
   await page.evaluate(() => applyDashboardRole("read_only"));
   await expect(page.locator("#exportCsvBtn")).toBeHidden();
   await expect(page.locator("#exportPdfBtn")).toBeHidden();
-  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Solo lectura");
+  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Vista simple");
   await page.evaluate(() => applyDashboardRole("read_export"));
   await expect(page.locator("#exportCsvBtn")).toBeVisible();
   await expect(page.locator("#exportPdfBtn")).toBeVisible();
-  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Lectura + exportar");
+  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Manager");
 
   const layout = await page.evaluate(() => {
     const row = document.querySelector(".user-row").getBoundingClientRect();
@@ -351,6 +374,17 @@ test("CRUD can edit or delete a member while read-only roles cannot", async ({ p
   await expect(page.locator("#dashboardRecordModal")).toBeVisible();
   await expect(page.locator("#dashboardRecordNombre")).toHaveValue("Díomeris");
   await expect(page.locator("#dashboardRecordEmail")).toHaveValue("diomeris@example.com");
+  await expect(page.locator("#dashboardRecordPaisResidencia")).toHaveValue("República Dominicana");
+  const countryCatalogCounts = await page.evaluate(() => ({
+    shared: window.McpFormOptions.countries.length,
+    birth: document.querySelector("#dashboardRecordPaisNacimiento").options.length - 1,
+    residence: document.querySelector("#dashboardRecordPaisResidencia").options.length - 1
+  }));
+  expect(countryCatalogCounts.birth).toBe(countryCatalogCounts.shared);
+  expect(countryCatalogCounts.residence).toBe(countryCatalogCounts.shared);
+  expect(countryCatalogCounts.shared).toBeGreaterThan(190);
+  await expect(page.locator("#dashboardRecordComunidad option")).toHaveText(["Seleccione una comunidad", "Europa", "Estados Unidos", "República Dominicana"]);
+  await expect(page.locator("#dashboardRecordEstatusMatrimonial option")).toHaveText(["Seleccione una opción", "Casada", "Soltera", "Divorciada", "Viuda"]);
   await page.getByRole("button", { name: "Cancelar" }).click();
 
   await page.evaluate(() => applyDashboardRole("read_only"));

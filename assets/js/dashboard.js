@@ -58,6 +58,7 @@ const exportPdfBtn = document.getElementById("exportPdfBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const lastUpdatedText = document.getElementById("lastUpdatedText");
 const dashboardRoleBadge = document.getElementById("dashboardRoleBadge");
+const dashboardUserName = document.getElementById("dashboardUserName");
 const dashboardAccessScreen = document.getElementById("dashboardAccessScreen");
 const dashboardAccessEmail = document.getElementById("dashboardAccessEmail");
 const dashboardAccessCode = document.getElementById("dashboardAccessCode");
@@ -82,10 +83,64 @@ let dashboardLoaded = false;
 let toastTimer = null;
 let dashboardRole = "read_only";
 
+function populateRecordSelect(id, values) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  const existing = new Set(Array.from(select.options).map((option) => option.value));
+  values.forEach((value) => {
+    if (existing.has(value)) return;
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+}
+
+const sharedFormOptions = window.McpFormOptions || {};
+populateRecordSelect("dashboardRecordPaisResidencia", sharedFormOptions.countries || []);
+populateRecordSelect("dashboardRecordPaisNacimiento", sharedFormOptions.countries || []);
+populateRecordSelect("dashboardRecordComunidad", sharedFormOptions.communities || []);
+populateRecordSelect("dashboardRecordCristiana", sharedFormOptions.christianStatuses || []);
+populateRecordSelect("dashboardRecordEstatusMatrimonial", sharedFormOptions.maritalStatuses || []);
+
+function sanitizeRecordName(value) {
+  return String(value || "")
+    .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trimStart();
+}
+
+function sanitizeRecordPhone(value) {
+  const cleaned = String(value || "").replace(/[^\d+]/g, "");
+  return cleaned.replace(/(?!^)\+/g, "");
+}
+
+["dashboardRecordNombre", "dashboardRecordApellido"].forEach((id) => {
+  document.getElementById(id)?.addEventListener("input", function () {
+    const cleanValue = sanitizeRecordName(this.value);
+    if (this.value !== cleanValue) this.value = cleanValue;
+  });
+});
+
+document.getElementById("dashboardRecordTelefono")?.addEventListener("input", function () {
+  const cleanValue = sanitizeRecordPhone(this.value);
+  if (this.value !== cleanValue) this.value = cleanValue;
+});
+
+const dashboardRecordPhoneField = document.getElementById("dashboardRecordTelefono");
+const dashboardRecordPhoneInput = dashboardRecordPhoneField && typeof window.intlTelInput === "function"
+  ? window.intlTelInput(dashboardRecordPhoneField, {
+      initialCountry: "us",
+      preferredCountries: ["us", "do", "es"],
+      separateDialCode: true,
+      dropdownContainer: document.body
+    })
+  : null;
+
 const DASHBOARD_ROLE_LABELS = {
-  crud: "CRUD",
-  read_export: "Lectura + exportar",
-  read_only: "Solo lectura"
+  crud: "Super Admin",
+  read_export: "Manager",
+  read_only: "Vista simple"
 };
 
 function canDashboardExport() {
@@ -113,12 +168,19 @@ function applyDashboardRole(role) {
 
 async function loadDashboardRole() {
   const client = getDashboardSupabaseClient();
-  const { data, error } = await client.rpc("current_user_role");
+  const [{ data, error }, identityResult] = await Promise.all([
+    client.rpc("current_user_role"),
+    client.auth.getUser()
+  ]);
   if (error) throw new Error("No se pudo verificar el rol de acceso.");
   if (data === "revoked") {
     await client.auth.signOut();
     throw new Error("El acceso de esta cuenta fue revocado.");
   }
+  const user = identityResult?.data?.user;
+  const metadata = user?.user_metadata || {};
+  const displayName = metadata.full_name || metadata.name || metadata.display_name || user?.email || "Usuario";
+  if (dashboardUserName) dashboardUserName.textContent = displayName;
   applyDashboardRole(data);
   return dashboardRole;
 }
@@ -801,7 +863,15 @@ async function exportPDF() {
 
 function setRecordField(id, value) {
   const field = document.getElementById(id);
-  if (field) field.value = value == null ? "" : String(value);
+  if (!field) return;
+  const normalizedValue = value == null ? "" : String(value);
+  if (field instanceof HTMLSelectElement && normalizedValue && !Array.from(field.options).some((option) => option.value === normalizedValue)) {
+    const legacyOption = document.createElement("option");
+    legacyOption.value = normalizedValue;
+    legacyOption.textContent = `${normalizedValue} (valor actual)`;
+    field.appendChild(legacyOption);
+  }
+  field.value = normalizedValue;
 }
 
 function getRecordField(id, { trim = true } = {}) {
@@ -827,6 +897,7 @@ function openRecordModal(userId) {
   setRecordField("dashboardRecordApellido", user.apellido);
   setRecordField("dashboardRecordEmail", user.email);
   setRecordField("dashboardRecordTelefono", user.telefono);
+  dashboardRecordPhoneInput?.setNumber(internationalPhone(user.telefono, user.paisResidencia));
   setRecordField("dashboardRecordPaisResidencia", user.paisResidencia);
   setRecordField("dashboardRecordComunidad", user.comunidad);
   setRecordField("dashboardRecordCristiana", user.cristiana || "Sí");
@@ -849,7 +920,7 @@ dashboardRecordForm?.addEventListener("submit", async function (event) {
 
   const userId = getRecordField("dashboardRecordId");
   const email = getRecordField("dashboardRecordEmail").toLowerCase();
-  const telefono = getRecordField("dashboardRecordTelefono");
+  const telefono = dashboardRecordPhoneInput?.getNumber() || sanitizeRecordPhone(getRecordField("dashboardRecordTelefono"));
   const duplicate = allUsers.find((user) => String(user.id) !== String(userId) && (
     (email && String(user.email || "").trim().toLowerCase() === email) ||
     (phoneDigits(telefono) && phoneDigits(user.telefono) === phoneDigits(telefono))
@@ -873,6 +944,35 @@ dashboardRecordForm?.addEventListener("submit", async function (event) {
     hijos: Math.max(0, Number.parseInt(getRecordField("dashboardRecordHijos") || "0", 10) || 0),
     comments: getRecordField("dashboardRecordComentarios")
   };
+
+  const namePattern = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]{2,}$/;
+  if (!namePattern.test(payload.nombre)) {
+    showDashboardToast("El nombre solo puede contener letras, espacios, apóstrofe o guion.");
+    return;
+  }
+  if (!namePattern.test(payload.apellido)) {
+    showDashboardToast("El apellido solo puede contener letras, espacios, apóstrofe o guion.");
+    return;
+  }
+  if (!/^\+?\d{7,15}$/.test(sanitizeRecordPhone(payload.telefono))) {
+    showDashboardToast("El teléfono no es válido.");
+    return;
+  }
+  if (dashboardRecordPhoneInput?.isValidNumber && !dashboardRecordPhoneInput.isValidNumber()) {
+    showDashboardToast("El teléfono no es válido para el país seleccionado.");
+    return;
+  }
+  const birthDate = new Date(`${payload.fecha_nacimiento}T00:00:00`);
+  const today = new Date();
+  const minimumAdultDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  if (Number.isNaN(birthDate.getTime()) || birthDate >= new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+    showDashboardToast("La fecha de nacimiento no puede ser hoy o futura.");
+    return;
+  }
+  if (birthDate > minimumAdultDate) {
+    showDashboardToast("La usuaria debe ser mayor de 18 años.");
+    return;
+  }
 
   dashboardRecordSaveBtn.disabled = true;
   try {

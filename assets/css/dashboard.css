@@ -326,6 +326,8 @@ body.record-modal-open { overflow: hidden; }
 .dashboard-record-form { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
 .dashboard-record-form label { display: grid; gap: 7px; color: #755b55; font-size: 12px; font-weight: 800; }
 .dashboard-record-form input, .dashboard-record-form select, .dashboard-record-form textarea { box-sizing: border-box; width: 100%; min-height: 52px; padding: 0 17px; border: 1.5px solid #e4cbc4; border-radius: 18px; color: #3f2d29; background: white; font: inherit; outline: none; }
+.dashboard-record-form .iti { width: 100%; }
+.dashboard-record-form .iti input { padding-left: var(--iti-input-padding, 92px); }
 .dashboard-record-form textarea { min-height: 92px; padding-top: 14px; resize: vertical; }
 .dashboard-record-form input:focus, .dashboard-record-form select:focus, .dashboard-record-form textarea:focus { border-color: #b96c60; box-shadow: 0 0 0 4px rgba(185,108,96,.12); }
 .dashboard-record-comments, .dashboard-record-actions { grid-column: 1 / -1; }
@@ -460,4 +462,28 @@ body.record-modal-open { overflow: hidden; }
 @media print {
   .no-export, .sidebar-backdrop { display: none !important; }
   .app-main { margin-left: 0; }
+}
+
+/* Login y recuperación: tarjeta sencilla y premium. */
+.private-access-screen { background: radial-gradient(circle at 50% 0%, #fff 0, #fff8f5 42%, #f7e9e3 100%); }
+.private-access-card { width: min(500px,100%); padding: 42px; border-radius: 32px; background: rgba(255,255,255,.94); box-shadow: 0 28px 80px rgba(74,39,32,.13); }
+.private-access-brand { display: block; width: 108px; height: auto; margin: 0 auto 18px; }
+.private-access-eyebrow { display: block; margin-bottom: 8px; color: var(--brick); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.private-access-card h3 { margin-bottom: 8px; font-size: clamp(2.2rem,7vw,3.25rem); }
+.private-access-card > p { margin-bottom: 24px; font-size: 1rem; }
+.private-field input,
+.private-access-card > input { width: 100%; min-height: 58px; margin: 0 0 12px; padding: 0 20px; border: 1px solid var(--line); border-radius: 18px; background: white; outline: none; }
+.private-field input:focus,
+.private-access-card > input:focus { border-color: var(--rose); box-shadow: 0 0 0 4px rgba(188,116,105,.12); }
+.private-access-actions { margin-top: 18px; }
+.private-access-actions .btn { width: 100%; min-height: 58px; border-radius: 18px; }
+.private-passkey-btn, .private-cancel-btn { min-height: 48px; border-radius: 16px; font-size: .9rem; }
+.account-copy { min-width: 0; max-width: min(42vw,320px); }
+.account-copy strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 560px) {
+  .private-access-screen { padding: 14px; }
+  .private-access-card { padding: 30px 20px; border-radius: 26px; }
+  .private-passkey-actions { grid-template-columns: 1fr; }
+  .account strong { display: block; max-width: 44vw; font-size: 12px; }
 }

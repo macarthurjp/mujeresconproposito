@@ -7,15 +7,17 @@
   <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png" />
 
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js';"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/css/intlTelInput.css" />
 
-  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260831-responsive-fix-1" />
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260831-premium-login-1" />
 </head>
 <body class="private-locked" data-private-page="dashboard">
   <section class="private-access-screen" id="dashboardAccessScreen">
     <div class="private-access-card">
-      <div class="private-access-icon">🔐</div>
-      <h3>Acceso privado</h3>
-      <p>Inicia sesión con tu cuenta autorizada de Supabase.</p>
+      <img class="private-access-brand" src="assets/images/logo.webp" alt="Mujeres con Propósito" />
+      <span class="private-access-eyebrow">Área de miembros</span>
+      <h3>Bienvenida</h3>
+      <p>Accede con tu cuenta autorizada.</p>
       <div class="private-field private-field-email">
         <input type="email" id="dashboardAccessEmail" placeholder="Email" autocomplete="email" />
       </div>
@@ -58,7 +60,7 @@
         <a class="mobile-dashboard-brand" href="index.html" aria-label="Ir a Mujeres con Propósito"><img src="assets/images/logo.webp" alt="" /></a>
         <div class="account">
           <span class="account-avatar"><i data-lucide="user-round"></i></span>
-          <div class="account-copy"><strong>Mujeres con Propósito</strong><small id="dashboardRoleBadge">Cargando rol…</small></div>
+          <div class="account-copy"><strong id="dashboardUserName">Cargando usuario…</strong><small id="dashboardRoleBadge">Cargando rol…</small></div>
           <i data-lucide="chevron-down"></i>
         </div>
       </header>
@@ -151,16 +153,16 @@
         </div>
         <form id="dashboardRecordForm" class="dashboard-record-form">
           <input type="hidden" id="dashboardRecordId" />
-          <label>Nombre<input type="text" id="dashboardRecordNombre" required /></label>
-          <label>Apellido<input type="text" id="dashboardRecordApellido" /></label>
+          <label>Nombre<input type="text" id="dashboardRecordNombre" autocomplete="given-name" inputmode="text" required /></label>
+          <label>Apellido<input type="text" id="dashboardRecordApellido" autocomplete="family-name" inputmode="text" required /></label>
           <label>Correo electrónico<input type="email" id="dashboardRecordEmail" required /></label>
-          <label>Teléfono<input type="tel" id="dashboardRecordTelefono" /></label>
-          <label>País de residencia<input type="text" id="dashboardRecordPaisResidencia" /></label>
-          <label>Comunidad<input type="text" id="dashboardRecordComunidad" /></label>
-          <label>Cristiana<select id="dashboardRecordCristiana"><option value="Sí">Sí</option><option value="Todavía">Todavía</option><option value="No">No</option></select></label>
-          <label>Fecha de nacimiento<input type="date" id="dashboardRecordFechaNacimiento" /></label>
-          <label>País de nacimiento<input type="text" id="dashboardRecordPaisNacimiento" /></label>
-          <label>Estatus matrimonial<input type="text" id="dashboardRecordEstatusMatrimonial" /></label>
+          <label>Teléfono<input type="tel" id="dashboardRecordTelefono" autocomplete="tel" inputmode="tel" maxlength="20" required /></label>
+          <label>País de residencia<select id="dashboardRecordPaisResidencia" required><option value="">Seleccione un país</option></select></label>
+          <label>Comunidad<select id="dashboardRecordComunidad" required><option value="">Seleccione una comunidad</option></select></label>
+          <label>¿Eres cristiana?<select id="dashboardRecordCristiana" required><option value="">Seleccione una opción</option></select></label>
+          <label>Fecha de nacimiento<input type="date" id="dashboardRecordFechaNacimiento" required /></label>
+          <label>País de nacimiento<select id="dashboardRecordPaisNacimiento" required><option value="">Seleccione un país</option></select></label>
+          <label>Estatus matrimonial<select id="dashboardRecordEstatusMatrimonial" required><option value="">Seleccione una opción</option></select></label>
           <label>Hijos<input type="number" id="dashboardRecordHijos" min="0" step="1" /></label>
           <label class="dashboard-record-comments">Comentarios<textarea id="dashboardRecordComentarios" rows="3"></textarea></label>
           <div class="dashboard-record-actions">
@@ -173,9 +175,11 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/js/intlTelInputWithUtils.min.js"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>
-  <script src="assets/js/dashboard.js?v=20260831-admin-link-1"></script>
+  <script src="assets/js/form-options.js?v=20260831-1"></script>
+  <script src="assets/js/dashboard.js?v=20260831-shared-form-fields-1"></script>
 </body>
 
 </html>

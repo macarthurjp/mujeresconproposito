@@ -182,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function () {
   /* -----------------------------------------
      PAÍSES
   ----------------------------------------- */
-  const countries = [
+  const countries = window.McpFormOptions?.countries || [
     "Afganistán","Albania","Alemania","Andorra","Angola","Antigua y Barbuda",
     "Arabia Saudita","Argelia","Argentina","Armenia","Australia","Austria",
     "Azerbaiyán","Bahamas","Bangladés","Barbados","Baréin","Bélgica","Belice",
@@ -3889,9 +3889,9 @@ function renderContactCalendar(apiData = {}) {
 
 	  function adminRoleOptions(selectedRole) {
 	    return [
-	      ["crud", "CRUD — Super Admin"],
-	      ["read_export", "Solo lectura + exportar"],
-	      ["read_only", "Solo lectura"]
+	      ["crud", "Super Admin"],
+	      ["read_export", "Manager"],
+	      ["read_only", "Vista simple"]
 	    ].map(([value, label]) => `<option value="${value}" ${value === selectedRole ? "selected" : ""}>${label}</option>`).join("");
 	  }
 
@@ -4050,6 +4050,8 @@ function renderContactCalendar(apiData = {}) {
 
 	    if (adminLoginCard) adminLoginCard.style.display = "none";
 	    if (adminDashboard) adminDashboard.style.display = "block";
+	    document.body.classList.remove("admin-locked");
+	    document.body.classList.add("admin-unlocked");
 	    Promise.all([loadAdminContent(), loadAdminRoles()]).catch((error) => {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
@@ -4182,6 +4184,8 @@ function renderContactCalendar(apiData = {}) {
 	    await client.auth.signOut();
 	    if (adminDashboard) adminDashboard.style.display = "none";
 	    if (adminLoginCard) adminLoginCard.style.display = "";
+	    document.body.classList.remove("admin-unlocked");
+	    document.body.classList.add("admin-locked");
 	    if (adminAccessCode) adminAccessCode.value = "";
 	    adminAccessEmail?.focus();
 	  });

@@ -6,8 +6,6 @@ const resetClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY
 const newPasswordInput = document.getElementById("newPassword");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const savePasswordBtn = document.getElementById("savePasswordBtn");
-const backToAdminBtn = document.getElementById("backToAdminBtn");
-const backHomeBtn = document.getElementById("backHomeBtn");
 const resetPasswordMsg = document.getElementById("resetPasswordMsg");
 
 function showResetMessage(text, ok = false) {
@@ -72,7 +70,7 @@ savePasswordBtn?.addEventListener("click", async function () {
     const { error } = await resetClient.auth.updateUser({ password });
     if (error) throw error;
 
-    showResetMessage("Contraseña actualizada correctamente. Ya puedes entrar al admin.", true);
+    showResetMessage("Contraseña actualizada correctamente. Ya puedes cerrar esta página e iniciar sesión.", true);
     newPasswordInput.value = "";
     confirmPasswordInput.value = "";
   } catch (error) {
@@ -96,14 +94,6 @@ confirmPasswordInput?.addEventListener("keydown", function (event) {
     event.preventDefault();
     savePasswordBtn?.click();
   }
-});
-
-backToAdminBtn?.addEventListener("click", function () {
-  window.location.href = "admin.html";
-});
-
-backHomeBtn?.addEventListener("click", function () {
-  window.location.href = "index.html";
 });
 
 const linkError = getLinkErrorDescription();
