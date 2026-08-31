@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260831-password-reset-1" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260831-nav-btn-style-1" />
 </head>
 <body data-admin-page="true">
   <header>
@@ -49,9 +49,8 @@
         <div class="private-field private-field-password">
           <input type="password" id="adminAccessCode" placeholder="Contraseña" />
         </div>
-        <div class="private-access-actions">
-          <button type="button" class="btn" id="adminLoginBtn">Admin</button>
-          <button type="button" class="btn" id="adminLoginDashboardBtn">Dashboard</button>
+        <div class="private-access-actions private-access-actions-single">
+          <button type="button" class="btn" id="adminLoginBtn">Entrar</button>
         </div>
         <div class="private-passkey-actions">
           <button type="button" class="private-passkey-btn" id="adminUsePasskeyBtn">Usar Face ID / huella</button>
@@ -336,6 +335,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260831-password-reset-1"></script>
+  <script src="assets/js/main.js?v=20260831-single-login-btn-1"></script>
 </body>
 </html>

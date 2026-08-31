@@ -51,6 +51,7 @@ const paginationPrevBtn = document.getElementById("paginationPrevBtn");
 const paginationNextBtn = document.getElementById("paginationNextBtn");
 const pageSizeSelect = document.getElementById("pageSizeSelect");
 const homePageBtn = document.getElementById("homePageBtn");
+const adminPanelBtn = document.getElementById("adminPanelBtn");
 const dashboardRefreshBtn = document.getElementById("dashboardRefreshBtn");
 const dashboardLogoutBtn = document.getElementById("dashboardLogoutBtn");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
@@ -61,7 +62,6 @@ const dashboardAccessScreen = document.getElementById("dashboardAccessScreen");
 const dashboardAccessEmail = document.getElementById("dashboardAccessEmail");
 const dashboardAccessCode = document.getElementById("dashboardAccessCode");
 const dashboardLoginBtn = document.getElementById("dashboardLoginBtn");
-const dashboardAdminBtn = document.getElementById("dashboardAdminBtn");
 const dashboardCancelBtn = document.getElementById("dashboardCancelBtn");
 const dashboardForgotPasswordBtn = document.getElementById("dashboardForgotPasswordBtn");
 const dashboardLoginMsg = document.getElementById("dashboardLoginMsg");
@@ -71,6 +71,7 @@ const pdfArea = document.getElementById("pdfArea");
 const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
 const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 const sidebarHomeBtn = document.getElementById("sidebarHomeBtn");
+const sidebarAdminBtn = document.getElementById("sidebarAdminBtn");
 const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
 const sidebarExportBtn = document.getElementById("sidebarExportBtn");
 const sidebarCsvBtn = document.getElementById("sidebarCsvBtn");
@@ -100,6 +101,10 @@ function applyDashboardRole(role) {
   const canExport = canDashboardExport();
   [exportCsvBtn, exportPdfBtn, sidebarCsvBtn, sidebarExportBtn].forEach((element) => {
     if (element) element.hidden = !canExport;
+  });
+  const canManage = canDashboardManageRecords();
+  [adminPanelBtn, sidebarAdminBtn].forEach((element) => {
+    if (element) element.hidden = !canManage;
   });
   if (dashboardRoleBadge) dashboardRoleBadge.textContent = DASHBOARD_ROLE_LABELS[dashboardRole];
   document.body.dataset.userRole = dashboardRole;
@@ -974,10 +979,14 @@ pageSizeSelect?.addEventListener("change", function () { pageSize = Number(this.
 homePageBtn?.addEventListener("click", function () {
   window.location.href = "index.html";
 });
+adminPanelBtn?.addEventListener("click", function () {
+  window.location.href = "admin.html";
+});
 exportPdfBtn?.addEventListener("click", exportPDF);
 exportCsvBtn?.addEventListener("click", exportCSV);
 dashboardRefreshBtn?.addEventListener("click", loadDashboardData);
 sidebarHomeBtn?.addEventListener("click", () => homePageBtn?.click());
+sidebarAdminBtn?.addEventListener("click", () => adminPanelBtn?.click());
 sidebarLogoutBtn?.addEventListener("click", () => dashboardLogoutBtn?.click());
 sidebarExportBtn?.addEventListener("click", () => {
   exportPdfBtn?.click();
@@ -1016,21 +1025,6 @@ document.addEventListener("visibilitychange", async function () {
 dashboardLoginBtn?.addEventListener("click", async function () {
   if (!await validateDashboardPassword()) return;
   await unlockDashboard();
-});
-
-dashboardAdminBtn?.addEventListener("click", async function () {
-  if (!await validateDashboardPassword()) return;
-  try {
-    const role = await loadDashboardRole();
-    if (role !== "crud") {
-      showDashboardLoginMsg("Tu rol no permite entrar al panel administrativo.");
-      return;
-    }
-  } catch (error) {
-    showDashboardLoginMsg(error.message);
-    return;
-  }
-  window.location.href = "admin.html";
 });
 
 dashboardCancelBtn?.addEventListener("click", function () {

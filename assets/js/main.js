@@ -2629,7 +2629,6 @@ function renderContactCalendar(apiData = {}) {
 	  const adminLoginMsg = document.getElementById("adminLoginMsg");
 	  const adminLoginCard = document.getElementById("adminLoginCard");
 	  const adminDashboard = document.getElementById("adminDashboard");
-	  const adminLoginDashboardBtn = document.getElementById("adminLoginDashboardBtn");
 	  const adminCancelBtn = document.getElementById("adminCancelBtn");
 	  const adminLogoutBtn = document.getElementById("adminLogoutBtn");
 	  const adminForgotPasswordBtn = document.getElementById("adminForgotPasswordBtn");
@@ -4041,9 +4040,7 @@ function renderContactCalendar(apiData = {}) {
 	    try {
 	      const role = await getCurrentAdminRole();
 	      if (role !== "crud") {
-	        if (adminDashboard) adminDashboard.style.display = "none";
-	        if (adminLoginCard) adminLoginCard.style.display = "";
-	        showAdminMsg(adminLoginMsg, "Tu cuenta es de solo lectura. Usa el Dashboard para consultar los registros.", false);
+	        window.location.href = "dashboard.html";
 	        return false;
 	      }
 	    } catch (error) {
@@ -4115,11 +4112,6 @@ function renderContactCalendar(apiData = {}) {
 	  adminLoginBtn?.addEventListener("click", async function () {
 	    if (!await validateAdminPassword()) return;
 	    await unlockAdminPanel();
-	  });
-
-	  adminLoginDashboardBtn?.addEventListener("click", async function () {
-	    if (!await validateAdminPassword()) return;
-	    window.location.href = "dashboard.html";
 	  });
 
 	  adminCancelBtn?.addEventListener("click", function () {

@@ -17,13 +17,31 @@ function showResetMessage(text, ok = false) {
   resetPasswordMsg.textContent = text;
 }
 
+function getLinkErrorDescription() {
+  const params = new URLSearchParams((window.location.hash || "").replace(/^#/, ""));
+  const description = params.get("error_description");
+  return description ? description.replace(/\+/g, " ") : "";
+}
+
 async function ensureRecoverySession() {
   const { data } = await resetClient.auth.getSession();
   if (data?.session) return true;
 
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  const refreshed = await resetClient.auth.getSession();
-  return Boolean(refreshed.data?.session);
+  return new Promise((resolve) => {
+    const timeout = setTimeout(async () => {
+      subscription.unsubscribe();
+      const refreshed = await resetClient.auth.getSession();
+      resolve(Boolean(refreshed.data?.session));
+    }, 4000);
+
+    const { data: { subscription } } = resetClient.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        clearTimeout(timeout);
+        subscription.unsubscribe();
+        resolve(true);
+      }
+    });
+  });
 }
 
 savePasswordBtn?.addEventListener("click", async function () {
@@ -88,4 +106,9 @@ backHomeBtn?.addEventListener("click", function () {
   window.location.href = "index.html";
 });
 
-newPasswordInput?.focus();
+const linkError = getLinkErrorDescription();
+if (linkError) {
+  showResetMessage(`El enlace no es válido: ${linkError}. Pide que te envíen uno nuevo y ábrelo directo (sin vista previa de un escáner de correo) apenas te llegue.`);
+} else {
+  newPasswordInput?.focus();
+}

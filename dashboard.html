@@ -8,7 +8,7 @@
 
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js';"></script>
 
-  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260831-record-crud-1" />
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260831-responsive-fix-1" />
 </head>
 <body class="private-locked" data-private-page="dashboard">
   <section class="private-access-screen" id="dashboardAccessScreen">
@@ -22,9 +22,8 @@
       <div class="private-field private-field-password">
         <input type="password" id="dashboardAccessCode" placeholder="Contraseña" />
       </div>
-      <div class="private-access-actions">
-        <button type="button" class="btn" id="dashboardAdminBtn">Admin</button>
-        <button type="button" class="btn" id="dashboardLoginBtn">Dashboard</button>
+      <div class="private-access-actions private-access-actions-single">
+        <button type="button" class="btn" id="dashboardLoginBtn">Entrar</button>
       </div>
       <div class="private-passkey-actions">
         <button type="button" class="private-passkey-btn" id="dashboardUsePasskeyBtn">Usar Face ID / huella</button>
@@ -44,6 +43,7 @@
       </div>
       <nav class="sidebar-nav" aria-label="Navegación del dashboard">
         <button id="sidebarHomeBtn" class="nav-item active" type="button"><i data-lucide="house"></i><span>Página principal</span></button>
+        <button id="sidebarAdminBtn" class="nav-item" type="button"><i data-lucide="shield"></i><span>Admin</span></button>
         <button id="sidebarLogoutBtn" class="nav-item" type="button"><i data-lucide="log-out"></i><span>Cerrar sesión</span></button>
       </nav>
       <button id="sidebarCsvBtn" class="nav-item" type="button"><i data-lucide="sheet"></i><span>Exportar CSV</span></button>
@@ -71,6 +71,7 @@
           </div>
           <div class="top-actions no-export">
             <button id="homePageBtn" class="btn btn-soft" type="button">Página principal</button>
+            <button id="adminPanelBtn" class="btn btn-soft" type="button"><i data-lucide="shield"></i>Admin</button>
             <button id="dashboardLogoutBtn" class="btn btn-soft" type="button">Cerrar sesión</button>
             <button id="exportCsvBtn" class="btn btn-soft" type="button"><i data-lucide="sheet"></i>Exportar CSV</button>
             <button id="exportPdfBtn" class="btn btn-primary" type="button"><i data-lucide="download"></i>Exportar PDF</button>
@@ -174,7 +175,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>
-  <script src="assets/js/dashboard.js?v=20260831-record-crud-1"></script>
+  <script src="assets/js/dashboard.js?v=20260831-admin-link-1"></script>
 </body>
 
 </html>

@@ -75,6 +75,7 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
 }
 .private-field input:focus { border-color: var(--rose); box-shadow: 0 0 0 3px rgba(188,116,105,.12); }
 .private-access-actions, .private-passkey-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+.private-access-actions-single { grid-template-columns: minmax(0, 320px); justify-content: center; }
 .private-passkey-actions { margin-top: 12px; }
 .private-passkey-btn, .private-cancel-btn, .private-link-btn {
   min-height: 48px;
@@ -177,7 +178,7 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 34px; }
 .page-title h1 { margin: 0; color: var(--wine); font: 700 clamp(2rem, 3vw, 2.75rem)/1.05 "Playfair Display", Georgia, serif; letter-spacing: 0; }
 .page-title p { margin: 10px 0 0; color: var(--rose); font-weight: 700; }
-.top-actions { display: flex; align-items: center; gap: 10px; }
+.top-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .btn {
   display: inline-flex;
   align-items: center;
@@ -260,7 +261,7 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
 .table-title { padding: 0 12px; }
 .table-title p { display: flex; align-items: center; gap: 8px; margin: 0; color: #554540; font-size: 12px; }
 .table-title p::before { content: "✓"; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: #56704c; background: #e8f1e3; }
-.table-title-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.table-title-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; }
 .table-refresh-btn { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border: 1.5px solid #dfc3bb; border-radius: 50%; color: var(--brick); background: #fff; cursor: pointer; transition: color .2s, background .2s, transform .2s, box-shadow .2s; }
 .table-refresh-btn svg { width: 18px; height: 18px; }
 .table-refresh-btn:hover { color: white; background: var(--brick); transform: rotate(25deg); box-shadow: 0 7px 16px rgba(143,61,49,.16); }
@@ -377,7 +378,7 @@ body.record-modal-open { overflow: hidden; }
   .page-title h1 { font-size: 2rem; }
   .top-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .top-actions .btn { width: 100%; }
-  #homePageBtn, #dashboardLogoutBtn { display: none; }
+  #homePageBtn, #adminPanelBtn, #dashboardLogoutBtn { display: none; }
   .filters-grid { grid-template-columns: 1fr; gap: 14px; }
   .mobile-filters-btn { display: inline-flex; }
   .filters-panel .filters-grid .field:not(.search-field) { display: none; }

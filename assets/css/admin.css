@@ -2,6 +2,28 @@
    Loaded after the shared public stylesheet on admin.html. */
 
 /* =========================================================
+   ADMIN HEADER NAV — match site button style
+========================================================= */
+body[data-admin-page="true"] #nav-menu a {
+    min-height: 46px !important;
+    padding: 0 22px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 999px !important;
+    background: linear-gradient(135deg, #a64b43, #7e3a35) !important;
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    box-shadow: 0 14px 32px rgba(166, 75, 67, 0.22) !important;
+    transition: transform 0.22s ease, box-shadow 0.22s ease !important;
+}
+
+body[data-admin-page="true"] #nav-menu a:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 18px 38px rgba(166, 75, 67, 0.28) !important;
+}
+
+/* =========================================================
    ADMIN PANEL SUPABASE
 ========================================================= */
 .admin-panel {
@@ -1275,6 +1297,11 @@
     border-radius: 24px !important;
     font-size: clamp(1rem, 1.8vw, 1.22rem) !important;
     box-shadow: 0 16px 34px rgba(176,95,95,0.18) !important;
+}
+
+.private-access-actions-single {
+    grid-template-columns: minmax(0, 320px) !important;
+    justify-content: center !important;
 }
 
 .private-cancel-btn {
