@@ -8,7 +8,7 @@
 
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js';"></script>
 
-  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260830-table-columns-1" />
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260831-roles-1" />
 </head>
 <body class="private-locked" data-private-page="dashboard">
   <section class="private-access-screen" id="dashboardAccessScreen">
@@ -44,7 +44,6 @@
       </div>
       <nav class="sidebar-nav" aria-label="Navegación del dashboard">
         <button id="sidebarHomeBtn" class="nav-item active" type="button"><i data-lucide="house"></i><span>Página principal</span></button>
-        <button id="sidebarRefreshBtn" class="nav-item" type="button"><i data-lucide="users-round"></i><span>Actualizar registros</span></button>
         <button id="sidebarLogoutBtn" class="nav-item" type="button"><i data-lucide="log-out"></i><span>Cerrar sesión</span></button>
       </nav>
       <button id="sidebarCsvBtn" class="nav-item" type="button"><i data-lucide="sheet"></i><span>Exportar CSV</span></button>
@@ -59,7 +58,7 @@
         <a class="mobile-dashboard-brand" href="index.html" aria-label="Ir a Mujeres con Propósito"><img src="assets/images/logo.webp" alt="" /></a>
         <div class="account">
           <span class="account-avatar"><i data-lucide="user-round"></i></span>
-          <strong>Mujeres con Propósito</strong>
+          <div class="account-copy"><strong>Mujeres con Propósito</strong><small id="dashboardRoleBadge">Cargando rol…</small></div>
           <i data-lucide="chevron-down"></i>
         </div>
       </header>
@@ -72,7 +71,6 @@
           </div>
           <div class="top-actions no-export">
             <button id="homePageBtn" class="btn btn-soft" type="button">Página principal</button>
-            <button id="dashboardRefreshBtn" class="btn btn-soft" type="button">Actualizar registros</button>
             <button id="dashboardLogoutBtn" class="btn btn-soft" type="button">Cerrar sesión</button>
             <button id="exportCsvBtn" class="btn btn-soft" type="button"><i data-lucide="sheet"></i>Exportar CSV</button>
             <button id="exportPdfBtn" class="btn btn-primary" type="button"><i data-lucide="download"></i>Exportar PDF</button>
@@ -122,7 +120,7 @@
         <section class="panel table-panel">
           <div class="panel-head table-title">
             <h2><i data-lucide="users-round"></i>Lista de usuarias</h2>
-            <div class="table-title-actions"><label for="sortUsersSelect">Ordenar</label><select id="sortUsersSelect"><option value="newest">Más recientes</option><option value="oldest">Más antiguos</option><option value="name-asc">Nombre A–Z</option><option value="name-desc">Nombre Z–A</option><option value="country">País</option><option value="community">Comunidad</option></select><p id="lastUpdatedText">Cargando datos...</p></div>
+            <div class="table-title-actions"><button id="dashboardRefreshBtn" class="table-refresh-btn no-export" type="button" aria-label="Actualizar registros" title="Actualizar registros"><i data-lucide="refresh-cw"></i></button><label for="sortUsersSelect">Ordenar</label><select id="sortUsersSelect"><option value="newest">Más recientes</option><option value="oldest">Más antiguos</option><option value="name-asc">Nombre A–Z</option><option value="name-desc">Nombre Z–A</option><option value="country">País</option><option value="community">Comunidad</option></select><p id="lastUpdatedText">Cargando datos...</p></div>
           </div>
           <div class="table-labels" aria-hidden="true"><span>Usuaria</span><span>Teléfono</span><span>País residencia</span><span>Comunidad</span><span>Cristiana</span><span></span></div>
           <div class="users-list" id="usersTableBody"><p class="empty-cell">Cargando registros...</p></div>
@@ -148,7 +146,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>
-  <script src="assets/js/dashboard.js?v=20260830-country-code-1"></script>
+  <script src="assets/js/dashboard.js?v=20260831-roles-1"></script>
 </body>
 
 </html>

@@ -56,6 +56,7 @@ const dashboardLogoutBtn = document.getElementById("dashboardLogoutBtn");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
 const exportCsvBtn = document.getElementById("exportCsvBtn");
 const lastUpdatedText = document.getElementById("lastUpdatedText");
+const dashboardRoleBadge = document.getElementById("dashboardRoleBadge");
 const dashboardAccessScreen = document.getElementById("dashboardAccessScreen");
 const dashboardAccessEmail = document.getElementById("dashboardAccessEmail");
 const dashboardAccessCode = document.getElementById("dashboardAccessCode");
@@ -70,12 +71,44 @@ const pdfArea = document.getElementById("pdfArea");
 const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
 const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 const sidebarHomeBtn = document.getElementById("sidebarHomeBtn");
-const sidebarRefreshBtn = document.getElementById("sidebarRefreshBtn");
 const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
 const sidebarExportBtn = document.getElementById("sidebarExportBtn");
 const sidebarCsvBtn = document.getElementById("sidebarCsvBtn");
 let dashboardLoaded = false;
 let toastTimer = null;
+let dashboardRole = "read_only";
+
+const DASHBOARD_ROLE_LABELS = {
+  crud: "CRUD",
+  read_export: "Lectura + exportar",
+  read_only: "Solo lectura"
+};
+
+function canDashboardExport() {
+  return dashboardRole === "crud" || dashboardRole === "read_export";
+}
+
+function applyDashboardRole(role) {
+  dashboardRole = Object.prototype.hasOwnProperty.call(DASHBOARD_ROLE_LABELS, role) ? role : "read_only";
+  const canExport = canDashboardExport();
+  [exportCsvBtn, exportPdfBtn, sidebarCsvBtn, sidebarExportBtn].forEach((element) => {
+    if (element) element.hidden = !canExport;
+  });
+  if (dashboardRoleBadge) dashboardRoleBadge.textContent = DASHBOARD_ROLE_LABELS[dashboardRole];
+  document.body.dataset.userRole = dashboardRole;
+}
+
+async function loadDashboardRole() {
+  const client = getDashboardSupabaseClient();
+  const { data, error } = await client.rpc("current_user_role");
+  if (error) throw new Error("No se pudo verificar el rol de acceso.");
+  if (data === "revoked") {
+    await client.auth.signOut();
+    throw new Error("El acceso de esta cuenta fue revocado.");
+  }
+  applyDashboardRole(data);
+  return dashboardRole;
+}
 
 function showDashboardToast(message) {
   if (!dashboardToast) return;
@@ -171,7 +204,15 @@ async function requireActiveSessionForPasskey() {
   return false;
 }
 
-function unlockDashboard() {
+async function unlockDashboard() {
+  try {
+    await loadDashboardRole();
+  } catch (error) {
+    console.error(error);
+    showDashboardLoginMsg(error.message);
+    return false;
+  }
+
   document.body.classList.remove("private-locked");
   if (dashboardAccessScreen) dashboardAccessScreen.style.display = "none";
   if (pdfArea) pdfArea.style.display = "";
@@ -180,6 +221,7 @@ function unlockDashboard() {
     dashboardLoaded = true;
     loadDashboardData();
   }
+  return true;
 }
 
 function formatDate(value) {
@@ -440,6 +482,13 @@ function daysUntilBirthday(value) {
   return Math.round((next - today) / 86400000);
 }
 
+function birthdayDateLabel(value) {
+  const birth = new Date(`${String(value || "").slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(birth.getTime())) return "—";
+  const months = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+  return `${String(birth.getDate()).padStart(2, "0")} ${months[birth.getMonth()]}`;
+}
+
 function renderDashboardInsights() {
   if (communityBreakdown) {
     const counts = new Map();
@@ -450,7 +499,15 @@ function renderDashboardInsights() {
   }
   if (upcomingBirthdaysList) {
     const people = allUsers.map((user) => ({ user, days: daysUntilBirthday(user.fechaNacimiento) })).filter((item) => item.days <= 30).sort((a, b) => a.days - b.days).slice(0, 5);
-    upcomingBirthdaysList.innerHTML = people.length ? people.map(({ user, days }) => `<div class="birthday-row"><strong>${escapeHtml(user.nombreCompleto)}</strong><span>${days === 0 ? "Hoy" : `En ${days} día${days === 1 ? "" : "s"}`}</span></div>`).join("") : `<p class="empty-cell">No hay cumpleaños en los próximos 30 días.</p>`;
+    upcomingBirthdaysList.innerHTML = people.length ? people.map(({ user, days }) => `
+      <div class="birthday-row">
+        <div class="birthday-person">
+          <span class="birthday-tag birthday-date-tag">${birthdayDateLabel(user.fechaNacimiento)}</span>
+          <strong>${escapeHtml(user.nombreCompleto)}</strong>
+        </div>
+        <span class="birthday-tag birthday-days-tag${days === 0 ? " is-today" : ""}">${days === 0 ? "Hoy" : `En ${days} día${days === 1 ? "" : "s"}`}</span>
+      </div>
+    `).join("") : `<p class="empty-cell">No hay cumpleaños en los próximos 30 días.</p>`;
   }
 }
 
@@ -526,6 +583,10 @@ function applyFilters() {
 
 function csvCell(value) { return `"${String(value ?? "").replace(/"/g, '""')}"`; }
 function exportCSV() {
+  if (!canDashboardExport()) {
+    showDashboardToast("Tu rol no permite exportar registros.");
+    return;
+  }
   const headers = ["Nombre", "Email", "Teléfono", "País residencia", "Comunidad", "Cristiana", "Fecha nacimiento", "País nacimiento", "Estatus matrimonial", "Hijos", "Comentarios", "Fecha registro"];
   const rows = filteredUsers.map((u) => [u.nombreCompleto, u.email, u.telefono, u.paisResidencia, u.comunidad, u.cristiana, u.fechaNacimiento, u.paisNacimiento, u.estatusMatrimonial, u.hijos, u.comentarios, u.timestamp]);
   const blob = new Blob(["\uFEFF" + [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
@@ -620,6 +681,10 @@ async function loadPdfDependencies() {
 }
 
 async function exportPDF() {
+  if (!canDashboardExport()) {
+    showDashboardToast("Tu rol no permite exportar registros.");
+    return;
+  }
   const area = document.getElementById("pdfArea");
   if (!area) {
     alert("No se pudo exportar el PDF.");
@@ -787,10 +852,6 @@ exportPdfBtn?.addEventListener("click", exportPDF);
 exportCsvBtn?.addEventListener("click", exportCSV);
 dashboardRefreshBtn?.addEventListener("click", loadDashboardData);
 sidebarHomeBtn?.addEventListener("click", () => homePageBtn?.click());
-sidebarRefreshBtn?.addEventListener("click", () => {
-  dashboardRefreshBtn?.click();
-  closeSidebar();
-});
 sidebarLogoutBtn?.addEventListener("click", () => dashboardLogoutBtn?.click());
 sidebarExportBtn?.addEventListener("click", () => {
   exportPdfBtn?.click();
@@ -820,11 +881,21 @@ document.addEventListener("visibilitychange", function () {
 
 dashboardLoginBtn?.addEventListener("click", async function () {
   if (!await validateDashboardPassword()) return;
-  unlockDashboard();
+  await unlockDashboard();
 });
 
 dashboardAdminBtn?.addEventListener("click", async function () {
   if (!await validateDashboardPassword()) return;
+  try {
+    const role = await loadDashboardRole();
+    if (role !== "crud") {
+      showDashboardLoginMsg("Tu rol no permite entrar al panel administrativo.");
+      return;
+    }
+  } catch (error) {
+    showDashboardLoginMsg(error.message);
+    return;
+  }
   window.location.href = "admin.html";
 });
 
@@ -848,7 +919,7 @@ dashboardEnrollPasskeyBtn?.addEventListener("click", async function () {
       dashboardLoginMsg.className = "form-message ok";
       dashboardLoginMsg.textContent = "Face ID/huella activado en este dispositivo.";
     }
-    unlockDashboard();
+    await unlockDashboard();
   } catch (error) {
     console.error(error);
     showDashboardLoginMsg(error?.message || "No se pudo activar Face ID/huella.");
@@ -864,7 +935,7 @@ dashboardUsePasskeyBtn?.addEventListener("click", async function () {
 
     if (!await requireActiveSessionForPasskey()) return;
     await window.McpPasskeyAuth.verify();
-    unlockDashboard();
+    await unlockDashboard();
   } catch (error) {
     console.error(error);
     showDashboardLoginMsg(error?.message || "No se pudo verificar Face ID/huella.");
@@ -896,9 +967,9 @@ dashboardAccessEmail?.addEventListener("keydown", function (event) {
   }
 });
 
-hasPrivateAccessGranted().then((hasSession) => {
+hasPrivateAccessGranted().then(async (hasSession) => {
   if (hasSession) {
-    unlockDashboard();
+    await unlockDashboard();
     return;
   }
 

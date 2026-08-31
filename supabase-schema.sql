@@ -4,6 +4,41 @@
 
 create extension if not exists "pgcrypto";
 
+create table if not exists public.user_roles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  email text,
+  role text not null default 'read_only' check (role in ('crud', 'read_export', 'read_only', 'revoked')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+insert into public.user_roles (user_id, email, role)
+select id, lower(email), 'crud' from auth.users
+on conflict (user_id) do nothing;
+
+create or replace function public.current_user_role()
+returns text language sql stable security definer set search_path = ''
+as $$
+  select coalesce((select role from public.user_roles where user_id = auth.uid()), 'read_only');
+$$;
+
+revoke all on function public.current_user_role() from public;
+grant execute on function public.current_user_role() to authenticated;
+
+create or replace function public.assign_default_user_role()
+returns trigger language plpgsql security definer set search_path = ''
+as $$
+begin
+  insert into public.user_roles (user_id, email, role) values (new.id, lower(new.email), 'read_only')
+  on conflict (user_id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists assign_default_user_role_after_signup on auth.users;
+create trigger assign_default_user_role_after_signup
+after insert on auth.users for each row execute function public.assign_default_user_role();
+
 -- Registro del formulario "Unirse".
 create table if not exists public.unirse (
   id uuid primary key default gen_random_uuid(),
@@ -43,6 +78,43 @@ alter table public.unirse add column if not exists ultimo_correo_cumpleanos time
 create index if not exists unirse_created_at_idx on public.unirse (created_at desc);
 create index if not exists unirse_comunidad_idx on public.unirse (comunidad);
 create index if not exists unirse_email_idx on public.unirse (lower(email));
+
+-- Bloquea registros futuros si ya existe el mismo correo o teléfono. Se usa
+-- un trigger (en lugar de un índice único) para conservar duplicados históricos.
+create or replace function public.prevent_duplicate_unirse()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  normalized_email text := lower(regexp_replace(trim(coalesce(new.email, '')), '\s+', '', 'g'));
+  normalized_phone text := regexp_replace(coalesce(new.telefono, ''), '\D', '', 'g');
+begin
+  if normalized_email <> '' then
+    perform pg_advisory_xact_lock(hashtextextended('unirse-email:' || normalized_email, 0));
+  end if;
+  if normalized_phone <> '' then
+    perform pg_advisory_xact_lock(hashtextextended('unirse-phone:' || normalized_phone, 0));
+  end if;
+
+  if exists (
+    select 1 from public.unirse existing
+    where (normalized_email <> '' and lower(regexp_replace(trim(coalesce(existing.email, '')), '\s+', '', 'g')) = normalized_email)
+       or (normalized_phone <> '' and regexp_replace(coalesce(existing.telefono, ''), '\D', '', 'g') = normalized_phone)
+  ) then
+    raise exception using errcode = '23505', message = 'duplicate member email or phone';
+  end if;
+
+  new.email := normalized_email;
+  return new;
+end;
+$$;
+
+drop trigger if exists prevent_duplicate_unirse_before_insert on public.unirse;
+create trigger prevent_duplicate_unirse_before_insert
+before insert on public.unirse
+for each row execute function public.prevent_duplicate_unirse();
 
 -- Mensajes del formulario de contacto.
 create table if not exists public.contact_messages (
@@ -166,6 +238,15 @@ alter table public.galeria enable row level security;
 alter table public.youtube enable row level security;
 alter table public.unirse enable row level security;
 alter table public.contact_messages enable row level security;
+alter table public.user_roles enable row level security;
+
+drop policy if exists "users read own role" on public.user_roles;
+create policy "users read own role" on public.user_roles for select to authenticated
+using (user_id = auth.uid() or public.current_user_role() = 'crud');
+
+drop policy if exists "crud manages roles" on public.user_roles;
+create policy "crud manages roles" on public.user_roles for all to authenticated
+using (public.current_user_role() = 'crud') with check (public.current_user_role() = 'crud');
 
 drop policy if exists "public read eventos" on public.eventos;
 create policy "public read eventos"
@@ -178,8 +259,8 @@ drop policy if exists "authenticated write eventos" on public.eventos;
 create policy "authenticated write eventos"
 on public.eventos for all
 to authenticated
-using (true)
-with check (true);
+using (public.current_user_role() = 'crud')
+with check (public.current_user_role() = 'crud');
 
 drop policy if exists "public read destacadas" on public.destacadas;
 create policy "public read destacadas"
@@ -192,8 +273,8 @@ drop policy if exists "authenticated write destacadas" on public.destacadas;
 create policy "authenticated write destacadas"
 on public.destacadas for all
 to authenticated
-using (true)
-with check (true);
+using (public.current_user_role() = 'crud')
+with check (public.current_user_role() = 'crud');
 
 drop policy if exists "public read galeria" on public.galeria;
 create policy "public read galeria"
@@ -206,8 +287,8 @@ drop policy if exists "authenticated write galeria" on public.galeria;
 create policy "authenticated write galeria"
 on public.galeria for all
 to authenticated
-using (true)
-with check (true);
+using (public.current_user_role() = 'crud')
+with check (public.current_user_role() = 'crud');
 
 drop policy if exists "public read youtube" on public.youtube;
 create policy "public read youtube"
@@ -219,14 +300,14 @@ drop policy if exists "authenticated write youtube" on public.youtube;
 create policy "authenticated write youtube"
 on public.youtube for all
 to authenticated
-using (true)
-with check (true);
+using (public.current_user_role() = 'crud')
+with check (public.current_user_role() = 'crud');
 
 drop policy if exists "authenticated read unirse" on public.unirse;
 create policy "authenticated read unirse"
 on public.unirse for select
 to authenticated
-using (true);
+using (public.current_user_role() in ('crud', 'read_export', 'read_only'));
 
 -- Los inserts públicos ya NO se permiten directo por "anon": los formularios
 -- "Únete" y "Contacto" pasan por las Edge Functions submit-join / submit-contact,
@@ -250,17 +331,17 @@ drop policy if exists "authenticated upload mcp930 images" on storage.objects;
 create policy "authenticated upload mcp930 images"
 on storage.objects for insert
 to authenticated
-with check (bucket_id = 'mcp930-images');
+with check (bucket_id = 'mcp930-images' and public.current_user_role() = 'crud');
 
 drop policy if exists "authenticated update mcp930 images" on storage.objects;
 create policy "authenticated update mcp930 images"
 on storage.objects for update
 to authenticated
-using (bucket_id = 'mcp930-images')
-with check (bucket_id = 'mcp930-images');
+using (bucket_id = 'mcp930-images' and public.current_user_role() = 'crud')
+with check (bucket_id = 'mcp930-images' and public.current_user_role() = 'crud');
 
 drop policy if exists "authenticated delete mcp930 images" on storage.objects;
 create policy "authenticated delete mcp930 images"
 on storage.objects for delete
 to authenticated
-using (bucket_id = 'mcp930-images');
+using (bucket_id = 'mcp930-images' and public.current_user_role() = 'crud');

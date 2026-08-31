@@ -254,6 +254,15 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
   await expect(page.locator('.user-quick-actions a[href="tel:+352621000"]')).toHaveCount(1);
   await expect(page.locator('.user-quick-actions a[href="https://wa.me/352621000"]')).toHaveCount(1);
 
+  await page.evaluate(() => applyDashboardRole("read_only"));
+  await expect(page.locator("#exportCsvBtn")).toBeHidden();
+  await expect(page.locator("#exportPdfBtn")).toBeHidden();
+  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Solo lectura");
+  await page.evaluate(() => applyDashboardRole("read_export"));
+  await expect(page.locator("#exportCsvBtn")).toBeVisible();
+  await expect(page.locator("#exportPdfBtn")).toBeVisible();
+  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Lectura + exportar");
+
   const layout = await page.evaluate(() => {
     const row = document.querySelector(".user-row").getBoundingClientRect();
     const panel = document.querySelector(".table-panel").getBoundingClientRect();
@@ -292,10 +301,17 @@ test("dashboard mobile filters and pagination stay compact", async ({ page }) =>
     filteredUsers = [...allUsers];
     currentPage = 1;
     renderCurrentPage();
+
+    const upcoming = new Date();
+    upcoming.setDate(upcoming.getDate() + 5);
+    allUsers[0].fechaNacimiento = `1990-${String(upcoming.getMonth() + 1).padStart(2, "0")}-${String(upcoming.getDate()).padStart(2, "0")}`;
+    renderDashboardInsights();
   });
 
   await expect(page.locator(".user-row")).toHaveCount(10);
   await expect(page.locator("#paginationSummary")).toHaveText("Mostrando 1–10 de 12");
+  await expect(page.locator(".birthday-date-tag")).toHaveCount(1);
+  await expect(page.locator(".birthday-days-tag")).toHaveText("En 5 días");
   await page.locator("#paginationNextBtn").click();
   await expect(page.locator(".user-row")).toHaveCount(2);
   await expect(page.locator("#paginationSummary")).toHaveText("Mostrando 11–12 de 12");

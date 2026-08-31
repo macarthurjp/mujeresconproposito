@@ -15,6 +15,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html { background: var(--wash); }
 body {
   margin: 0;
@@ -164,6 +165,8 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
   cursor: pointer;
 }
 .account { display: flex; align-items: center; gap: 12px; margin-left: auto; font-size: 14px; }
+.account-copy { display: flex; align-items: flex-start; flex-direction: column; line-height: 1.15; }
+.account-copy small { margin-top: 3px; color: var(--rose); font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .account > svg { width: 16px; color: var(--rose); }
 .account-avatar { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #e4bdb1; border-radius: 50%; color: var(--brick); background: #fbefeb; }
 .account-avatar svg { width: 19px; }
@@ -248,12 +251,20 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
 .birthday-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0e4df; }
 .birthday-row:last-child { border-bottom: 0; }
 .birthday-row strong { font-size: 13px; }
-.birthday-row span { color: var(--muted); font-size: 11px; text-align: right; }
+.birthday-person { display: flex; align-items: flex-start; flex-direction: column; gap: 5px; min-width: 0; }
+.birthday-tag { display: inline-flex; align-items: center; justify-content: center; min-height: 30px; padding: 0 11px; border-radius: 999px; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.birthday-date-tag { min-height: 21px; padding: 0 8px; color: #8c4439; background: #f8e9e4; font-size: 8px; letter-spacing: .08em; }
+.birthday-days-tag { color: #6c5a55; background: #f3eeeb; }
+.birthday-days-tag.is-today { color: #47733a; background: #e8f1e3; }
 .table-panel { padding: 18px 14px 14px; }
 .table-title { padding: 0 12px; }
 .table-title p { display: flex; align-items: center; gap: 8px; margin: 0; color: #554540; font-size: 12px; }
 .table-title p::before { content: "✓"; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: #56704c; background: #e8f1e3; }
 .table-title-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.table-refresh-btn { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border: 1.5px solid #dfc3bb; border-radius: 50%; color: var(--brick); background: #fff; cursor: pointer; transition: color .2s, background .2s, transform .2s, box-shadow .2s; }
+.table-refresh-btn svg { width: 18px; height: 18px; }
+.table-refresh-btn:hover { color: white; background: var(--brick); transform: rotate(25deg); box-shadow: 0 7px 16px rgba(143,61,49,.16); }
+.table-refresh-btn:disabled { opacity: .5; cursor: wait; transform: none; }
 .table-title-actions label { color: var(--muted); font-size: 11px; font-weight: 700; }
 .table-title-actions select { min-height: 42px; padding: 0 17px; border: 1.5px solid #dfc3bb; border-radius: 999px; color: var(--ink); background: #f8f5f4; }
 .table-labels, .user-row { display: grid; grid-template-columns: 3fr 1.15fr 1.05fr .9fr .72fr 42px; align-items: center; column-gap: 16px; }
@@ -353,7 +364,7 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
   .stat-label { white-space: normal; }
   .table-panel { min-width: 0; padding: 14px 10px 10px; }
   .table-title { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 0 4px; }
-  .table-title-actions { display: grid; grid-template-columns: auto minmax(0, 1fr); justify-content: stretch; }
+  .table-title-actions { display: grid; grid-template-columns: auto auto minmax(0, 1fr); justify-content: stretch; }
   .table-title-actions p { grid-column: 1 / -1; justify-self: start; }
   .table-title-actions select { width: 100%; }
   .table-title p { justify-self: start; }
@@ -415,6 +426,7 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
   .panel-head h2 { font-size: 18px; }
   .btn-clear { padding: 0 12px; }
   .user-row-extra { grid-template-columns: 1fr; }
+  .birthday-row { align-items: flex-start; flex-direction: column; }
 }
 
 /* PDF mode keeps the report printable while omitting application chrome. */

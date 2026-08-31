@@ -32,3 +32,8 @@ entrypoint = "./functions/submit-join/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/submit-contact/index.ts"
+
+[functions.manage-users]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/manage-users/index.ts"

@@ -652,6 +652,70 @@
     cursor: grabbing !important;
 }
 
+.admin-roles-card { width: 100%; }
+.admin-roles-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; }
+.admin-roles-head h3 { margin: 4px 0 0; }
+.admin-roles-list { display: grid; gap: 10px; margin-top: 22px; }
+.admin-invite-form { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) 220px; align-items: end; gap: 14px; margin-top: 24px; padding: 18px; border: 1px solid #ead8d0; border-radius: 20px; background: #fffaf8; }
+.admin-current-email-form { display: grid; grid-template-columns: minmax(240px, 1fr) 220px; align-items: end; gap: 14px; margin-top: 22px; padding: 16px 18px; border: 1px solid #ead8d0; border-radius: 20px; background: #fff; }
+.admin-current-email-form .admin-field { margin: 0; }
+.admin-invite-form .admin-field { margin: 0; }
+.admin-current-email-form .admin-field,
+.admin-invite-form .admin-field { display: grid; gap: 8px; }
+.admin-current-email-form label,
+.admin-invite-form label { min-height: 22px; margin: 0; line-height: 22px; }
+.admin-current-email-form input,
+.admin-invite-form input,
+.admin-invite-form select,
+.admin-role-select { box-sizing: border-box; width: 100%; height: 56px; min-height: 56px; margin: 0; padding: 0 18px; border: 1.5px solid #e4cbc4; border-radius: 999px; color: #4b302c; background: #fff; font: inherit; font-weight: 700; }
+.admin-invite-form select,
+.admin-role-select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 48px;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2371372f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  background-size: 18px;
+  cursor: pointer;
+}
+.admin-current-email-form .admin-role-access-btn,
+.admin-invite-form .btn,
+.admin-role-row .admin-role-access-btn { box-sizing: border-box; width: 220px; height: 56px; min-height: 56px; margin: 0; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; white-space: nowrap; }
+.admin-role-actions { width: 220px; display: grid; gap: 8px; }
+.admin-role-row { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) 220px; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid #ead8d0; border-radius: 18px; background: #fffaf8; }
+.admin-role-row.is-revoked { border-color: #edc5c0; background: #fff4f2; }
+.admin-role-identity { min-width: 0; }
+.admin-role-identity strong { display: block; overflow: hidden; color: #4b302c; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.admin-role-identity small { display: block; margin-top: 5px; color: #9b7168; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.admin-role-select:disabled { opacity: .65; cursor: not-allowed; background-color: #f3ebe8; }
+.admin-role-access-btn { border: 1.5px solid #a33d32; color: #9a3028; background: white; font-size: 13px; font-weight: 800; cursor: pointer; }
+.admin-role-access-btn.restore { color: #47733a; border-color: #7ea270; }
+.admin-role-access-btn.password-reset { color: #71372f; border-color: #dcbcb3; background: #fffaf8; }
+.admin-role-access-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+@media (max-width: 900px) {
+  .admin-invite-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-invite-form .btn { grid-column: 1 / -1; width: 100%; }
+  .admin-role-row { grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr); }
+  .admin-role-row .admin-role-identity { grid-column: 1 / -1; }
+  .admin-role-row .admin-role-access-btn { width: 100%; }
+  .admin-role-actions { width: 100%; }
+}
+
+@media (max-width: 680px) {
+  .admin-roles-head { align-items: flex-start; flex-direction: column; }
+  .admin-invite-form { grid-template-columns: 1fr; padding: 14px; }
+  .admin-current-email-form { grid-template-columns: 1fr; padding: 14px; }
+  .admin-role-row { grid-template-columns: 1fr; gap: 12px; padding: 14px; }
+  .admin-role-row .admin-role-identity { grid-column: auto; }
+  .admin-current-email-form .admin-role-access-btn,
+  .admin-invite-form .btn,
+  .admin-role-row .admin-role-access-btn { width: 100%; }
+  .admin-role-actions { width: 100%; }
+}
+
 .admin-item-media {
     width: 74px !important;
     height: 64px !important;

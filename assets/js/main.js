@@ -1636,7 +1636,7 @@ lightbox?.addEventListener("touchcancel", function () {
       if (loadingOverlay) loadingOverlay.style.display = "none";
 
       if (error.message === "duplicate") {
-        error.userMessage = "Este correo ya esta registrado. Si ya llenaste el formulario, no necesitas enviarlo otra vez.";
+        error.userMessage = "Este correo o teléfono ya está registrado. Si ya llenaste el formulario, no necesitas enviarlo otra vez.";
       } else if (error.message === "Verificación de seguridad fallida.") {
         error.userMessage = "No pudimos verificar que eres humano. Intenta de nuevo.";
       }
@@ -2635,6 +2635,13 @@ function renderContactCalendar(apiData = {}) {
 	  const adminForgotPasswordBtn = document.getElementById("adminForgotPasswordBtn");
 	  const adminUsePasskeyBtn = document.getElementById("adminUsePasskeyBtn");
 	  const adminEnrollPasskeyBtn = document.getElementById("adminEnrollPasskeyBtn");
+	  const adminRolesList = document.getElementById("adminRolesList");
+	  const adminRefreshRoles = document.getElementById("adminRefreshRoles");
+	  const adminInviteUserForm = document.getElementById("adminInviteUserForm");
+	  const adminInviteEmail = document.getElementById("adminInviteEmail");
+	  const adminInviteRole = document.getElementById("adminInviteRole");
+	  const adminCurrentEmailForm = document.getElementById("adminCurrentEmailForm");
+	  const adminCurrentEmail = document.getElementById("adminCurrentEmail");
 
 	  function showAdminMsg(el, text, ok = true) {
 	    if (!el) return;
@@ -3874,13 +3881,183 @@ function renderContactCalendar(apiData = {}) {
 	    return Boolean(data?.session);
 	  }
 
-	  function unlockAdminPanel() {
+	  async function getCurrentAdminRole() {
+	    const client = getAdminSupabaseClient();
+	    const { data, error } = await client.rpc("current_user_role");
+	    if (error) throw new Error("No se pudo verificar el rol de acceso.");
+	    return data || "read_only";
+	  }
+
+	  function adminRoleOptions(selectedRole) {
+	    return [
+	      ["crud", "CRUD — Super Admin"],
+	      ["read_export", "Solo lectura + exportar"],
+	      ["read_only", "Solo lectura"]
+	    ].map(([value, label]) => `<option value="${value}" ${value === selectedRole ? "selected" : ""}>${label}</option>`).join("");
+	  }
+
+	  async function invokeManageUsers(body) {
+	    const client = getAdminSupabaseClient();
+	    const { data, error } = await client.functions.invoke("manage-users", { body });
+	    if (!error) return data;
+	    let message = error.message || "No se pudo gestionar el usuario.";
+	    if (error.context) {
+	      try {
+	        const payload = await error.context.clone().json();
+	        message = payload?.error || message;
+	      } catch (_) {}
+	    }
+	    throw new Error(message);
+	  }
+
+	  async function loadAdminRoles() {
+	    if (!adminRolesList) return;
+	    const result = await invokeManageUsers({ action: "list" });
+	    const users = Array.isArray(result?.users) ? result.users : [];
+	    users.sort((a, b) => String(a.email || "").localeCompare(String(b.email || ""), "es"));
+	    const currentUser = users.find((entry) => entry.isCurrentUser);
+	    if (adminCurrentEmail && currentUser?.email) adminCurrentEmail.value = currentUser.email;
+	    adminRolesList.innerHTML = users.length ? users.map((entry) => {
+	      const isCurrentUser = Boolean(entry.isCurrentUser);
+	      const isRevoked = entry.role === "revoked";
+	      return `
+	        <div class="admin-role-row${isRevoked ? " is-revoked" : ""}">
+	          <div class="admin-role-identity">
+	            <strong>${escapeHtml(entry.email || "Cuenta sin email")}</strong>
+	            <small>${isCurrentUser ? "Tu cuenta · Super Admin" : isRevoked ? "Acceso revocado" : "Cuenta autorizada"}</small>
+	          </div>
+	          <select class="admin-role-select" data-role-user-id="${escapeHtml(entry.userId)}" data-previous-role="${escapeHtml(isRevoked ? "read_only" : entry.role)}" ${(isCurrentUser || isRevoked) ? "disabled" : ""} aria-label="Rol de ${escapeHtml(entry.email || "usuario")}">
+	            ${adminRoleOptions(isRevoked ? "read_only" : entry.role)}
+	          </select>
+	          <div class="admin-role-actions">
+	            <button type="button" class="admin-role-access-btn password-reset" data-password-reset data-role-user-id="${escapeHtml(entry.userId)}" data-role-user-email="${escapeHtml(entry.email || "")}">Cambiar contraseña</button>
+	            ${isCurrentUser ? "" : `<button type="button" class="admin-role-access-btn${isRevoked ? " restore" : ""}" data-access-action="${isRevoked ? "restore" : "revoke"}" data-role-user-id="${escapeHtml(entry.userId)}">${isRevoked ? "Restaurar acceso" : "Revocar acceso"}</button>`}
+	          </div>
+	        </div>
+	      `;
+	    }).join("") : `<div class="admin-empty">No hay cuentas autorizadas.</div>`;
+	  }
+
+	  adminRolesList?.addEventListener("change", async function (event) {
+	    const select = event.target.closest("[data-role-user-id]");
+	    if (!select) return;
+	    const previousRole = select.dataset.previousRole || "read_only";
+	    select.disabled = true;
+	    try {
+	      await invokeManageUsers({ action: "set_role", userId: select.dataset.roleUserId, role: select.value });
+	      select.dataset.previousRole = select.value;
+	      showAdminToast("success", "Rol actualizado", "Los nuevos permisos ya están activos.");
+	    } catch (error) {
+	      select.value = previousRole;
+	      showAdminToast("error", "No se pudo cambiar el rol", error?.message || "Intenta nuevamente.");
+	    } finally {
+	      select.disabled = false;
+	    }
+	  });
+
+	  adminRolesList?.addEventListener("click", async function (event) {
+	    const resetButton = event.target.closest("[data-password-reset]");
+	    if (resetButton) {
+	      const email = resetButton.dataset.roleUserEmail || "esta cuenta";
+	      resetButton.disabled = true;
+	      try {
+	        await invokeManageUsers({
+	          action: "send_password_reset",
+	          userId: resetButton.dataset.roleUserId
+	        });
+	        showAdminToast("success", "Correo enviado", `Enviamos a ${email} un enlace seguro para cambiar la contraseña.`);
+	      } catch (error) {
+	        showAdminToast("error", "No se pudo enviar el enlace", error?.message || "Intenta nuevamente.");
+	      } finally {
+	        resetButton.disabled = false;
+	      }
+	      return;
+	    }
+
+	    const button = event.target.closest("[data-access-action]");
+	    if (!button) return;
+	    const isRevoke = button.dataset.accessAction === "revoke";
+	    if (isRevoke && !window.confirm("¿Revocar completamente el acceso de este usuario?")) return;
+	    button.disabled = true;
+	    try {
+	      await invokeManageUsers({
+	        action: button.dataset.accessAction,
+	        userId: button.dataset.roleUserId,
+	        role: "read_only"
+	      });
+	      await loadAdminRoles();
+	      showAdminToast("success", isRevoke ? "Acceso revocado" : "Acceso restaurado", isRevoke ? "La cuenta quedó bloqueada." : "La cuenta vuelve a tener acceso de solo lectura.");
+	    } catch (error) {
+	      button.disabled = false;
+	      showAdminToast("error", "No se pudo actualizar el acceso", error?.message || "Intenta nuevamente.");
+	    }
+	  });
+
+	  adminInviteUserForm?.addEventListener("submit", async function (event) {
+	    event.preventDefault();
+	    const button = this.querySelector('button[type="submit"]');
+	    if (button) button.disabled = true;
+	    try {
+	      await invokeManageUsers({ action: "invite", email: adminInviteEmail?.value || "", role: adminInviteRole?.value || "read_only" });
+	      this.reset();
+	      await loadAdminRoles();
+	      showAdminToast("success", "Usuario creado", "La invitación fue enviada por correo.");
+	    } catch (error) {
+	      showAdminToast("error", "No se pudo crear el usuario", error?.message || "Intenta nuevamente.");
+	    } finally {
+	      if (button) button.disabled = false;
+	    }
+	  });
+
+	  adminCurrentEmailForm?.addEventListener("submit", async function (event) {
+	    event.preventDefault();
+	    const button = this.querySelector('button[type="submit"]');
+	    if (!window.confirm("¿Cambiar el correo de acceso del Super Admin?")) return;
+	    if (button) button.disabled = true;
+	    try {
+	      await invokeManageUsers({ action: "change_my_email", email: adminCurrentEmail?.value || "" });
+	      await loadAdminRoles();
+	      showAdminToast("success", "Correo actualizado", "Desde ahora debes iniciar sesión con el nuevo correo.");
+	    } catch (error) {
+	      showAdminToast("error", "No se pudo cambiar el correo", error?.message || "Intenta nuevamente.");
+	    } finally {
+	      if (button) button.disabled = false;
+	    }
+	  });
+
+	  adminRefreshRoles?.addEventListener("click", async function () {
+	    this.disabled = true;
+	    try {
+	      await loadAdminRoles();
+	      showAdminToast("success", "Roles actualizados", "La lista de accesos está al día.");
+	    } catch (error) {
+	      showAdminToast("error", "No se pudieron cargar los roles", error?.message || "Intenta nuevamente.");
+	    } finally {
+	      this.disabled = false;
+	    }
+	  });
+
+	  async function unlockAdminPanel() {
+	    try {
+	      const role = await getCurrentAdminRole();
+	      if (role !== "crud") {
+	        if (adminDashboard) adminDashboard.style.display = "none";
+	        if (adminLoginCard) adminLoginCard.style.display = "";
+	        showAdminMsg(adminLoginMsg, "Tu cuenta es de solo lectura. Usa el Dashboard para consultar los registros.", false);
+	        return false;
+	      }
+	    } catch (error) {
+	      showAdminMsg(adminLoginMsg, error.message, false);
+	      return false;
+	    }
+
 	    if (adminLoginCard) adminLoginCard.style.display = "none";
 	    if (adminDashboard) adminDashboard.style.display = "block";
-	    loadAdminContent().catch((error) => {
+	    Promise.all([loadAdminContent(), loadAdminRoles()]).catch((error) => {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
 	    });
+	    return true;
 	  }
 
 	  async function requireActiveSessionForPasskey() {
@@ -3937,7 +4114,7 @@ function renderContactCalendar(apiData = {}) {
 
 	  adminLoginBtn?.addEventListener("click", async function () {
 	    if (!await validateAdminPassword()) return;
-	    unlockAdminPanel();
+	    await unlockAdminPanel();
 	  });
 
 	  adminLoginDashboardBtn?.addEventListener("click", async function () {
@@ -3961,7 +4138,7 @@ function renderContactCalendar(apiData = {}) {
 	      if (!await validateAdminPassword()) return;
 	      await window.McpPasskeyAuth.enroll(adminAccessEmail?.value || "");
 	      showAdminMsg(adminLoginMsg, "Face ID/huella activado en este dispositivo.", true);
-	      unlockAdminPanel();
+	      await unlockAdminPanel();
 	    } catch (error) {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, error?.message || "No se pudo activar Face ID/huella.", false);
@@ -3977,7 +4154,7 @@ function renderContactCalendar(apiData = {}) {
 
 	      if (!await requireActiveSessionForPasskey()) return;
 	      await window.McpPasskeyAuth.verify();
-	      unlockAdminPanel();
+	      await unlockAdminPanel();
 	    } catch (error) {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, error?.message || "No se pudo verificar Face ID/huella.", false);
@@ -4032,19 +4209,14 @@ function renderContactCalendar(apiData = {}) {
   });
 
   if (adminLoginCard && adminDashboard) {
-    hasPrivateAccessGranted().then((hasSession) => {
+	    hasPrivateAccessGranted().then(async (hasSession) => {
       if (!hasSession) {
         adminAccessEmail?.focus();
         return;
       }
 
-      adminLoginCard.style.display = "none";
-      adminDashboard.style.display = "block";
-      loadAdminContent().catch((error) => {
-        console.error(error);
-        showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
-      });
-    });
+	      await unlockAdminPanel();
+	    });
   }
 
   document.querySelectorAll(".admin-tab").forEach((tab) => {

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260830-share-btn-overlap-fix-1" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260831-password-reset-1" />
 </head>
 <body data-admin-page="true">
   <header>
@@ -114,10 +114,11 @@
         </div>
 
         <div class="admin-tabs">
-          <button type="button" class="admin-tab active" data-admin-tab="eventos"><span>✦</span> Eventos</button>
-          <button type="button" class="admin-tab" data-admin-tab="destacadas"><span>♡</span> Destacadas</button>
-          <button type="button" class="admin-tab" data-admin-tab="galeria"><span>✧</span> Galería</button>
-          <button type="button" class="admin-tab" data-admin-tab="youtube"><span>▶</span> YouTube</button>
+          <button type="button" class="admin-tab active" data-admin-tab="eventos">Eventos</button>
+          <button type="button" class="admin-tab" data-admin-tab="destacadas">Destacadas</button>
+          <button type="button" class="admin-tab" data-admin-tab="galeria">Galería</button>
+          <button type="button" class="admin-tab" data-admin-tab="youtube">YouTube</button>
+          <button type="button" class="admin-tab" data-admin-tab="roles">Usuarios y roles</button>
         </div>
 
         <div class="admin-tab-panel active" id="admin-eventos">
@@ -292,6 +293,42 @@
             <div id="adminYoutubeList" class="admin-content-list"></div>
           </div>
         </div>
+
+        <div class="admin-tab-panel" id="admin-roles">
+          <div class="admin-card admin-list-card admin-roles-card">
+            <div class="admin-roles-head">
+              <div>
+                <span class="admin-dashboard-kicker">Super Admin</span>
+                <h3>Usuarios y roles</h3>
+              </div>
+              <button type="button" class="admin-import-btn" id="adminRefreshRoles">Actualizar</button>
+            </div>
+            <p class="admin-reorder-hint">Asigna el nivel de acceso de cada cuenta autorizada. Tu propio rol CRUD está protegido para evitar que pierdas el acceso.</p>
+            <form id="adminCurrentEmailForm" class="admin-current-email-form">
+              <div class="admin-field">
+                <label for="adminCurrentEmail">Correo del Super Admin</label>
+                <input type="email" id="adminCurrentEmail" autocomplete="email" required />
+              </div>
+              <button type="submit" class="admin-role-access-btn restore">Cambiar mi correo</button>
+            </form>
+            <form id="adminInviteUserForm" class="admin-invite-form">
+              <div class="admin-field">
+                <label for="adminInviteEmail">Correo del nuevo usuario</label>
+                <input type="email" id="adminInviteEmail" placeholder="nombre@correo.com" autocomplete="off" required />
+              </div>
+              <div class="admin-field">
+                <label for="adminInviteRole">Rol inicial</label>
+                <select id="adminInviteRole">
+                  <option value="read_only">Solo lectura</option>
+                  <option value="read_export">Solo lectura + exportar</option>
+                  <option value="crud">CRUD — Super Admin</option>
+                </select>
+              </div>
+              <button type="submit" class="btn">Crear usuario</button>
+            </form>
+            <div id="adminRolesList" class="admin-roles-list"><div class="admin-empty">Cargando usuarios…</div></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -299,6 +336,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260830-admin-time-1"></script>
+  <script src="assets/js/main.js?v=20260831-password-reset-1"></script>
 </body>
 </html>
