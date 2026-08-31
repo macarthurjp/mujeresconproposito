@@ -74,6 +74,9 @@ const sidebarHomeBtn = document.getElementById("sidebarHomeBtn");
 const sidebarLogoutBtn = document.getElementById("sidebarLogoutBtn");
 const sidebarExportBtn = document.getElementById("sidebarExportBtn");
 const sidebarCsvBtn = document.getElementById("sidebarCsvBtn");
+const dashboardRecordModal = document.getElementById("dashboardRecordModal");
+const dashboardRecordForm = document.getElementById("dashboardRecordForm");
+const dashboardRecordSaveBtn = document.getElementById("dashboardRecordSaveBtn");
 let dashboardLoaded = false;
 let toastTimer = null;
 let dashboardRole = "read_only";
@@ -88,6 +91,10 @@ function canDashboardExport() {
   return dashboardRole === "crud" || dashboardRole === "read_export";
 }
 
+function canDashboardManageRecords() {
+  return dashboardRole === "crud";
+}
+
 function applyDashboardRole(role) {
   dashboardRole = Object.prototype.hasOwnProperty.call(DASHBOARD_ROLE_LABELS, role) ? role : "read_only";
   const canExport = canDashboardExport();
@@ -96,6 +103,7 @@ function applyDashboardRole(role) {
   });
   if (dashboardRoleBadge) dashboardRoleBadge.textContent = DASHBOARD_ROLE_LABELS[dashboardRole];
   document.body.dataset.userRole = dashboardRole;
+  if (filteredUsers.length) renderCurrentPage();
 }
 
 async function loadDashboardRole() {
@@ -401,6 +409,7 @@ function renderTable(users) {
           ${user.email ? `<a href="mailto:${escapeHtml(user.email)}">Enviar correo</a>` : ""}
           ${displayPhone ? `<a href="tel:${escapeHtml(displayPhone.replace(/\s/g, ""))}">Llamar</a>` : ""}
           ${phoneDigits(displayPhone) ? `<a href="https://wa.me/${phoneDigits(displayPhone)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
+          ${canDashboardManageRecords() ? `<button type="button" data-edit-user="${escapeHtml(user.id)}">Editar</button><button type="button" class="danger" data-delete-user="${escapeHtml(user.id)}">Eliminar</button>` : ""}
         </div>
         <div class="field-block">
           <span class="field-label">Fecha de nacimiento</span>
@@ -640,15 +649,11 @@ async function loadDashboardData() {
         )
       );
 
-    filteredUsers = [...allUsers];
-
     fillSelectOptions(paisFilter, allUsers.map((u) => u.paisResidencia), "Todos");
     fillSelectOptions(comunidadFilter, allUsers.map((u) => u.comunidad), "Todas");
     fillSelectOptions(cristianaFilter, allUsers.map((u) => u.cristiana), "Todas");
 
-    currentPage = 1;
-    renderCurrentPage();
-    updateCounters();
+    applyFilters();
 
     if (lastUpdatedText) {
       lastUpdatedText.textContent = `Actualizado ${new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}`;
@@ -671,11 +676,9 @@ async function loadDashboardData() {
 
 async function loadPdfDependencies() {
   if (!window.McpScripts) throw new Error("El cargador de recursos no está disponible.");
-  await Promise.all([
-    window.McpScripts.load("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"),
-    window.McpScripts.load("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js")
-  ]);
-  if (!window.jspdf || !window.html2canvas) {
+  await window.McpScripts.load("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+  await window.McpScripts.load("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js");
+  if (!window.jspdf || typeof window.jspdf.jsPDF?.API?.autoTable !== "function") {
     throw new Error("Las librerías PDF no se cargaron correctamente.");
   }
 }
@@ -685,83 +688,13 @@ async function exportPDF() {
     showDashboardToast("Tu rol no permite exportar registros.");
     return;
   }
-  const area = document.getElementById("pdfArea");
-  if (!area) {
-    alert("No se pudo exportar el PDF.");
-    return;
-  }
-
   try {
-    if (exportPdfBtn) {
-      exportPdfBtn.disabled = true;
-    }
-    renderTable(filteredUsers);
+    if (exportPdfBtn) exportPdfBtn.disabled = true;
     await loadPdfDependencies();
     const { jsPDF } = window.jspdf;
-
-    document.body.classList.add("exporting-pdf");
-
-    const canvas = await html2canvas(area, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      windowWidth: document.body.scrollWidth,
-      windowHeight: document.body.scrollHeight,
-      scrollX: 0,
-      scrollY: -window.scrollY
-    });
-
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("l", "mm", "a4");
-
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-
-    const leftRightMargin = 15;
-    const topMarginFirstPage = 15;
-    const topMarginOtherPages = 22;
-    const bottomMargin = 22;
-    const footerHeight = 10;
-
-    const imgWidth = pageWidth - leftRightMargin * 2;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    const pagePadding = 10; // espacio entre páginas
-
-let yOffset = 0; // cuánto de la imagen ya se ha usado
-
-// Primera página
-pdf.addImage(
-  imgData,
-  "PNG",
-  leftRightMargin,
-  topMarginFirstPage,
-  imgWidth,
-  imgHeight
-);
-
-yOffset += pageHeight - topMarginFirstPage - bottomMargin - footerHeight;
-
-// Páginas siguientes
-while (yOffset < imgHeight) {
-  pdf.addPage();
-
-  const position = topMarginOtherPages - yOffset + pagePadding;
-
-  pdf.addImage(
-    imgData,
-    "PNG",
-    leftRightMargin,
-    position,
-    imgWidth,
-    imgHeight
-  );
-
-  yOffset += pageHeight - topMarginOtherPages - bottomMargin - footerHeight;
-}
-
-
-    const totalPages = pdf.internal.getNumberOfPages();
     const exportDate = new Date().toLocaleString("es-ES", {
       day: "2-digit",
       month: "2-digit",
@@ -769,37 +702,230 @@ while (yOffset < imgHeight) {
       hour: "2-digit",
       minute: "2-digit"
     });
+    const headers = [[
+      "Registro", "Nombre", "Email", "Teléfono", "País residencia", "Comunidad",
+      "Cristiana", "Nacimiento", "País nacimiento", "Estado civil", "Hijos"
+    ]];
+    const rows = filteredUsers.map((user) => [
+      formatDate(user.timestamp) || "—",
+      user.nombreCompleto || "—",
+      user.email || "—",
+      internationalPhone(user.telefono, user.paisResidencia) || "—",
+      user.paisResidencia || "—",
+      user.comunidad || "—",
+      user.cristiana || "—",
+      formatDate(user.fechaNacimiento) || "—",
+      user.paisNacimiento || "—",
+      user.estatusMatrimonial || "—",
+      user.hijos || "—"
+    ]);
 
-    pdf.setPage(totalPages);
-    pdf.setFontSize(10);
+    pdf.setTextColor(113, 55, 47);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(16);
+    pdf.text("Lista de usuarias — Mujeres con Propósito", 8, 12);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(8);
     pdf.setTextColor(120, 102, 102);
-    pdf.text(
-      `Exportado el ${exportDate}`,
-      leftRightMargin,
-      pageHeight - 8
-    );
-    pdf.text(
-      `Página ${totalPages} de ${totalPages}`,
-      pageWidth - leftRightMargin,
-      pageHeight - 8,
-      { align: "right" }
-    );
+    pdf.text(`${filteredUsers.length} registro${filteredUsers.length === 1 ? "" : "s"} · Exportado el ${exportDate}`, 8, 18);
 
-    pdf.save("dashboard-mujeres-con-proposito.pdf");
+    if (rows.length) {
+      pdf.autoTable({
+        startY: 23,
+        head: headers,
+        body: rows,
+        theme: "grid",
+        margin: { top: 10, right: 8, bottom: 14, left: 8 },
+        styles: {
+          font: "helvetica",
+          fontSize: 6.3,
+          cellPadding: 1.7,
+          valign: "middle",
+          overflow: "linebreak",
+          lineColor: [232, 216, 208],
+          lineWidth: 0.15,
+          textColor: [64, 45, 41]
+        },
+        headStyles: {
+          fillColor: [153, 62, 53],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          fontSize: 6.5,
+          minCellHeight: 8
+        },
+        alternateRowStyles: { fillColor: [252, 247, 244] },
+        columnStyles: {
+          0: { cellWidth: 19 },
+          1: { cellWidth: 34 },
+          2: { cellWidth: 46 },
+          3: { cellWidth: 27 },
+          4: { cellWidth: 27 },
+          5: { cellWidth: 25 },
+          6: { cellWidth: 18 },
+          7: { cellWidth: 21 },
+          8: { cellWidth: 27 },
+          9: { cellWidth: 24 },
+          10: { cellWidth: 10, halign: "center" }
+        }
+      });
+    } else {
+      pdf.setFontSize(11);
+      pdf.setTextColor(90, 70, 66);
+      pdf.text("No hay registros que coincidan con los filtros actuales.", 8, 32);
+    }
+
+    const totalPages = pdf.internal.getNumberOfPages();
+    for (let page = 1; page <= totalPages; page += 1) {
+      pdf.setPage(page);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(120, 102, 102);
+      pdf.text(`Exportado el ${exportDate}`, 8, pageHeight - 6);
+      pdf.text(`Página ${page} de ${totalPages}`, pageWidth - 8, pageHeight - 6, { align: "right" });
+    }
+
+    pdf.save(`lista-usuarias-${new Date().toISOString().slice(0, 10)}.pdf`);
+    showDashboardToast(`PDF descargado con ${filteredUsers.length} registros.`);
   } catch (error) {
     console.error("ERROR PDF:", error);
     alert("No se pudo generar el PDF.");
   } finally {
-    document.body.classList.remove("exporting-pdf");
-    renderCurrentPage();
-
-    if (exportPdfBtn) {
-      exportPdfBtn.disabled = false;
-    }
+    if (exportPdfBtn) exportPdfBtn.disabled = false;
   }
 }
 
-usersTableBody?.addEventListener("click", function (event) {
+function setRecordField(id, value) {
+  const field = document.getElementById(id);
+  if (field) field.value = value == null ? "" : String(value);
+}
+
+function getRecordField(id, { trim = true } = {}) {
+  const value = document.getElementById(id)?.value ?? "";
+  return trim ? value.trim() : value;
+}
+
+function closeRecordModal() {
+  if (!dashboardRecordModal) return;
+  dashboardRecordModal.hidden = true;
+  document.body.classList.remove("record-modal-open");
+}
+
+function openRecordModal(userId) {
+  if (!canDashboardManageRecords()) {
+    showDashboardToast("Tu rol no permite editar registros.");
+    return;
+  }
+  const user = allUsers.find((entry) => String(entry.id) === String(userId));
+  if (!user || !dashboardRecordModal) return;
+  setRecordField("dashboardRecordId", user.id);
+  setRecordField("dashboardRecordNombre", user.nombre);
+  setRecordField("dashboardRecordApellido", user.apellido);
+  setRecordField("dashboardRecordEmail", user.email);
+  setRecordField("dashboardRecordTelefono", user.telefono);
+  setRecordField("dashboardRecordPaisResidencia", user.paisResidencia);
+  setRecordField("dashboardRecordComunidad", user.comunidad);
+  setRecordField("dashboardRecordCristiana", user.cristiana || "Sí");
+  setRecordField("dashboardRecordFechaNacimiento", String(user.fechaNacimiento || "").slice(0, 10));
+  setRecordField("dashboardRecordPaisNacimiento", user.paisNacimiento);
+  setRecordField("dashboardRecordEstatusMatrimonial", user.estatusMatrimonial);
+  setRecordField("dashboardRecordHijos", user.hijos);
+  setRecordField("dashboardRecordComentarios", user.comentarios);
+  dashboardRecordModal.hidden = false;
+  document.body.classList.add("record-modal-open");
+  document.getElementById("dashboardRecordNombre")?.focus();
+}
+
+dashboardRecordForm?.addEventListener("submit", async function (event) {
+  event.preventDefault();
+  if (!canDashboardManageRecords()) {
+    showDashboardToast("Tu rol no permite editar registros.");
+    return;
+  }
+
+  const userId = getRecordField("dashboardRecordId");
+  const email = getRecordField("dashboardRecordEmail").toLowerCase();
+  const telefono = getRecordField("dashboardRecordTelefono");
+  const duplicate = allUsers.find((user) => String(user.id) !== String(userId) && (
+    (email && String(user.email || "").trim().toLowerCase() === email) ||
+    (phoneDigits(telefono) && phoneDigits(user.telefono) === phoneDigits(telefono))
+  ));
+  if (duplicate) {
+    showDashboardToast("Ya existe otra usuaria con ese correo o teléfono.");
+    return;
+  }
+
+  const payload = {
+    nombre: getRecordField("dashboardRecordNombre"),
+    apellido: getRecordField("dashboardRecordApellido"),
+    email,
+    telefono,
+    pais_residencia: getRecordField("dashboardRecordPaisResidencia"),
+    comunidad: getRecordField("dashboardRecordComunidad"),
+    cristiana: getRecordField("dashboardRecordCristiana", { trim: false }),
+    fecha_nacimiento: getRecordField("dashboardRecordFechaNacimiento", { trim: false }) || null,
+    pais_nacimiento: getRecordField("dashboardRecordPaisNacimiento"),
+    estatus_matrimonial: getRecordField("dashboardRecordEstatusMatrimonial"),
+    hijos: Math.max(0, Number.parseInt(getRecordField("dashboardRecordHijos") || "0", 10) || 0),
+    comments: getRecordField("dashboardRecordComentarios")
+  };
+
+  dashboardRecordSaveBtn.disabled = true;
+  try {
+    const client = getDashboardSupabaseClient();
+    const { error } = await client.from(SUPABASE_TABLE).update(payload).eq("id", userId);
+    if (error) throw error;
+    closeRecordModal();
+    await loadDashboardData();
+    showDashboardToast("Registro actualizado correctamente.");
+  } catch (error) {
+    console.error("ERROR ACTUALIZANDO REGISTRO:", error);
+    const message = error?.code === "23505"
+      ? "Ya existe otra usuaria con ese correo o teléfono."
+      : error?.message || "No se pudo actualizar el registro.";
+    showDashboardToast(message);
+  } finally {
+    dashboardRecordSaveBtn.disabled = false;
+  }
+});
+
+dashboardRecordModal?.addEventListener("click", function (event) {
+  if (event.target.closest("[data-close-record-modal]")) closeRecordModal();
+});
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape" && dashboardRecordModal && !dashboardRecordModal.hidden) closeRecordModal();
+});
+
+usersTableBody?.addEventListener("click", async function (event) {
+  const editButton = event.target.closest("[data-edit-user]");
+  if (editButton) {
+    openRecordModal(editButton.dataset.editUser);
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-delete-user]");
+  if (deleteButton) {
+    if (!canDashboardManageRecords()) {
+      showDashboardToast("Tu rol no permite eliminar registros.");
+      return;
+    }
+    const user = allUsers.find((entry) => String(entry.id) === String(deleteButton.dataset.deleteUser));
+    const label = user?.nombreCompleto || "esta usuaria";
+    if (!window.confirm(`¿Eliminar definitivamente el registro de ${label}? Esta acción no se puede deshacer.`)) return;
+    deleteButton.disabled = true;
+    try {
+      const { error } = await getDashboardSupabaseClient().from(SUPABASE_TABLE).delete().eq("id", deleteButton.dataset.deleteUser);
+      if (error) throw error;
+      await loadDashboardData();
+      showDashboardToast("Registro eliminado correctamente.");
+    } catch (error) {
+      console.error("ERROR ELIMINANDO REGISTRO:", error);
+      deleteButton.disabled = false;
+      showDashboardToast(error?.message || "No se pudo eliminar el registro.");
+    }
+    return;
+  }
+
   const toggleBtn = event.target.closest(".user-row-toggle");
   if (toggleBtn) {
     toggleUserRow(toggleBtn);
@@ -873,10 +999,18 @@ window.addEventListener("resize", function () {
   if (window.innerWidth > 760) closeSidebar();
 });
 
-document.addEventListener("visibilitychange", function () {
-  if (!document.hidden && dashboardLoaded) {
-    loadDashboardData();
+document.addEventListener("visibilitychange", async function () {
+  if (document.hidden || !dashboardLoaded) return;
+
+  try {
+    await loadDashboardRole();
+  } catch (error) {
+    console.error(error);
+    window.location.reload();
+    return;
   }
+
+  loadDashboardData();
 });
 
 dashboardLoginBtn?.addEventListener("click", async function () {

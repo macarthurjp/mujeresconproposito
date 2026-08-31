@@ -245,7 +245,7 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
   await expect(page.locator(".user-row-fields")).toBeHidden();
   await expect(page.locator(".user-row-extra")).toBeHidden();
 
-  await page.locator(".user-row-main").click();
+  await page.locator(".user-row-toggle").click();
   await expect(page.locator(".user-row")).toHaveClass(/expanded/);
   await expect(page.locator(".user-row-fields")).toBeVisible();
   await expect(page.locator(".user-row-extra")).toBeVisible();
@@ -322,4 +322,85 @@ test("dashboard mobile filters and pagination stay compact", async ({ page }) =>
   await expect(page.locator("#paisFilter")).toBeHidden();
   await page.locator("#mobileFiltersBtn").click();
   await expect(page.locator("#paisFilter")).toBeVisible();
+});
+
+test("CRUD can edit or delete a member while read-only roles cannot", async ({ page }) => {
+  await page.goto("/dashboard.html");
+  await page.evaluate(() => {
+    document.getElementById("dashboardAccessScreen").style.display = "none";
+    document.getElementById("pdfArea").style.display = "block";
+    applyDashboardRole("crud");
+    allUsers = [normalizeUser({
+      id: 42,
+      nombre: "Díomeris",
+      apellido: "Ferrer",
+      email: "diomeris@example.com",
+      telefono: "+18096941260",
+      pais_residencia: "República Dominicana",
+      comunidad: "República Dominicana",
+      cristiana: "Sí"
+    }, 0)];
+    filteredUsers = [...allUsers];
+    renderCurrentPage();
+  });
+
+  await page.locator(".user-row-toggle").click();
+  await expect(page.getByRole("button", { name: "Editar" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Eliminar" })).toBeVisible();
+  await page.getByRole("button", { name: "Editar" }).click();
+  await expect(page.locator("#dashboardRecordModal")).toBeVisible();
+  await expect(page.locator("#dashboardRecordNombre")).toHaveValue("Díomeris");
+  await expect(page.locator("#dashboardRecordEmail")).toHaveValue("diomeris@example.com");
+  await page.getByRole("button", { name: "Cancelar" }).click();
+
+  await page.evaluate(() => applyDashboardRole("read_only"));
+  await page.locator(".user-row-toggle").click();
+  await expect(page.getByRole("button", { name: "Editar" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Eliminar" })).toHaveCount(0);
+});
+
+test("dashboard PDF exports a clean data table instead of the full page", async ({ page }) => {
+  await page.route("**/jspdf.umd.min.js", (route) => route.fulfill({
+    contentType: "application/javascript",
+    body: `
+      class MockPdf {
+        static API = { autoTable() {} };
+        constructor() {
+          this.internal = { pageSize: { getWidth: () => 297, getHeight: () => 210 }, getNumberOfPages: () => 1 };
+        }
+        setTextColor() {} setFont() {} setFontSize() {} text() {} setPage() {}
+        autoTable(options) { window.__pdfTableOptions = options; }
+        save(name) { window.__pdfSavedName = name; }
+      }
+      window.jspdf = { jsPDF: MockPdf };
+    `
+  }));
+  await page.route("**/jspdf.plugin.autotable.min.js", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
+  await page.goto("/dashboard.html");
+  await page.evaluate(() => {
+    applyDashboardRole("read_export");
+    filteredUsers = [normalizeUser({
+      nombre: "Ana",
+      apellido: "Pérez",
+      email: "ana@example.com",
+      telefono: "621000",
+      pais_residencia: "Luxemburgo",
+      comunidad: "Europa",
+      cristiana: "Sí"
+    }, 0)];
+  });
+
+  await page.evaluate(() => exportPDF());
+  await expect.poll(() => page.evaluate(() => window.__pdfSavedName || "")).toMatch(/^lista-usuarias-\d{4}-\d{2}-\d{2}\.pdf$/);
+  const table = await page.evaluate(() => ({
+    headers: window.__pdfTableOptions.head[0],
+    firstRow: window.__pdfTableOptions.body[0]
+  }));
+  expect(table.headers).toContain("Nombre");
+  expect(table.headers).toContain("País residencia");
+  expect(table.headers).not.toContain("Comentarios");
+  expect(table.headers).toHaveLength(11);
+  expect(table.firstRow).toHaveLength(11);
+  expect(table.firstRow).toContain("Ana Pérez");
+  expect(table.firstRow).toContain("ana@example.com");
 });

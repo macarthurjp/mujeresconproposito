@@ -8,7 +8,7 @@
 
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js';"></script>
 
-  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260831-roles-1" />
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=20260831-record-crud-1" />
 </head>
 <body class="private-locked" data-private-page="dashboard">
   <section class="private-access-screen" id="dashboardAccessScreen">
@@ -141,12 +141,40 @@
     </div>
     <button class="sidebar-backdrop no-export" id="sidebarBackdrop" type="button" aria-label="Cerrar menú"></button>
     <div class="dashboard-toast no-export" id="dashboardToast" role="status" aria-live="polite"></div>
+    <div class="dashboard-record-modal no-export" id="dashboardRecordModal" hidden>
+      <button class="dashboard-record-modal-backdrop" type="button" data-close-record-modal aria-label="Cerrar edición"></button>
+      <section class="dashboard-record-dialog" role="dialog" aria-modal="true" aria-labelledby="dashboardRecordModalTitle">
+        <div class="dashboard-record-dialog-head">
+          <div><span>Gestión de registros</span><h2 id="dashboardRecordModalTitle">Editar usuaria</h2></div>
+          <button type="button" class="dashboard-record-close" data-close-record-modal aria-label="Cerrar">×</button>
+        </div>
+        <form id="dashboardRecordForm" class="dashboard-record-form">
+          <input type="hidden" id="dashboardRecordId" />
+          <label>Nombre<input type="text" id="dashboardRecordNombre" required /></label>
+          <label>Apellido<input type="text" id="dashboardRecordApellido" /></label>
+          <label>Correo electrónico<input type="email" id="dashboardRecordEmail" required /></label>
+          <label>Teléfono<input type="tel" id="dashboardRecordTelefono" /></label>
+          <label>País de residencia<input type="text" id="dashboardRecordPaisResidencia" /></label>
+          <label>Comunidad<input type="text" id="dashboardRecordComunidad" /></label>
+          <label>Cristiana<select id="dashboardRecordCristiana"><option value="Sí">Sí</option><option value="Todavía">Todavía</option><option value="No">No</option></select></label>
+          <label>Fecha de nacimiento<input type="date" id="dashboardRecordFechaNacimiento" /></label>
+          <label>País de nacimiento<input type="text" id="dashboardRecordPaisNacimiento" /></label>
+          <label>Estatus matrimonial<input type="text" id="dashboardRecordEstatusMatrimonial" /></label>
+          <label>Hijos<input type="number" id="dashboardRecordHijos" min="0" step="1" /></label>
+          <label class="dashboard-record-comments">Comentarios<textarea id="dashboardRecordComentarios" rows="3"></textarea></label>
+          <div class="dashboard-record-actions">
+            <button type="button" class="btn btn-soft" data-close-record-modal>Cancelar</button>
+            <button type="submit" class="btn btn-primary" id="dashboardRecordSaveBtn">Guardar cambios</button>
+          </div>
+        </form>
+      </section>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>
-  <script src="assets/js/dashboard.js?v=20260831-roles-1"></script>
+  <script src="assets/js/dashboard.js?v=20260831-record-crud-1"></script>
 </body>
 
 </html>
