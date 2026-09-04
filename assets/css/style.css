@@ -7164,6 +7164,7 @@ select option,
 .contact-form-card select option,
 .modal-content select,
 .modal-content select option {
+    font-family: inherit !important;
     font-weight: 400 !important;
 }
 

@@ -2568,7 +2568,7 @@ function renderContactCalendar(apiData = {}) {
     return fotoUrl;
   };
 
-  window.mcpSaveEvento = async function ({ icono, titulo, horario, link, orden }) {
+  window.mcpSaveEvento = async function ({ icono, titulo, horario, link, orden, activa }) {
     const client = getAdminSupabaseClient();
     const { error } = await client.from("eventos").insert({
       icono: icono || "✦",
@@ -2576,7 +2576,7 @@ function renderContactCalendar(apiData = {}) {
       horario,
       link,
       orden: Number(orden || 1),
-      activa: true
+      activa: activa !== false
     });
     if (error) throw error;
     return true;
@@ -4001,13 +4001,25 @@ function renderContactCalendar(apiData = {}) {
 	    throw new Error(message);
 	  }
 
-	  async function loadAdminRoles() {
+	  let adminRolesCache = [];
+
+	  function matchesRoleFilter(entry, filter) {
+	    if (filter === "all") return true;
+	    if (filter === "revoked") return Boolean(entry.isRevoked);
+	    if (filter === "super_admin") return Boolean(entry.isSuperAdmin);
+	    return !entry.isRevoked && (entry.permissions || []).includes(filter);
+	  }
+
+	  function renderAdminRolesList() {
 	    if (!adminRolesList) return;
-	    const result = await invokeManageUsers({ action: "list" });
-	    const users = Array.isArray(result?.users) ? result.users : [];
-	    users.sort((a, b) => String(a.email || "").localeCompare(String(b.email || ""), "es"));
-	    const currentUser = users.find((entry) => entry.isCurrentUser);
-	    if (adminCurrentEmail && currentUser?.email) adminCurrentEmail.value = currentUser.email;
+	    const searchTerm = document.getElementById("adminRolesSearch")?.value.trim().toLowerCase() || "";
+	    const filter = document.getElementById("adminRolesFilter")?.value || "all";
+	    const users = adminRolesCache.filter((entry) => {
+	      const matchesSearch = !searchTerm || String(entry.email || "").toLowerCase().includes(searchTerm);
+	      return matchesSearch && matchesRoleFilter(entry, filter);
+	    });
+	    const countEl = document.getElementById("adminRolesCount");
+	    if (countEl) countEl.textContent = String(adminRolesCache.length);
 	    adminRolesList.innerHTML = users.length ? users.map((entry) => {
 	      const isCurrentUser = Boolean(entry.isCurrentUser);
 	      const isRevoked = Boolean(entry.isRevoked);
@@ -4027,9 +4039,23 @@ function renderContactCalendar(apiData = {}) {
 	          </div>
 	        </div>
 	      `;
-	    }).join("") : `<div class="admin-empty">No hay cuentas autorizadas.</div>`;
+	    }).join("") : `<div class="admin-empty">${adminRolesCache.length ? "Ningún usuario coincide con la búsqueda." : "No hay cuentas autorizadas."}</div>`;
 	    adminRolesList.querySelectorAll(".admin-permission-group").forEach((group) => wirePermissionCheckboxGroup(group));
 	  }
+
+	  async function loadAdminRoles() {
+	    if (!adminRolesList) return;
+	    const result = await invokeManageUsers({ action: "list" });
+	    const users = Array.isArray(result?.users) ? result.users : [];
+	    users.sort((a, b) => String(a.email || "").localeCompare(String(b.email || ""), "es"));
+	    const currentUser = users.find((entry) => entry.isCurrentUser);
+	    if (adminCurrentEmail && currentUser?.email) adminCurrentEmail.value = currentUser.email;
+	    adminRolesCache = users;
+	    renderAdminRolesList();
+	  }
+
+	  document.getElementById("adminRolesSearch")?.addEventListener("input", renderAdminRolesList);
+	  document.getElementById("adminRolesFilter")?.addEventListener("change", renderAdminRolesList);
 
 	  adminRolesList?.addEventListener("change", async function (event) {
 	    const checkbox = event.target.closest('[data-permission]');
@@ -4357,9 +4383,68 @@ function renderContactCalendar(apiData = {}) {
     return buildEventSchedule({ frequency, days, time });
   }
 
+  function wireSimpleAdminModal(openBtn, overlay, closeBtn, onOpen) {
+    if (!overlay) return () => {};
+    const close = () => {
+      overlay.hidden = true;
+      document.body.style.overflow = "";
+    };
+    openBtn?.addEventListener("click", () => {
+      onOpen?.();
+      overlay.hidden = false;
+      document.body.style.overflow = "hidden";
+    });
+    closeBtn?.addEventListener("click", close);
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) close(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !overlay.hidden) close(); });
+    return close;
+  }
+
+  const closeAdminEventoModal = wireSimpleAdminModal(
+    document.getElementById("adminEventoOpen"),
+    document.getElementById("adminEventoOverlay"),
+    document.getElementById("adminEventoClose")
+  );
+
+  const eventoIconoDropzone = document.getElementById("adminEventoIconoDropzone");
+  const eventoIconoInput = document.getElementById("adminEventoIconoFoto");
+  function updateEventoIconoFileName() {
+    const label = document.getElementById("adminEventoIconoFileName");
+    const file = eventoIconoInput?.files?.[0];
+    if (label) label.textContent = file ? file.name : "";
+  }
+  eventoIconoDropzone?.addEventListener("click", () => eventoIconoInput?.click());
+  eventoIconoInput?.addEventListener("change", updateEventoIconoFileName);
+  ["dragenter", "dragover"].forEach((evt) => eventoIconoDropzone?.addEventListener(evt, (event) => {
+    event.preventDefault();
+    eventoIconoDropzone.classList.add("is-dragover");
+  }));
+  ["dragleave", "dragend"].forEach((evt) => eventoIconoDropzone?.addEventListener(evt, () => {
+    eventoIconoDropzone.classList.remove("is-dragover");
+  }));
+  eventoIconoDropzone?.addEventListener("drop", (event) => {
+    event.preventDefault();
+    eventoIconoDropzone.classList.remove("is-dragover");
+    if (event.dataTransfer?.files?.length && eventoIconoInput) {
+      eventoIconoInput.files = event.dataTransfer.files;
+      updateEventoIconoFileName();
+    }
+  });
+
+  document.querySelectorAll("[data-evt-step]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const ordenInput = document.getElementById("adminEventoOrden");
+      if (!ordenInput) return;
+      const step = Number(button.dataset.evtStep || 1);
+      ordenInput.value = Math.max(1, (Number(ordenInput.value) || 1) + step);
+    });
+  });
+
   document.getElementById("adminEventoCancel")?.addEventListener("click", () => {
     document.getElementById("adminEventForm")?.reset();
     updateScheduleDaysVisibility(adminEventoFrecuencia, adminEventoDias);
+    updateEventoIconoFileName();
+    closeAdminEventoModal();
   });
 
   document.getElementById("adminEventForm")?.addEventListener("submit", async function (event) {
@@ -4378,12 +4463,15 @@ function renderContactCalendar(apiData = {}) {
         titulo: document.getElementById("adminEventoTitulo")?.value || "",
         horario: getAdminEventScheduleFromForm(),
         link: document.getElementById("adminEventoLink")?.value || "",
+        activa: document.getElementById("adminEventoActiva")?.checked !== false,
         orden: document.getElementById("adminEventoOrden")?.value || 1
 	      });
 
 	      this.reset();
 	      updateScheduleDaysVisibility(adminEventoFrecuencia, adminEventoDias);
+	      updateEventoIconoFileName();
 	      showAdminMsg(msg, "Evento guardado correctamente.", true);
+	      closeAdminEventoModal();
 	      await loadAdminContent();
 	    } catch (error) {
       console.error(error);
@@ -4392,8 +4480,15 @@ function renderContactCalendar(apiData = {}) {
     }
   });
 
+  const closeAdminDestacadaModal = wireSimpleAdminModal(
+    document.getElementById("adminDestacadaOpen"),
+    document.getElementById("adminDestacadaOverlay"),
+    document.getElementById("adminDestacadaClose")
+  );
+
   document.getElementById("adminDestacadaCancel")?.addEventListener("click", () => {
     document.getElementById("adminDestacadaForm")?.reset();
+    closeAdminDestacadaModal();
   });
 
   document.getElementById("adminDestacadaForm")?.addEventListener("submit", async function (event) {
@@ -4412,6 +4507,7 @@ function renderContactCalendar(apiData = {}) {
 
 	      this.reset();
 	      showAdminMsg(msg, "Destacada subida correctamente.", true);
+	      closeAdminDestacadaModal();
 	      await loadAdminContent();
 	    } catch (error) {
       console.error(error);
@@ -4432,10 +4528,88 @@ function renderContactCalendar(apiData = {}) {
     if (eventInput && this.value) eventInput.value = this.value;
   });
 
+  document.getElementById("adminGaleriaNewCategoryToggle")?.addEventListener("click", () => {
+    const eventSelect = document.getElementById("adminGaleriaEventoSelect");
+    const eventInput = document.getElementById("adminGaleriaTexto");
+    if (eventSelect) eventSelect.value = "";
+    if (eventInput) { eventInput.value = ""; eventInput.focus(); }
+  });
+
+  let galleryPendingFiles = [];
+  const galleryThumbUrls = new Map();
+
+  function renderGalleryThumbs() {
+    const grid = document.getElementById("adminGaleriaThumbs");
+    const head = document.getElementById("adminGaleriaThumbsHead");
+    const count = document.getElementById("adminGaleriaThumbsCount");
+    if (!grid || !head || !count) return;
+    head.hidden = galleryPendingFiles.length === 0;
+    grid.hidden = galleryPendingFiles.length === 0;
+    count.textContent = String(galleryPendingFiles.length);
+    grid.innerHTML = galleryPendingFiles.map((file, index) => {
+      let url = galleryThumbUrls.get(file);
+      if (!url) { url = URL.createObjectURL(file); galleryThumbUrls.set(file, url); }
+      return `<div class="admin-gallery-thumb" data-gallery-thumb-index="${index}"><img src="${url}" alt="" /><button type="button" class="admin-gallery-thumb-remove" data-gallery-thumb-remove="${index}" aria-label="Quitar foto">×</button></div>`;
+    }).join("") + `<div class="admin-gallery-thumb-add" id="adminGaleriaAddMore"><i class="fa-solid fa-plus" aria-hidden="true"></i>Agregar más fotos</div>`;
+  }
+
+  function resetGalleryPendingFiles() {
+    galleryThumbUrls.forEach((url) => URL.revokeObjectURL(url));
+    galleryThumbUrls.clear();
+    galleryPendingFiles = [];
+    renderGalleryThumbs();
+  }
+
+  function addGalleryFiles(fileList) {
+    Array.from(fileList || []).forEach((file) => {
+      if (file.type.startsWith("image/")) galleryPendingFiles.push(file);
+    });
+    renderGalleryThumbs();
+  }
+
+  const galleryDropzone = document.getElementById("adminGaleriaDropzone");
+  const galleryFileInput = document.getElementById("adminGaleriaFoto");
+  galleryDropzone?.addEventListener("click", () => galleryFileInput?.click());
+  galleryFileInput?.addEventListener("change", () => {
+    addGalleryFiles(galleryFileInput.files);
+    galleryFileInput.value = "";
+  });
+  ["dragenter", "dragover"].forEach((evt) => galleryDropzone?.addEventListener(evt, (event) => {
+    event.preventDefault();
+    galleryDropzone.classList.add("is-dragover");
+  }));
+  ["dragleave", "dragend"].forEach((evt) => galleryDropzone?.addEventListener(evt, () => {
+    galleryDropzone.classList.remove("is-dragover");
+  }));
+  galleryDropzone?.addEventListener("drop", (event) => {
+    event.preventDefault();
+    galleryDropzone.classList.remove("is-dragover");
+    addGalleryFiles(event.dataTransfer?.files);
+  });
+
+  document.getElementById("adminGaleriaThumbs")?.addEventListener("click", (event) => {
+    if (event.target.closest("#adminGaleriaAddMore")) { galleryFileInput?.click(); return; }
+    const removeBtn = event.target.closest("[data-gallery-thumb-remove]");
+    if (!removeBtn) return;
+    const index = Number(removeBtn.dataset.galleryThumbRemove);
+    const [removed] = galleryPendingFiles.splice(index, 1);
+    if (removed && galleryThumbUrls.has(removed)) { URL.revokeObjectURL(galleryThumbUrls.get(removed)); galleryThumbUrls.delete(removed); }
+    renderGalleryThumbs();
+  });
+
+  document.getElementById("adminGaleriaClearAll")?.addEventListener("click", resetGalleryPendingFiles);
+
+  const closeAdminGaleriaModal = wireSimpleAdminModal(
+    document.getElementById("adminGaleriaOpen"),
+    document.getElementById("adminGaleriaOverlay"),
+    document.getElementById("adminGaleriaClose"),
+    () => { document.getElementById("adminGaleriaForm")?.reset(); resetGalleryPendingFiles(); populateAdminGalleryEventOptions(); }
+  );
+
   document.getElementById("adminGaleriaForm")?.addEventListener("submit", async function (event) {
     event.preventDefault();
     const msg = document.getElementById("adminGaleriaMsg");
-    const files = Array.from(document.getElementById("adminGaleriaFoto")?.files || []);
+    const files = galleryPendingFiles;
     const community = document.getElementById("adminGaleriaCategoria")?.value || "usa";
     const selectedEvent = document.getElementById("adminGaleriaEventoSelect")?.value || "";
     const typedEvent = document.getElementById("adminGaleriaTexto")?.value || "";
@@ -4465,8 +4639,10 @@ function renderContactCalendar(apiData = {}) {
       }
 
 	      this.reset();
+	      resetGalleryPendingFiles();
 	      populateAdminGalleryEventOptions();
 	      showAdminMsg(msg, files.length > 1 ? `${files.length} fotos subidas correctamente.` : "Foto subida correctamente.", true);
+	      closeAdminGaleriaModal();
 	      await loadAdminContent();
 	    } catch (error) {
       console.error(error);
@@ -4565,9 +4741,16 @@ function renderContactCalendar(apiData = {}) {
 	    });
 	  });
 
+	  const closeAdminYoutubeModal = wireSimpleAdminModal(
+	    document.getElementById("adminYoutubeOpen"),
+	    document.getElementById("adminYoutubeOverlay"),
+	    document.getElementById("adminYoutubeClose")
+	  );
+
 	  document.getElementById("adminYoutubeCancel")?.addEventListener("click", () => {
 	    document.getElementById("adminYoutubeForm")?.reset();
 	    resetYoutubeFormExtras();
+	    closeAdminYoutubeModal();
 	  });
 
 	  updateYoutubePreview();
@@ -4588,6 +4771,7 @@ function renderContactCalendar(apiData = {}) {
 	      this.reset();
 	      resetYoutubeFormExtras();
 	      showAdminMsg(msg, "Video guardado correctamente.", true);
+	      closeAdminYoutubeModal();
 	      await loadAdminContent();
 	    } catch (error) {
 	      console.error(error);

@@ -124,31 +124,38 @@
         </div>
 
         <div class="admin-tab-panel active" id="admin-eventos">
-          <div class="admin-card">
-            <h3>Nuevo evento</h3>
-            <p class="admin-card-subtitle">Programa un evento recurrente y compártelo con la comunidad.</p>
+          <div class="admin-edit-modal" id="adminEventoOverlay" hidden>
+          <div class="admin-card admin-edit-card" role="dialog" aria-modal="true" aria-labelledby="adminEventFormTitle">
+            <button type="button" class="admin-modal-x" id="adminEventoClose" aria-label="Cerrar">×</button>
+            <div class="admin-gallery-modal-head">
+              <div class="admin-gallery-modal-icon"><i class="fa-solid fa-calendar-days"></i></div>
+              <h3 id="adminEventFormTitle">Nuevo evento</h3>
+              <p class="admin-card-subtitle">Programa un evento recurrente y compártelo con la comunidad.</p>
+            </div>
             <form id="adminEventForm" class="admin-form admin-evt-form">
               <div class="admin-evt-row">
-                <label>
-                  Icono
+                <label><i class="fa-regular fa-face-smile" aria-hidden="true"></i> Icono
                   <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
                 </label>
-                <label>
-                  Imagen de icono
-                  <input type="file" id="adminEventoIconoFoto" accept="image/*" />
-                  <small class="admin-yt-help">Opcional. Si subes una imagen, reemplaza el emoji.</small>
-                </label>
+                <div>
+                  <label><i class="fa-regular fa-image" aria-hidden="true"></i> Imagen de icono <small class="admin-yt-help">(opcional, reemplaza el emoji)</small></label>
+                  <div class="admin-gallery-dropzone admin-gallery-dropzone-compact" id="adminEventoIconoDropzone">
+                    <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                    <strong>Sube una imagen</strong>
+                    <span>o arrastra y suelta aquí</span>
+                    <input type="file" id="adminEventoIconoFoto" accept="image/*" hidden />
+                  </div>
+                  <small class="admin-yt-help" id="adminEventoIconoFileName"></small>
+                </div>
               </div>
 
-              <label>
-                Título
+              <label><i class="fa-solid fa-font" aria-hidden="true"></i> Título del evento
                 <input type="text" id="adminEventoTitulo" placeholder="Ej: Oración Matutina" required />
               </label>
 
-              <div class="admin-yt-divider"><span>Horario</span></div>
+              <div class="admin-yt-divider"><i class="fa-regular fa-clock" aria-hidden="true"></i><span>Horario</span></div>
 
-              <label>
-                Frecuencia
+              <label><i class="fa-solid fa-repeat" aria-hidden="true"></i> Frecuencia
                 <select id="adminEventoFrecuencia" required>
                   <option value="diario">Diario</option>
                   <option value="semanal">Semanal</option>
@@ -157,7 +164,7 @@
               </label>
 
               <div class="admin-time-field">
-                <span>Hora</span>
+                <span><i class="fa-regular fa-clock" aria-hidden="true"></i> Hora</span>
                 <div class="admin-time-selects">
                   <select id="adminEventoHora" aria-label="Hora del evento" required></select>
                   <select id="adminEventoMinutos" aria-label="Minutos del evento" required>
@@ -180,24 +187,38 @@
                 <label><input type="checkbox" value="Domingo" /> Domingo</label>
               </div>
 
-              <div class="admin-yt-divider"><span>Publicación</span></div>
+              <div class="admin-yt-divider"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i><span>Publicación</span></div>
 
-              <label>
-                Link
-                <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." required />
+              <label><i class="fa-solid fa-link" aria-hidden="true"></i> Link <small class="admin-yt-help">(opcional)</small>
+                <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." />
+                <small class="admin-yt-help">Enlace de la reunión, transmisión o más información.</small>
               </label>
 
-              <label>
-                Orden
-                <input type="number" id="adminEventoOrden" value="1" min="1" />
+              <label><i class="fa-solid fa-arrow-up-short-wide" aria-hidden="true"></i> Orden
+                <div class="admin-yt-stepper">
+                  <button type="button" class="admin-yt-stepper-btn" data-evt-step="-1" aria-label="Disminuir orden">−</button>
+                  <input type="number" id="adminEventoOrden" value="1" min="1" />
+                  <button type="button" class="admin-yt-stepper-btn" data-evt-step="1" aria-label="Aumentar orden">+</button>
+                </div>
+                <small class="admin-yt-help">Define en qué posición se mostrará este evento.</small>
+              </label>
+
+              <label class="admin-toggle-field">
+                <span class="admin-toggle-switch"><input type="checkbox" id="adminEventoActiva" checked /><span class="admin-toggle-track"></span></span>
+                <span class="admin-toggle-copy"><strong>Publicar evento</strong><small>El evento será visible para la comunidad.</small></span>
               </label>
 
               <div class="admin-yt-submit-row">
                 <button type="button" class="admin-yt-cancel" id="adminEventoCancel">Cancelar</button>
-                <button type="submit" class="btn">Guardar evento</button>
+                <button type="submit" class="btn"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i> Crear evento</button>
               </div>
               <div id="adminEventoMsg" class="form-message" style="display:none;"></div>
             </form>
+          </div>
+          </div>
+          <div class="admin-devotional-page-head">
+            <div><h3>Eventos</h3></div>
+            <button type="button" class="btn" id="adminEventoOpen"><i class="fa-solid fa-plus"></i> Nuevo evento</button>
           </div>
           <div class="admin-card admin-list-card">
             <h3>Eventos publicados</h3>
@@ -208,8 +229,10 @@
         </div>
 
         <div class="admin-tab-panel" id="admin-destacadas">
-          <div class="admin-card">
-            <h3>Nueva destacada</h3>
+          <div class="admin-edit-modal" id="adminDestacadaOverlay" hidden>
+          <div class="admin-card admin-edit-card" role="dialog" aria-modal="true" aria-labelledby="adminDestacadaFormTitle">
+            <button type="button" class="admin-modal-x" id="adminDestacadaClose" aria-label="Cerrar">×</button>
+            <h3 id="adminDestacadaFormTitle">Nueva destacada</h3>
             <p class="admin-card-subtitle">Agrega una foto destacada para mostrarla en la página principal.</p>
             <form id="adminDestacadaForm" class="admin-form admin-evt-form">
               <label>
@@ -239,6 +262,11 @@
               <div id="adminDestacadaMsg" class="form-message" style="display:none;"></div>
             </form>
           </div>
+          </div>
+          <div class="admin-devotional-page-head">
+            <div><h3>Destacadas</h3></div>
+            <button type="button" class="btn" id="adminDestacadaOpen"><i class="fa-solid fa-plus"></i> Nueva destacada</button>
+          </div>
           <div class="admin-card admin-list-card">
             <h3>Destacadas publicadas</h3>
             <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
@@ -248,49 +276,70 @@
         </div>
 
         <div class="admin-tab-panel" id="admin-galeria">
-          <div class="admin-card">
-            <h3>Nueva foto de galería</h3>
-            <p class="admin-card-subtitle">Sube una o varias fotos y organízalas por comunidad y categoría.</p>
+          <div class="admin-edit-modal" id="adminGaleriaOverlay" hidden>
+          <div class="admin-card admin-edit-card admin-gallery-modal" role="dialog" aria-modal="true" aria-labelledby="adminGaleriaFormTitle">
+            <button type="button" class="admin-modal-x" id="adminGaleriaClose" aria-label="Cerrar">×</button>
+            <div class="admin-gallery-modal-head">
+              <div class="admin-gallery-modal-icon"><i class="fa-solid fa-camera"></i></div>
+              <h3 id="adminGaleriaFormTitle">Nueva foto de galería</h3>
+              <p class="admin-card-subtitle">Sube una o varias fotos y organízalas por comunidad y categoría.</p>
+            </div>
             <form id="adminGaleriaForm" class="admin-form admin-form-clean">
-              <div class="admin-field">
-                <label for="adminGaleriaCategoria">Comunidad</label>
-                <select id="adminGaleriaCategoria" required>
-                  <option value="usa">Estados Unidos</option>
-                  <option value="rd">República Dominicana</option>
-                  <option value="eu">Europa</option>
-                </select>
+              <div class="admin-gallery-fields-row">
+                <div class="admin-field">
+                  <label for="adminGaleriaCategoria"><i class="fa-solid fa-users" aria-hidden="true"></i> Comunidad</label>
+                  <select id="adminGaleriaCategoria" required>
+                    <option value="usa">Estados Unidos</option>
+                    <option value="rd">República Dominicana</option>
+                    <option value="eu">Europa</option>
+                  </select>
+                </div>
+
+                <div class="admin-field">
+                  <label for="adminGaleriaEventoSelect"><i class="fa-solid fa-folder" aria-hidden="true"></i> Categoría / evento</label>
+                  <select id="adminGaleriaEventoSelect">
+                    <option value="">Nueva categoría</option>
+                  </select>
+                </div>
               </div>
 
-              <div class="admin-field">
-                <label for="adminGaleriaEventoSelect">Categoría / evento</label>
-                <select id="adminGaleriaEventoSelect">
-                  <option value="">Nueva categoría</option>
-                </select>
-              </div>
+              <button type="button" class="admin-gallery-new-category-link" id="adminGaleriaNewCategoryToggle"><i class="fa-solid fa-plus" aria-hidden="true"></i> Crear nueva categoría</button>
 
               <div class="admin-field admin-field-full">
                 <label for="adminGaleriaTexto">Nombre de la categoría</label>
                 <input type="text" id="adminGaleriaTexto" placeholder="Ej. Picnic de Verano 2024" required />
               </div>
 
-              <div class="admin-field admin-field-full">
-                <label for="adminGaleriaFoto">Foto(s)</label>
-                <input type="file" id="adminGaleriaFoto" accept="image/*" multiple required />
+              <div class="admin-gallery-dropzone" id="adminGaleriaDropzone">
+                <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                <strong>Arrastra tus fotos aquí</strong>
+                <span>o haz clic para seleccionar</span>
+                <small>PNG • JPG • WEBP • Hasta 20 MB por foto</small>
+                <input type="file" id="adminGaleriaFoto" accept="image/jpeg,image/png,image/webp" multiple hidden />
               </div>
 
-              <div class="admin-checkbox-field">
-                <label class="admin-checkbox-label">
-                  <input type="checkbox" id="adminGaleriaPortada" />
-                  Usar como foto de portada de esta categoría
-                </label>
+              <div class="admin-gallery-thumbs-head" id="adminGaleriaThumbsHead" hidden>
+                <span>Fotos seleccionadas (<span id="adminGaleriaThumbsCount">0</span>)</span>
+                <button type="button" id="adminGaleriaClearAll"><i class="fa-regular fa-trash-can" aria-hidden="true"></i> Limpiar todo</button>
               </div>
+              <div class="admin-gallery-thumbs" id="adminGaleriaThumbs"></div>
+
+              <label class="admin-toggle-field">
+                <span class="admin-toggle-switch"><input type="checkbox" id="adminGaleriaPortada" /><span class="admin-toggle-track"></span></span>
+                <span class="admin-toggle-copy"><strong>Usar la primera foto como portada de esta categoría</strong><small>Esta imagen se mostrará como portada en la galería.</small></span>
+              </label>
 
               <div class="admin-form-actions">
-                <button type="submit" class="btn">Subir foto</button>
+                <button type="submit" class="btn"><i class="fa-solid fa-upload" aria-hidden="true"></i> Subir fotografías</button>
               </div>
 
               <div id="adminGaleriaMsg" class="form-message" style="display:none;"></div>
             </form>
+          </div>
+          </div>
+          <div class="admin-devotional-page-head">
+            <div><h3>Galería</h3></div>
+            <button type="button" class="btn" id="adminGaleriaOpen"><i class="fa-solid fa-plus"></i> Nueva foto</button>
           </div>
           <div class="admin-card admin-list-card">
             <h3>Fotos publicadas</h3>
@@ -301,8 +350,10 @@
         </div>
 
         <div class="admin-tab-panel" id="admin-youtube">
-          <div class="admin-card">
-            <h3>Nuevo video</h3>
+          <div class="admin-edit-modal" id="adminYoutubeOverlay" hidden>
+          <div class="admin-card admin-edit-card" role="dialog" aria-modal="true" aria-labelledby="adminYoutubeFormTitle">
+            <button type="button" class="admin-modal-x" id="adminYoutubeClose" aria-label="Cerrar">×</button>
+            <h3 id="adminYoutubeFormTitle">Nuevo video</h3>
             <p class="admin-card-subtitle">Pega el enlace de YouTube y personaliza cómo se verá este video en el sitio público.</p>
             <form id="adminYoutubeForm" class="admin-form admin-yt-form">
               <div class="admin-yt-preview">
@@ -371,6 +422,11 @@
 
               <div id="adminYoutubeMsg" class="form-message" style="display:none;"></div>
             </form>
+          </div>
+          </div>
+          <div class="admin-devotional-page-head">
+            <div><h3>YouTube</h3></div>
+            <button type="button" class="btn" id="adminYoutubeOpen"><i class="fa-solid fa-plus"></i> Nuevo video</button>
           </div>
           <div class="admin-card admin-list-card">
             <h3>Videos publicados</h3>
@@ -513,22 +569,28 @@
         </div>
 
         <div class="admin-tab-panel" id="admin-roles">
-          <div class="admin-card admin-list-card admin-roles-card">
-            <div class="admin-roles-head">
-              <div>
-                <span class="admin-dashboard-kicker">Gestión de acceso</span>
-                <h3>Usuarios y roles</h3>
-              </div>
-              <button type="button" class="admin-import-btn" id="adminRefreshRoles">Actualizar</button>
-            </div>
-            <p class="admin-reorder-hint">Asigna el nivel de acceso de cada cuenta autorizada. Tu rol Super Admin está protegido para evitar que pierdas el acceso.</p>
+          <div class="admin-gallery-modal-head admin-roles-page-head">
+            <div class="admin-gallery-modal-icon"><i class="fa-solid fa-users"></i></div>
+            <span class="admin-dashboard-kicker">Gestión de acceso</span>
+            <h3>Usuarios y roles</h3>
+            <p class="admin-card-subtitle">Asigna el nivel de acceso de cada cuenta autorizada. Tu rol Super Admin está protegido para evitar que pierdas el acceso.</p>
+          </div>
+
+          <div class="admin-card admin-roles-card">
+            <h3 class="admin-roles-card-title"><i class="fa-regular fa-envelope" aria-hidden="true"></i> Correo del Super Admin</h3>
+            <p class="admin-card-subtitle admin-roles-card-subtitle">Este correo se usa para la administración principal de la plataforma.</p>
             <form id="adminCurrentEmailForm" class="admin-current-email-form">
               <div class="admin-field">
-                <label for="adminCurrentEmail">Correo del Super Admin</label>
+                <label for="adminCurrentEmail">Correo</label>
                 <input type="email" id="adminCurrentEmail" autocomplete="email" required />
               </div>
-              <button type="submit" class="admin-role-access-btn restore">Cambiar mi correo</button>
+              <button type="submit" class="admin-role-access-btn restore"><i class="fa-solid fa-pen" aria-hidden="true"></i> Cambiar mi correo</button>
             </form>
+          </div>
+
+          <div class="admin-card admin-roles-card">
+            <h3 class="admin-roles-card-title"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Crear nuevo usuario</h3>
+            <p class="admin-card-subtitle admin-roles-card-subtitle">Añade un usuario y asigna sus permisos.</p>
             <form id="adminInviteUserForm" class="admin-invite-form">
               <div class="admin-field">
                 <label for="adminInviteEmail">Correo del nuevo usuario</label>
@@ -541,10 +603,31 @@
                 <label class="admin-permission-check"><input type="checkbox" data-permission="read_export"> Manager (exportar)</label>
                 <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin"> Super Admin</label>
               </div>
-              <button type="submit" class="btn">Crear usuario</button>
+              <button type="submit" class="btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> Crear usuario</button>
             </form>
+          </div>
+
+          <div class="admin-card admin-list-card admin-roles-card">
+            <div class="admin-roles-head">
+              <h3>Usuarios registrados (<span id="adminRolesCount">0</span>)</h3>
+              <button type="button" class="admin-import-btn" id="adminRefreshRoles">Actualizar</button>
+            </div>
+            <div class="admin-roles-toolbar">
+              <label class="admin-roles-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" id="adminRolesSearch" placeholder="Buscar usuarios…" /></label>
+              <select id="adminRolesFilter">
+                <option value="all">Todos los roles</option>
+                <option value="super_admin">Super Admin</option>
+                <option value="editor">Editor de devocionales</option>
+                <option value="reviewer">Revisor de devocionales</option>
+                <option value="read_export">Manager</option>
+                <option value="read_only">Vista simple</option>
+                <option value="revoked">Acceso revocado</option>
+              </select>
+            </div>
             <div id="adminRolesList" class="admin-roles-list"><div class="admin-empty">Cargando usuarios…</div></div>
           </div>
+
+          <div class="admin-roles-security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Solo el Super Admin puede asignar o revocar roles de administración.</div>
         </div>
       </div>
     </section>

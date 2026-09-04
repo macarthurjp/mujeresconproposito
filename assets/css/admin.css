@@ -708,6 +708,38 @@ body[data-admin-page="true"] #nav-menu a:hover {
 .admin-roles-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; }
 .admin-roles-head h3 { margin: 4px 0 0; text-align: left; }
 .admin-roles-list { display: grid; gap: 12px; margin-top: 22px; }
+
+.admin-roles-page-head { margin-bottom: 0; }
+.admin-roles-page-head .admin-dashboard-kicker { display: block; margin-top: 4px; }
+.admin-roles-card-title { display: flex !important; align-items: center; gap: 10px; margin: 0 !important; text-align: left !important; font-size: 1.3rem !important; }
+.admin-roles-card-title i { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #f7e3dc; color: #a95045; font-size: .85rem; }
+.admin-roles-card-subtitle { margin: 6px 0 20px !important; text-align: left !important; font-weight: 600 !important; }
+
+.admin-roles-toolbar { display: flex; gap: 12px; margin: 16px 0 20px; }
+.admin-roles-search { position: relative; flex: 1; display: flex; align-items: center; }
+.admin-roles-search i { position: absolute; left: 18px; color: #a68c86; font-size: .82rem; }
+.admin-roles-search input,
+#adminRolesFilter {
+    min-height: 52px;
+    padding: 0 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(169,80,69,0.14);
+    background: rgba(255,255,255,0.92);
+    color: #33211f;
+    font: inherit;
+    font-size: .92rem;
+    box-sizing: border-box;
+}
+.admin-roles-search input { width: 100%; padding-left: 42px !important; }
+#adminRolesFilter { width: auto; min-width: 190px; cursor: pointer; }
+
+.admin-roles-security-note { display: flex; align-items: center; gap: 10px; padding: 16px 20px; border: 1px solid #ead8d0; border-radius: 18px; background: #fdf7f4; color: #6b5049; font-size: .84rem; font-weight: 600; }
+.admin-roles-security-note i { color: #a95045; }
+
+@media (max-width: 640px) {
+    .admin-roles-toolbar { flex-direction: column; }
+    #adminRolesFilter { width: 100% !important; }
+}
 .admin-invite-form {
   display: grid;
   grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) 220px;
@@ -1083,8 +1115,14 @@ body[data-admin-page="true"] #nav-menu a:hover {
     -webkit-backdrop-filter: blur(10px) !important;
 }
 
+.admin-edit-modal[hidden] {
+    display: none !important;
+}
+
 .admin-edit-card {
+    position: relative !important;
     width: min(620px, 100%) !important;
+    min-width: 0 !important;
     max-height: calc(100vh - 40px) !important;
     overflow: auto !important;
     padding: 28px !important;
@@ -1092,6 +1130,20 @@ body[data-admin-page="true"] #nav-menu a:hover {
     border: 1px solid rgba(255,255,255,0.78) !important;
     background: linear-gradient(145deg, rgba(255,255,255,0.96), rgba(255,246,244,0.94)) !important;
     box-shadow: 0 30px 80px rgba(45,34,32,0.24) !important;
+}
+
+.admin-modal-x {
+    position: absolute !important;
+    top: 22px !important;
+    right: 24px !important;
+    z-index: 2 !important;
+    border: 0 !important;
+    padding: 0 !important;
+    color: #8b8175 !important;
+    background: transparent !important;
+    font-size: 2rem !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
 }
 
 .admin-edit-card h3 {
@@ -1532,6 +1584,7 @@ body[data-admin-page="true"] .admin-form textarea {
     border: 1px solid rgba(169,80,69,0.14) !important;
     background: rgba(255,255,255,0.92) !important;
     color: #33211f !important;
+    font-family: inherit !important;
     font-size: 1rem !important;
     font-weight: 750 !important;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 8px 22px rgba(74,39,32,0.035) !important;
@@ -1579,6 +1632,10 @@ body[data-admin-page="true"] .admin-schedule-days input[type="checkbox"] {
     padding: 0 !important;
     border-radius: 4px !important;
     box-shadow: none !important;
+}
+
+body[data-admin-page="true"] .admin-form input[type="file"][hidden] {
+    display: none !important;
 }
 
 body[data-admin-page="true"] .admin-form input[type="file"] {
@@ -1738,7 +1795,7 @@ body[data-admin-page="true"] #admin-galeria.admin-tab-panel.active {
 .admin-devotional-subtitle { margin:8px 0 34px; color:#91887b; font-size:1.05rem; }
 .admin-devotional-close { position:absolute; top:30px; right:34px; border:0; color:#8b8175; background:transparent; font-size:2rem; cursor:pointer; }
 .admin-devotional-editor textarea { width:100%; resize:vertical; min-height:110px; padding:16px 18px; border:1.5px solid #e4cbc4; border-radius:18px; color:#4b302c; background:#fff; font:inherit; line-height:1.6; }
-.admin-devotional-editor #adminDevocionalContenido { min-height:300px; font-family:Georgia,serif; font-size:1rem; }
+.admin-devotional-editor #adminDevocionalContenido { min-height:300px; font-family:"Archivo","Segoe UI",Arial,sans-serif; font-size:1rem; }
 .admin-devotional-editor textarea:focus { outline:none; border-color:#ad5b4f; box-shadow:0 0 0 4px rgba(169,80,69,.1); }
 .admin-devotional-editor label span { color:#9b7168; font-size:.78rem; font-weight:600; }
 .admin-devotional-editor .admin-form .admin-devotional-field > label { margin-top:0; color:#a85d3b; font-size:.82rem; font-weight:900; letter-spacing:.055em; text-transform:uppercase; }
@@ -1829,7 +1886,7 @@ body[data-admin-page="true"] #admin-galeria.admin-tab-panel.active {
 #adminDevocionalForm .admin-rich-toolbar button:hover,
 #adminDevocionalForm .admin-rich-toolbar button.active { color:#fff !important; border-color:#ad6541 !important; background:#ad6541 !important; }
 #adminDevocionalForm .admin-rich-toolbar select { flex:1 1 100%; }
-.admin-rich-content { min-height:170px; padding:25px 27px; outline:0; color:#463a31; font:400 1.08rem/1.7 Georgia,serif; }
+.admin-rich-content { min-height:170px; padding:25px 27px; outline:0; color:#463a31; font:400 1.08rem/1.7 "Archivo","Segoe UI",Arial,sans-serif; }
 .admin-rich-content-large { min-height:300px; }
 .admin-rich-content:empty::before { content:attr(data-placeholder); color:#a49b8e; pointer-events:none; }
 .admin-rich-content blockquote { margin:18px 0; padding:15px 20px; border-left:4px solid #ad6541; color:#7b5543; background:#faf1e9; }
@@ -1906,73 +1963,21 @@ body[data-admin-role="editor"] .admin-dashboard-head h3::after { content:" · Ed
 
 body[data-admin-page="true"] #adminGaleriaForm.admin-form-clean {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-    grid-template-areas:
-        "comunidad categoria"
-        "nombre foto"
-        "portada portada"
-        "accion accion"
-        "mensaje mensaje" !important;
-    gap: 22px 26px !important;
-    align-items: end !important;
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
 }
 
 body[data-admin-page="true"] #adminGaleriaForm .admin-field {
     display: grid !important;
     gap: 9px !important;
     min-width: 0 !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm .admin-field:nth-of-type(1) {
-    grid-area: comunidad !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm .admin-field:nth-of-type(2) {
-    grid-area: categoria !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm .admin-field:nth-of-type(3) {
-    grid-area: nombre !important;
-    grid-column: auto !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm .admin-field:nth-of-type(4) {
-    grid-area: foto !important;
-    grid-column: auto !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm .admin-checkbox-field {
-    grid-area: portada !important;
-    grid-column: auto !important;
-    display: flex !important;
-    align-items: center !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm input[type="checkbox"] {
-    width: 20px !important;
-    height: 20px !important;
-    min-height: 0 !important;
-    flex: 0 0 auto !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm .admin-form-actions {
-    grid-area: accion !important;
-    grid-column: auto !important;
-    display: flex !important;
-    align-items: end !important;
-    justify-content: center !important;
-    width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm #adminGaleriaMsg {
-    grid-area: mensaje !important;
     grid-column: auto !important;
 }
 
 body[data-admin-page="true"] #adminGaleriaForm .admin-field label {
-    display: block !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
     margin: 0 !important;
     color: #5e3d39 !important;
     font-size: 0.9rem !important;
@@ -1983,21 +1988,22 @@ body[data-admin-page="true"] #adminGaleriaForm .admin-field label {
     text-align: left !important;
 }
 
+body[data-admin-page="true"] #adminGaleriaForm .admin-field label i { color: #a95045 !important; font-size: .85em !important; }
+
 body[data-admin-page="true"] #adminGaleriaForm input,
 body[data-admin-page="true"] #adminGaleriaForm select {
     width: 100% !important;
     max-width: 100% !important;
-    min-height: 58px !important;
+    min-height: 56px !important;
     box-sizing: border-box !important;
 }
 
-body[data-admin-page="true"] #adminGaleriaForm input[type="number"] {
-    max-width: 100% !important;
-}
-
-body[data-admin-page="true"] #adminGaleriaForm input[type="file"] {
-    min-height: 58px !important;
-    padding: 14px 18px !important;
+body[data-admin-page="true"] #adminGaleriaForm .admin-form-actions {
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 6px 0 0 !important;
 }
 
 body[data-admin-page="true"] #adminGaleriaForm .admin-form-actions .btn,
@@ -2006,28 +2012,80 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
     min-width: 240px !important;
     min-height: 58px !important;
     margin: 0 !important;
-    justify-self: center !important;
 }
 
-@media (max-width: 768px) {
-    body[data-admin-page="true"] #adminGaleriaForm.admin-form-clean {
-        grid-template-columns: 1fr !important;
-        grid-template-areas:
-            "comunidad"
-            "categoria"
-            "nombre"
-            "foto"
-            "portada"
-            "accion"
-            "mensaje" !important;
-        gap: 15px !important;
-    }
+.admin-gallery-modal { padding-top: 20px !important; }
+.admin-gallery-modal-head { display: grid; justify-items: center; margin: 6px 0 24px; text-align: center; }
+.admin-gallery-modal-icon { display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 12px; border-radius: 50%; background: #f7e3dc; color: #a95045; font-size: 1.4rem; }
+.admin-gallery-modal-head h3 { margin: 0; }
+.admin-gallery-modal-head .admin-card-subtitle { margin: 6px 0 0; }
 
-    body[data-admin-page="true"] #adminGaleriaForm .admin-form-actions .btn,
-    body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
+.admin-gallery-fields-row { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 18px !important; }
+
+.admin-gallery-new-category-link {
+    justify-self: start;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #a95045 !important;
+    font-size: .82rem !important;
+    font-weight: 800 !important;
+    cursor: pointer;
+}
+.admin-gallery-new-category-link:hover { text-decoration: underline; }
+
+.admin-gallery-dropzone {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding: 34px 20px;
+    border: 2px dashed #e3c3ba;
+    border-radius: 20px;
+    background: #fdf7f4;
+    color: #6b5049;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .18s ease, background .18s ease;
+}
+.admin-gallery-dropzone:hover,
+.admin-gallery-dropzone.is-dragover { border-color: #a95045; background: #fbeee9; }
+.admin-gallery-dropzone i { margin-bottom: 4px; color: #a95045; font-size: 1.6rem; }
+.admin-gallery-dropzone strong { color: #3f2b26; font-size: 1rem; }
+.admin-gallery-dropzone span { color: #8b6d68; font-size: .86rem; }
+.admin-gallery-dropzone small { color: #a68c86; font-size: .72rem; }
+
+.admin-gallery-thumbs-head { display: flex; align-items: center; justify-content: space-between; }
+.admin-gallery-thumbs-head[hidden] { display: none; }
+.admin-gallery-thumbs-head span { color: #5e3d39; font-size: .86rem; font-weight: 800; }
+.admin-gallery-thumbs-head button { border: 0 !important; background: transparent !important; color: #a13b3b !important; font-size: .78rem !important; font-weight: 800 !important; cursor: pointer; padding: 0 !important; }
+
+.admin-gallery-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+.admin-gallery-thumbs[hidden] { display: none; }
+.admin-gallery-thumb { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: 14px; background: #f2ddd5; }
+.admin-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-gallery-thumb-remove {
+    position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; display: grid; place-items: center;
+    border: 0; border-radius: 50%; background: rgba(20,10,8,.55); color: #fff; font-size: .85rem; line-height: 1; cursor: pointer;
+}
+.admin-gallery-thumb-add {
+    display: grid; place-items: center; gap: 4px; aspect-ratio: 1; border: 2px dashed #e3c3ba; border-radius: 14px;
+    color: #a95045; font-size: .74rem; font-weight: 800; text-align: center; cursor: pointer; background: #fdf7f4;
+}
+.admin-gallery-thumb-add i { font-size: 1.2rem; }
+
+.admin-toggle-field { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid #ead8d0; border-radius: 16px; background: #fdf7f4; cursor: pointer; }
+.admin-toggle-switch { position: relative; flex: 0 0 44px; width: 44px; height: 26px; }
+.admin-toggle-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+.admin-toggle-track { position: absolute; inset: 0; border-radius: 999px; background: #ddc7bf; transition: background .18s ease; }
+.admin-toggle-track::before { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .18s ease; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+.admin-toggle-switch input:checked + .admin-toggle-track { background: #a95045; }
+.admin-toggle-switch input:checked + .admin-toggle-track::before { transform: translateX(18px); }
+.admin-toggle-copy strong { display: block; color: #3f2b26; font-size: .88rem; }
+.admin-toggle-copy small { color: #8b6d68; font-size: .76rem; }
+
+@media (max-width: 640px) {
+    .admin-gallery-fields-row { grid-template-columns: 1fr !important; }
 }
 
 /* Admin mobile header: keep both navigation links visible as real buttons */
@@ -2240,6 +2298,20 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
   margin: 2px 0;
 }
 
+.admin-yt-divider i { color: #a95045; font-size: .82rem; }
+
+body[data-admin-page="true"] .admin-form label > i:first-child,
+body[data-admin-page="true"] .admin-time-field > span > i:first-child {
+    color: #a95045 !important;
+    font-size: .85em !important;
+    margin-right: 3px !important;
+}
+
+.admin-gallery-dropzone-compact { padding: 18px 16px !important; }
+.admin-gallery-dropzone-compact i { font-size: 1.25rem !important; margin-bottom: 2px !important; }
+.admin-gallery-dropzone-compact strong { font-size: .9rem !important; }
+.admin-gallery-dropzone-compact span { font-size: .78rem !important; }
+
 .admin-yt-divider span {
   color: #a9827c;
   font-size: 0.72rem;
@@ -2322,7 +2394,8 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
   overflow: hidden;
 }
 
-#adminYoutubeForm .admin-yt-stepper-btn {
+#adminYoutubeForm .admin-yt-stepper-btn,
+#adminEventForm .admin-yt-stepper-btn {
   grid-column: auto !important;
   justify-self: auto !important;
   display: inline-flex !important;
@@ -2344,9 +2417,11 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
   cursor: pointer;
 }
 
-#adminYoutubeForm .admin-yt-stepper-btn:hover { background: rgba(231,168,160,0.18) !important; }
+#adminYoutubeForm .admin-yt-stepper-btn:hover,
+#adminEventForm .admin-yt-stepper-btn:hover { background: rgba(231,168,160,0.18) !important; }
 
-#adminYoutubeForm .admin-yt-stepper input[type="number"] {
+#adminYoutubeForm .admin-yt-stepper input[type="number"],
+#adminEventForm .admin-yt-stepper input[type="number"] {
   flex: 1 !important;
   width: auto !important;
   min-width: 0 !important;
@@ -2444,6 +2519,7 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
 @media (max-width: 768px) {
   #adminYoutubeForm .admin-yt-chip,
   #adminYoutubeForm .admin-yt-stepper-btn,
+  #adminEventForm .admin-yt-stepper-btn,
   #adminYoutubeForm .admin-yt-cancel,
   #adminEventForm .admin-yt-cancel,
   #adminDestacadaForm .admin-yt-cancel {
