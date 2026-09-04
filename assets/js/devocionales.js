@@ -1,4 +1,5 @@
 (function initDevocionales() {
+  const SITE_URL = "https://mcp930.org";
   const grid = document.getElementById("devGrid");
   const featured = document.getElementById("devFeatured");
   const collectionHead = document.getElementById("devCollectionHead");
@@ -191,7 +192,7 @@
   }
 
   async function shareArticle(article) {
-    const url = `${location.origin}${location.pathname}?articulo=${encodeURIComponent(article.slug)}`;
+    const url = `${SITE_URL}/d/${encodeURIComponent(article.slug)}.html`;
     try {
       if (navigator.share) {
         await navigator.share({ title: article.titulo, text: article.resumen || "", url });

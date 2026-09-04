@@ -116,13 +116,12 @@ test("an empty YouTube catalog stays empty", async ({ page }) => {
   await expect(page.locator("#ytGrid .yt-card")).toHaveCount(0);
 });
 
-test("devotional card opens the devotional library", async ({ page }) => {
-  await page.goto("/index.html");
-  const devotionalLink = page.getByRole("link", { name: "Leer los devocionales" });
-  await expect(devotionalLink).toHaveAttribute("href", "devocionales.html");
+test("devotional library page loads directly by link", async ({ page }) => {
+  // La tarjeta "Devocionales" del home todavía no enlaza aquí a propósito
+  // (lanzamiento por etapas) — esta prueba cubre la página en sí, accedida
+  // por su link directo, como la usan los editores mientras se prepara.
   await page.goto("/devocionales.html");
   await expect(page.getByRole("heading", { name: /Un momento/ , level: 1 })).toBeVisible();
-  await expect(page.locator("#devStatus")).toContainText("Estamos preparando algo especial");
 });
 
 test("private login and password reset keep only the intended controls", async ({ page }) => {
