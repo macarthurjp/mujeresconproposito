@@ -141,6 +141,7 @@ function composeDashboardRoleLabel(access) {
   if (access.is_super_admin) return "Super Admin";
   const labels = [];
   if (access.permissions.includes("editor")) labels.push("Editor de devocionales");
+  if (access.permissions.includes("reviewer")) labels.push("Revisor de devocionales");
   if (access.permissions.includes("read_export")) labels.push("Manager");
   return labels.length ? labels.join(" + ") : "Vista simple";
 }

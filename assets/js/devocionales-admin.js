@@ -3,7 +3,44 @@
   let currentAccess = { is_super_admin: false, permissions: ["read_only"], is_revoked: false };
   let currentUser = null;
   let articles = [];
+  let reviewQueue = [];
   let activeFilter = "all";
+  let editingArticle = null;
+  const historyCache = new Map();
+
+  const ESTADO_LABELS = {
+    borrador: "Borrador",
+    en_revision: "En revisión",
+    cambios_solicitados: "Cambios solicitados"
+  };
+
+  const ACCION_LABELS = {
+    creado: "Creado",
+    editado: "Editado",
+    enviado_a_revision: "Enviado a revisión",
+    cambios_solicitados: "Cambios solicitados",
+    retirado: "Retirado de revisión",
+    aprobado_publicado: "Aprobado y publicado",
+    despublicado: "Despublicado",
+    eliminado: "Eliminado"
+  };
+
+  function pendingFields(article) {
+    const pending = article?.pending_content || null;
+    const get = (key, fallback) => (pending && pending[key] !== undefined && pending[key] !== null ? pending[key] : fallback);
+    return {
+      titulo: get("titulo", article?.titulo || ""),
+      resumen: get("resumen", article?.resumen || ""),
+      contenido: get("contenido", article?.contenido || ""),
+      contenido_html: get("contenido_html", article?.contenido_html || ""),
+      introduccion_html: get("introduccion_html", article?.introduccion_html || ""),
+      versiculo: get("versiculo", article?.versiculo || ""),
+      categorias: pending?.categorias || article?.categorias || [],
+      autora: get("autora", article?.autora || ""),
+      imagen_url: get("imagen_url", article?.imagen_url || ""),
+      fecha: article?.pending_fecha_publicacion || article?.fecha_publicacion || new Date()
+    };
+  }
 
   const $ = (id) => document.getElementById(id);
   const escapeHtml = (value) => {
@@ -34,7 +71,7 @@
   function localDateTime(value) {
     const date = value ? new Date(value) : new Date();
     const offset = date.getTimezoneOffset() * 60000;
-    return new Date(date.getTime() - offset).toISOString().slice(0, 10);
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
   }
 
   function cleanRichHtml(html) {
@@ -436,7 +473,19 @@
     return new File([blob], `${baseName}-recortada.jpg`, { type: "image/jpeg" });
   }
 
+  function updateSaveButtonsVisibility() {
+    const draftBtn = document.querySelector('[data-dev-save="draft"]');
+    const submitBtn = document.querySelector('[data-dev-save="submit"]');
+    const publishBtn = document.querySelector('[data-dev-save="publish"]');
+    const isSuperAdmin = currentAccess.is_super_admin;
+    const isOwn = !editingArticle || editingArticle.created_by === currentUser?.id;
+    if (draftBtn) draftBtn.hidden = false;
+    if (publishBtn) publishBtn.hidden = !isSuperAdmin;
+    if (submitBtn) submitBtn.hidden = isSuperAdmin || !isOwn || !currentAccess.permissions.includes("editor");
+  }
+
   function resetForm() {
+    editingArticle = null;
     $("adminDevocionalForm")?.reset();
     $("adminDevocionalId").value = "";
     $("adminDevocionalImagenActual").value = "";
@@ -451,6 +500,21 @@
     const name = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || currentUser?.email?.split("@")[0] || "";
     $("adminDevocionalAutora").value = name;
     $("adminDevocionalMsg").style.display = "none";
+    updateSaveButtonsVisibility();
+  }
+
+  function statusBadgeHtml(article) {
+    if (article.publicado) {
+      const pendingFlag = article.pending_content ? `<span class="admin-devotional-pending-flag">Cambios pendientes</span>` : "";
+      return `<div class="admin-devotional-badges"><span class="admin-devotional-state published">Publicado</span>${pendingFlag}</div>`;
+    }
+    const cls = article.estado === "en_revision" ? "review" : article.estado === "cambios_solicitados" ? "changes-requested" : "draft";
+    const label = ESTADO_LABELS[article.estado] || "Borrador";
+    return `<span class="admin-devotional-state ${cls}">${label}</span>`;
+  }
+
+  function historyToggleHtml(id) {
+    return `<button type="button" class="admin-devotional-history-toggle" data-dev-history="${escapeHtml(id)}">Ver historial</button><div class="admin-devotional-history" data-dev-history-panel="${escapeHtml(id)}" hidden></div>`;
   }
 
   function render() {
@@ -461,55 +525,112 @@
       container.innerHTML = `<div class="admin-empty">No hay ${activeFilter === "published" ? "artículos publicados" : activeFilter === "draft" ? "borradores" : "artículos"} todavía.</div>`;
       return;
     }
-    container.innerHTML = filtered.map((article) => `
+    container.innerHTML = filtered.map((article) => {
+      const fields = pendingFields(article);
+      const canDelete = !article.publicado || currentAccess.is_super_admin;
+      return `
       <article class="admin-devotional-item" data-dev-id="${escapeHtml(article.id)}">
-        <div class="admin-devotional-thumb">${article.imagen_url ? `<img src="${escapeHtml(article.imagen_url)}" alt="">` : '<i class="fa-solid fa-book-open" aria-hidden="true"></i>'}</div>
+        <div class="admin-devotional-thumb">${fields.imagen_url ? `<img src="${escapeHtml(fields.imagen_url)}" alt="">` : '<i class="fa-solid fa-book-open" aria-hidden="true"></i>'}</div>
         <div class="admin-devotional-item-copy">
-          <span class="admin-devotional-state ${article.publicado ? "published" : "draft"}">${article.publicado ? "Publicado" : "Borrador"}</span>
-          <strong>${escapeHtml(article.titulo)}</strong>
-          <small>${escapeHtml(article.autora)} · ${escapeHtml(formattedDate(article.fecha_publicacion || article.updated_at))}${article.categorias?.length ? ` · ${escapeHtml(article.categorias.join(", "))}` : ""}</small>
+          ${statusBadgeHtml(article)}
+          <strong>${escapeHtml(fields.titulo || "Sin título")}</strong>
+          <small>${escapeHtml(fields.autora)} · ${escapeHtml(formattedDate(article.fecha_publicacion || article.updated_at))}${fields.categorias?.length ? ` · ${escapeHtml(fields.categorias.join(", "))}` : ""}</small>
         </div>
         <div class="admin-item-actions">
           ${article.publicado ? `<a href="devocionales.html?articulo=${encodeURIComponent(article.slug)}" target="_blank" rel="noopener">Ver</a>` : ""}
           <button type="button" data-dev-action="edit">Editar</button>
-          <button type="button" data-dev-action="toggle">${article.publicado ? "Retirar" : "Publicar"}</button>
-          <button type="button" data-dev-action="delete" class="danger">Borrar</button>
+          ${article.estado === "en_revision" ? `<button type="button" data-dev-action="withdraw">Retirar de revisión</button>` : ""}
+          ${currentAccess.is_super_admin ? `<button type="button" data-dev-action="toggle">${article.publicado ? "Retirar" : "Publicar"}</button>` : ""}
+          ${canDelete ? `<button type="button" data-dev-action="delete" class="danger">Borrar</button>` : ""}
         </div>
-      </article>`).join("");
+        ${historyToggleHtml(article.id)}
+      </article>`;
+    }).join("");
+  }
+
+  function renderQueue() {
+    const card = $("adminDevocionalReviewCard");
+    const container = $("adminDevocionalReviewList");
+    if (!card || !container) return;
+    const canReview = currentAccess.permissions.includes("reviewer") || currentAccess.is_super_admin;
+    card.hidden = !canReview;
+    if (!canReview) return;
+    if (!reviewQueue.length) {
+      container.innerHTML = `<div class="admin-empty">No hay artículos esperando revisión.</div>`;
+      return;
+    }
+    container.innerHTML = reviewQueue.map((article) => {
+      const fields = pendingFields(article);
+      const defaultFecha = localDateTime(article.pending_fecha_publicacion || new Date());
+      return `
+      <article class="admin-devotional-item" data-dev-id="${escapeHtml(article.id)}">
+        <div class="admin-devotional-thumb">${fields.imagen_url ? `<img src="${escapeHtml(fields.imagen_url)}" alt="">` : '<i class="fa-solid fa-book-open" aria-hidden="true"></i>'}</div>
+        <div class="admin-devotional-item-copy">
+          ${statusBadgeHtml(article)}
+          <strong>${escapeHtml(fields.titulo || "Sin título")}</strong>
+          <small>${escapeHtml(fields.autora)} · enviado ${escapeHtml(formattedDate(article.updated_at))}${fields.categorias?.length ? ` · ${escapeHtml(fields.categorias.join(", "))}` : ""}</small>
+        </div>
+        <div class="admin-item-actions">
+          <button type="button" data-dev-review-action="edit">Editar</button>
+          <button type="button" data-dev-review-action="request-changes">Solicitar cambios</button>
+          <div class="admin-devotional-approve-row">
+            <input type="datetime-local" data-dev-approve-fecha value="${escapeHtml(defaultFecha)}" />
+            <button type="button" class="btn" data-dev-review-action="approve">Aprobar y publicar</button>
+          </div>
+        </div>
+        ${historyToggleHtml(article.id)}
+      </article>`;
+    }).join("");
   }
 
   async function loadArticles() {
-    let query = client().from("devocionales").select("*").order("updated_at", { ascending: false });
-    if (currentAccess.permissions.includes("editor") && !currentAccess.is_super_admin) query = query.eq("created_by", currentUser.id);
-    const { data, error } = await query;
-    if (error) throw error;
-    articles = data || [];
-    render();
+    const mineCard = $("adminDevocionalMineCard");
+    const canSeeMine = currentAccess.is_super_admin || currentAccess.permissions.includes("editor");
+    if (mineCard) mineCard.hidden = !canSeeMine;
+    if (canSeeMine) {
+      let query = client().from("devocionales").select("*").order("updated_at", { ascending: false });
+      if (currentAccess.permissions.includes("editor") && !currentAccess.is_super_admin) query = query.eq("created_by", currentUser.id);
+      const { data, error } = await query;
+      if (error) throw error;
+      articles = data || [];
+      render();
+    }
+
+    if (currentAccess.permissions.includes("reviewer") && !currentAccess.is_super_admin) {
+      const { data, error } = await client().from("devocionales").select("*")
+        .eq("estado", "en_revision").neq("created_by", currentUser.id).order("updated_at", { ascending: true });
+      if (error) throw error;
+      reviewQueue = data || [];
+      renderQueue();
+    }
   }
 
   function edit(article) {
+    editingArticle = article;
+    const fields = pendingFields(article);
     $("adminDevocionalId").value = article.id;
-    $("adminDevocionalTitulo").value = article.titulo || "";
-    $("adminDevocionalResumen").value = article.resumen || "";
-    $("adminDevocionalContenido").value = article.contenido || "";
-    $("adminDevocionalVersiculo").value = article.versiculo || "";
-    $("adminDevocionalIntroduccion").innerHTML = cleanRichHtml(article.introduccion_html || article.resumen || "");
-    $("adminDevocionalContenidoEditor").innerHTML = cleanRichHtml(article.contenido_html || article.contenido || "");
-    document.querySelectorAll('input[name="devCategoria"]').forEach((input) => { input.checked = (article.categorias || []).includes(input.value); });
-    $("adminDevocionalAutora").value = article.autora || "";
-    $("adminDevocionalFecha").value = localDateTime(article.fecha_publicacion || new Date());
-    $("adminDevocionalImagenActual").value = article.imagen_url || "";
+    $("adminDevocionalTitulo").value = fields.titulo;
+    $("adminDevocionalResumen").value = fields.resumen;
+    $("adminDevocionalContenido").value = fields.contenido;
+    $("adminDevocionalVersiculo").value = fields.versiculo;
+    $("adminDevocionalIntroduccion").innerHTML = cleanRichHtml(fields.introduccion_html || fields.resumen || "");
+    $("adminDevocionalContenidoEditor").innerHTML = cleanRichHtml(fields.contenido_html || fields.contenido || "");
+    document.querySelectorAll('input[name="devCategoria"]').forEach((input) => { input.checked = fields.categorias.includes(input.value); });
+    $("adminDevocionalAutora").value = fields.autora;
+    $("adminDevocionalFecha").value = localDateTime(fields.fecha);
+    $("adminDevocionalImagenActual").value = fields.imagen_url || "";
     $("adminDevocionalImagen").value = "";
-    updateCoverPreview(article.imagen_url || "");
+    updateCoverPreview(fields.imagen_url || "");
     $("adminDevocionalFormTitle").textContent = "Editar devocional";
     $("adminDevocionalCancel").hidden = false;
+    updateSaveButtonsVisibility();
     openModal();
   }
 
   async function save(event) {
     event.preventDefault();
     const submitter = event.submitter;
-    const publish = submitter?.dataset.devSave === "publish";
+    const action = submitter?.dataset.devSave || "draft";
     const id = $("adminDevocionalId").value;
     const title = $("adminDevocionalTitulo").value.trim();
     const reflection = $("adminDevocionalContenidoEditor").innerText.trim();
@@ -523,7 +644,7 @@
         ? await window.McpSupabase.uploadImageToSupabaseBucket(uploadFile, "mcp930-images", "devocionales")
         : $("adminDevocionalImagenActual").value || null;
       const publicationValue = $("adminDevocionalFecha").value;
-      const payload = {
+      const fields = {
         titulo: title,
         resumen: $("adminDevocionalIntroduccion").innerText.trim(),
         contenido: reflection,
@@ -532,24 +653,52 @@
         versiculo: $("adminDevocionalVersiculo").value.trim() || null,
         categorias: Array.from(document.querySelectorAll('input[name="devCategoria"]:checked')).map((input) => input.value),
         autora: $("adminDevocionalAutora").value.trim(),
-        imagen_url: imageUrl,
-        publicado: publish,
-        fecha_publicacion: publish ? new Date(publicationValue || Date.now()).toISOString() : null,
-        updated_at: new Date().toISOString()
+        imagen_url: imageUrl
       };
+
       let error;
-      if (id) {
-        ({ error } = await client().from("devocionales").update(payload).eq("id", id));
+      let savedId = id ? Number(id) : null;
+
+      if (currentAccess.is_super_admin) {
+        const publish = action === "publish";
+        const payload = {
+          ...fields,
+          publicado: publish,
+          fecha_publicacion: publish ? new Date(publicationValue || Date.now()).toISOString() : null,
+          updated_at: new Date().toISOString()
+        };
+        if (id) {
+          ({ error } = await client().from("devocionales").update(payload).eq("id", id));
+        } else {
+          payload.slug = `${slugify(title)}-${Date.now().toString(36)}`;
+          payload.created_by = currentUser.id;
+          ({ error } = await client().from("devocionales").insert(payload));
+        }
       } else {
-        payload.slug = `${slugify(title)}-${Date.now().toString(36)}`;
-        payload.created_by = currentUser.id;
-        ({ error } = await client().from("devocionales").insert(payload));
+        const payload = {
+          pending_content: fields,
+          pending_fecha_publicacion: publicationValue ? new Date(publicationValue).toISOString() : null,
+          updated_at: new Date().toISOString()
+        };
+        if (id) {
+          ({ error } = await client().from("devocionales").update(payload).eq("id", id));
+        } else {
+          payload.slug = `${slugify(title)}-${Date.now().toString(36)}`;
+          payload.created_by = currentUser.id;
+          const { data, error: insertError } = await client().from("devocionales").insert(payload).select("id").single();
+          error = insertError;
+          savedId = data?.id || null;
+        }
+        if (!error && action === "submit" && savedId) {
+          const { error: submitError } = await client().rpc("devocional_submit_for_review", { p_id: savedId });
+          if (submitError) error = submitError;
+        }
       }
       if (error) throw error;
       resetForm();
       closeModal();
       await loadArticles();
-      message(publish ? "Devocional publicado correctamente." : "Borrador guardado correctamente.");
+      message(action === "publish" ? "Devocional publicado correctamente." : action === "submit" ? "Devocional enviado a revisión." : "Borrador guardado correctamente.");
     } catch (error) {
       console.error(error);
       message(error?.message || "No se pudo guardar el devocional.", false);
@@ -558,28 +707,106 @@
     }
   }
 
+  async function toggleHistory(button) {
+    const id = button.dataset.devHistory;
+    const panel = document.querySelector(`[data-dev-history-panel="${id}"]`);
+    if (!panel) return;
+    if (!panel.hidden) { panel.hidden = true; return; }
+    panel.hidden = false;
+    if (historyCache.has(id)) { panel.innerHTML = historyCache.get(id); return; }
+    panel.innerHTML = `<div class="admin-empty">Cargando historial…</div>`;
+    try {
+      const { data, error } = await client().from("devocional_historial").select("*").eq("devocional_id", id).order("created_at", { ascending: false });
+      if (error) throw error;
+      const html = data?.length
+        ? `<ul>${data.map((entry) => `<li><strong>${escapeHtml(ACCION_LABELS[entry.accion] || entry.accion)}</strong> — ${escapeHtml(entry.actor_email || "cuenta eliminada")} · ${escapeHtml(formattedDate(entry.created_at))}${entry.nota ? `<em>${escapeHtml(entry.nota)}</em>` : ""}</li>`).join("")}</ul>`
+        : `<div class="admin-empty">Sin historial todavía.</div>`;
+      historyCache.set(id, html);
+      panel.innerHTML = html;
+    } catch (error) {
+      panel.innerHTML = `<div class="admin-empty">No se pudo cargar el historial.</div>`;
+    }
+  }
+
   async function listAction(event) {
+    const historyButton = event.target.closest("[data-dev-history]");
+    if (historyButton) return toggleHistory(historyButton);
+
     const button = event.target.closest("[data-dev-action]");
     if (!button) return;
     const id = button.closest("[data-dev-id]")?.dataset.devId;
     const article = articles.find((item) => String(item.id) === String(id));
     if (!article) return;
     if (button.dataset.devAction === "edit") return edit(article);
-    if (button.dataset.devAction === "delete" && !window.confirm(`¿Borrar “${article.titulo}”? Esta acción no se puede deshacer.`)) return;
+    if (button.dataset.devAction === "delete" && !window.confirm(`¿Borrar “${article.titulo || "este devocional"}”? Esta acción no se puede deshacer.`)) return;
     button.disabled = true;
     try {
       if (button.dataset.devAction === "delete") {
         const { error } = await client().from("devocionales").delete().eq("id", id);
         if (error) throw error;
-      } else {
-        const publishing = !article.publicado;
-        const { error } = await client().from("devocionales").update({ publicado: publishing, fecha_publicacion: publishing ? new Date().toISOString() : null, updated_at: new Date().toISOString() }).eq("id", id);
+      } else if (button.dataset.devAction === "withdraw") {
+        const { error } = await client().rpc("devocional_withdraw", { p_id: Number(id) });
         if (error) throw error;
+      } else if (button.dataset.devAction === "toggle") {
+        if (article.publicado) {
+          const { error } = await client().rpc("devocional_unpublish", { p_id: Number(id) });
+          if (error) throw error;
+        } else {
+          const { error } = await client().from("devocionales").update({ publicado: true, fecha_publicacion: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id);
+          if (error) throw error;
+        }
       }
       await loadArticles();
     } catch (error) {
       message(error?.message || "No se pudo completar la acción.", false);
       button.disabled = false;
+    }
+  }
+
+  async function reviewQueueAction(event) {
+    const historyButton = event.target.closest("[data-dev-history]");
+    if (historyButton) return toggleHistory(historyButton);
+
+    const button = event.target.closest("[data-dev-review-action]");
+    if (!button) return;
+    const card = button.closest("[data-dev-id]");
+    const id = card?.dataset.devId;
+    const article = reviewQueue.find((item) => String(item.id) === String(id));
+    if (!article) return;
+    const action = button.dataset.devReviewAction;
+
+    if (action === "edit") return edit(article);
+
+    if (action === "request-changes") {
+      const nota = window.prompt("¿Qué cambios necesita este devocional?");
+      if (nota === null) return;
+      if (!nota.trim()) { message("Escribe una nota explicando los cambios solicitados.", false); return; }
+      button.disabled = true;
+      try {
+        const { error } = await client().rpc("devocional_request_changes", { p_id: Number(id), p_nota: nota.trim() });
+        if (error) throw error;
+        await loadArticles();
+        message("Se solicitaron cambios al editor.");
+      } catch (error) {
+        message(error?.message || "No se pudo enviar la solicitud de cambios.", false);
+        button.disabled = false;
+      }
+      return;
+    }
+
+    if (action === "approve") {
+      const fechaInput = card.querySelector("[data-dev-approve-fecha]");
+      const fecha = fechaInput?.value ? new Date(fechaInput.value).toISOString() : null;
+      button.disabled = true;
+      try {
+        const { error } = await client().rpc("devocional_approve_and_publish", { p_id: Number(id), p_fecha: fecha });
+        if (error) throw error;
+        await loadArticles();
+        message("Devocional aprobado y publicado.");
+      } catch (error) {
+        message(error?.message || "No se pudo aprobar el devocional.", false);
+        button.disabled = false;
+      }
     }
   }
 
@@ -614,6 +841,7 @@
         if (event.key === "Escape" && !$("adminDevocionalPreviewOverlay").hidden) closePreview();
       });
       $("adminDevocionalesList")?.addEventListener("click", listAction);
+      $("adminDevocionalReviewList")?.addEventListener("click", reviewQueueAction);
       document.querySelectorAll("[data-dev-filter]").forEach((button) => button.addEventListener("click", () => {
         activeFilter = button.dataset.devFilter;
         document.querySelectorAll("[data-dev-filter]").forEach((item) => item.classList.toggle("active", item === button));

@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260903-devocionales-1" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260904-review-workflow-1" />
 </head>
 <body class="admin-locked" data-admin-page="true">
   <header class="admin-site-header">
@@ -469,12 +469,13 @@
 
                 <div class="admin-devotional-two-columns">
                   <div><label for="adminDevocionalAutora">Nombre de quien publica</label><input type="text" id="adminDevocionalAutora" maxlength="100" required /></div>
-                  <div><label for="adminDevocionalFecha">Fecha</label><input type="date" id="adminDevocionalFecha" /></div>
+                  <div><label for="adminDevocionalFecha">Fecha y hora de publicación</label><input type="datetime-local" id="adminDevocionalFecha" /></div>
                 </div>
                 <div class="admin-devotional-actions">
                   <button type="button" class="admin-preview-btn" id="adminDevocionalPreview"><i class="fa-regular fa-eye"></i> Vista previa</button>
                   <button type="submit" class="admin-draft-btn" data-dev-save="draft">Guardar borrador</button>
-                  <button type="submit" class="btn admin-publish-btn" data-dev-save="publish">Publicar Devocional</button>
+                  <button type="submit" class="btn admin-submit-btn" data-dev-save="submit" hidden>Enviar a revisión</button>
+                  <button type="submit" class="btn admin-publish-btn" data-dev-save="publish" hidden>Publicar Devocional</button>
                   <button type="button" class="admin-edit-cancel" id="adminDevocionalCancel" hidden>Cancelar edición</button>
                 </div>
                 <div id="adminDevocionalMsg" class="form-message" style="display:none;"></div>
@@ -490,7 +491,7 @@
                 <iframe id="adminDevocionalPreviewIframe" title="Vista previa del devocional"></iframe>
               </div>
             </div>
-            <div class="admin-card admin-list-card">
+            <div class="admin-card admin-list-card" id="adminDevocionalMineCard">
               <div class="admin-devotional-list-head">
                 <div><span class="admin-dashboard-kicker">Tus publicaciones</span><h3>Artículos</h3></div>
                 <a href="devocionales.html" target="_blank" rel="noopener" class="admin-preview-link">Ver página pública <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
@@ -501,6 +502,12 @@
                 <button type="button" data-dev-filter="draft">Borradores</button>
               </div>
               <div id="adminDevocionalesList" class="admin-content-list"><div class="admin-empty">Cargando artículos…</div></div>
+            </div>
+            <div class="admin-card admin-list-card" id="adminDevocionalReviewCard" hidden>
+              <div class="admin-devotional-list-head">
+                <div><span class="admin-dashboard-kicker">Revisión editorial</span><h3>Cola de revisión</h3></div>
+              </div>
+              <div id="adminDevocionalReviewList" class="admin-content-list"><div class="admin-empty">Cargando cola de revisión…</div></div>
             </div>
           </div>
         </div>
@@ -530,6 +537,7 @@
               <div class="admin-field admin-permission-group">
                 <label>Permisos iniciales</label>
                 <label class="admin-permission-check"><input type="checkbox" data-permission="editor"> Editor de devocionales</label>
+                <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer"> Revisor de devocionales</label>
                 <label class="admin-permission-check"><input type="checkbox" data-permission="read_export"> Manager (exportar)</label>
                 <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin"> Super Admin</label>
               </div>
@@ -545,7 +553,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260903-editor-role-1"></script>
-  <script src="assets/js/devocionales-admin.js?v=20260903-editor-modal-2"></script>
+  <script src="assets/js/main.js?v=20260904-reviewer-role-1"></script>
+  <script src="assets/js/devocionales-admin.js?v=20260904-review-workflow-1"></script>
 </body>
 </html>

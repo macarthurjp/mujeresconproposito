@@ -3957,6 +3957,7 @@ function renderContactCalendar(apiData = {}) {
 	    const superDisabled = forceDisabled ? "disabled" : "";
 	    return `
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="editor" ${permissions.includes("editor") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Editor de devocionales</label>
+	      <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer" ${permissions.includes("reviewer") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Revisor de devocionales</label>
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="read_export" ${permissions.includes("read_export") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Manager (exportar)</label>
 	      <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin" ${isSuperAdmin ? "checked" : ""} ${superDisabled} /> Super Admin</label>
 	    `;
@@ -3966,6 +3967,7 @@ function renderContactCalendar(apiData = {}) {
 	    const isSuperAdmin = Boolean(container.querySelector('[data-permission="super_admin"]')?.checked);
 	    const permissions = [];
 	    if (container.querySelector('[data-permission="editor"]')?.checked) permissions.push("editor");
+	    if (container.querySelector('[data-permission="reviewer"]')?.checked) permissions.push("reviewer");
 	    if (container.querySelector('[data-permission="read_export"]')?.checked) permissions.push("read_export");
 	    return { isSuperAdmin, permissions };
 	  }
@@ -3974,6 +3976,7 @@ function renderContactCalendar(apiData = {}) {
 	    const superAdminInput = container.querySelector('[data-permission="super_admin"]');
 	    const otherInputs = [
 	      container.querySelector('[data-permission="editor"]'),
+	      container.querySelector('[data-permission="reviewer"]'),
 	      container.querySelector('[data-permission="read_export"]')
 	    ].filter(Boolean);
 	    superAdminInput?.addEventListener("change", function () {
@@ -4134,7 +4137,7 @@ function renderContactCalendar(apiData = {}) {
 	    let access;
 	    try {
 	      access = await getCurrentAdminRole();
-	      const canEnterAdmin = access.is_super_admin || access.permissions.includes("editor");
+	      const canEnterAdmin = access.is_super_admin || access.permissions.includes("editor") || access.permissions.includes("reviewer");
 	      if (!canEnterAdmin) {
 	        window.location.href = "dashboard.html";
 	        return false;
@@ -4149,8 +4152,8 @@ function renderContactCalendar(apiData = {}) {
 	    document.body.classList.remove("admin-locked");
 	    document.body.classList.add("admin-unlocked");
 	    document.body.dataset.adminRole = access.is_super_admin ? "super_admin" : access.permissions.join(",");
-	    const isEditorOnly = access.permissions.includes("editor") && !access.is_super_admin;
-	    if (isEditorOnly) {
+	    const isDevocionalesOnly = (access.permissions.includes("editor") || access.permissions.includes("reviewer")) && !access.is_super_admin;
+	    if (isDevocionalesOnly) {
 	      document.querySelectorAll(".admin-tab").forEach((tab) => { tab.hidden = tab.dataset.adminTab !== "devocionales"; });
 	      document.querySelectorAll(".admin-tab-panel").forEach((panel) => panel.classList.remove("active"));
 	      const devotionalTab = document.querySelector('[data-admin-tab="devocionales"]');

@@ -1886,6 +1886,19 @@ body[data-admin-page="true"] #admin-galeria.admin-tab-panel.active {
 .admin-devotional-state { width:max-content; padding:4px 8px; border-radius:999px; font-size:.62rem; font-weight:900; letter-spacing:.05em; text-transform:uppercase; }
 .admin-devotional-state.published { color:#3e703b; background:#e6f3e4; }
 .admin-devotional-state.draft { color:#906c31; background:#f9edcf; }
+.admin-devotional-state.review { color:#2d5f8a; background:#e2edf6; }
+.admin-devotional-state.changes-requested { color:#a13b3b; background:#f8e2e2; }
+.admin-devotional-badges { display:flex; flex-wrap:wrap; gap:6px; }
+.admin-devotional-pending-flag { width:max-content; padding:4px 8px; border-radius:999px; font-size:.62rem; font-weight:900; letter-spacing:.05em; text-transform:uppercase; color:#2d5f8a; background:#e2edf6; }
+.admin-devotional-history-toggle { padding:6px 10px !important; border-radius:9px !important; color:#75514a !important; background:transparent !important; border:1px dashed #e5cdc6 !important; font-size:.68rem !important; font-weight:800 !important; }
+.admin-devotional-history { margin-top:10px; padding:10px 12px; border-radius:12px; background:#faf4f1; grid-column:1/-1; }
+.admin-devotional-history ul { margin:0; padding:0; list-style:none; display:grid; gap:6px; }
+.admin-devotional-history li { font-size:.74rem; color:#7a5a53; line-height:1.4; }
+.admin-devotional-history li strong { color:#4b302c; }
+.admin-devotional-history li em { display:block; color:#a13b3b; font-style:normal; }
+.admin-devotional-review-note { margin-top:6px; padding:8px 10px; border-radius:10px; background:#f8e2e2; color:#7a2f2f; font-size:.74rem; line-height:1.4; }
+.admin-devotional-approve-row { display:flex; align-items:center; gap:6px; }
+.admin-devotional-approve-row input[type="datetime-local"] { padding:6px 8px; border:1px solid #e5cdc6; border-radius:8px; font-size:.72rem; color:#4b302c; }
 .admin-devotional-item .admin-item-actions { display:flex; flex-direction:column; gap:5px; }
 .admin-devotional-item .admin-item-actions a { padding:7px 10px; border-radius:9px; color:#71372f; background:#f3e3dd; font-size:.7rem; font-weight:800; text-align:center; text-decoration:none; }
 body[data-admin-role="editor"] .admin-dashboard-head h3::after { content:" · Editora"; color:#a95045; }

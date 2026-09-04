@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
 
-const ASSIGNABLE_PERMISSIONS = new Set(["editor", "read_export"]);
+const ASSIGNABLE_PERMISSIONS = new Set(["editor", "read_export", "reviewer"]);
 
 function normalizeEmail(value: unknown) {
   return String(value || "").trim().toLowerCase();

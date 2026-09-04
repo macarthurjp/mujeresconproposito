@@ -143,8 +143,10 @@ test("admin includes the devotional editorial workspace", async ({ page }) => {
   await expect(page.locator('[data-admin-tab="devocionales"]')).toHaveCount(1);
   await expect(page.locator("#adminDevocionalForm")).toHaveCount(1);
   await expect(page.locator('[data-dev-save="draft"]')).toHaveCount(1);
+  await expect(page.locator('[data-dev-save="submit"]')).toHaveCount(1);
   await expect(page.locator('[data-dev-save="publish"]')).toHaveCount(1);
   await expect(page.locator('.admin-invite-form label:has(input[data-permission="editor"])')).toContainText("Editor de devocionales");
+  await expect(page.locator('.admin-invite-form label:has(input[data-permission="reviewer"])')).toContainText("Revisor de devocionales");
   await expect(page.locator("#adminDevocionalVersiculo")).toHaveCount(1);
   await expect(page.locator(".admin-rich-editor")).toHaveCount(2);
   await expect(page.locator('input[name="devCategoria"]')).toHaveCount(7);
