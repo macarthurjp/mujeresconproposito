@@ -65,7 +65,7 @@ a { color:inherit; }
 .dev-categories { display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 10px; }
 .dev-categories span { padding:5px 9px; border-radius:999px; color:#93473d; background:#f7e6df; font-size:.62rem; font-weight:800; text-transform:uppercase; }
 .dev-card h3 { margin:10px 0; font:700 1.55rem/1.18 "Playfair Display",serif; }
-.dev-card p { margin:0 0 22px; color:var(--muted); line-height:1.6; text-align:justify; hyphens:auto; -webkit-hyphens:auto; }
+.dev-card p { display:-webkit-box; overflow:hidden; margin:0 0 22px; color:var(--muted); line-height:1.6; text-align:justify; hyphens:auto; -webkit-hyphens:auto; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
 .dev-read { margin-top:auto; color:var(--rose); font-size:.86rem; font-weight:800; }
 .dev-read i { margin-left:6px; transition:transform .2s; }
 .dev-card:hover .dev-read i { transform:translateX(4px); }
