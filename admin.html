@@ -8,9 +8,10 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260831-premium-login-1" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260903-devocionales-1" />
 </head>
 <body class="admin-locked" data-admin-page="true">
   <header class="admin-site-header">
@@ -118,39 +119,42 @@
           <button type="button" class="admin-tab" data-admin-tab="destacadas">Destacadas</button>
           <button type="button" class="admin-tab" data-admin-tab="galeria">Galería</button>
           <button type="button" class="admin-tab" data-admin-tab="youtube">YouTube</button>
+          <button type="button" class="admin-tab" data-admin-tab="devocionales">Devocionales</button>
           <button type="button" class="admin-tab" data-admin-tab="roles">Usuarios y roles</button>
         </div>
 
         <div class="admin-tab-panel active" id="admin-eventos">
           <div class="admin-card">
             <h3>Nuevo evento</h3>
-            <form id="adminEventForm" class="admin-form">
-              <label>Icono</label>
-              <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
-
-              <label>Imagen de icono</label>
-              <input type="file" id="adminEventoIconoFoto" accept="image/*" />
-
-              <label>Título</label>
-              <input type="text" id="adminEventoTitulo" placeholder="Ej: Oración Matutina" required />
-
-              <label>Frecuencia</label>
-              <select id="adminEventoFrecuencia" required>
-                <option value="diario">Diario</option>
-                <option value="semanal">Semanal</option>
-                <option value="dos-veces">Dos veces a la semana</option>
-              </select>
-
-              <div class="admin-schedule-days" id="adminEventoDias">
-                <span>Día(s)</span>
-                <label><input type="checkbox" value="Lunes" /> Lunes</label>
-                <label><input type="checkbox" value="Martes" /> Martes</label>
-                <label><input type="checkbox" value="Miércoles" /> Miércoles</label>
-                <label><input type="checkbox" value="Jueves" /> Jueves</label>
-                <label><input type="checkbox" value="Viernes" /> Viernes</label>
-                <label><input type="checkbox" value="Sábado" /> Sábado</label>
-                <label><input type="checkbox" value="Domingo" /> Domingo</label>
+            <p class="admin-card-subtitle">Programa un evento recurrente y compártelo con la comunidad.</p>
+            <form id="adminEventForm" class="admin-form admin-evt-form">
+              <div class="admin-evt-row">
+                <label>
+                  Icono
+                  <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
+                </label>
+                <label>
+                  Imagen de icono
+                  <input type="file" id="adminEventoIconoFoto" accept="image/*" />
+                  <small class="admin-yt-help">Opcional. Si subes una imagen, reemplaza el emoji.</small>
+                </label>
               </div>
+
+              <label>
+                Título
+                <input type="text" id="adminEventoTitulo" placeholder="Ej: Oración Matutina" required />
+              </label>
+
+              <div class="admin-yt-divider"><span>Horario</span></div>
+
+              <label>
+                Frecuencia
+                <select id="adminEventoFrecuencia" required>
+                  <option value="diario">Diario</option>
+                  <option value="semanal">Semanal</option>
+                  <option value="dos-veces">Dos veces a la semana</option>
+                </select>
+              </label>
 
               <div class="admin-time-field">
                 <span>Hora</span>
@@ -165,13 +169,33 @@
                 </div>
               </div>
 
-              <label>Link</label>
-              <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." required />
+              <div class="admin-schedule-days" id="adminEventoDias">
+                <span>Día(s)</span>
+                <label><input type="checkbox" value="Lunes" /> Lunes</label>
+                <label><input type="checkbox" value="Martes" /> Martes</label>
+                <label><input type="checkbox" value="Miércoles" /> Miércoles</label>
+                <label><input type="checkbox" value="Jueves" /> Jueves</label>
+                <label><input type="checkbox" value="Viernes" /> Viernes</label>
+                <label><input type="checkbox" value="Sábado" /> Sábado</label>
+                <label><input type="checkbox" value="Domingo" /> Domingo</label>
+              </div>
 
-              <label>Orden</label>
-              <input type="number" id="adminEventoOrden" value="1" min="1" />
+              <div class="admin-yt-divider"><span>Publicación</span></div>
 
-              <button type="submit" class="btn">Guardar evento</button>
+              <label>
+                Link
+                <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." required />
+              </label>
+
+              <label>
+                Orden
+                <input type="number" id="adminEventoOrden" value="1" min="1" />
+              </label>
+
+              <div class="admin-yt-submit-row">
+                <button type="button" class="admin-yt-cancel" id="adminEventoCancel">Cancelar</button>
+                <button type="submit" class="btn">Guardar evento</button>
+              </div>
               <div id="adminEventoMsg" class="form-message" style="display:none;"></div>
             </form>
           </div>
@@ -186,20 +210,32 @@
         <div class="admin-tab-panel" id="admin-destacadas">
           <div class="admin-card">
             <h3>Nueva destacada</h3>
-            <form id="adminDestacadaForm" class="admin-form">
-              <label>Nombre</label>
-              <input type="text" id="adminDestacadaNombre" placeholder="Nombre" required />
+            <p class="admin-card-subtitle">Agrega una foto destacada para mostrarla en la página principal.</p>
+            <form id="adminDestacadaForm" class="admin-form admin-evt-form">
+              <label>
+                Nombre
+                <input type="text" id="adminDestacadaNombre" placeholder="Nombre" required />
+              </label>
 
-              <label>Título</label>
-              <input type="text" id="adminDestacadaTitulo" placeholder="Título o tema" />
+              <label>
+                Título
+                <input type="text" id="adminDestacadaTitulo" placeholder="Título o tema" />
+              </label>
 
-              <label>Foto</label>
-              <input type="file" id="adminDestacadaFoto" accept="image/*" required />
+              <label>
+                Foto
+                <input type="file" id="adminDestacadaFoto" accept="image/*" required />
+              </label>
 
-              <label>Orden</label>
-              <input type="number" id="adminDestacadaOrden" value="1" min="1" />
+              <label>
+                Orden
+                <input type="number" id="adminDestacadaOrden" value="1" min="1" />
+              </label>
 
-              <button type="submit" class="btn">Subir destacada</button>
+              <div class="admin-yt-submit-row">
+                <button type="button" class="admin-yt-cancel" id="adminDestacadaCancel">Cancelar</button>
+                <button type="submit" class="btn">Subir destacada</button>
+              </div>
               <div id="adminDestacadaMsg" class="form-message" style="display:none;"></div>
             </form>
           </div>
@@ -214,6 +250,7 @@
         <div class="admin-tab-panel" id="admin-galeria">
           <div class="admin-card">
             <h3>Nueva foto de galería</h3>
+            <p class="admin-card-subtitle">Sube una o varias fotos y organízalas por comunidad y categoría.</p>
             <form id="adminGaleriaForm" class="admin-form admin-form-clean">
               <div class="admin-field">
                 <label for="adminGaleriaCategoria">Comunidad</label>
@@ -266,23 +303,72 @@
         <div class="admin-tab-panel" id="admin-youtube">
           <div class="admin-card">
             <h3>Nuevo video</h3>
-            <form id="adminYoutubeForm" class="admin-form">
-              <label>Link o ID del video de YouTube</label>
-              <input type="text" id="adminYoutubeLink" placeholder="https://www.youtube.com/watch?v=..." required />
+            <p class="admin-card-subtitle">Pega el enlace de YouTube y personaliza cómo se verá este video en el sitio público.</p>
+            <form id="adminYoutubeForm" class="admin-form admin-yt-form">
+              <div class="admin-yt-preview">
+                <div class="admin-yt-preview-thumb" id="adminYoutubePreviewThumb">
+                  <img id="adminYoutubePreviewImg" alt="" />
+                  <span class="admin-yt-preview-badge">Vista previa</span>
+                  <svg class="admin-yt-preview-play" width="52" height="52" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="11" fill="rgba(255,255,255,0.92)"></circle>
+                    <path d="M10 8.5L16 12L10 15.5V8.5Z" fill="#a95045"></path>
+                  </svg>
+                </div>
+                <div class="admin-yt-preview-meta">
+                  <span class="admin-yt-preview-tag" id="adminYoutubePreviewTag">Conferencia</span>
+                  <span class="admin-yt-preview-orden" id="adminYoutubePreviewOrden">Orden #1</span>
+                </div>
+                <div class="admin-yt-preview-title" id="adminYoutubePreviewTitle">Tu título aparecerá aquí</div>
+                <div class="admin-yt-preview-subtitle" id="adminYoutubePreviewSubtitle">Subtítulo</div>
+                <div class="admin-yt-preview-caption">Así se verá en la lista pública</div>
+              </div>
 
-              <label>Título</label>
-              <input type="text" id="adminYoutubeTitulo" placeholder="Ej: De vuelta al Génesis" required />
+              <div class="admin-yt-fields">
+                <label>
+                  Link o ID del video de YouTube
+                  <input type="text" id="adminYoutubeLink" placeholder="https://www.youtube.com/watch?v=..." required />
+                  <small class="admin-yt-help">Pega la URL completa o solo el ID (11 caracteres).</small>
+                </label>
 
-              <label>Subtítulo</label>
-              <input type="text" id="adminYoutubeSubtitulo" placeholder="Ej: Conferencia con..." />
+                <label>
+                  Título
+                  <input type="text" id="adminYoutubeTitulo" placeholder="Ej: De vuelta al Génesis" required />
+                </label>
 
-              <label>Etiqueta</label>
-              <input type="text" id="adminYoutubeEtiqueta" placeholder="Conferencia" value="Conferencia" />
+                <div class="admin-yt-divider"><span>Detalles</span></div>
 
-              <label>Orden</label>
-              <input type="number" id="adminYoutubeOrden" value="1" min="1" />
+                <label>
+                  Subtítulo
+                  <input type="text" id="adminYoutubeSubtitulo" placeholder="Ej: Conferencia con..." />
+                </label>
 
-              <button type="submit" class="btn">Guardar video</button>
+                <div class="admin-yt-row">
+                  <div class="admin-yt-etiqueta-field">
+                    <span class="admin-yt-field-label">Etiqueta</span>
+                    <div class="admin-yt-chips" id="adminYoutubeChips">
+                      <button type="button" class="admin-yt-chip is-active" data-etiqueta="Conferencia">Conferencia</button>
+                      <button type="button" class="admin-yt-chip" data-etiqueta="Prédica">Prédica</button>
+                      <button type="button" class="admin-yt-chip" data-etiqueta="Testimonio">Testimonio</button>
+                      <button type="button" class="admin-yt-chip" data-etiqueta="Especial">Especial</button>
+                    </div>
+                    <input type="hidden" id="adminYoutubeEtiqueta" value="Conferencia" />
+                  </div>
+                  <div class="admin-yt-orden-field">
+                    <span class="admin-yt-field-label">Orden</span>
+                    <div class="admin-yt-stepper">
+                      <button type="button" class="admin-yt-stepper-btn" data-step="-1" aria-label="Disminuir orden">−</button>
+                      <input type="number" id="adminYoutubeOrden" value="1" min="1" />
+                      <button type="button" class="admin-yt-stepper-btn" data-step="1" aria-label="Aumentar orden">+</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="admin-yt-submit-row">
+                  <button type="button" class="admin-yt-cancel" id="adminYoutubeCancel">Cancelar</button>
+                  <button type="submit" class="btn">Guardar video</button>
+                </div>
+              </div>
+
               <div id="adminYoutubeMsg" class="form-message" style="display:none;"></div>
             </form>
           </div>
@@ -291,6 +377,131 @@
             <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="youtube">Importar videos actuales</button>
             <div id="adminYoutubeList" class="admin-content-list"></div>
+          </div>
+        </div>
+
+        <div class="admin-tab-panel" id="admin-devocionales">
+          <div class="admin-devotional-layout">
+            <div class="admin-devotional-page-head">
+              <div><span class="admin-dashboard-kicker">Área editorial</span><h3>Publicaciones devocionales</h3></div>
+              <button type="button" class="btn" id="adminDevocionalOpen"><i class="fa-solid fa-plus"></i> Nuevo devocional</button>
+            </div>
+            <div class="admin-devotional-overlay" id="adminDevocionalOverlay" hidden>
+            <div class="admin-card admin-devotional-editor" role="dialog" aria-modal="true" aria-labelledby="adminDevocionalFormTitle">
+              <button type="button" class="admin-devotional-close" id="adminDevocionalClose" aria-label="Cerrar">×</button>
+              <h3 id="adminDevocionalFormTitle">Nuevo Devocional</h3>
+              <p class="admin-devotional-subtitle">Comparte la Palabra con la comunidad</p>
+              <form id="adminDevocionalForm" class="admin-form">
+                <input type="hidden" id="adminDevocionalId" />
+                <div class="admin-devotional-field">
+                  <label for="adminDevocionalTitulo">Título</label>
+                  <input type="text" id="adminDevocionalTitulo" maxlength="140" placeholder="Título del devocional…" required />
+                </div>
+
+                <div class="admin-devotional-field">
+                  <label for="adminDevocionalImagen">Foto de portada</label>
+                  <div class="admin-cover-preview" id="adminDevocionalCoverPreview" hidden>
+                    <div class="admin-cover-crop-stage" id="adminDevocionalCropStage">
+                      <div class="admin-cover-crop-clip">
+                        <img id="adminDevocionalCoverPreviewImg" src="" alt="" draggable="false" />
+                        <div class="admin-cover-crop-mask" id="adminDevocionalCropMaskTop"></div>
+                        <div class="admin-cover-crop-mask" id="adminDevocionalCropMaskBottom"></div>
+                        <div class="admin-cover-crop-mask" id="adminDevocionalCropMaskLeft"></div>
+                        <div class="admin-cover-crop-mask" id="adminDevocionalCropMaskRight"></div>
+                      </div>
+                      <div class="admin-cover-crop-box" id="adminDevocionalCropBox">
+                        <span class="admin-cover-crop-handle" data-handle="nw" style="cursor:nwse-resize;"></span>
+                        <span class="admin-cover-crop-handle" data-handle="n" style="cursor:ns-resize;"></span>
+                        <span class="admin-cover-crop-handle" data-handle="ne" style="cursor:nesw-resize;"></span>
+                        <span class="admin-cover-crop-handle" data-handle="e" style="cursor:ew-resize;"></span>
+                        <span class="admin-cover-crop-handle" data-handle="se" style="cursor:nwse-resize;"></span>
+                        <span class="admin-cover-crop-handle" data-handle="s" style="cursor:ns-resize;"></span>
+                        <span class="admin-cover-crop-handle" data-handle="sw" style="cursor:nesw-resize;"></span>
+                        <span class="admin-cover-crop-handle" data-handle="w" style="cursor:ew-resize;"></span>
+                      </div>
+                    </div>
+                    <div class="admin-cover-crop-actions">
+                      <button type="button" class="admin-cover-crop-reset" id="adminDevocionalCropReset"><i class="fa-solid fa-crop-simple"></i> Restablecer recorte</button>
+                      <button type="button" class="admin-cover-remove" id="adminDevocionalCoverRemove" aria-label="Quitar foto de portada" title="Quitar foto">× Quitar foto</button>
+                    </div>
+                  </div>
+                  <label class="admin-cover-upload" for="adminDevocionalImagen"><i class="fa-regular fa-image"></i> <span id="adminDevocionalCoverUploadLabel">Subir foto de portada</span></label>
+                  <input class="admin-cover-file" type="file" id="adminDevocionalImagen" accept="image/jpeg,image/png,image/webp,image/avif" />
+                  <small class="admin-field-help">Recomendado: imagen horizontal. Arrastra las esquinas o bordes para ajustar el recorte.</small>
+                  <input type="hidden" id="adminDevocionalImagenActual" />
+                </div>
+
+                <div class="admin-devotional-field">
+                  <label for="adminDevocionalVersiculo">Versículo bíblico</label>
+                  <input type="text" id="adminDevocionalVersiculo" maxlength="300" placeholder='“El Señor es mi pastor…” — Salmo 23:1' />
+                </div>
+
+                <div class="admin-devotional-field">
+                  <label>Introducción</label>
+                  <div class="admin-rich-editor" data-rich-wrap>
+                    <div class="admin-rich-toolbar" data-editor-target="adminDevocionalIntroduccion"></div>
+                    <div id="adminDevocionalIntroduccion" class="admin-rich-content" contenteditable="true" data-placeholder="Escribe una introducción o texto destacado para tu publicación…"></div>
+                  </div>
+                </div>
+
+                <div class="admin-devotional-field">
+                  <label>Reflexión</label>
+                  <div class="admin-rich-editor" data-rich-wrap>
+                    <div class="admin-rich-toolbar" data-editor-target="adminDevocionalContenidoEditor"></div>
+                    <div id="adminDevocionalContenidoEditor" class="admin-rich-content admin-rich-content-large" contenteditable="true" data-placeholder="Escribe la reflexión devocional…"></div>
+                  </div>
+                </div>
+                <textarea id="adminDevocionalResumen" hidden></textarea>
+                <textarea id="adminDevocionalContenido" hidden></textarea>
+
+                <div class="admin-devotional-field">
+                  <label>Categorías</label>
+                  <div class="admin-devotional-categories">
+                    <label><input type="checkbox" name="devCategoria" value="Fe"> Fe</label>
+                    <label><input type="checkbox" name="devCategoria" value="Esperanza"> Esperanza</label>
+                    <label><input type="checkbox" name="devCategoria" value="Amor"> Amor</label>
+                    <label><input type="checkbox" name="devCategoria" value="Oración"> Oración</label>
+                    <label><input type="checkbox" name="devCategoria" value="Gracia"> Gracia</label>
+                    <label><input type="checkbox" name="devCategoria" value="Sabiduría"> Sabiduría</label>
+                    <label><input type="checkbox" name="devCategoria" value="Salvación"> Salvación</label>
+                  </div>
+                </div>
+
+                <div class="admin-devotional-two-columns">
+                  <div><label for="adminDevocionalAutora">Nombre de quien publica</label><input type="text" id="adminDevocionalAutora" maxlength="100" required /></div>
+                  <div><label for="adminDevocionalFecha">Fecha</label><input type="date" id="adminDevocionalFecha" /></div>
+                </div>
+                <div class="admin-devotional-actions">
+                  <button type="button" class="admin-preview-btn" id="adminDevocionalPreview"><i class="fa-regular fa-eye"></i> Vista previa</button>
+                  <button type="submit" class="admin-draft-btn" data-dev-save="draft">Guardar borrador</button>
+                  <button type="submit" class="btn admin-publish-btn" data-dev-save="publish">Publicar Devocional</button>
+                  <button type="button" class="admin-edit-cancel" id="adminDevocionalCancel" hidden>Cancelar edición</button>
+                </div>
+                <div id="adminDevocionalMsg" class="form-message" style="display:none;"></div>
+              </form>
+            </div>
+            </div>
+            <div class="admin-devotional-preview-overlay" id="adminDevocionalPreviewOverlay" hidden>
+              <div class="admin-devotional-preview-frame">
+                <div class="admin-devotional-preview-bar">
+                  <span><i class="fa-regular fa-eye"></i> Vista previa — así se verá en la página pública</span>
+                  <button type="button" class="admin-devotional-preview-close" id="adminDevocionalPreviewClose" aria-label="Cerrar vista previa">×</button>
+                </div>
+                <iframe id="adminDevocionalPreviewIframe" title="Vista previa del devocional"></iframe>
+              </div>
+            </div>
+            <div class="admin-card admin-list-card">
+              <div class="admin-devotional-list-head">
+                <div><span class="admin-dashboard-kicker">Tus publicaciones</span><h3>Artículos</h3></div>
+                <a href="devocionales.html" target="_blank" rel="noopener" class="admin-preview-link">Ver página pública <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+              </div>
+              <div class="admin-devotional-filters" role="group" aria-label="Filtrar artículos">
+                <button type="button" class="active" data-dev-filter="all">Todos</button>
+                <button type="button" data-dev-filter="published">Publicados</button>
+                <button type="button" data-dev-filter="draft">Borradores</button>
+              </div>
+              <div id="adminDevocionalesList" class="admin-content-list"><div class="admin-empty">Cargando artículos…</div></div>
+            </div>
           </div>
         </div>
 
@@ -316,13 +527,11 @@
                 <label for="adminInviteEmail">Correo del nuevo usuario</label>
                 <input type="email" id="adminInviteEmail" placeholder="nombre@correo.com" autocomplete="off" required />
               </div>
-              <div class="admin-field">
-                <label for="adminInviteRole">Rol inicial</label>
-                <select id="adminInviteRole">
-                  <option value="read_only">Vista simple</option>
-                  <option value="read_export">Manager</option>
-                  <option value="crud">Super Admin</option>
-                </select>
+              <div class="admin-field admin-permission-group">
+                <label>Permisos iniciales</label>
+                <label class="admin-permission-check"><input type="checkbox" data-permission="editor"> Editor de devocionales</label>
+                <label class="admin-permission-check"><input type="checkbox" data-permission="read_export"> Manager (exportar)</label>
+                <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin"> Super Admin</label>
               </div>
               <button type="submit" class="btn">Crear usuario</button>
             </form>
@@ -336,6 +545,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260831-role-names-1"></script>
+  <script src="assets/js/main.js?v=20260903-editor-role-1"></script>
+  <script src="assets/js/devocionales-admin.js?v=20260903-editor-modal-2"></script>
 </body>
 </html>

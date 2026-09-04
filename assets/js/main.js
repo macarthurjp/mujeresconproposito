@@ -2638,7 +2638,7 @@ function renderContactCalendar(apiData = {}) {
 	  const adminRefreshRoles = document.getElementById("adminRefreshRoles");
 	  const adminInviteUserForm = document.getElementById("adminInviteUserForm");
 	  const adminInviteEmail = document.getElementById("adminInviteEmail");
-	  const adminInviteRole = document.getElementById("adminInviteRole");
+	  if (adminInviteUserForm) wirePermissionCheckboxGroup(adminInviteUserForm);
 	  const adminCurrentEmailForm = document.getElementById("adminCurrentEmailForm");
 	  const adminCurrentEmail = document.getElementById("adminCurrentEmail");
 
@@ -2734,6 +2734,52 @@ function renderContactCalendar(apiData = {}) {
 	            <button type="button" data-admin-action="edit">Editar</button>
 	            <button type="button" data-admin-action="toggle">${row.activa === false ? "Mostrar" : "Ocultar"}</button>
 	            <button type="button" data-admin-action="delete" class="danger">Borrar</button>
+	          </div>
+	        </div>
+	      `;
+	    }).join("");
+	  }
+
+	  const ADMIN_ICON_EDIT = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
+	  const ADMIN_ICON_EYE = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+	  const ADMIN_ICON_EYE_OFF = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.22 4.44M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><path d="M1 1l22 22"></path></svg>';
+	  const ADMIN_ICON_TRASH = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>';
+
+	  function renderYoutubeAdminList(containerId, rows) {
+	    const container = document.getElementById(containerId);
+	    if (!container) return;
+
+	    if (!rows.length) {
+	      container.innerHTML = `<div class="admin-empty">No hay contenido guardado todavía.</div>`;
+	      return;
+	    }
+
+	    container.innerHTML = rows.map((row) => {
+	      const title = row.titulo || "Video";
+	      const subtitle = row.subtitulo || "";
+	      const etiqueta = row.etiqueta || "Conferencia";
+	      const isVisible = row.activa !== false;
+
+	      return `
+	        <div class="admin-content-item" data-admin-type="youtube" data-admin-id="${escapeHtml(row.id)}">
+	          <span class="admin-drag-handle" aria-hidden="true">⠿</span>
+	          <span class="admin-item-order-badge">#${escapeHtml(row.orden || 1)}</span>
+	          <div class="admin-item-media">
+	            <img src="https://img.youtube.com/vi/${escapeHtml(row.video_id)}/hqdefault.jpg" alt="${escapeHtml(title)}" loading="lazy">
+	          </div>
+	          <div class="admin-item-body">
+	            <div class="admin-item-tagrow">
+	              <span class="admin-yt-tag-pill">${escapeHtml(etiqueta)}</span>
+	              <span class="admin-item-status-dot ${isVisible ? "is-visible" : ""}"></span>
+	              <span class="admin-item-status-text">${isVisible ? "Visible" : "Oculto"}</span>
+	            </div>
+	            <strong>${escapeHtml(title)}</strong>
+	            <span>${escapeHtml(subtitle)}</span>
+	          </div>
+	          <div class="admin-item-actions">
+	            <button type="button" data-admin-action="edit" title="Editar" aria-label="Editar">${ADMIN_ICON_EDIT}</button>
+	            <button type="button" data-admin-action="toggle" title="${isVisible ? "Ocultar" : "Mostrar"}" aria-label="${isVisible ? "Ocultar" : "Mostrar"}">${isVisible ? ADMIN_ICON_EYE_OFF : ADMIN_ICON_EYE}</button>
+	            <button type="button" data-admin-action="delete" class="danger" title="Borrar" aria-label="Borrar">${ADMIN_ICON_TRASH}</button>
 	          </div>
 	        </div>
 	      `;
@@ -3069,7 +3115,7 @@ function renderContactCalendar(apiData = {}) {
 	      populateAdminGalleryEventOptions(galeria);
 	    }
 	    results[3].status === "fulfilled"
-	      ? renderAdminList("adminYoutubeList", youtube, "youtube")
+	      ? renderYoutubeAdminList("adminYoutubeList", youtube)
 	      : renderAdminError("adminYoutubeList", results[3].reason);
 
 	    renderAdminStats();
@@ -3854,6 +3900,10 @@ function renderContactCalendar(apiData = {}) {
 
 	  document.querySelectorAll("[data-admin-import]").forEach((button) => {
 	    button.addEventListener("click", async function () {
+	      if (this.disabled) return;
+	      const originalLabel = this.textContent;
+	      this.disabled = true;
+	      this.textContent = "Importando...";
 	      try {
 	        await importVisibleAdminContent(this.dataset.adminImport);
 	      } catch (error) {
@@ -3865,6 +3915,9 @@ function renderContactCalendar(apiData = {}) {
 	          error?.code
 	        ].filter(Boolean).join("\n");
 	        showAdminToast("error", "No se pudo importar", details || "Revisa permisos de insert en Supabase.");
+	      } finally {
+	        this.disabled = false;
+	        this.textContent = originalLabel;
 	      }
 	    });
 	  });
@@ -3882,17 +3935,53 @@ function renderContactCalendar(apiData = {}) {
 
 	  async function getCurrentAdminRole() {
 	    const client = getAdminSupabaseClient();
-	    const { data, error } = await client.rpc("current_user_role");
+	    const { data: userData, error: userError } = await client.auth.getUser();
+	    if (userError || !userData?.user) throw new Error("No se pudo verificar el rol de acceso.");
+	    const { data, error } = await client
+	      .from("user_roles")
+	      .select("is_super_admin,permissions,is_revoked")
+	      .eq("user_id", userData.user.id)
+	      .maybeSingle();
 	    if (error) throw new Error("No se pudo verificar el rol de acceso.");
-	    return data || "read_only";
+	    return {
+	      is_super_admin: Boolean(data?.is_super_admin),
+	      permissions: Array.isArray(data?.permissions) ? data.permissions : ["read_only"],
+	      is_revoked: Boolean(data?.is_revoked)
+	    };
 	  }
 
-	  function adminRoleOptions(selectedRole) {
-	    return [
-	      ["crud", "Super Admin"],
-	      ["read_export", "Manager"],
-	      ["read_only", "Vista simple"]
-	    ].map(([value, label]) => `<option value="${value}" ${value === selectedRole ? "selected" : ""}>${label}</option>`).join("");
+	  function adminPermissionCheckboxes(access, { forceDisabled } = {}) {
+	    const isSuperAdmin = Boolean(access?.is_super_admin);
+	    const permissions = Array.isArray(access?.permissions) ? access.permissions : [];
+	    const otherDisabled = forceDisabled || isSuperAdmin ? "disabled" : "";
+	    const superDisabled = forceDisabled ? "disabled" : "";
+	    return `
+	      <label class="admin-permission-check"><input type="checkbox" data-permission="editor" ${permissions.includes("editor") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Editor de devocionales</label>
+	      <label class="admin-permission-check"><input type="checkbox" data-permission="read_export" ${permissions.includes("read_export") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Manager (exportar)</label>
+	      <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin" ${isSuperAdmin ? "checked" : ""} ${superDisabled} /> Super Admin</label>
+	    `;
+	  }
+
+	  function readPermissionCheckboxes(container) {
+	    const isSuperAdmin = Boolean(container.querySelector('[data-permission="super_admin"]')?.checked);
+	    const permissions = [];
+	    if (container.querySelector('[data-permission="editor"]')?.checked) permissions.push("editor");
+	    if (container.querySelector('[data-permission="read_export"]')?.checked) permissions.push("read_export");
+	    return { isSuperAdmin, permissions };
+	  }
+
+	  function wirePermissionCheckboxGroup(container) {
+	    const superAdminInput = container.querySelector('[data-permission="super_admin"]');
+	    const otherInputs = [
+	      container.querySelector('[data-permission="editor"]'),
+	      container.querySelector('[data-permission="read_export"]')
+	    ].filter(Boolean);
+	    superAdminInput?.addEventListener("change", function () {
+	      otherInputs.forEach((input) => {
+	        input.disabled = this.checked;
+	        if (this.checked) input.checked = false;
+	      });
+	    });
 	  }
 
 	  async function invokeManageUsers(body) {
@@ -3918,16 +4007,17 @@ function renderContactCalendar(apiData = {}) {
 	    if (adminCurrentEmail && currentUser?.email) adminCurrentEmail.value = currentUser.email;
 	    adminRolesList.innerHTML = users.length ? users.map((entry) => {
 	      const isCurrentUser = Boolean(entry.isCurrentUser);
-	      const isRevoked = entry.role === "revoked";
+	      const isRevoked = Boolean(entry.isRevoked);
+	      const access = { is_super_admin: entry.isSuperAdmin, permissions: entry.permissions || ["read_only"] };
 	      return `
 	        <div class="admin-role-row${isRevoked ? " is-revoked" : ""}">
 	          <div class="admin-role-identity">
 	            <strong>${escapeHtml(entry.email || "Cuenta sin email")}</strong>
 	            <small>${isCurrentUser ? "Tu cuenta · Super Admin" : isRevoked ? "Acceso revocado" : "Cuenta autorizada"}</small>
 	          </div>
-	          <select class="admin-role-select" data-role-user-id="${escapeHtml(entry.userId)}" data-previous-role="${escapeHtml(isRevoked ? "read_only" : entry.role)}" ${(isCurrentUser || isRevoked) ? "disabled" : ""} aria-label="Rol de ${escapeHtml(entry.email || "usuario")}">
-	            ${adminRoleOptions(isRevoked ? "read_only" : entry.role)}
-	          </select>
+	          <div class="admin-permission-group" data-role-user-id="${escapeHtml(entry.userId)}" aria-label="Permisos de ${escapeHtml(entry.email || "usuario")}">
+	            ${adminPermissionCheckboxes(access, { forceDisabled: isCurrentUser || isRevoked })}
+	          </div>
 	          <div class="admin-role-actions">
 	            <button type="button" class="admin-role-access-btn password-reset" data-password-reset data-role-user-id="${escapeHtml(entry.userId)}" data-role-user-email="${escapeHtml(entry.email || "")}">Cambiar contraseña</button>
 	            ${isCurrentUser ? "" : `<button type="button" class="admin-role-access-btn${isRevoked ? " restore" : ""}" data-access-action="${isRevoked ? "restore" : "revoke"}" data-role-user-id="${escapeHtml(entry.userId)}">${isRevoked ? "Restaurar acceso" : "Revocar acceso"}</button>`}
@@ -3935,22 +4025,26 @@ function renderContactCalendar(apiData = {}) {
 	        </div>
 	      `;
 	    }).join("") : `<div class="admin-empty">No hay cuentas autorizadas.</div>`;
+	    adminRolesList.querySelectorAll(".admin-permission-group").forEach((group) => wirePermissionCheckboxGroup(group));
 	  }
 
 	  adminRolesList?.addEventListener("change", async function (event) {
-	    const select = event.target.closest("[data-role-user-id]");
-	    if (!select) return;
-	    const previousRole = select.dataset.previousRole || "read_only";
-	    select.disabled = true;
+	    const checkbox = event.target.closest('[data-permission]');
+	    if (!checkbox) return;
+	    const group = event.target.closest(".admin-permission-group");
+	    if (!group) return;
+	    const userId = group.dataset.roleUserId;
+	    const inputs = Array.from(group.querySelectorAll("[data-permission]"));
+	    const previousState = inputs.map((input) => ({ input, checked: input.checked, disabled: input.disabled }));
+	    inputs.forEach((input) => { input.disabled = true; });
 	    try {
-	      await invokeManageUsers({ action: "set_role", userId: select.dataset.roleUserId, role: select.value });
-	      select.dataset.previousRole = select.value;
-	      showAdminToast("success", "Rol actualizado", "Los nuevos permisos ya están activos.");
+	      const { isSuperAdmin, permissions } = readPermissionCheckboxes(group);
+	      await invokeManageUsers({ action: "set_role", userId, isSuperAdmin, permissions });
+	      showAdminToast("success", "Permisos actualizados", "Los nuevos permisos ya están activos.");
+	      await loadAdminRoles();
 	    } catch (error) {
-	      select.value = previousRole;
-	      showAdminToast("error", "No se pudo cambiar el rol", error?.message || "Intenta nuevamente.");
-	    } finally {
-	      select.disabled = false;
+	      previousState.forEach(({ input, checked, disabled }) => { input.checked = checked; input.disabled = disabled; });
+	      showAdminToast("error", "No se pudieron actualizar los permisos", error?.message || "Intenta nuevamente.");
 	    }
 	  });
 
@@ -3981,11 +4075,10 @@ function renderContactCalendar(apiData = {}) {
 	    try {
 	      await invokeManageUsers({
 	        action: button.dataset.accessAction,
-	        userId: button.dataset.roleUserId,
-	        role: "read_only"
+	        userId: button.dataset.roleUserId
 	      });
 	      await loadAdminRoles();
-	      showAdminToast("success", isRevoke ? "Acceso revocado" : "Acceso restaurado", isRevoke ? "La cuenta quedó bloqueada." : "La cuenta vuelve a tener acceso de solo lectura.");
+	      showAdminToast("success", isRevoke ? "Acceso revocado" : "Acceso restaurado", isRevoke ? "La cuenta quedó bloqueada." : "La cuenta recuperó los permisos que tenía antes.");
 	    } catch (error) {
 	      button.disabled = false;
 	      showAdminToast("error", "No se pudo actualizar el acceso", error?.message || "Intenta nuevamente.");
@@ -3997,7 +4090,8 @@ function renderContactCalendar(apiData = {}) {
 	    const button = this.querySelector('button[type="submit"]');
 	    if (button) button.disabled = true;
 	    try {
-	      await invokeManageUsers({ action: "invite", email: adminInviteEmail?.value || "", role: adminInviteRole?.value || "read_only" });
+	      const { isSuperAdmin, permissions } = readPermissionCheckboxes(this);
+	      await invokeManageUsers({ action: "invite", email: adminInviteEmail?.value || "", isSuperAdmin, permissions });
 	      this.reset();
 	      await loadAdminRoles();
 	      showAdminToast("success", "Usuario creado", "La invitación fue enviada por correo.");
@@ -4037,9 +4131,11 @@ function renderContactCalendar(apiData = {}) {
 	  });
 
 	  async function unlockAdminPanel() {
+	    let access;
 	    try {
-	      const role = await getCurrentAdminRole();
-	      if (role !== "crud") {
+	      access = await getCurrentAdminRole();
+	      const canEnterAdmin = access.is_super_admin || access.permissions.includes("editor");
+	      if (!canEnterAdmin) {
 	        window.location.href = "dashboard.html";
 	        return false;
 	      }
@@ -4052,7 +4148,20 @@ function renderContactCalendar(apiData = {}) {
 	    if (adminDashboard) adminDashboard.style.display = "block";
 	    document.body.classList.remove("admin-locked");
 	    document.body.classList.add("admin-unlocked");
-	    Promise.all([loadAdminContent(), loadAdminRoles()]).catch((error) => {
+	    document.body.dataset.adminRole = access.is_super_admin ? "super_admin" : access.permissions.join(",");
+	    const isEditorOnly = access.permissions.includes("editor") && !access.is_super_admin;
+	    if (isEditorOnly) {
+	      document.querySelectorAll(".admin-tab").forEach((tab) => { tab.hidden = tab.dataset.adminTab !== "devocionales"; });
+	      document.querySelectorAll(".admin-tab-panel").forEach((panel) => panel.classList.remove("active"));
+	      const devotionalTab = document.querySelector('[data-admin-tab="devocionales"]');
+	      devotionalTab?.classList.add("active");
+	      document.getElementById("admin-devocionales")?.classList.add("active");
+	      document.getElementById("adminStatsGrid")?.setAttribute("hidden", "");
+	      document.getElementById("adminShareJoinLink")?.setAttribute("hidden", "");
+	      window.initDevocionalesAdmin?.(access);
+	      return true;
+	    }
+	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access)]).catch((error) => {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
 	    });
@@ -4245,6 +4354,11 @@ function renderContactCalendar(apiData = {}) {
     return buildEventSchedule({ frequency, days, time });
   }
 
+  document.getElementById("adminEventoCancel")?.addEventListener("click", () => {
+    document.getElementById("adminEventForm")?.reset();
+    updateScheduleDaysVisibility(adminEventoFrecuencia, adminEventoDias);
+  });
+
   document.getElementById("adminEventForm")?.addEventListener("submit", async function (event) {
     event.preventDefault();
     const msg = document.getElementById("adminEventoMsg");
@@ -4273,6 +4387,10 @@ function renderContactCalendar(apiData = {}) {
       const detail = error?.message ? ` ${error.message}` : "";
       showAdminMsg(msg, `No se pudo guardar el evento.${detail}`, false);
     }
+  });
+
+  document.getElementById("adminDestacadaCancel")?.addEventListener("click", () => {
+    document.getElementById("adminDestacadaForm")?.reset();
   });
 
   document.getElementById("adminDestacadaForm")?.addEventListener("submit", async function (event) {
@@ -4376,6 +4494,81 @@ function renderContactCalendar(apiData = {}) {
 	    onReorder: (orderedIds) => persistAdminOrder("youtube", orderedIds)
 	  });
 
+	  function resetYoutubeFormExtras() {
+	    const chipsWrap = document.getElementById("adminYoutubeChips");
+	    const etiquetaField = document.getElementById("adminYoutubeEtiqueta");
+	    if (etiquetaField) etiquetaField.value = "Conferencia";
+	    chipsWrap?.querySelectorAll(".admin-yt-chip").forEach((chip) => {
+	      chip.classList.toggle("is-active", chip.dataset.etiqueta === "Conferencia");
+	    });
+	    updateYoutubePreview();
+	  }
+
+	  function updateYoutubePreview() {
+	    const link = document.getElementById("adminYoutubeLink")?.value || "";
+	    const titulo = document.getElementById("adminYoutubeTitulo")?.value || "";
+	    const subtitulo = document.getElementById("adminYoutubeSubtitulo")?.value || "";
+	    const etiqueta = document.getElementById("adminYoutubeEtiqueta")?.value || "Conferencia";
+	    const orden = document.getElementById("adminYoutubeOrden")?.value || 1;
+
+	    const thumb = document.getElementById("adminYoutubePreviewThumb");
+	    const img = document.getElementById("adminYoutubePreviewImg");
+	    const videoId = extractYouTubeVideoId(link);
+	    if (thumb && img) {
+	      if (videoId) {
+	        img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+	        thumb.classList.add("has-video");
+	      } else {
+	        img.removeAttribute("src");
+	        thumb.classList.remove("has-video");
+	      }
+	    }
+
+	    const tagEl = document.getElementById("adminYoutubePreviewTag");
+	    if (tagEl) tagEl.textContent = etiqueta;
+
+	    const ordenEl = document.getElementById("adminYoutubePreviewOrden");
+	    if (ordenEl) ordenEl.textContent = `Orden #${orden || 1}`;
+
+	    const tituloEl = document.getElementById("adminYoutubePreviewTitle");
+	    if (tituloEl) tituloEl.textContent = titulo.trim() || "Tu título aparecerá aquí";
+
+	    const subtituloEl = document.getElementById("adminYoutubePreviewSubtitle");
+	    if (subtituloEl) subtituloEl.textContent = subtitulo.trim() || "Subtítulo";
+	  }
+
+	  ["adminYoutubeLink", "adminYoutubeTitulo", "adminYoutubeSubtitulo", "adminYoutubeOrden"].forEach((id) => {
+	    document.getElementById(id)?.addEventListener("input", updateYoutubePreview);
+	  });
+
+	  document.getElementById("adminYoutubeChips")?.addEventListener("click", (event) => {
+	    const chip = event.target.closest(".admin-yt-chip");
+	    if (!chip) return;
+	    document.querySelectorAll("#adminYoutubeChips .admin-yt-chip").forEach((el) => el.classList.remove("is-active"));
+	    chip.classList.add("is-active");
+	    const etiquetaField = document.getElementById("adminYoutubeEtiqueta");
+	    if (etiquetaField) etiquetaField.value = chip.dataset.etiqueta || "Conferencia";
+	    updateYoutubePreview();
+	  });
+
+	  document.querySelectorAll(".admin-yt-stepper-btn").forEach((button) => {
+	    button.addEventListener("click", () => {
+	      const ordenInput = document.getElementById("adminYoutubeOrden");
+	      if (!ordenInput) return;
+	      const step = Number(button.dataset.step || 1);
+	      const next = Math.max(1, (Number(ordenInput.value) || 1) + step);
+	      ordenInput.value = next;
+	      updateYoutubePreview();
+	    });
+	  });
+
+	  document.getElementById("adminYoutubeCancel")?.addEventListener("click", () => {
+	    document.getElementById("adminYoutubeForm")?.reset();
+	    resetYoutubeFormExtras();
+	  });
+
+	  updateYoutubePreview();
+
 	  document.getElementById("adminYoutubeForm")?.addEventListener("submit", async function (event) {
 	    event.preventDefault();
 	    const msg = document.getElementById("adminYoutubeMsg");
@@ -4390,8 +4583,7 @@ function renderContactCalendar(apiData = {}) {
 	      });
 
 	      this.reset();
-	      const etiquetaField = document.getElementById("adminYoutubeEtiqueta");
-	      if (etiquetaField) etiquetaField.value = "Conferencia";
+	      resetYoutubeFormExtras();
 	      showAdminMsg(msg, "Video guardado correctamente.", true);
 	      await loadAdminContent();
 	    } catch (error) {

@@ -81,7 +81,7 @@ const dashboardRecordForm = document.getElementById("dashboardRecordForm");
 const dashboardRecordSaveBtn = document.getElementById("dashboardRecordSaveBtn");
 let dashboardLoaded = false;
 let toastTimer = null;
-let dashboardRole = "read_only";
+let dashboardAccess = { is_super_admin: false, permissions: ["read_only"], is_revoked: false };
 
 function populateRecordSelect(id, values) {
   const select = document.getElementById(id);
@@ -137,22 +137,28 @@ const dashboardRecordPhoneInput = dashboardRecordPhoneField && typeof window.int
     })
   : null;
 
-const DASHBOARD_ROLE_LABELS = {
-  crud: "Super Admin",
-  read_export: "Manager",
-  read_only: "Vista simple"
-};
+function composeDashboardRoleLabel(access) {
+  if (access.is_super_admin) return "Super Admin";
+  const labels = [];
+  if (access.permissions.includes("editor")) labels.push("Editor de devocionales");
+  if (access.permissions.includes("read_export")) labels.push("Manager");
+  return labels.length ? labels.join(" + ") : "Vista simple";
+}
 
 function canDashboardExport() {
-  return dashboardRole === "crud" || dashboardRole === "read_export";
+  return dashboardAccess.is_super_admin || dashboardAccess.permissions.includes("read_export");
 }
 
 function canDashboardManageRecords() {
-  return dashboardRole === "crud";
+  return dashboardAccess.is_super_admin;
 }
 
-function applyDashboardRole(role) {
-  dashboardRole = Object.prototype.hasOwnProperty.call(DASHBOARD_ROLE_LABELS, role) ? role : "read_only";
+function applyDashboardRole(access) {
+  dashboardAccess = {
+    is_super_admin: Boolean(access?.is_super_admin),
+    permissions: Array.isArray(access?.permissions) ? access.permissions : ["read_only"],
+    is_revoked: Boolean(access?.is_revoked)
+  };
   const canExport = canDashboardExport();
   [exportCsvBtn, exportPdfBtn, sidebarCsvBtn, sidebarExportBtn].forEach((element) => {
     if (element) element.hidden = !canExport;
@@ -161,28 +167,35 @@ function applyDashboardRole(role) {
   [adminPanelBtn, sidebarAdminBtn].forEach((element) => {
     if (element) element.hidden = !canManage;
   });
-  if (dashboardRoleBadge) dashboardRoleBadge.textContent = DASHBOARD_ROLE_LABELS[dashboardRole];
-  document.body.dataset.userRole = dashboardRole;
+  if (dashboardRoleBadge) dashboardRoleBadge.textContent = composeDashboardRoleLabel(dashboardAccess);
+  document.body.dataset.userRole = dashboardAccess.is_super_admin ? "super_admin" : dashboardAccess.permissions.join(",");
   if (filteredUsers.length) renderCurrentPage();
 }
 
 async function loadDashboardRole() {
   const client = getDashboardSupabaseClient();
-  const [{ data, error }, identityResult] = await Promise.all([
-    client.rpc("current_user_role"),
-    client.auth.getUser()
-  ]);
+  const identityResult = await client.auth.getUser();
+  const user = identityResult?.data?.user;
+  const { data, error } = await client
+    .from("user_roles")
+    .select("is_super_admin,permissions,is_revoked")
+    .eq("user_id", user?.id || "")
+    .maybeSingle();
   if (error) throw new Error("No se pudo verificar el rol de acceso.");
-  if (data === "revoked") {
+  const access = {
+    is_super_admin: Boolean(data?.is_super_admin),
+    permissions: Array.isArray(data?.permissions) ? data.permissions : ["read_only"],
+    is_revoked: Boolean(data?.is_revoked)
+  };
+  if (access.is_revoked) {
     await client.auth.signOut();
     throw new Error("El acceso de esta cuenta fue revocado.");
   }
-  const user = identityResult?.data?.user;
   const metadata = user?.user_metadata || {};
   const displayName = metadata.full_name || metadata.name || metadata.display_name || user?.email || "Usuario";
   if (dashboardUserName) dashboardUserName.textContent = displayName;
-  applyDashboardRole(data);
-  return dashboardRole;
+  applyDashboardRole(access);
+  return dashboardAccess;
 }
 
 function showDashboardToast(message) {

@@ -28,7 +28,7 @@ html {
 }
 
 body {
-    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    font-family: "Archivo", "Segoe UI", Arial, sans-serif;
     background: radial-gradient(circle at top, rgba(255, 255, 255, 0.95), transparent 25%),
                 radial-gradient(circle at 20% 18%, rgba(231, 168, 160, 0.16), transparent 14%),
                 linear-gradient(180deg, #fff8f6 0%, #fff1ee 38%, #f7ebe8 100%);
@@ -375,7 +375,7 @@ section h2 {
     letter-spacing: -0.03em;
     text-align: center;
     color: #1f2937;
-    font-family: "SF Pro Display", "Inter", sans-serif;
+    font-family: "SF Pro Display", "Archivo", sans-serif;
     line-height: 1.05;
     gap: 18px;
 }
@@ -1751,6 +1751,36 @@ section .verse-block {
     transform: translateY(-8px);
     box-shadow: 0 12px 30px rgba(0,0,0,0.12);
 }
+
+.ofrecemos-card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.ofrecemos-card-link > * {
+    position: relative;
+    z-index: 1;
+}
+
+.ofrecemos-card-link:focus-visible {
+    outline: 3px solid rgba(176, 95, 95, .42);
+    outline-offset: 5px;
+}
+
+.ofrecemos-card-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 20px;
+    color: #a95045;
+    font-size: .9rem;
+    font-weight: 800;
+}
+
+.ofrecemos-card-action i { transition: transform .25s ease; }
+.ofrecemos-card-link:hover .ofrecemos-card-action i { transform: translateX(5px); }
 
 /* YOUTUBE */
 .youtube-section {
@@ -3931,7 +3961,7 @@ html {
 }
 
 body {
-    font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+    font-family: "Archivo", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
     color: var(--mcp-text) !important;
     background:
         radial-gradient(circle at 10% 4%, rgba(216, 168, 92, 0.18), transparent 32rem),

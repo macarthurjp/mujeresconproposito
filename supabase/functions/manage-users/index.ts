@@ -1,10 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
 
-const ASSIGNABLE_ROLES = new Set(["crud", "read_export", "read_only"]);
+const ASSIGNABLE_PERMISSIONS = new Set(["editor", "read_export"]);
 
 function normalizeEmail(value: unknown) {
   return String(value || "").trim().toLowerCase();
+}
+
+function parsePermissions(value: unknown): string[] | null {
+  const requested = Array.isArray(value) ? value : [];
+  if (!requested.every((p) => typeof p === "string" && ASSIGNABLE_PERMISSIONS.has(p))) return null;
+  return Array.from(new Set<string>(["read_only", ...requested]));
 }
 
 Deno.serve(async (req) => {
@@ -28,10 +34,10 @@ Deno.serve(async (req) => {
 
     const { data: requesterRole } = await admin
       .from("user_roles")
-      .select("role")
+      .select("is_super_admin")
       .eq("user_id", requester.id)
       .maybeSingle();
-    if (requesterRole?.role !== "crud") {
+    if (requesterRole?.is_super_admin !== true) {
       return jsonResponse({ ok: false, error: "Solo el Super Admin puede gestionar usuarios." }, 403);
     }
 
@@ -41,7 +47,7 @@ Deno.serve(async (req) => {
     if (action === "list") {
       const { data: authData, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
       if (listError) throw listError;
-      const { data: roles, error: rolesError } = await admin.from("user_roles").select("user_id,email,role,created_at");
+      const { data: roles, error: rolesError } = await admin.from("user_roles").select("user_id,email,is_super_admin,permissions,is_revoked,created_at");
       if (rolesError) throw rolesError;
       const rolesByUser = new Map((roles || []).map((entry) => [entry.user_id, entry]));
       const users = (authData?.users || []).map((user) => {
@@ -49,7 +55,9 @@ Deno.serve(async (req) => {
         return {
           userId: user.id,
           email: user.email || access?.email || "",
-          role: access?.role || "read_only",
+          isSuperAdmin: access?.is_super_admin ?? false,
+          permissions: access?.permissions ?? ["read_only"],
+          isRevoked: access?.is_revoked ?? false,
           createdAt: user.created_at,
           lastSignInAt: user.last_sign_in_at,
           isCurrentUser: user.id === requester.id
@@ -60,11 +68,12 @@ Deno.serve(async (req) => {
 
     if (action === "invite") {
       const email = normalizeEmail(body.email);
-      const role = String(body.role || "read_only");
+      const isSuperAdmin = Boolean(body.isSuperAdmin);
+      const permissions = parsePermissions(body.permissions);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return jsonResponse({ ok: false, error: "Escribe un correo válido." }, 400);
       }
-      if (!ASSIGNABLE_ROLES.has(role)) return jsonResponse({ ok: false, error: "Rol inválido." }, 400);
+      if (!permissions) return jsonResponse({ ok: false, error: "Permisos inválidos." }, 400);
 
       const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
         redirectTo: "https://mcp930.org/reset-password.html"
@@ -75,7 +84,8 @@ Deno.serve(async (req) => {
       const { error: roleError } = await admin.from("user_roles").upsert({
         user_id: userId,
         email,
-        role,
+        is_super_admin: isSuperAdmin,
+        permissions,
         updated_at: new Date().toISOString()
       });
       if (roleError) throw roleError;
@@ -118,19 +128,35 @@ Deno.serve(async (req) => {
 
     if (userId === requester.id) return jsonResponse({ ok: false, error: "No puedes modificar ni revocar tu propia cuenta." }, 400);
 
-    if (action === "set_role" || action === "restore") {
-      const role = String(body.role || "read_only");
-      if (!ASSIGNABLE_ROLES.has(role)) return jsonResponse({ ok: false, error: "Rol inválido." }, 400);
+    if (action === "set_role") {
+      const isSuperAdmin = Boolean(body.isSuperAdmin);
+      const permissions = parsePermissions(body.permissions);
+      if (!permissions) return jsonResponse({ ok: false, error: "Permisos inválidos." }, 400);
       const { error: authError } = await admin.auth.admin.updateUserById(userId, { ban_duration: "none" });
       if (authError) throw authError;
-      const { error } = await admin.from("user_roles").update({ role, updated_at: new Date().toISOString() }).eq("user_id", userId);
+      const { error } = await admin.from("user_roles").update({
+        is_super_admin: isSuperAdmin,
+        permissions,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", userId);
       if (error) throw error;
-      return jsonResponse({ ok: true, message: action === "restore" ? "Acceso restaurado." : "Rol actualizado." });
+      return jsonResponse({ ok: true, message: "Rol actualizado." });
+    }
+
+    if (action === "restore") {
+      const { error: authError } = await admin.auth.admin.updateUserById(userId, { ban_duration: "none" });
+      if (authError) throw authError;
+      const { error } = await admin.from("user_roles").update({
+        is_revoked: false,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", userId);
+      if (error) throw error;
+      return jsonResponse({ ok: true, message: "Acceso restaurado." });
     }
 
     if (action === "revoke") {
       const { error: roleError } = await admin.from("user_roles").update({
-        role: "revoked",
+        is_revoked: true,
         updated_at: new Date().toISOString()
       }).eq("user_id", userId);
       if (roleError) throw roleError;

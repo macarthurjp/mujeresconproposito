@@ -116,6 +116,15 @@ test("an empty YouTube catalog stays empty", async ({ page }) => {
   await expect(page.locator("#ytGrid .yt-card")).toHaveCount(0);
 });
 
+test("devotional card opens the devotional library", async ({ page }) => {
+  await page.goto("/index.html");
+  const devotionalLink = page.getByRole("link", { name: "Leer los devocionales" });
+  await expect(devotionalLink).toHaveAttribute("href", "devocionales.html");
+  await page.goto("/devocionales.html");
+  await expect(page.getByRole("heading", { name: /Un momento/ , level: 1 })).toBeVisible();
+  await expect(page.locator("#devStatus")).toContainText("Estamos preparando algo especial");
+});
+
 test("private login and password reset keep only the intended controls", async ({ page }) => {
   await page.goto("/admin.html");
   await expect(page.locator(".admin-site-header")).toBeHidden();
@@ -128,6 +137,18 @@ test("private login and password reset keep only the intended controls", async (
   await expect(page.getByRole("button", { name: "Admin" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Página principal" })).toHaveCount(0);
   await expect(page.locator("button")).toHaveCount(1);
+});
+
+test("admin includes the devotional editorial workspace", async ({ page }) => {
+  await page.goto("/admin.html");
+  await expect(page.locator('[data-admin-tab="devocionales"]')).toHaveCount(1);
+  await expect(page.locator("#adminDevocionalForm")).toHaveCount(1);
+  await expect(page.locator('[data-dev-save="draft"]')).toHaveCount(1);
+  await expect(page.locator('[data-dev-save="publish"]')).toHaveCount(1);
+  await expect(page.locator('.admin-invite-form label:has(input[data-permission="editor"])')).toContainText("Editor de devocionales");
+  await expect(page.locator("#adminDevocionalVersiculo")).toHaveCount(1);
+  await expect(page.locator(".admin-rich-editor")).toHaveCount(2);
+  await expect(page.locator('input[name="devCategoria"]')).toHaveCount(7);
 });
 
 test("dashboard shows the signed-in user and friendly role name", async ({ page }) => {
@@ -277,11 +298,11 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
   await expect(page.locator('.user-quick-actions a[href="tel:+352621000"]')).toHaveCount(1);
   await expect(page.locator('.user-quick-actions a[href="https://wa.me/352621000"]')).toHaveCount(1);
 
-  await page.evaluate(() => applyDashboardRole("read_only"));
+  await page.evaluate(() => applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], is_revoked: false }));
   await expect(page.locator("#exportCsvBtn")).toBeHidden();
   await expect(page.locator("#exportPdfBtn")).toBeHidden();
   await expect(page.locator("#dashboardRoleBadge")).toHaveText("Vista simple");
-  await page.evaluate(() => applyDashboardRole("read_export"));
+  await page.evaluate(() => applyDashboardRole({ is_super_admin: false, permissions: ["read_only", "read_export"], is_revoked: false }));
   await expect(page.locator("#exportCsvBtn")).toBeVisible();
   await expect(page.locator("#exportPdfBtn")).toBeVisible();
   await expect(page.locator("#dashboardRoleBadge")).toHaveText("Manager");
@@ -352,7 +373,7 @@ test("CRUD can edit or delete a member while read-only roles cannot", async ({ p
   await page.evaluate(() => {
     document.getElementById("dashboardAccessScreen").style.display = "none";
     document.getElementById("pdfArea").style.display = "block";
-    applyDashboardRole("crud");
+    applyDashboardRole({ is_super_admin: true, permissions: ["read_only"], is_revoked: false });
     allUsers = [normalizeUser({
       id: 42,
       nombre: "Díomeris",
@@ -387,7 +408,7 @@ test("CRUD can edit or delete a member while read-only roles cannot", async ({ p
   await expect(page.locator("#dashboardRecordEstatusMatrimonial option")).toHaveText(["Seleccione una opción", "Casada", "Soltera", "Divorciada", "Viuda"]);
   await page.getByRole("button", { name: "Cancelar" }).click();
 
-  await page.evaluate(() => applyDashboardRole("read_only"));
+  await page.evaluate(() => applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], is_revoked: false }));
   await page.locator(".user-row-toggle").click();
   await expect(page.getByRole("button", { name: "Editar" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Eliminar" })).toHaveCount(0);
@@ -412,7 +433,7 @@ test("dashboard PDF exports a clean data table instead of the full page", async 
   await page.route("**/jspdf.plugin.autotable.min.js", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
   await page.goto("/dashboard.html");
   await page.evaluate(() => {
-    applyDashboardRole("read_export");
+    applyDashboardRole({ is_super_admin: false, permissions: ["read_only", "read_export"], is_revoked: false });
     filteredUsers = [normalizeUser({
       nombre: "Ana",
       apellido: "Pérez",

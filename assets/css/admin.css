@@ -110,7 +110,7 @@ body[data-admin-page="true"] #nav-menu a:hover {
 
 .private-access-card h3 {
     margin: 0 0 14px !important;
-    font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+    font-family: "Archivo", "Segoe UI", Arial, sans-serif !important;
     font-size: clamp(2.4rem, 5vw, 3.55rem) !important;
     line-height: 1.05 !important;
     color: #b56464 !important;
@@ -641,6 +641,12 @@ body[data-admin-page="true"] #nav-menu a:hover {
     transform: translateY(-1px) !important;
 }
 
+.admin-import-btn:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
 .admin-empty {
     padding: 16px !important;
     border-radius: 18px !important;
@@ -700,26 +706,65 @@ body[data-admin-page="true"] #nav-menu a:hover {
 
 .admin-roles-card { width: 100%; }
 .admin-roles-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 8px; }
-.admin-roles-head h3 { margin: 4px 0 0; }
-.admin-roles-list { display: grid; gap: 10px; margin-top: 22px; }
-.admin-invite-form { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) 220px; align-items: end; gap: 14px; margin-top: 24px; padding: 18px; border: 1px solid #ead8d0; border-radius: 20px; background: #fffaf8; }
-.admin-current-email-form { display: grid; grid-template-columns: minmax(240px, 1fr) 220px; align-items: end; gap: 14px; margin-top: 22px; padding: 16px 18px; border: 1px solid #ead8d0; border-radius: 20px; background: #fff; }
+.admin-roles-head h3 { margin: 4px 0 0; text-align: left; }
+.admin-roles-list { display: grid; gap: 12px; margin-top: 22px; }
+.admin-invite-form {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) 220px;
+  align-items: end;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(166,75,67,0.12);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 12px 28px rgba(74,39,32,0.06);
+}
+.admin-current-email-form {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 220px;
+  align-items: end;
+  gap: 16px;
+  margin-top: 22px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(166,75,67,0.12);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 12px 28px rgba(74,39,32,0.06);
+}
 .admin-current-email-form .admin-field { margin: 0; }
 .admin-invite-form .admin-field { margin: 0; }
 .admin-current-email-form .admin-field,
 .admin-invite-form .admin-field { display: grid; gap: 8px; }
 .admin-current-email-form label,
-.admin-invite-form label { min-height: 22px; margin: 0; line-height: 22px; }
+.admin-invite-form label { min-height: 22px; margin: 0; line-height: 22px; color: #5e3d39; font-weight: 800; font-size: 0.9rem; text-align: left; }
 .admin-current-email-form input,
 .admin-invite-form input,
 .admin-invite-form select,
-.admin-role-select { box-sizing: border-box; width: 100%; height: 56px; min-height: 56px; margin: 0; padding: 0 18px; border: 1.5px solid #e4cbc4; border-radius: 999px; color: #4b302c; background: #fff; font: inherit; font-weight: 700; }
+.admin-role-select {
+  box-sizing: border-box; width: 100%; height: 56px; min-height: 56px; margin: 0; padding: 0 18px;
+  border: 1px solid rgba(169,80,69,0.16);
+  border-radius: 999px;
+  color: #33211f;
+  background: rgba(255,255,255,0.92);
+  font: inherit; font-weight: 700;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.82);
+  outline: none;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+.admin-current-email-form input:focus,
+.admin-invite-form input:focus,
+.admin-invite-form select:focus,
+.admin-role-select:focus {
+  border-color: rgba(169,80,69,0.42);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(231,168,160,0.17);
+}
 .admin-invite-form select,
 .admin-role-select {
   -webkit-appearance: none;
   appearance: none;
   padding-right: 48px;
-  background-color: #fff;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2371372f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 18px center;
@@ -730,15 +775,62 @@ body[data-admin-page="true"] #nav-menu a:hover {
 .admin-invite-form .btn,
 .admin-role-row .admin-role-access-btn { box-sizing: border-box; width: 220px; height: 56px; min-height: 56px; margin: 0; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; white-space: nowrap; }
 .admin-role-actions { width: 220px; display: grid; gap: 8px; }
-.admin-role-row { display: grid; grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) 220px; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid #ead8d0; border-radius: 18px; background: #fffaf8; }
-.admin-role-row.is-revoked { border-color: #edc5c0; background: #fff4f2; }
+.admin-role-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(240px, 1fr) 220px;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(166,75,67,0.12);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 12px 28px rgba(74,39,32,0.06);
+}
+.admin-role-row.is-revoked { border-color: rgba(185,28,28,0.2); background: rgba(254,242,242,0.6); }
 .admin-role-identity { min-width: 0; }
-.admin-role-identity strong { display: block; overflow: hidden; color: #4b302c; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
-.admin-role-identity small { display: block; margin-top: 5px; color: #9b7168; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-.admin-role-select:disabled { opacity: .65; cursor: not-allowed; background-color: #f3ebe8; }
-.admin-role-access-btn { border: 1.5px solid #a33d32; color: #9a3028; background: white; font-size: 13px; font-weight: 800; cursor: pointer; }
-.admin-role-access-btn.restore { color: #47733a; border-color: #7ea270; }
-.admin-role-access-btn.password-reset { color: #71372f; border-color: #dcbcb3; background: #fffaf8; }
+.admin-role-identity strong { display: block; overflow: hidden; color: #33211f; font-size: 0.98rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.admin-role-identity small { display: block; margin-top: 5px; color: #8e403b; font-size: 0.72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; text-align: left; }
+.admin-role-select:disabled { opacity: .65; cursor: not-allowed; background-color: rgba(243,235,232,0.9); }
+.admin-permission-group { display: grid !important; gap: 6px !important; }
+.admin-current-email-form .admin-permission-group,
+.admin-invite-form .admin-permission-group { margin: 0; }
+.admin-permission-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.3 !important;
+  color: #5e3d39 !important;
+  font-weight: 700 !important;
+  font-size: 0.84rem !important;
+  text-align: left !important;
+  text-transform: none !important;
+  cursor: pointer !important;
+}
+.admin-permission-check input[type="checkbox"] {
+  box-sizing: border-box !important;
+  width: 17px !important;
+  height: 17px !important;
+  min-height: 0 !important;
+  flex: 0 0 17px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid rgba(169,80,69,0.32) !important;
+  border-radius: 5px !important;
+  background: rgba(255,255,255,0.92) !important;
+  box-shadow: none !important;
+  accent-color: #a95045;
+  cursor: pointer;
+}
+.admin-permission-check input[type="checkbox"]:disabled { cursor: not-allowed; opacity: .5; }
+.admin-super-admin-check { margin-top: 4px !important; padding-top: 8px !important; border-top: 1px dashed rgba(166,75,67,0.18) !important; }
+.admin-role-access-btn { border: 1px solid rgba(166,75,67,0.32); color: #8e403b; background: #fff; font-size: 0.86rem; font-weight: 800; cursor: pointer; transition: background 0.2s ease, transform 0.2s ease; }
+.admin-role-access-btn:hover:not(:disabled) { background: rgba(231,168,160,0.14); transform: translateY(-1px); }
+.admin-role-access-btn.restore { color: #47733a; border-color: rgba(126,162,112,0.5); }
+.admin-role-access-btn.password-reset { color: #71372f; border-color: rgba(220,188,179,0.7); background: rgba(255,250,248,0.9); }
 .admin-role-access-btn:disabled { opacity: .5; cursor: not-allowed; }
 
 @media (max-width: 900px) {
@@ -1373,6 +1465,7 @@ body[data-admin-page="true"] .admin-tab-panel.active {
 body[data-admin-page="true"] .admin-card {
     width: 100% !important;
     max-width: 980px !important;
+    min-width: 0 !important;
     margin: 0 auto !important;
     padding: 34px !important;
     border-radius: 34px !important;
@@ -1495,7 +1588,7 @@ body[data-admin-page="true"] .admin-form input[type="file"] {
     min-height: 58px !important;
     cursor: pointer !important;
     color: #8b6d68 !important;
-    font-family: "Inter", "Segoe UI", Arial, sans-serif !important;
+    font-family: "Archivo", "Segoe UI", Arial, sans-serif !important;
     font-size: 0.9rem !important;
     font-weight: 600 !important;
 }
@@ -1630,6 +1723,173 @@ body[data-admin-page="true"] #admin-galeria.admin-tab-panel.active {
     grid-template-columns: 1fr !important;
     gap: 22px !important;
 }
+
+/* Área editorial de devocionales */
+.admin-devotional-layout { display:grid; grid-template-columns:1fr; gap:24px; align-items:start; }
+.admin-devotional-page-head { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:24px 28px; border:1px solid #ead8d0; border-radius:24px; background:#fff; }
+.admin-tabs { overflow-x:auto; scrollbar-width:thin; }
+.admin-tabs .admin-tab { flex:0 0 auto; }
+.admin-devotional-page-head h3 { margin:5px 0 0; color:#382820; font:700 1.8rem "Playfair Display",serif; }
+.admin-devotional-page-head .btn { width:auto; margin:0; }
+.admin-devotional-overlay { position:fixed; z-index:10050; inset:0; overflow-y:auto; padding:38px 18px; background:rgba(42,31,25,.62); backdrop-filter:blur(8px); }
+.admin-devotional-overlay[hidden] { display:none; }
+.admin-devotional-editor { position:relative; width:min(900px,100%); margin:auto; padding:44px 56px 54px !important; border-radius:30px !important; background:#fff !important; }
+.admin-devotional-editor h3 { margin:0 !important; color:#30231c !important; font:700 2.25rem "Playfair Display",serif !important; }
+.admin-devotional-subtitle { margin:8px 0 34px; color:#91887b; font-size:1.05rem; }
+.admin-devotional-close { position:absolute; top:30px; right:34px; border:0; color:#8b8175; background:transparent; font-size:2rem; cursor:pointer; }
+.admin-devotional-editor textarea { width:100%; resize:vertical; min-height:110px; padding:16px 18px; border:1.5px solid #e4cbc4; border-radius:18px; color:#4b302c; background:#fff; font:inherit; line-height:1.6; }
+.admin-devotional-editor #adminDevocionalContenido { min-height:300px; font-family:Georgia,serif; font-size:1rem; }
+.admin-devotional-editor textarea:focus { outline:none; border-color:#ad5b4f; box-shadow:0 0 0 4px rgba(169,80,69,.1); }
+.admin-devotional-editor label span { color:#9b7168; font-size:.78rem; font-weight:600; }
+.admin-devotional-editor .admin-form .admin-devotional-field > label { margin-top:0; color:#a85d3b; font-size:.82rem; font-weight:900; letter-spacing:.055em; text-transform:uppercase; }
+#adminDevocionalForm.admin-form { grid-template-columns:1fr !important; align-items:start !important; gap:20px !important; }
+.admin-devotional-field { display:grid; gap:10px; }
+.admin-cover-file { position:absolute !important; width:1px !important; height:1px !important; opacity:0; pointer-events:none; }
+.admin-cover-upload { width:max-content; min-height:48px; margin:0 !important; padding:0 18px; display:inline-flex !important; align-items:center; gap:9px; border:1.5px solid #ddd2c1; border-radius:14px; color:#5c554c !important; background:#fff; font-size:.85rem !important; letter-spacing:0 !important; text-transform:none !important; cursor:pointer; }
+.admin-cover-preview { width:100%; max-width:480px; margin-bottom:4px; }
+.admin-cover-preview[hidden] { display:none; }
+
+.admin-cover-crop-stage {
+  position:relative;
+  width:100%;
+  border-radius:16px;
+  border:1.5px solid #ddd2c1;
+  background:#f3ece3;
+  touch-action:none;
+  user-select:none;
+}
+.admin-cover-crop-clip { position:absolute; inset:0; overflow:hidden; border-radius:14px; }
+.admin-cover-crop-clip img { width:100%; height:100%; display:block; object-fit:fill; pointer-events:none; }
+
+.admin-cover-crop-mask { position:absolute; background:rgba(20,14,11,.55); pointer-events:none; }
+
+.admin-cover-crop-box {
+  position:absolute;
+  box-shadow:0 0 0 1.5px #fff, 0 4px 14px rgba(0,0,0,.35);
+  cursor:move;
+}
+.admin-cover-crop-box::before,
+.admin-cover-crop-box::after { content:""; position:absolute; background:rgba(255,255,255,.55); pointer-events:none; }
+.admin-cover-crop-box::before { left:33.333%; top:0; width:1px; height:100%; box-shadow:calc(33.333% - 1px) 0 0 rgba(255,255,255,.55); }
+.admin-cover-crop-box::after { left:0; top:33.333%; width:100%; height:1px; box-shadow:0 calc(33.333% - 1px) 0 rgba(255,255,255,.55); }
+
+.admin-cover-crop-handle {
+  position:absolute;
+  width:16px; height:16px;
+  margin:-8px;
+  border-radius:999px;
+  border:2px solid #ad6541;
+  background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);
+  touch-action:none;
+}
+.admin-cover-crop-handle[data-handle="nw"] { top:0; left:0; }
+.admin-cover-crop-handle[data-handle="n"]  { top:0; left:50%; }
+.admin-cover-crop-handle[data-handle="ne"] { top:0; left:100%; }
+.admin-cover-crop-handle[data-handle="e"]  { top:50%; left:100%; }
+.admin-cover-crop-handle[data-handle="se"] { top:100%; left:100%; }
+.admin-cover-crop-handle[data-handle="s"]  { top:100%; left:50%; }
+.admin-cover-crop-handle[data-handle="sw"] { top:100%; left:0; }
+.admin-cover-crop-handle[data-handle="w"]  { top:50%; left:0; }
+
+.admin-cover-crop-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; }
+#adminDevocionalForm .admin-cover-crop-reset,
+#adminDevocionalForm .admin-cover-remove {
+  min-width:0 !important; min-height:36px !important; margin:0 !important;
+  padding:0 14px !important; border-radius:999px !important;
+  display:inline-flex !important; align-items:center; gap:6px;
+  font-size:.78rem !important; font-weight:800 !important; letter-spacing:normal !important;
+  box-shadow:none !important; cursor:pointer;
+}
+#adminDevocionalForm .admin-cover-crop-reset { border:1px solid #ddd2c1 !important; color:#5c554c !important; background:#fff !important; }
+#adminDevocionalForm .admin-cover-crop-reset:hover { border-color:#ad6541 !important; color:#ad6541 !important; }
+#adminDevocionalForm .admin-cover-remove { border:1px solid rgba(185,28,28,.28) !important; color:#b91c1c !important; background:#fff !important; }
+#adminDevocionalForm .admin-cover-remove:hover { background:rgba(254,242,242,.9) !important; }
+.admin-field-help { margin:-3px 0 10px; color:#91887b; line-height:1.5; }
+.admin-rich-editor { overflow:hidden; border:1.5px solid #ddd2c1; border-radius:20px; background:#fff; }
+.admin-rich-toolbar { min-height:auto; padding:12px; display:flex; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid #ddd2c1; background:#f8f5ef; }
+#adminDevocionalForm .admin-rich-toolbar button,
+#adminDevocionalForm .admin-rich-toolbar select {
+  grid-column:auto !important;
+  justify-self:auto !important;
+  width:auto !important;
+  min-width:0 !important;
+  min-height:38px !important;
+  margin:0 !important;
+  padding:0 13px !important;
+  border:1px solid #ddd2c1 !important;
+  border-radius:10px !important;
+  color:#5c554c !important;
+  background:#fff !important;
+  font:700 .78rem Archivo,sans-serif !important;
+  letter-spacing:normal !important;
+  box-shadow:none !important;
+  cursor:pointer;
+}
+#adminDevocionalForm .admin-rich-toolbar button:hover,
+#adminDevocionalForm .admin-rich-toolbar button.active { color:#fff !important; border-color:#ad6541 !important; background:#ad6541 !important; }
+#adminDevocionalForm .admin-rich-toolbar select { flex:1 1 100%; }
+.admin-rich-content { min-height:170px; padding:25px 27px; outline:0; color:#463a31; font:400 1.08rem/1.7 Georgia,serif; }
+.admin-rich-content-large { min-height:300px; }
+.admin-rich-content:empty::before { content:attr(data-placeholder); color:#a49b8e; pointer-events:none; }
+.admin-rich-content blockquote { margin:18px 0; padding:15px 20px; border-left:4px solid #ad6541; color:#7b5543; background:#faf1e9; }
+.admin-devotional-categories { display:flex; flex-wrap:wrap; gap:8px; }
+#adminDevocionalForm .admin-devotional-categories label { width:auto; min-height:38px !important; padding:0 14px !important; display:inline-flex !important; flex:0 0 auto; flex-direction:row !important; align-items:center !important; gap:7px; border:1.5px solid #ddd2c1; border-radius:999px; color:#5c554c !important; background:#fff; font-size:.82rem !important; font-weight:800 !important; text-transform:none !important; cursor:pointer; }
+#adminDevocionalForm .admin-devotional-categories label:has(input:checked) { border-color:#ad6541 !important; background:rgba(173,101,65,.12) !important; color:#7b4a2e !important; }
+#adminDevocionalForm .admin-devotional-categories input { width:14px !important; min-height:14px !important; height:14px !important; flex:0 0 14px !important; margin:0; padding:0 !important; border-radius:3px !important; accent-color:#ad6541; }
+.admin-devotional-two-columns { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.admin-devotional-two-columns > div { display:grid; gap:8px; }
+.admin-devotional-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:22px; }
+.admin-devotional-actions .btn,.admin-draft-btn,.admin-preview-btn,.admin-devotional-actions .admin-edit-cancel { width:auto; min-height:48px; margin:0; padding:0 20px; border-radius:999px; font-weight:800; cursor:pointer; }
+.admin-draft-btn { border:1.5px solid #a95045; color:#923f35; background:#fff; }
+#adminDevocionalForm .admin-preview-btn {
+  order:-1;
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  min-width:0 !important;
+  border:1.5px solid #ddd2c1 !important;
+  color:#5c554c !important;
+  background:#fff !important;
+  box-shadow:none !important;
+  letter-spacing:normal !important;
+}
+#adminDevocionalForm .admin-preview-btn:hover { border-color:#ad6541 !important; color:#ad6541 !important; }
+.admin-publish-btn { flex:1 1 280px; color:#fff !important; background:#30231c !important; }
+
+.admin-devotional-preview-overlay { position:fixed; z-index:10060; inset:0; padding:24px; display:flex; align-items:center; justify-content:center; background:rgba(30,20,16,.7); backdrop-filter:blur(6px); }
+.admin-devotional-preview-overlay[hidden] { display:none; }
+.admin-devotional-preview-frame { width:min(920px,100%); height:min(88vh,940px); display:flex; flex-direction:column; border-radius:26px; overflow:hidden; background:#fff8f3; box-shadow:0 30px 80px rgba(0,0,0,.4); }
+.admin-devotional-preview-bar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 22px; background:#30231c; color:#fdf3ee; font-size:.85rem; font-weight:800; letter-spacing:.02em; }
+.admin-devotional-preview-bar span { display:flex; align-items:center; gap:8px; }
+.admin-devotional-preview-close { border:0; background:transparent; color:#fdf3ee; font-size:1.8rem; line-height:1; cursor:pointer; }
+.admin-devotional-preview-close:hover { color:#e7a8a0; }
+#adminDevocionalPreviewIframe { flex:1; width:100%; border:0; background:#fff8f3; }
+
+@media (max-width:650px) {
+  .admin-devotional-preview-overlay { padding:0; }
+  .admin-devotional-preview-frame { width:100%; height:100%; border-radius:0; }
+}
+.admin-devotional-list-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.admin-devotional-list-head h3 { margin:5px 0 0; }
+.admin-preview-link { color:#9a4035; font-size:.78rem; font-weight:800; text-decoration:none; }
+.admin-devotional-filters { display:flex; gap:8px; margin-bottom:20px; padding-bottom:18px; border-bottom:1px solid #f0dfda; }
+.admin-devotional-filters button { padding:9px 14px; border:1px solid #e5cdc6; border-radius:999px; color:#75514a; background:#fff; font-size:.75rem; font-weight:800; cursor:pointer; }
+.admin-devotional-filters button.active { border-color:#a95045; color:#fff; background:#a95045; }
+.admin-devotional-item { display:grid; grid-template-columns:74px minmax(0,1fr) auto; align-items:center; gap:14px; padding:14px; border:1px solid #ead8d0; border-radius:18px; background:#fffaf8; }
+.admin-devotional-item + .admin-devotional-item { margin-top:10px; }
+.admin-devotional-thumb { width:74px; height:74px; display:grid; place-items:center; overflow:hidden; border-radius:14px; color:#a95045; background:#f2ddd5; font-size:1.45rem; }
+.admin-devotional-thumb img { width:100%; height:100%; object-fit:cover; }
+.admin-devotional-item-copy { min-width:0; display:grid; gap:5px; }
+.admin-devotional-item-copy strong { overflow:hidden; color:#4b302c; text-overflow:ellipsis; white-space:nowrap; }
+.admin-devotional-item-copy small { overflow:hidden; color:#92736c; text-overflow:ellipsis; white-space:nowrap; }
+.admin-devotional-state { width:max-content; padding:4px 8px; border-radius:999px; font-size:.62rem; font-weight:900; letter-spacing:.05em; text-transform:uppercase; }
+.admin-devotional-state.published { color:#3e703b; background:#e6f3e4; }
+.admin-devotional-state.draft { color:#906c31; background:#f9edcf; }
+.admin-devotional-item .admin-item-actions { display:flex; flex-direction:column; gap:5px; }
+.admin-devotional-item .admin-item-actions a { padding:7px 10px; border-radius:9px; color:#71372f; background:#f3e3dd; font-size:.7rem; font-weight:800; text-align:center; text-decoration:none; }
+body[data-admin-role="editor"] .admin-dashboard-head h3::after { content:" · Editora"; color:#a95045; }
+@media (max-width:650px) { .admin-devotional-page-head { align-items:flex-start; flex-direction:column; } .admin-devotional-overlay { padding:12px; } .admin-devotional-editor { padding:34px 18px 38px !important; border-radius:23px !important; } .admin-devotional-close { top:22px; right:20px; } .admin-devotional-two-columns { grid-template-columns:1fr; } .admin-devotional-list-head { align-items:flex-start; flex-direction:column; } .admin-devotional-item { grid-template-columns:58px minmax(0,1fr); } .admin-devotional-thumb { width:58px; height:58px; } .admin-devotional-item .admin-item-actions { grid-column:1/-1; flex-direction:row; flex-wrap:wrap; } }
 
 body[data-admin-page="true"] #adminGaleriaForm.admin-form-clean {
     display: grid !important;
@@ -1841,3 +2101,457 @@ body[data-admin-page="true"] #adminGaleriaForm button[type="submit"] {
     white-space: normal !important;
   }
 }
+
+/* =========================================================
+   YOUTUBE TAB — live preview form + card list
+========================================================= */
+.admin-card-subtitle {
+  margin: -10px 0 26px !important;
+  color: #795f58 !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+}
+
+#adminYoutubeForm.admin-form {
+  grid-template-columns: 340px 1fr !important;
+  align-items: start !important;
+  gap: 0 32px !important;
+}
+
+.admin-yt-preview {
+  border-radius: 24px;
+  border: 1px solid rgba(166,75,67,0.12);
+  background: rgba(255,255,255,0.6);
+  padding: 16px;
+}
+
+.admin-yt-preview-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e7a8a0, #a95045);
+  display: grid;
+  place-items: center;
+}
+
+.admin-yt-preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.admin-yt-preview-thumb.has-video img { display: block; }
+.admin-yt-preview-thumb.has-video .admin-yt-preview-play { display: none; }
+
+.admin-yt-preview-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.32);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.admin-yt-preview-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-yt-preview-tag {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #f3d5d1;
+  color: #8e403b;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.admin-yt-preview-orden {
+  color: #8b6d68;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.admin-yt-preview-title {
+  margin-top: 10px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.15rem;
+  color: #33211f;
+  line-height: 1.25;
+  overflow-wrap: break-word;
+  text-align: left !important;
+}
+
+.admin-yt-preview-subtitle {
+  margin-top: 4px;
+  color: #795f58;
+  font-size: 0.86rem;
+  font-weight: 600;
+  overflow-wrap: break-word;
+  text-align: left !important;
+}
+
+.admin-yt-preview-caption {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(166,75,67,0.18);
+  color: #8b6d68;
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-style: italic;
+  text-align: left !important;
+}
+
+.admin-yt-fields { display: grid; gap: 18px; }
+
+.admin-yt-help {
+  color: #8b6d68 !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+}
+
+.admin-yt-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0;
+}
+
+.admin-yt-divider span {
+  color: #a9827c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-yt-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(166,75,67,0.14);
+}
+
+.admin-yt-row {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  align-items: start;
+  gap: 18px;
+}
+
+#adminYoutubeForm .admin-yt-etiqueta-field,
+#adminYoutubeForm .admin-yt-orden-field {
+  grid-column: auto !important;
+  display: grid;
+  gap: 8px;
+}
+
+.admin-yt-field-label {
+  display: block;
+  color: #5e3d39;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: left !important;
+}
+
+.admin-yt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#adminYoutubeForm .admin-yt-chip {
+  grid-column: auto !important;
+  justify-self: auto !important;
+  display: inline-flex !important;
+  min-width: 0 !important;
+  min-height: 40px !important;
+  margin-top: 0 !important;
+  padding: 0 16px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(166,75,67,0.18) !important;
+  background: rgba(255,255,255,0.7) !important;
+  color: #8e403b !important;
+  font-size: 0.86rem !important;
+  font-weight: 800 !important;
+  letter-spacing: normal !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+#adminYoutubeForm .admin-yt-chip:hover { background: #fff !important; }
+
+#adminYoutubeForm .admin-yt-chip.is-active {
+  color: #fff !important;
+  background: linear-gradient(135deg, #a95045, #7d3a35) !important;
+  border-color: transparent !important;
+  box-shadow: 0 10px 22px rgba(166,75,67,0.22) !important;
+}
+
+.admin-yt-stepper {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  border-radius: 18px;
+  border: 1px solid rgba(169,80,69,0.16);
+  background: rgba(255,255,255,0.92);
+  overflow: hidden;
+}
+
+#adminYoutubeForm .admin-yt-stepper-btn {
+  grid-column: auto !important;
+  justify-self: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin-top: 0 !important;
+  width: 40px !important;
+  height: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #a9504a !important;
+  font-size: 1.2rem !important;
+  font-weight: 800 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+#adminYoutubeForm .admin-yt-stepper-btn:hover { background: rgba(231,168,160,0.18) !important; }
+
+#adminYoutubeForm .admin-yt-stepper input[type="number"] {
+  flex: 1 !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: center !important;
+  font-weight: 800 !important;
+}
+
+.admin-yt-stepper input[type="number"]::-webkit-inner-spin-button,
+.admin-yt-stepper input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.admin-yt-stepper input[type="number"] { -moz-appearance: textfield; }
+
+.admin-yt-submit-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  margin-top: 6px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(166,75,67,0.10);
+}
+
+/* =========================================================
+   EVENTOS — single-column form to match label-above-input style
+========================================================= */
+#adminEventForm.admin-form {
+  grid-template-columns: 1fr !important;
+  align-items: start !important;
+  gap: 18px !important;
+}
+
+#adminEventForm .admin-evt-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: 18px 22px;
+}
+
+#adminEventForm .admin-evt-row > label {
+  grid-column: auto !important;
+}
+
+@media (max-width: 640px) {
+  #adminEventForm .admin-evt-row { grid-template-columns: 1fr; }
+}
+
+/* =========================================================
+   DESTACADAS — single-column form to match label-above-input style
+========================================================= */
+#adminDestacadaForm.admin-form {
+  grid-template-columns: 1fr !important;
+  align-items: start !important;
+  gap: 18px !important;
+}
+
+#adminYoutubeForm .admin-yt-cancel,
+#adminEventForm .admin-yt-cancel,
+#adminDestacadaForm .admin-yt-cancel {
+  grid-column: auto !important;
+  justify-self: auto !important;
+  display: inline-flex !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin-top: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  color: #8e403b !important;
+  font-size: 0.96rem !important;
+  font-weight: 800 !important;
+  letter-spacing: normal !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  padding: 0 !important;
+}
+
+#adminYoutubeForm .admin-yt-cancel:hover,
+#adminEventForm .admin-yt-cancel:hover,
+#adminDestacadaForm .admin-yt-cancel:hover { color: #6f2f2b !important; }
+
+@media (max-width: 900px) {
+  #adminYoutubeForm.admin-form { grid-template-columns: 1fr !important; }
+  .admin-yt-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  #adminYoutubeForm .admin-yt-chip,
+  #adminYoutubeForm .admin-yt-stepper-btn,
+  #adminYoutubeForm .admin-yt-cancel,
+  #adminEventForm .admin-yt-cancel,
+  #adminDestacadaForm .admin-yt-cancel {
+    width: auto !important;
+  }
+
+  .admin-yt-submit-row {
+    flex-direction: column-reverse !important;
+    align-items: stretch !important;
+  }
+
+  .admin-yt-cancel { text-align: center; }
+}
+
+/* Videos publicados — card grid */
+#adminYoutubeList.admin-content-list {
+  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)) !important;
+  gap: 20px !important;
+}
+
+@media (max-width: 640px) {
+  #adminYoutubeList.admin-content-list { grid-template-columns: 1fr !important; }
+}
+
+#adminYoutubeList .admin-content-item {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+#adminYoutubeList .admin-drag-handle {
+  position: absolute !important;
+  top: 10px !important;
+  left: 10px !important;
+  z-index: 2 !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,0.85) !important;
+}
+
+#adminYoutubeList .admin-item-order-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+#adminYoutubeList .admin-item-media {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 16 / 9 !important;
+  border-radius: 0 !important;
+}
+
+#adminYoutubeList .admin-item-body {
+  padding: 14px !important;
+  gap: 4px !important;
+  text-align: left !important;
+}
+
+#adminYoutubeList .admin-item-body strong,
+#adminYoutubeList .admin-item-body span {
+  text-align: left !important;
+}
+
+.admin-item-tagrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.admin-yt-tag-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f3d5d1;
+  color: #8e403b;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.admin-item-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #b6b0ac;
+}
+
+.admin-item-status-dot.is-visible { background: #5a9e63; }
+
+.admin-item-status-text {
+  color: #6d5250;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+#adminYoutubeList .admin-item-actions {
+  padding: 0 14px 14px !important;
+  justify-content: flex-start !important;
+}
+
+#adminYoutubeList .admin-item-actions button {
+  width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#adminYoutubeList .admin-item-actions button svg { display: block; }
