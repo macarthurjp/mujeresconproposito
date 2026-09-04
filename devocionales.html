@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Devocionales — Mujeres con Propósito</title>
+  <meta name="description" content="Reflexiones y devocionales para fortalecer tu caminar con Dios." />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/devocionales.css?v=20260903-1" />
+</head>
+<body>
+  <header class="dev-header">
+    <a href="index.html" class="dev-brand" aria-label="Volver a Mujeres con Propósito">
+      <img src="assets/images/logo.webp" alt="" />
+      <span>Mujeres con Propósito</span>
+    </a>
+    <a href="index.html" class="dev-back"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver al inicio</a>
+  </header>
+
+  <main>
+    <section class="dev-hero">
+      <div class="dev-hero-mark" aria-hidden="true"><i class="fa-solid fa-book-open"></i></div>
+      <span class="dev-eyebrow">Fe para cada día</span>
+      <h1>Un momento<br /><em>con Dios</em></h1>
+      <p>Reflexiones para hacer una pausa, escuchar Su voz y caminar cada día con propósito.</p>
+      <a href="#lecturas" class="dev-hero-link">Explorar lecturas <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+    </section>
+
+    <section class="dev-library" id="lecturas" aria-labelledby="libraryTitle">
+      <div class="dev-library-head">
+        <div>
+          <span class="dev-kicker">Para alimentar el alma</span>
+          <h2 id="libraryTitle">Devocionales recientes</h2>
+        </div>
+        <label class="dev-search">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <span class="sr-only">Buscar devocionales</span>
+          <input id="devSearch" type="search" placeholder="Buscar por título, tema o autora" />
+        </label>
+      </div>
+
+      <div id="devStatus" class="dev-status" role="status">Cargando devocionales…</div>
+      <div id="devFeatured" class="dev-featured" aria-live="polite"></div>
+      <div class="dev-collection-head" id="devCollectionHead" hidden>
+        <h3>Más para leer</h3><span>Reflexiones de nuestra comunidad</span>
+      </div>
+      <div id="devGrid" class="dev-grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>© <span id="devYear"></span> Mujeres con Propósito</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase.js?v=20260830-turnstile-1"></script>
+  <script src="assets/js/devocionales.js?v=20260903-1"></script>
+</body>
+</html>
