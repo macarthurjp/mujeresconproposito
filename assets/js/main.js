@@ -4363,6 +4363,14 @@ function renderContactCalendar(apiData = {}) {
     });
   });
 
+  document.querySelectorAll(".admin-stat-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      const target = link.dataset.statTab;
+      document.querySelector(`.admin-tab[data-admin-tab="${target}"]`)?.click();
+      document.querySelector(".admin-tabs")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
+
   const adminEventoFrecuencia = document.getElementById("adminEventoFrecuencia");
   const adminEventoDias = document.getElementById("adminEventoDias");
   const adminEventoHora = document.getElementById("adminEventoHora");
@@ -4406,30 +4414,58 @@ function renderContactCalendar(apiData = {}) {
     document.getElementById("adminEventoClose")
   );
 
-  const eventoIconoDropzone = document.getElementById("adminEventoIconoDropzone");
-  const eventoIconoInput = document.getElementById("adminEventoIconoFoto");
-  function updateEventoIconoFileName() {
-    const label = document.getElementById("adminEventoIconoFileName");
-    const file = eventoIconoInput?.files?.[0];
-    if (label) label.textContent = file ? file.name : "";
-  }
-  eventoIconoDropzone?.addEventListener("click", () => eventoIconoInput?.click());
-  eventoIconoInput?.addEventListener("change", updateEventoIconoFileName);
-  ["dragenter", "dragover"].forEach((evt) => eventoIconoDropzone?.addEventListener(evt, (event) => {
-    event.preventDefault();
-    eventoIconoDropzone.classList.add("is-dragover");
-  }));
-  ["dragleave", "dragend"].forEach((evt) => eventoIconoDropzone?.addEventListener(evt, () => {
-    eventoIconoDropzone.classList.remove("is-dragover");
-  }));
-  eventoIconoDropzone?.addEventListener("drop", (event) => {
-    event.preventDefault();
-    eventoIconoDropzone.classList.remove("is-dragover");
-    if (event.dataTransfer?.files?.length && eventoIconoInput) {
-      eventoIconoInput.files = event.dataTransfer.files;
-      updateEventoIconoFileName();
+  function wireImageDropzone(dropzone, input, previewImg, onChange) {
+    if (!dropzone || !input) return { update: () => {}, clear: () => {} };
+    let objectUrl = null;
+    function update() {
+      const file = input.files?.[0] || null;
+      if (objectUrl) { URL.revokeObjectURL(objectUrl); objectUrl = null; }
+      if (file && previewImg) {
+        objectUrl = URL.createObjectURL(file);
+        previewImg.src = objectUrl;
+        previewImg.hidden = false;
+        dropzone.classList.add("has-image");
+      } else if (previewImg) {
+        previewImg.hidden = true;
+        previewImg.removeAttribute("src");
+        dropzone.classList.remove("has-image");
+      }
+      onChange?.(file);
     }
-  });
+    function clear() {
+      input.value = "";
+      update();
+    }
+    dropzone.addEventListener("click", () => input.click());
+    input.addEventListener("change", update);
+    ["dragenter", "dragover"].forEach((evt) => dropzone.addEventListener(evt, (event) => {
+      event.preventDefault();
+      dropzone.classList.add("is-dragover");
+    }));
+    ["dragleave", "dragend"].forEach((evt) => dropzone.addEventListener(evt, () => {
+      dropzone.classList.remove("is-dragover");
+    }));
+    dropzone.addEventListener("drop", (event) => {
+      event.preventDefault();
+      dropzone.classList.remove("is-dragover");
+      if (event.dataTransfer?.files?.length) {
+        input.files = event.dataTransfer.files;
+        update();
+      }
+    });
+    return { update, clear };
+  }
+
+  const eventoIconoPreview = wireImageDropzone(
+    document.getElementById("adminEventoIconoDropzone"),
+    document.getElementById("adminEventoIconoFoto"),
+    document.getElementById("adminEventoIconoPreviewImg"),
+    (file) => {
+      const label = document.getElementById("adminEventoIconoFileName");
+      if (label) label.textContent = file ? file.name : "";
+    }
+  );
+  function updateEventoIconoFileName() { eventoIconoPreview.clear(); }
 
   document.querySelectorAll("[data-evt-step]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -4486,8 +4522,15 @@ function renderContactCalendar(apiData = {}) {
     document.getElementById("adminDestacadaClose")
   );
 
+  const destacadaFotoPreview = wireImageDropzone(
+    document.getElementById("adminDestacadaDropzone"),
+    document.getElementById("adminDestacadaFoto"),
+    document.getElementById("adminDestacadaPreviewImg")
+  );
+
   document.getElementById("adminDestacadaCancel")?.addEventListener("click", () => {
     document.getElementById("adminDestacadaForm")?.reset();
+    destacadaFotoPreview.clear();
     closeAdminDestacadaModal();
   });
 
@@ -4495,6 +4538,7 @@ function renderContactCalendar(apiData = {}) {
     event.preventDefault();
     const msg = document.getElementById("adminDestacadaMsg");
     const file = document.getElementById("adminDestacadaFoto")?.files?.[0];
+    if (!file) { showAdminMsg(msg, "Selecciona una foto.", false); return; }
 
     try {
       showAdminMsg(msg, "Optimizando y subiendo imagen...", true);
@@ -4506,6 +4550,7 @@ function renderContactCalendar(apiData = {}) {
       });
 
 	      this.reset();
+	      destacadaFotoPreview.clear();
 	      showAdminMsg(msg, "Destacada subida correctamente.", true);
 	      closeAdminDestacadaModal();
 	      await loadAdminContent();

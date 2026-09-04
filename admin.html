@@ -8,7 +8,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&family=Caveat:wght@600;700&display=swap" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
   <link rel="stylesheet" href="assets/css/admin.css?v=20260904-review-workflow-1" />
@@ -65,62 +65,72 @@
 
       <div class="admin-dashboard" id="adminDashboard" style="display:none;">
         <div class="admin-dashboard-head">
+          <div class="admin-dashboard-flourish" aria-hidden="true">
+            <span>Juntas<br />creamos<br />más impacto</span>
+            <i class="fa-regular fa-heart"></i>
+          </div>
           <div>
             <span class="admin-dashboard-kicker">Contenido público</span>
             <h3>Centro de gestión</h3>
+            <p class="admin-dashboard-subtitle">Administra y organiza todo el contenido de la comunidad desde un solo lugar.</p>
           </div>
           <div class="admin-dashboard-actions">
-            <button type="button" class="admin-logout-btn admin-share-btn" id="adminShareJoinLink"><i class="fa-solid fa-share-nodes"></i> Compartir formulario</button>
-            <button type="button" class="admin-logout-btn" id="adminLogoutBtn">Cerrar sesión</button>
+            <button type="button" class="admin-logout-btn admin-share-btn" id="adminShareJoinLink"><i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir formulario</button>
+            <button type="button" class="admin-logout-btn" id="adminLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</button>
           </div>
         </div>
 
         <div class="admin-stats-grid" id="adminStatsGrid">
           <div class="admin-stat-tile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon">✦</div>
+              <div class="admin-stat-icon"><i class="fa-solid fa-calendar-days"></i></div>
             </div>
             <div class="admin-stat-value" id="statEventos">0</div>
             <div class="admin-stat-label">Eventos activos</div>
+            <button type="button" class="admin-stat-link" data-stat-tab="eventos" aria-label="Ver eventos"><i class="fa-solid fa-arrow-right"></i></button>
           </div>
           <div class="admin-stat-tile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon">♡</div>
+              <div class="admin-stat-icon"><i class="fa-solid fa-heart"></i></div>
             </div>
             <div class="admin-stat-value" id="statDestacadas">0</div>
             <div class="admin-stat-label">Destacadas</div>
+            <button type="button" class="admin-stat-link" data-stat-tab="destacadas" aria-label="Ver destacadas"><i class="fa-solid fa-arrow-right"></i></button>
           </div>
           <div class="admin-stat-tile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon">✧</div>
+              <div class="admin-stat-icon"><i class="fa-solid fa-image"></i></div>
             </div>
             <div class="admin-stat-value" id="statFotos">0</div>
             <div class="admin-stat-label">Fotos en galería</div>
+            <button type="button" class="admin-stat-link" data-stat-tab="galeria" aria-label="Ver galería"><i class="fa-solid fa-arrow-right"></i></button>
           </div>
           <div class="admin-stat-tile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon">▶</div>
+              <div class="admin-stat-icon"><i class="fa-solid fa-play"></i></div>
             </div>
             <div class="admin-stat-value" id="statYoutube">0</div>
             <div class="admin-stat-label">Videos de YouTube</div>
+            <button type="button" class="admin-stat-link" data-stat-tab="youtube" aria-label="Ver videos de YouTube"><i class="fa-solid fa-arrow-right"></i></button>
           </div>
           <div class="admin-stat-tile" id="statPortadaTile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon">◐</div>
+              <div class="admin-stat-icon"><i class="fa-solid fa-folder"></i></div>
               <span class="admin-stat-pill" id="statPortadaPill" style="display:none;"></span>
             </div>
             <div class="admin-stat-value" id="statPortadaFaltante">0</div>
             <div class="admin-stat-label">Categorías sin portada</div>
+            <button type="button" class="admin-stat-link" data-stat-tab="galeria" aria-label="Ver categorías"><i class="fa-solid fa-arrow-right"></i></button>
           </div>
         </div>
 
         <div class="admin-tabs">
-          <button type="button" class="admin-tab active" data-admin-tab="eventos">Eventos</button>
-          <button type="button" class="admin-tab" data-admin-tab="destacadas">Destacadas</button>
-          <button type="button" class="admin-tab" data-admin-tab="galeria">Galería</button>
-          <button type="button" class="admin-tab" data-admin-tab="youtube">YouTube</button>
-          <button type="button" class="admin-tab" data-admin-tab="devocionales">Devocionales</button>
-          <button type="button" class="admin-tab" data-admin-tab="roles">Usuarios y roles</button>
+          <button type="button" class="admin-tab active" data-admin-tab="eventos"><i class="fa-solid fa-calendar-days"></i> <span>Eventos</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="destacadas"><i class="fa-solid fa-heart"></i> <span>Destacadas</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="galeria"><i class="fa-solid fa-image"></i> <span>Galería</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="youtube"><i class="fa-solid fa-play"></i> <span>YouTube</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-solid fa-file-lines"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-solid fa-users"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
         </div>
 
         <div class="admin-tab-panel active" id="admin-eventos">
@@ -134,12 +144,13 @@
             </div>
             <form id="adminEventForm" class="admin-form admin-evt-form">
               <div class="admin-evt-row">
-                <label><i class="fa-regular fa-face-smile" aria-hidden="true"></i> Icono
+                <label><span><i class="fa-regular fa-face-smile" aria-hidden="true"></i> Icono</span>
                   <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
                 </label>
                 <div>
-                  <label><i class="fa-regular fa-image" aria-hidden="true"></i> Imagen de icono <small class="admin-yt-help">(opcional, reemplaza el emoji)</small></label>
+                  <label><span><i class="fa-regular fa-image" aria-hidden="true"></i> Imagen de icono</span> <small class="admin-yt-help">(opcional, reemplaza el emoji)</small></label>
                   <div class="admin-gallery-dropzone admin-gallery-dropzone-compact" id="adminEventoIconoDropzone">
+                    <img class="admin-dropzone-preview-img" id="adminEventoIconoPreviewImg" alt="" hidden />
                     <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
                     <strong>Sube una imagen</strong>
                     <span>o arrastra y suelta aquí</span>
@@ -149,30 +160,32 @@
                 </div>
               </div>
 
-              <label><i class="fa-solid fa-font" aria-hidden="true"></i> Título del evento
+              <label><span><i class="fa-solid fa-font" aria-hidden="true"></i> Título del evento</span>
                 <input type="text" id="adminEventoTitulo" placeholder="Ej: Oración Matutina" required />
               </label>
 
               <div class="admin-yt-divider"><i class="fa-regular fa-clock" aria-hidden="true"></i><span>Horario</span></div>
 
-              <label><i class="fa-solid fa-repeat" aria-hidden="true"></i> Frecuencia
-                <select id="adminEventoFrecuencia" required>
-                  <option value="diario">Diario</option>
-                  <option value="semanal">Semanal</option>
-                  <option value="dos-veces">Dos veces a la semana</option>
-                </select>
-              </label>
-
-              <div class="admin-time-field">
-                <span><i class="fa-regular fa-clock" aria-hidden="true"></i> Hora</span>
-                <div class="admin-time-selects">
-                  <select id="adminEventoHora" aria-label="Hora del evento" required></select>
-                  <select id="adminEventoMinutos" aria-label="Minutos del evento" required>
-                    <option value="00">00 min</option>
-                    <option value="15">15 min</option>
-                    <option value="30">30 min</option>
-                    <option value="45">45 min</option>
+              <div class="admin-evt-row">
+                <label><span><i class="fa-solid fa-repeat" aria-hidden="true"></i> Frecuencia</span>
+                  <select id="adminEventoFrecuencia" required>
+                    <option value="diario">Diario</option>
+                    <option value="semanal">Semanal</option>
+                    <option value="dos-veces">Dos veces a la semana</option>
                   </select>
+                </label>
+
+                <div class="admin-time-field">
+                  <span><i class="fa-regular fa-clock" aria-hidden="true"></i> Hora</span>
+                  <div class="admin-time-selects">
+                    <select id="adminEventoHora" aria-label="Hora del evento" required></select>
+                    <select id="adminEventoMinutos" aria-label="Minutos del evento" required>
+                      <option value="00">00 min</option>
+                      <option value="15">15 min</option>
+                      <option value="30">30 min</option>
+                      <option value="45">45 min</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -189,12 +202,12 @@
 
               <div class="admin-yt-divider"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i><span>Publicación</span></div>
 
-              <label><i class="fa-solid fa-link" aria-hidden="true"></i> Link <small class="admin-yt-help">(opcional)</small>
+              <label><span><i class="fa-solid fa-link" aria-hidden="true"></i> Link</span> <small class="admin-yt-help">(opcional)</small>
                 <input type="url" id="adminEventoLink" placeholder="https://meet.google.com/..." />
                 <small class="admin-yt-help">Enlace de la reunión, transmisión o más información.</small>
               </label>
 
-              <label><i class="fa-solid fa-arrow-up-short-wide" aria-hidden="true"></i> Orden
+              <label><span><i class="fa-solid fa-arrow-up-short-wide" aria-hidden="true"></i> Orden</span>
                 <div class="admin-yt-stepper">
                   <button type="button" class="admin-yt-stepper-btn" data-evt-step="-1" aria-label="Disminuir orden">−</button>
                   <input type="number" id="adminEventoOrden" value="1" min="1" />
@@ -247,7 +260,14 @@
 
               <label>
                 Foto
-                <input type="file" id="adminDestacadaFoto" accept="image/*" required />
+                <div class="admin-gallery-dropzone" id="adminDestacadaDropzone">
+                  <img class="admin-dropzone-preview-img" id="adminDestacadaPreviewImg" alt="" hidden />
+                  <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+                  <strong>Sube una imagen</strong>
+                  <span>o arrastra y suelta aquí</span>
+                  <small>PNG • JPG • WEBP</small>
+                  <input type="file" id="adminDestacadaFoto" accept="image/*" required hidden />
+                </div>
               </label>
 
               <label>
