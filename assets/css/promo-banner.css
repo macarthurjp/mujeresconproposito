@@ -1,0 +1,96 @@
+.promo-banner {
+  position: fixed;
+  right: 20px;
+  top: 110px;
+  z-index: 1999;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 340px;
+  padding: 16px 18px;
+  background: var(--white, #fff);
+  border: 1px solid var(--pastel-border, #f7dede);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card, 0 12px 30px rgba(31, 41, 55, 0.15));
+  opacity: 0;
+  transform: translateY(-16px);
+  pointer-events: none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.promo-banner.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.promo-banner.hide {
+  opacity: 0;
+  transform: translateY(-16px);
+}
+
+.promo-banner-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--soft-color, #f9edea);
+  color: var(--main-color, #E7A8A0);
+  font-size: 1.1rem;
+}
+
+.promo-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.promo-banner-text strong {
+  font-family: "Playfair Display", serif;
+  font-size: 1rem;
+  color: var(--text-color, #3f2623);
+}
+
+.promo-banner-text span {
+  font-size: 0.85rem;
+  color: var(--text-muted, #6d5250);
+  line-height: 1.35;
+}
+
+.promo-banner-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text-muted, #6d5250);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.promo-banner-close:hover {
+  color: var(--text-color, #3f2623);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-banner {
+    transition: opacity 0.3s ease;
+    transform: none;
+  }
+  .promo-banner.hide {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .promo-banner {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+}

@@ -7,12 +7,15 @@ create extension if not exists "pgcrypto";
 create table if not exists public.user_roles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text,
+  nombre text not null default '',
   is_super_admin boolean not null default false,
   permissions text[] not null default '{read_only}',
   is_revoked boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.user_roles add column if not exists nombre text not null default '';
 
 insert into public.user_roles (user_id, email, is_super_admin, permissions, is_revoked)
 select id, lower(email), true, '{read_only}', false from auth.users
@@ -238,6 +241,19 @@ alter table public.youtube add column if not exists orden integer not null defau
 alter table public.youtube add column if not exists activa boolean not null default true;
 
 create index if not exists youtube_activa_orden_idx on public.youtube (activa, orden);
+
+-- Banner promocional flotante mostrado en el sitio público (fila única, id fijo = 1).
+create table if not exists public.site_banner (
+  id integer primary key default 1 check (id = 1),
+  titulo text not null default '',
+  mensaje text not null default '',
+  activa boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.site_banner (id, titulo, mensaje, activa)
+values (1, '', '', false)
+on conflict (id) do nothing;
 
 -- Artículos de la biblioteca de devocionales.
 create table if not exists public.devocionales (
@@ -669,6 +685,21 @@ drop policy if exists "authenticated write youtube" on public.youtube;
 drop policy if exists "crud write youtube" on public.youtube;
 create policy "super admin write youtube"
 on public.youtube for all
+to authenticated
+using (public.is_super_admin())
+with check (public.is_super_admin());
+
+alter table public.site_banner enable row level security;
+
+drop policy if exists "public read site_banner" on public.site_banner;
+create policy "public read site_banner"
+on public.site_banner for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "super admin write site_banner" on public.site_banner;
+create policy "super admin write site_banner"
+on public.site_banner for all
 to authenticated
 using (public.is_super_admin())
 with check (public.is_super_admin());

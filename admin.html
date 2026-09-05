@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&family=Caveat:wght@600;700&display=swap" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260904-review-workflow-1" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20260905-user-nombre-1" />
 </head>
 <body class="admin-locked" data-admin-page="true">
   <header class="admin-site-header">
@@ -130,6 +130,7 @@
           <button type="button" class="admin-tab" data-admin-tab="galeria"><i class="fa-solid fa-image"></i> <span>Galería</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="youtube"><i class="fa-solid fa-play"></i> <span>YouTube</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-solid fa-file-lines"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="banner"><i class="fa-solid fa-bullhorn"></i> <span>Banner</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-solid fa-users"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
         </div>
 
@@ -588,6 +589,33 @@
           </div>
         </div>
 
+        <div class="admin-tab-panel" id="admin-banner">
+          <div class="admin-devotional-page-head">
+            <div><h3>Banner promocional</h3></div>
+          </div>
+          <div class="admin-card">
+            <p class="admin-card-subtitle">Este mensaje aparece como una tarjeta flotante en la página principal unos segundos después de cargar, y se cierra sola. Actívalo solo mientras tengas un anuncio vigente.</p>
+            <form id="adminBannerForm" class="admin-form">
+              <label>
+                Título
+                <input type="text" id="adminBannerTitulo" placeholder="Ej: Nuevo evento este sábado" maxlength="80" />
+              </label>
+              <label>
+                Mensaje
+                <textarea id="adminBannerMensaje" rows="3" placeholder="Ej: Únete a nuestra reunión especial este fin de semana." maxlength="200"></textarea>
+              </label>
+              <label class="admin-banner-toggle">
+                <input type="checkbox" id="adminBannerActiva" />
+                Mostrar banner en el sitio
+              </label>
+              <div class="admin-yt-submit-row">
+                <button type="submit" class="btn">Guardar</button>
+              </div>
+              <div id="adminBannerMsg" class="form-message" style="display:none;"></div>
+            </form>
+          </div>
+        </div>
+
         <div class="admin-tab-panel" id="admin-roles">
           <div class="admin-gallery-modal-head admin-roles-page-head">
             <div class="admin-gallery-modal-icon"><i class="fa-solid fa-users"></i></div>
@@ -612,6 +640,10 @@
             <h3 class="admin-roles-card-title"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Crear nuevo usuario</h3>
             <p class="admin-card-subtitle admin-roles-card-subtitle">Añade un usuario y asigna sus permisos.</p>
             <form id="adminInviteUserForm" class="admin-invite-form">
+              <div class="admin-field">
+                <label for="adminInviteNombre">Nombre completo</label>
+                <input type="text" id="adminInviteNombre" placeholder="Ej: Ana Pérez" autocomplete="off" maxlength="120" />
+              </div>
               <div class="admin-field">
                 <label for="adminInviteEmail">Correo del nuevo usuario</label>
                 <input type="email" id="adminInviteEmail" placeholder="nombre@correo.com" autocomplete="off" required />
@@ -656,7 +688,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260904-reviewer-role-1"></script>
+  <script src="assets/js/main.js?v=20260905-user-nombre-1"></script>
   <script src="assets/js/devocionales-admin.js?v=20260904-review-workflow-1"></script>
+  <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
 </body>
 </html>

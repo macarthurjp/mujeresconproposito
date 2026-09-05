@@ -373,6 +373,7 @@ using (public.has_permission('editor') and created_by = auth.uid() and publicado
 
 -- storage.objects: reviewers también pueden subir portadas al editar directo.
 drop policy if exists "editors upload devotional images" on storage.objects;
+drop policy if exists "editorial upload devotional images" on storage.objects;
 create policy "editorial upload devotional images"
 on storage.objects for insert to authenticated
 with check (

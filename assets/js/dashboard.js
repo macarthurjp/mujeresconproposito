@@ -368,6 +368,7 @@ function normalizeUser(user, index) {
     comunidad: pick(user, ["comunidad", "community"]),
     cristiana: pick(user, ["cristiana", "cristianaStatus", "faithStatus"]),
     fechaNacimiento: pick(user, ["fecha_nacimiento", "fechaNacimiento", "birthDate"]),
+    ultimoCorreoCumpleanos: pick(user, ["ultimo_correo_cumpleanos"]),
     paisNacimiento: pick(user, ["pais_nacimiento", "paisNacimiento", "birthCountry"]),
     estatusMatrimonial: pick(user, ["estatus_matrimonial", "estatusMatrimonial", "maritalStatus"]),
     hijos: pick(user, ["hijos", "children"]),
@@ -497,6 +498,10 @@ function renderTable(users) {
           <strong>${escapeHtml(formatDate(user.fechaNacimiento))}</strong>
         </div>
         <div class="field-block">
+          <span class="field-label">Último correo de cumpleaños</span>
+          <strong>${user.ultimoCorreoCumpleanos ? escapeHtml(formatDate(user.ultimoCorreoCumpleanos)) : "Nunca enviado"}</strong>
+        </div>
+        <div class="field-block">
           <span class="field-label">País de nacimiento</span>
           <strong>${escapeHtml(user.paisNacimiento)}</strong>
         </div>
@@ -579,6 +584,14 @@ function birthdayDateLabel(value) {
   return `${String(birth.getDate()).padStart(2, "0")} ${months[birth.getMonth()]}`;
 }
 
+function wasBirthdayEmailSentToday(value) {
+  if (!value) return false;
+  const sent = new Date(value);
+  if (Number.isNaN(sent.getTime())) return false;
+  const now = new Date();
+  return sent.getFullYear() === now.getFullYear() && sent.getMonth() === now.getMonth() && sent.getDate() === now.getDate();
+}
+
 function renderDashboardInsights() {
   if (communityBreakdown) {
     const counts = new Map();
@@ -589,15 +602,21 @@ function renderDashboardInsights() {
   }
   if (upcomingBirthdaysList) {
     const people = allUsers.map((user) => ({ user, days: daysUntilBirthday(user.fechaNacimiento) })).filter((item) => item.days <= 30).sort((a, b) => a.days - b.days).slice(0, 5);
-    upcomingBirthdaysList.innerHTML = people.length ? people.map(({ user, days }) => `
+    upcomingBirthdaysList.innerHTML = people.length ? people.map(({ user, days }) => {
+      const emailSent = days === 0 ? wasBirthdayEmailSentToday(user.ultimoCorreoCumpleanos) : false;
+      return `
       <div class="birthday-row">
         <div class="birthday-person">
           <span class="birthday-tag birthday-date-tag">${birthdayDateLabel(user.fechaNacimiento)}</span>
           <strong>${escapeHtml(user.nombreCompleto)}</strong>
         </div>
-        <span class="birthday-tag birthday-days-tag${days === 0 ? " is-today" : ""}">${days === 0 ? "Hoy" : `En ${days} día${days === 1 ? "" : "s"}`}</span>
+        <div class="birthday-tags">
+          <span class="birthday-tag birthday-days-tag${days === 0 ? " is-today" : ""}">${days === 0 ? "Hoy" : `En ${days} día${days === 1 ? "" : "s"}`}</span>
+          ${days === 0 ? `<span class="birthday-tag birthday-email-tag${emailSent ? " is-sent" : " is-pending"}">${emailSent ? "✓ Correo enviado" : "Correo pendiente"}</span>` : ""}
+        </div>
       </div>
-    `).join("") : `<p class="empty-cell">No hay cumpleaños en los próximos 30 días.</p>`;
+    `;
+    }).join("") : `<p class="empty-cell">No hay cumpleaños en los próximos 30 días.</p>`;
   }
 }
 

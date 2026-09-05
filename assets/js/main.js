@@ -4015,7 +4015,9 @@ function renderContactCalendar(apiData = {}) {
 	    const searchTerm = document.getElementById("adminRolesSearch")?.value.trim().toLowerCase() || "";
 	    const filter = document.getElementById("adminRolesFilter")?.value || "all";
 	    const users = adminRolesCache.filter((entry) => {
-	      const matchesSearch = !searchTerm || String(entry.email || "").toLowerCase().includes(searchTerm);
+	      const matchesSearch = !searchTerm
+        || String(entry.email || "").toLowerCase().includes(searchTerm)
+        || String(entry.nombre || "").toLowerCase().includes(searchTerm);
 	      return matchesSearch && matchesRoleFilter(entry, filter);
 	    });
 	    const countEl = document.getElementById("adminRolesCount");
@@ -4027,7 +4029,8 @@ function renderContactCalendar(apiData = {}) {
 	      return `
 	        <div class="admin-role-row${isRevoked ? " is-revoked" : ""}">
 	          <div class="admin-role-identity">
-	            <strong>${escapeHtml(entry.email || "Cuenta sin email")}</strong>
+	            <input type="text" class="admin-role-name-input" data-role-user-id="${escapeHtml(entry.userId)}" value="${escapeHtml(entry.nombre || "")}" placeholder="Agregar nombre" maxlength="120" aria-label="Nombre de ${escapeHtml(entry.email || "usuario")}" />
+            <strong>${escapeHtml(entry.email || "Cuenta sin email")}</strong>
 	            <small>${isCurrentUser ? "Tu cuenta · Super Admin" : isRevoked ? "Acceso revocado" : "Cuenta autorizada"}</small>
 	          </div>
 	          <div class="admin-permission-group" data-role-user-id="${escapeHtml(entry.userId)}" aria-label="Permisos de ${escapeHtml(entry.email || "usuario")}">
@@ -4077,6 +4080,24 @@ function renderContactCalendar(apiData = {}) {
 	    }
 	  });
 
+	  adminRolesList?.addEventListener("change", async function (event) {
+	    const nameInput = event.target.closest(".admin-role-name-input");
+	    if (!nameInput) return;
+	    const userId = nameInput.dataset.roleUserId;
+	    const nombre = nameInput.value.trim();
+	    nameInput.disabled = true;
+	    try {
+	      await invokeManageUsers({ action: "set_name", userId, nombre });
+	      const cached = adminRolesCache.find((entry) => entry.userId === userId);
+	      if (cached) cached.nombre = nombre;
+	      showAdminToast("success", "Nombre actualizado", "El nombre se guardó correctamente.");
+	    } catch (error) {
+	      showAdminToast("error", "No se pudo guardar el nombre", error?.message || "Intenta nuevamente.");
+	    } finally {
+	      nameInput.disabled = false;
+	    }
+	  });
+
 	  adminRolesList?.addEventListener("click", async function (event) {
 	    const resetButton = event.target.closest("[data-password-reset]");
 	    if (resetButton) {
@@ -4120,7 +4141,8 @@ function renderContactCalendar(apiData = {}) {
 	    if (button) button.disabled = true;
 	    try {
 	      const { isSuperAdmin, permissions } = readPermissionCheckboxes(this);
-	      await invokeManageUsers({ action: "invite", email: adminInviteEmail?.value || "", isSuperAdmin, permissions });
+	      const nombre = document.getElementById("adminInviteNombre")?.value || "";
+	      await invokeManageUsers({ action: "invite", email: adminInviteEmail?.value || "", nombre, isSuperAdmin, permissions });
 	      this.reset();
 	      await loadAdminRoles();
 	      showAdminToast("success", "Usuario creado", "La invitación fue enviada por correo.");
@@ -4190,7 +4212,7 @@ function renderContactCalendar(apiData = {}) {
 	      window.initDevocionalesAdmin?.(access);
 	      return true;
 	    }
-	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access)]).catch((error) => {
+	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access), window.initPromoBannerAdmin?.(access)]).catch((error) => {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
 	    });

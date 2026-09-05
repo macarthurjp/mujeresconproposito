@@ -7,6 +7,10 @@ function normalizeEmail(value: unknown) {
   return String(value || "").trim().toLowerCase();
 }
 
+function normalizeNombre(value: unknown) {
+  return String(value || "").trim().slice(0, 120);
+}
+
 function parsePermissions(value: unknown): string[] | null {
   const requested = Array.isArray(value) ? value : [];
   if (!requested.every((p) => typeof p === "string" && ASSIGNABLE_PERMISSIONS.has(p))) return null;
@@ -47,7 +51,7 @@ Deno.serve(async (req) => {
     if (action === "list") {
       const { data: authData, error: listError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
       if (listError) throw listError;
-      const { data: roles, error: rolesError } = await admin.from("user_roles").select("user_id,email,is_super_admin,permissions,is_revoked,created_at");
+      const { data: roles, error: rolesError } = await admin.from("user_roles").select("user_id,email,nombre,is_super_admin,permissions,is_revoked,created_at");
       if (rolesError) throw rolesError;
       const rolesByUser = new Map((roles || []).map((entry) => [entry.user_id, entry]));
       const users = (authData?.users || []).map((user) => {
@@ -55,6 +59,7 @@ Deno.serve(async (req) => {
         return {
           userId: user.id,
           email: user.email || access?.email || "",
+          nombre: access?.nombre || "",
           isSuperAdmin: access?.is_super_admin ?? false,
           permissions: access?.permissions ?? ["read_only"],
           isRevoked: access?.is_revoked ?? false,
@@ -68,6 +73,7 @@ Deno.serve(async (req) => {
 
     if (action === "invite") {
       const email = normalizeEmail(body.email);
+      const nombre = normalizeNombre(body.nombre);
       const isSuperAdmin = Boolean(body.isSuperAdmin);
       const permissions = parsePermissions(body.permissions);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -84,6 +90,7 @@ Deno.serve(async (req) => {
       const { error: roleError } = await admin.from("user_roles").upsert({
         user_id: userId,
         email,
+        nombre,
         is_super_admin: isSuperAdmin,
         permissions,
         updated_at: new Date().toISOString()
@@ -124,6 +131,16 @@ Deno.serve(async (req) => {
       });
       if (resetError) return jsonResponse({ ok: false, error: resetError.message }, 400);
       return jsonResponse({ ok: true, message: "Enlace de restablecimiento enviado." });
+    }
+
+    if (action === "set_name") {
+      const nombre = normalizeNombre(body.nombre);
+      const { error } = await admin.from("user_roles").update({
+        nombre,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", userId);
+      if (error) throw error;
+      return jsonResponse({ ok: true, message: "Nombre actualizado." });
     }
 
     if (userId === requester.id) return jsonResponse({ ok: false, error: "No puedes modificar ni revocar tu propia cuenta." }, 400);

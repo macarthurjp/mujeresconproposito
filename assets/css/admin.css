@@ -931,8 +931,26 @@ body[data-admin-page="true"] #nav-menu a:hover {
 }
 .admin-role-row.is-revoked { border-color: rgba(185,28,28,0.2); background: rgba(254,242,242,0.6); }
 .admin-role-identity { min-width: 0; }
-.admin-role-identity strong { display: block; overflow: hidden; color: #33211f; font-size: 0.98rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.admin-role-identity strong { display: block; overflow: hidden; color: #6f5650; font-size: 0.86rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
 .admin-role-identity small { display: block; margin-top: 5px; color: #8e403b; font-size: 0.72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; text-align: left; }
+.admin-role-name-input {
+  display: block;
+  width: 100%;
+  margin: 0 0 2px;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #33211f;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 800;
+  text-align: left;
+}
+.admin-role-name-input::placeholder { color: rgba(94,61,57,0.4); font-weight: 700; }
+.admin-role-name-input:hover:not(:disabled) { background: rgba(169,80,69,0.06); }
+.admin-role-name-input:focus { outline: none; border-color: rgba(169,80,69,0.35); background: #fff; box-shadow: 0 0 0 3px rgba(231,168,160,0.18); }
+.admin-role-name-input:disabled { opacity: 0.6; }
 .admin-role-select:disabled { opacity: .65; cursor: not-allowed; background-color: rgba(243,235,232,0.9); }
 .admin-permission-group { display: grid !important; gap: 6px !important; }
 .admin-current-email-form .admin-permission-group,
@@ -2828,6 +2846,24 @@ body[data-admin-page="true"] .admin-form label > span:first-child {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+
+.admin-form .admin-banner-toggle {
+  grid-column: 1 / -1 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+}
+
+.admin-form .admin-banner-toggle input[type="checkbox"] {
+  width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  padding: 0 !important;
+  accent-color: #a95045 !important;
+  cursor: pointer !important;
 }
 
 #adminYoutubeList .admin-item-actions button svg { display: block; }
