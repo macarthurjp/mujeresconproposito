@@ -55,6 +55,19 @@
     return value;
   }
 
+  function connectedUserName() {
+    return currentAccess.nombre
+      || currentUser?.user_metadata?.full_name
+      || currentUser?.user_metadata?.name
+      || currentUser?.email?.split("@")[0]
+      || "";
+  }
+
+  function notifyReviewers(devocionalId) {
+    client().functions.invoke("send-devotional-review-notification", { body: { id: devocionalId } })
+      .catch((error) => console.error("No se pudo notificar a los revisores.", error));
+  }
+
   function message(text, ok = true) {
     const element = $("adminDevocionalMsg");
     if (!element) return;
@@ -231,7 +244,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="assets/css/devocionales.css">
 <style>
-  .admin-preview-flag { display:inline-flex; align-items:center; gap:8px; width:max-content; margin:0 0 18px; padding:8px 16px; border-radius:999px; background:#30231c; color:#fff; font-size:.72rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+  .admin-preview-flag { display:inline-flex; align-items:center; gap:8px; width:max-content; margin:28px auto 0; padding:8px 16px; border-radius:999px; background:#30231c; color:#fff; font-size:.72rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
   main { display:block; padding:28px 0 60px; }
 </style>
 </head>
@@ -240,8 +253,8 @@
   <span class="dev-brand"><img src="assets/images/logo.webp" alt="" /><span>Mujeres con Propósito</span></span>
 </header>
 <main>
+  <span class="admin-preview-flag"><i class="fa-regular fa-eye"></i> Vista previa — sin publicar</span>
   <div class="dev-article">
-    <span class="admin-preview-flag"><i class="fa-regular fa-eye"></i> Vista previa — sin publicar</span>
     <div class="dev-article-topbar">
       <span class="dev-kicker">${escapeHtml(category)}</span>
       <div class="dev-article-tools">
@@ -497,8 +510,7 @@
     $("adminDevocionalIntroduccion").innerHTML = "";
     $("adminDevocionalContenidoEditor").innerHTML = "";
     document.querySelectorAll('input[name="devCategoria"]').forEach((input) => { input.checked = false; });
-    const name = currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || currentUser?.email?.split("@")[0] || "";
-    $("adminDevocionalAutora").value = name;
+    $("adminDevocionalAutora").value = connectedUserName();
     $("adminDevocionalMsg").style.display = "none";
     updateSaveButtonsVisibility();
   }
@@ -515,6 +527,17 @@
 
   function historyToggleHtml(id) {
     return `<button type="button" class="admin-devotional-history-toggle" data-dev-history="${escapeHtml(id)}">Ver historial</button><div class="admin-devotional-history" data-dev-history-panel="${escapeHtml(id)}" hidden></div>`;
+  }
+
+  function publishActionHtml(article) {
+    if (!currentAccess.is_super_admin) return "";
+    if (article.publicado) return `<button type="button" data-dev-action="toggle">Retirar</button>`;
+    if (article.pending_content) {
+      return article.estado === "en_revision"
+        ? `<button type="button" data-dev-action="review">Revisar artículo</button>`
+        : "";
+    }
+    return `<button type="button" data-dev-action="toggle">Publicar</button>`;
   }
 
   function render() {
@@ -540,7 +563,7 @@
           ${article.publicado ? `<a href="devocionales.html?articulo=${encodeURIComponent(article.slug)}" target="_blank" rel="noopener">Ver</a>` : ""}
           <button type="button" data-dev-action="edit">Editar</button>
           ${article.estado === "en_revision" ? `<button type="button" data-dev-action="withdraw">Retirar de revisión</button>` : ""}
-          ${currentAccess.is_super_admin ? `<button type="button" data-dev-action="toggle">${article.publicado ? "Retirar" : "Publicar"}</button>` : ""}
+          ${publishActionHtml(article)}
           ${canDelete ? `<button type="button" data-dev-action="delete" class="danger">Borrar</button>` : ""}
         </div>
         ${historyToggleHtml(article.id)}
@@ -596,9 +619,11 @@
       render();
     }
 
-    if (currentAccess.permissions.includes("reviewer") && !currentAccess.is_super_admin) {
-      const { data, error } = await client().from("devocionales").select("*")
-        .eq("estado", "en_revision").neq("created_by", currentUser.id).order("updated_at", { ascending: true });
+    if (currentAccess.permissions.includes("reviewer") || currentAccess.is_super_admin) {
+      let reviewQuery = client().from("devocionales").select("*")
+        .eq("estado", "en_revision").order("updated_at", { ascending: true });
+      if (!currentAccess.is_super_admin) reviewQuery = reviewQuery.neq("created_by", currentUser.id);
+      const { data, error } = await reviewQuery;
       if (error) throw error;
       reviewQueue = data || [];
       renderQueue();
@@ -616,7 +641,8 @@
     $("adminDevocionalIntroduccion").innerHTML = cleanRichHtml(fields.introduccion_html || fields.resumen || "");
     $("adminDevocionalContenidoEditor").innerHTML = cleanRichHtml(fields.contenido_html || fields.contenido || "");
     document.querySelectorAll('input[name="devCategoria"]').forEach((input) => { input.checked = fields.categorias.includes(input.value); });
-    $("adminDevocionalAutora").value = fields.autora;
+    const isOwnArticle = article.created_by === currentUser?.id;
+    $("adminDevocionalAutora").value = isOwnArticle ? connectedUserName() : fields.autora;
     $("adminDevocionalFecha").value = localDateTime(fields.fecha);
     $("adminDevocionalImagenActual").value = fields.imagen_url || "";
     $("adminDevocionalImagen").value = "";
@@ -692,6 +718,7 @@
         if (!error && action === "submit" && savedId) {
           const { error: submitError } = await client().rpc("devocional_submit_for_review", { p_id: savedId });
           if (submitError) error = submitError;
+          else notifyReviewers(savedId);
         }
       }
       if (error) throw error;
@@ -738,6 +765,13 @@
     const article = articles.find((item) => String(item.id) === String(id));
     if (!article) return;
     if (button.dataset.devAction === "edit") return edit(article);
+    if (button.dataset.devAction === "review") {
+      const card = document.querySelector(`#adminDevocionalReviewList [data-dev-id="${CSS.escape(String(id))}"]`);
+      card?.scrollIntoView({ behavior: "smooth", block: "center" });
+      card?.classList.add("admin-devotional-item-highlight");
+      setTimeout(() => card?.classList.remove("admin-devotional-item-highlight"), 1600);
+      return;
+    }
     if (button.dataset.devAction === "delete" && !window.confirm(`¿Borrar “${article.titulo || "este devocional"}”? Esta acción no se puede deshacer.`)) return;
     button.disabled = true;
     try {
@@ -812,8 +846,8 @@
 
   window.initDevocionalesAdmin = async function initDevocionalesAdmin(access) {
     currentAccess = access && typeof access === "object"
-      ? { is_super_admin: Boolean(access.is_super_admin), permissions: Array.isArray(access.permissions) ? access.permissions : ["read_only"], is_revoked: Boolean(access.is_revoked) }
-      : { is_super_admin: false, permissions: ["read_only"], is_revoked: false };
+      ? { is_super_admin: Boolean(access.is_super_admin), permissions: Array.isArray(access.permissions) ? access.permissions : ["read_only"], is_revoked: Boolean(access.is_revoked), nombre: String(access.nombre || "").trim() }
+      : { is_super_admin: false, permissions: ["read_only"], is_revoked: false, nombre: "" };
     if (!initialized) {
       initialized = true;
       initRichEditors();

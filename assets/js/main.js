@@ -3939,14 +3939,15 @@ function renderContactCalendar(apiData = {}) {
 	    if (userError || !userData?.user) throw new Error("No se pudo verificar el rol de acceso.");
 	    const { data, error } = await client
 	      .from("user_roles")
-	      .select("is_super_admin,permissions,is_revoked")
+	      .select("is_super_admin,permissions,is_revoked,nombre")
 	      .eq("user_id", userData.user.id)
 	      .maybeSingle();
 	    if (error) throw new Error("No se pudo verificar el rol de acceso.");
 	    return {
 	      is_super_admin: Boolean(data?.is_super_admin),
 	      permissions: Array.isArray(data?.permissions) ? data.permissions : ["read_only"],
-	      is_revoked: Boolean(data?.is_revoked)
+	      is_revoked: Boolean(data?.is_revoked),
+	      nombre: String(data?.nombre || "").trim()
 	    };
 	  }
 

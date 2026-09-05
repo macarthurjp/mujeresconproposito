@@ -48,6 +48,7 @@ supabase functions deploy send-welcome-email
 supabase functions deploy send-admin-notification
 supabase functions deploy send-contact-email
 supabase functions deploy send-birthday-emails
+supabase functions deploy send-devotional-review-notification
 ```
 
 ## Bienvenida al unirse
@@ -100,3 +101,19 @@ La funcion:
 - Detecta cumpleanos del dia.
 - Envia correo.
 - Actualiza `ultimo_correo_cumpleanos` para no duplicar envios ese mismo dia.
+
+## Devocional enviado a revision
+
+El panel de admin llama automaticamente a `send-devotional-review-notification`
+justo despues de que un Editor envia un devocional a revision (RPC
+`devocional_submit_for_review`). La funcion:
+
+- Verifica la sesion del que llama (debe ser el Editor dueno del articulo, o
+  Super Admin) usando `SUPABASE_SERVICE_ROLE_KEY`.
+- Confirma que el devocional este en estado `en_revision`.
+- Busca en `user_roles` a todos los usuarios no revocados con permiso
+  `reviewer` (o Super Admin) y les envia un correo con el titulo y un enlace
+  a `admin.html`.
+
+Si nadie tiene el rol Revisor asignado, no falla: responde `notified: 0` y
+el articulo simplemente espera en la cola hasta que alguien lo revise.

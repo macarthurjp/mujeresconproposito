@@ -81,7 +81,7 @@ const dashboardRecordForm = document.getElementById("dashboardRecordForm");
 const dashboardRecordSaveBtn = document.getElementById("dashboardRecordSaveBtn");
 let dashboardLoaded = false;
 let toastTimer = null;
-let dashboardAccess = { is_super_admin: false, permissions: ["read_only"], is_revoked: false };
+let dashboardAccess = { is_super_admin: false, permissions: ["read_only"], is_revoked: false, nombre: "" };
 
 function populateRecordSelect(id, values) {
   const select = document.getElementById(id);
@@ -154,19 +154,33 @@ function canDashboardManageRecords() {
   return dashboardAccess.is_super_admin;
 }
 
+function canDashboardEnterAdmin() {
+  return (
+    dashboardAccess.is_super_admin ||
+    dashboardAccess.permissions.includes("editor") ||
+    dashboardAccess.permissions.includes("reviewer")
+  );
+}
+
 function applyDashboardRole(access) {
   dashboardAccess = {
     is_super_admin: Boolean(access?.is_super_admin),
     permissions: Array.isArray(access?.permissions) ? access.permissions : ["read_only"],
-    is_revoked: Boolean(access?.is_revoked)
+    is_revoked: Boolean(access?.is_revoked),
+    nombre: String(access?.nombre || "").trim()
   };
   const canExport = canDashboardExport();
   [exportCsvBtn, exportPdfBtn, sidebarCsvBtn, sidebarExportBtn].forEach((element) => {
     if (element) element.hidden = !canExport;
   });
-  const canManage = canDashboardManageRecords();
+  const canEnterAdmin = canDashboardEnterAdmin();
   [adminPanelBtn, sidebarAdminBtn].forEach((element) => {
-    if (element) element.hidden = !canManage;
+    if (element) element.hidden = !canEnterAdmin;
+  });
+  const adminBtnLabel = dashboardAccess.is_super_admin ? "Admin" : "Devocionales";
+  ["adminPanelBtnLabel", "sidebarAdminBtnLabel"].forEach((id) => {
+    const label = document.getElementById(id);
+    if (label) label.textContent = adminBtnLabel;
   });
   if (dashboardRoleBadge) dashboardRoleBadge.textContent = composeDashboardRoleLabel(dashboardAccess);
   document.body.dataset.userRole = dashboardAccess.is_super_admin ? "super_admin" : dashboardAccess.permissions.join(",");
@@ -179,21 +193,22 @@ async function loadDashboardRole() {
   const user = identityResult?.data?.user;
   const { data, error } = await client
     .from("user_roles")
-    .select("is_super_admin,permissions,is_revoked")
+    .select("is_super_admin,permissions,is_revoked,nombre")
     .eq("user_id", user?.id || "")
     .maybeSingle();
   if (error) throw new Error("No se pudo verificar el rol de acceso.");
   const access = {
     is_super_admin: Boolean(data?.is_super_admin),
     permissions: Array.isArray(data?.permissions) ? data.permissions : ["read_only"],
-    is_revoked: Boolean(data?.is_revoked)
+    is_revoked: Boolean(data?.is_revoked),
+    nombre: String(data?.nombre || "").trim()
   };
   if (access.is_revoked) {
     await client.auth.signOut();
     throw new Error("El acceso de esta cuenta fue revocado.");
   }
   const metadata = user?.user_metadata || {};
-  const displayName = metadata.full_name || metadata.name || metadata.display_name || user?.email || "Usuario";
+  const displayName = access.nombre || metadata.full_name || metadata.name || metadata.display_name || user?.email || "Usuario";
   if (dashboardUserName) dashboardUserName.textContent = displayName;
   applyDashboardRole(access);
   return dashboardAccess;

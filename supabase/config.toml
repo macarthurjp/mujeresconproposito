@@ -37,3 +37,8 @@ entrypoint = "./functions/submit-contact/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/manage-users/index.ts"
+
+[functions.send-devotional-review-notification]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-devotional-review-notification/index.ts"

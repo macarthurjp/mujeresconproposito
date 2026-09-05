@@ -99,7 +99,7 @@ a { color:inherit; }
 .dev-empty-icon { width:68px; height:68px; margin-bottom:10px; display:grid; place-items:center; border-radius:50%; background:#f7e5de; }
 .dev-status strong { color:var(--ink); font:700 1.4rem "Playfair Display",serif; }
 .dev-article {
-  width:min(1040px,100%);
+  width:min(1040px, calc(100% - 40px));
   margin:70px auto 0;
   display:grid;
   grid-template-columns:1fr 340px;
