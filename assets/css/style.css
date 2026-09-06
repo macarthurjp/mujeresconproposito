@@ -730,6 +730,29 @@ section p {
     display: none !important;
 }
 
+#invitee-lightbox-share {
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--main-color);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+#invitee-lightbox-share:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(231, 168, 160, 0.4);
+}
+
 /* MODALS */
 .modal-overlay,
 .join-overlay {

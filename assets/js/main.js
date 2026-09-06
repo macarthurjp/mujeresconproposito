@@ -542,6 +542,8 @@ function isImageUrl(value) {
 	  let inviteesAutoplay = null;
 	  let inviteesMoved = false;
 	  let hasSupabaseInviteesResponse = false;
+	  let latestInvitees = [];
+	  let inviteeFromQueryParamOpened = false;
 
   function getInviteesVisibleCount() {
     if (window.innerWidth <= 768) return 1;
@@ -1089,11 +1091,14 @@ lightbox?.addEventListener("touchcancel", function () {
   const inviteeName = document.getElementById("invitee-lightbox-name");
   const inviteeTitle = document.getElementById("invitee-lightbox-title");
   const inviteeClose = document.getElementById("invitee-lightbox-close");
+  const inviteeShareBtn = document.getElementById("invitee-lightbox-share");
+  let currentInvitee = { name: "", title: "", id: "" };
 
-  window.openInviteeLightbox = function (img, name, title) {
+  window.openInviteeLightbox = function (img, name, title, id) {
     if (inviteeImg) inviteeImg.src = img;
     if (inviteeName) inviteeName.textContent = name;
     if (inviteeTitle) inviteeTitle.textContent = title;
+    currentInvitee = { name, title, id: id || "" };
     inviteeLightbox?.classList.add("open");
   };
 
@@ -1106,6 +1111,41 @@ lightbox?.addEventListener("touchcancel", function () {
       inviteeLightbox.classList.remove("open");
     }
   });
+
+  inviteeShareBtn?.addEventListener("click", async function () {
+    const siteUrl = window.location.origin || "https://mcp930.org";
+    const url = currentInvitee.id
+      ? `${siteUrl}/i/${encodeURIComponent(currentInvitee.id)}.html`
+      : `${siteUrl}/index.html#invitees`;
+    const text = currentInvitee.title ? `${currentInvitee.name} — ${currentInvitee.title}` : currentInvitee.name;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: currentInvitee.name || "Mujeres con Propósito", text, url });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        window.alert("Enlace copiado al portapapeles.");
+      }
+    } catch (error) {
+      if (error?.name !== "AbortError") console.error(error);
+    }
+  });
+
+  function openInviteeFromQueryParam() {
+    if (inviteeFromQueryParamOpened) return;
+    const id = new URLSearchParams(window.location.search).get("invitada");
+    if (!id || !latestInvitees.length) return;
+    const match = latestInvitees.find((item) => String(item.id) === String(id));
+    if (!match) {
+      if (hasSupabaseInviteesResponse) {
+        inviteeFromQueryParamOpened = true;
+        window.alert("No encontramos esa destacada. Puede que ya no esté activa.");
+      }
+      return;
+    }
+    inviteeFromQueryParamOpened = true;
+    window.openInviteeLightbox(match.fotoUrl, match.nombre, match.titulo, match.id);
+    document.getElementById("invitees")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   /* -----------------------------------------
      YOUTUBE LIGHTBOX
@@ -2047,6 +2087,7 @@ function renderGaleria(galeria) {
       ? invitees.map((item, index) => {
           const activaRaw = normalizeGalleryText(getField(item, ["activa", "Activa", "active", "Active"], "Sí"));
           return {
+            id: getField(item, ["id", "Id", "ID"], ""),
             fotoUrl: getField(item, ["fotoUrl", "fotoURL", "FotoURL", "fotourl", "FotoUrl", "foto_url", "Foto URL", "FotoURL", "foto", "Foto", "imagen", "image", "photo", "photoUrl", "photoURL", "url"]),
             nombre: getField(item, ["nombre", "Nombre", "name", "Name"], "Invitada"),
             titulo: getField(item, ["titulo", "Titulo", "título", "Título", "title", "Title"], ""),
@@ -2074,8 +2115,11 @@ function renderGaleria(galeria) {
 	      return;
 	    }
 
+    latestInvitees = normalizedInvitees;
+
     grid.innerHTML = normalizedInvitees.map(item => `
   <div class="card"
+       data-id="${escapeHtml(item.id)}"
        data-foto="${escapeHtml(item.fotoUrl)}"
        data-nombre="${escapeHtml(item.nombre)}"
        data-titulo="${escapeHtml(item.titulo)}">
@@ -2108,7 +2152,8 @@ function renderGaleria(galeria) {
         openInviteeLightbox(
           card.dataset.foto || "",
           card.dataset.nombre || "",
-          card.dataset.titulo || ""
+          card.dataset.titulo || "",
+          card.dataset.id || ""
         );
       });
     });
@@ -2121,6 +2166,7 @@ function renderGaleria(galeria) {
 
     refresh();
     bindInviteesCarousel();
+    openInviteeFromQueryParam();
   }
 
   /* -----------------------------------------
@@ -2159,7 +2205,7 @@ function renderGaleria(galeria) {
         const [inviteesRequest, galleryRequest, eventsRequest, youtubeRequest, birthdaysRequest] = await Promise.allSettled([
 		          supabaseBrowserClient
 		            .from("destacadas")
-	            .select("fotoUrl:foto_url,nombre,titulo,orden,activa")
+	            .select("id,fotoUrl:foto_url,nombre,titulo,orden,activa")
 	            .eq("activa", true)
 	            .order("orden", { ascending: true }),
           supabaseBrowserClient
