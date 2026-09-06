@@ -443,11 +443,20 @@
     if (!coverCropBox || !stageW || !stageH || !coverNaturalSize.w) return null;
     const scaleX = coverNaturalSize.w / stageW;
     const scaleY = coverNaturalSize.h / stageH;
+    // Round the edges (not width/height independently) and clamp to the
+    // image's natural bounds, so x+w and y+h never exceed it — otherwise
+    // drawImage() under-fills the canvas and JPEG export bakes in a black
+    // line where the transparent leftover pixels get flattened.
+    const clamp = (value, max) => Math.max(0, Math.min(max, value));
+    const x1 = clamp(Math.round(coverCropBox.x * scaleX), coverNaturalSize.w);
+    const y1 = clamp(Math.round(coverCropBox.y * scaleY), coverNaturalSize.h);
+    const x2 = clamp(Math.round((coverCropBox.x + coverCropBox.w) * scaleX), coverNaturalSize.w);
+    const y2 = clamp(Math.round((coverCropBox.y + coverCropBox.h) * scaleY), coverNaturalSize.h);
     return {
-      x: Math.round(coverCropBox.x * scaleX),
-      y: Math.round(coverCropBox.y * scaleY),
-      w: Math.round(coverCropBox.w * scaleX),
-      h: Math.round(coverCropBox.h * scaleY)
+      x: x1,
+      y: y1,
+      w: Math.max(1, x2 - x1),
+      h: Math.max(1, y2 - y1)
     };
   }
 
