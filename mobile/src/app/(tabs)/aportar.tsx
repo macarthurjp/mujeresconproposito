@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Card, ErrorNote, Eyebrow, Loading, Screen, styles as ui, Title, useAsync } from '@/components/ui';
-import { C, serif } from '@/constants/theme';
+import { C, serif, sans } from '@/constants/theme';
 import { api, type CuentaAporte } from '@/lib/api';
 
 // Shown if the cuentas_aporte table is empty or unreachable: same PayPal the website uses.
@@ -93,11 +93,11 @@ export default function Aportar() {
 
 const s = StyleSheet.create({
   verse: { fontFamily: serif, fontStyle: 'italic', color: C.wine, fontSize: 17, lineHeight: 25, marginVertical: 20 },
-  method: { fontFamily: serif, fontSize: 24, color: C.ink },
-  qrWrap: { alignItems: 'center', backgroundColor: C.ivory, borderRadius: 16, padding: 16, gap: 10 },
+  method: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 21, color: C.ink },
+  qrWrap: { alignItems: 'center', backgroundColor: C.bg, borderRadius: 16, padding: 16, gap: 10 },
   qr: { width: 200, height: 200 },
   qrCaption: { color: C.muted, fontSize: 13, textAlign: 'center' },
-  copyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, backgroundColor: C.ivory },
+  copyRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, backgroundColor: C.bg },
   copyLabel: { color: C.muted, fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase' },
   copyValue: { color: C.ink, fontSize: 15, fontWeight: '600', marginTop: 2 },
   copyBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: C.blush },

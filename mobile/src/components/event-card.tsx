@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
-import { C, serif } from '@/constants/theme';
+import { C, sans } from '@/constants/theme';
 import type { Evento } from '@/lib/api';
 import { isValidTimeZone, nextOccurrence, parseSchedule } from '@/lib/schedule';
 
@@ -73,7 +73,7 @@ export function EventCard({ evento, now }: { evento: Evento; now: Date }) {
 const s = StyleSheet.create({
   row: { flexDirection: 'row', gap: 14, alignItems: 'flex-start' },
   icon: { width: 48, height: 48, borderRadius: 14, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
-  title: { fontFamily: serif, fontSize: 21, color: C.ink, marginBottom: 4 },
+  title: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 19, color: C.ink, marginBottom: 4 },
   meta: { color: C.muted, fontSize: 14 },
   next: { color: C.wine, fontSize: 13, marginTop: 6, fontWeight: '600' },
   livePill: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: '#fde8e8', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 8 },

@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -13,7 +15,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { C, radius, serif } from '@/constants/theme';
+import { C, radius, sans, serif, TAB_BAR_SPACE } from '@/constants/theme';
+
+export function tapFeedback() {
+  if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
+}
 
 export function useAsync<T>(load: () => Promise<T>) {
   const [data, setData] = useState<T | null>(null);
@@ -74,8 +80,8 @@ export function Screen({
   const insets = useSafeAreaInsets();
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: dark ? C.ink : C.ivory }}
-      contentContainerStyle={{ paddingTop: insets.top + 12, paddingBottom: 48 }}
+      style={{ flex: 1, backgroundColor: dark ? C.ink : C.bg }}
+      contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + TAB_BAR_SPACE }}
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.wine} /> : undefined}>
       {children}
     </ScrollView>
@@ -86,15 +92,21 @@ export function Eyebrow({ children, light }: { children: ReactNode; light?: bool
   return <Text style={[styles.eyebrow, light && { color: C.gold2 }]}>{children}</Text>;
 }
 
-export function Title({ children, light, size = 34 }: { children: ReactNode; light?: boolean; size?: number }) {
-  return <Text style={[styles.title, { fontSize: size, lineHeight: size * 1.1 }, light && { color: '#fff' }]}>{children}</Text>;
+export function Title({ children, light, size = 34, editorial = false }: { children: ReactNode; light?: boolean; size?: number; editorial?: boolean }) {
+  return (
+    <Text
+      accessibilityRole="header"
+      style={[editorial ? styles.titleEditorial : styles.title, { fontSize: size, lineHeight: size * 1.12 }, light && { color: '#fff' }]}>
+      {children}
+    </Text>
+  );
 }
 
 export function Section({ eyebrow, title, children, style }: { eyebrow?: string; title?: string; children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return (
-    <View style={[{ paddingHorizontal: 20, marginTop: 36 }, style]}>
+    <View style={[{ paddingHorizontal: 20, marginTop: 40 }, style]}>
       {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
-      {title ? <Title size={28}>{title}</Title> : null}
+      {title ? <Title size={24}>{title}</Title> : null}
       <View style={{ marginTop: title ? 16 : 0 }}>{children}</View>
     </View>
   );
@@ -117,19 +129,20 @@ export function Button({
   variant?: 'primary' | 'gold' | 'ghost' | 'light';
   style?: StyleProp<ViewStyle>;
 }) {
+  // Apple-style button roles: filled, tinted (ghost) and plain-on-dark.
   const palette = {
     primary: { bg: C.wine, fg: '#fff', border: C.wine },
     gold: { bg: C.gold, fg: C.ink, border: C.gold },
-    ghost: { bg: 'transparent', fg: C.ink, border: 'rgba(28,17,23,0.18)' },
-    light: { bg: 'transparent', fg: '#fff', border: 'rgba(255,255,255,0.3)' },
+    ghost: { bg: C.fill, fg: C.wine, border: 'transparent' },
+    light: { bg: 'rgba(255,255,255,0.18)', fg: '#fff', border: 'transparent' },
   }[variant];
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={() => { tapFeedback(); onPress(); }}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: palette.bg, borderColor: palette.border, opacity: pressed ? 0.85 : 1 },
+        { backgroundColor: palette.bg, borderColor: palette.border, opacity: pressed ? 0.88 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] },
         style,
       ]}>
       {icon ? <Ionicons name={icon} size={18} color={palette.fg} /> : null}
@@ -154,31 +167,31 @@ export function ErrorNote({ message, onRetry }: { message: string; onRetry: () =
 export const styles = StyleSheet.create({
   eyebrow: {
     color: C.wine,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 2.4,
+    fontFamily: sans,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  title: { fontFamily: serif, color: C.ink, fontWeight: '500', letterSpacing: -0.5 },
+  title: { fontFamily: sans, color: C.ink, fontWeight: '700', letterSpacing: -0.6 },
+  titleEditorial: { fontFamily: serif, color: C.ink, fontWeight: '500', letterSpacing: -0.5 },
   card: {
-    backgroundColor: C.paper,
+    backgroundColor: C.card,
     borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(28,17,23,0.14)',
     padding: 18,
-    boxShadow: '0 4px 14px rgba(28,17,23,0.06)',
+    boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)',
   },
   button: {
     minHeight: 50,
     paddingHorizontal: 22,
-    borderRadius: 999,
+    borderRadius: 14,
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
-  buttonText: { fontSize: 15, fontWeight: '700' },
-  body: { color: C.muted, fontSize: 15, lineHeight: 23 },
+  buttonText: { fontFamily: sans, fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
+  body: { fontFamily: sans, color: C.muted, fontSize: 16, lineHeight: 23, letterSpacing: -0.2 },
 });

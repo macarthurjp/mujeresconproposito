@@ -4,7 +4,7 @@ import { Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, Scrol
 
 import { HumanCheck } from '@/components/human-check';
 import { Button, Card, Screen, Eyebrow, Title, styles as ui } from '@/components/ui';
-import { C, serif, SITE_URL } from '@/constants/theme';
+import { C, SITE_URL, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
 import { formOptions } from '@/lib/form-options';
 
@@ -160,7 +160,7 @@ const s = StyleSheet.create({
   promiseText: { color: C.muted, fontSize: 12, lineHeight: 18, flex: 1 },
   card: { gap: 14, padding: 18 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
-  number: { fontFamily: serif, fontSize: 27, color: C.wine },
+  number: { fontFamily: sans, fontWeight: '700', fontSize: 24, color: C.wine },
   sectionTitle: { fontSize: 17, color: C.ink, fontWeight: '700' },
   sectionHint: { fontSize: 12, color: C.muted, marginTop: 2 },
   field: { gap: 7 },
@@ -172,7 +172,7 @@ const s = StyleSheet.create({
   sheetBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(25,14,16,0.46)' },
   sheet: { height: '82%', backgroundColor: C.ivory, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 20, paddingHorizontal: 20, paddingBottom: 12 },
   sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  sheetTitle: { color: C.ink, fontFamily: serif, fontWeight: '700', fontSize: 22, flex: 1 },
+  sheetTitle: { color: C.ink, fontFamily: sans, fontWeight: '700', letterSpacing: -0.4, fontSize: 20, flex: 1 },
   close: { width: 38, height: 38, borderRadius: 19, backgroundColor: C.sand, alignItems: 'center', justifyContent: 'center' },
   search: { height: 48, borderRadius: 13, borderWidth: 1, borderColor: 'rgba(28,17,23,0.13)', backgroundColor: '#fff', paddingHorizontal: 14, color: C.ink, fontSize: 15, marginBottom: 10 },
   optionList: { flex: 1 },

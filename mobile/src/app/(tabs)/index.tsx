@@ -6,7 +6,7 @@ import { Linking, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimens
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, Card, Eyebrow, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
-import { C, serif, SOUNDCLOUD_URL } from '@/constants/theme';
+import { C, TAB_BAR_SPACE, serif, SOUNDCLOUD_URL, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
 
 const galleryRegions = [
@@ -15,9 +15,11 @@ const galleryRegions = [
   { key: 'eu', label: 'Europa', match: /europa|europe|luxem|belg|españa|francia/i },
 ];
 
+// Accepts "MM-DD" (public API, no year) or a full "YYYY-MM-DD".
 function birthdayDateLabel(value: string) {
+  const iso = /^\d{2}-\d{2}$/.test(value) ? `2000-${value}` : value;
   return new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' })
-    .format(new Date(`${value}T12:00:00Z`))
+    .format(new Date(`${iso}T12:00:00Z`))
     .replace('.', '')
     .toUpperCase();
 }
@@ -38,7 +40,7 @@ export default function Home() {
   }, [galeria.data, selectedGalleryRegion]);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.ivory }} contentContainerStyle={{ paddingBottom: 48 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_SPACE }}>
       {/* Hero */}
       <View style={[s.hero, { paddingTop: insets.top + 20 }]}>
         <View style={s.brandRow}>
@@ -51,7 +53,7 @@ export default function Home() {
           </View>
         </View>
         <Eyebrow>Comunidad cristiana internacional</Eyebrow>
-        <Title size={42}>
+        <Title size={42} editorial>
           Bienvenida a <Text style={{ fontStyle: 'italic', color: C.wine }}>Mujeres</Text> con Propósito
         </Title>
         <Text style={s.heroCopy}>
@@ -206,7 +208,7 @@ export default function Home() {
             </View>
           </Card>
         ) : !birthdays.error ? <View style={s.birthdayQuiet}><Ionicons name="heart-outline" size={19} color={C.wine} /><Text style={s.birthdayQuietText}>Hoy no tenemos cumpleaños registrados.</Text></View> : null}
-        <Text style={s.upcomingBirthdayHeading}>Próximos 30 días</Text>
+        <Text style={s.upcomingBirthdayHeading}>Esta semana</Text>
         {birthdays.data?.proximosCumpleanos?.length ? (
           <View style={s.upcomingBirthdayList}>{birthdays.data.proximosCumpleanos.map((person, index) => (
             <View key={`${person.nombreCompleto}-${person.fecha}-${index}`} style={s.upcomingBirthdayRow}>
@@ -249,7 +251,7 @@ const s = StyleSheet.create({
   portraitShell: { borderRadius: 32, padding: 5, backgroundColor: '#fff8f7', borderWidth: 1, borderColor: 'rgba(166,75,67,0.34)' },
   portraitFrame: { width: '100%', aspectRatio: 3 / 4, borderRadius: 18, overflow: 'hidden', backgroundColor: C.ivory, borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' },
   portraitWarmGlow: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(246,205,166,0.16)' },
-  portraitName: { fontFamily: serif, fontSize: 19, lineHeight: 24, color: C.ink, fontWeight: '700', marginTop: 12, flexWrap: 'wrap' },
+  portraitName: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 18, lineHeight: 23, color: C.ink, marginTop: 12, flexWrap: 'wrap' },
   portraitRole: { color: C.wine, fontSize: 11, lineHeight: 16, marginTop: 3, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700', flexWrap: 'wrap' },
   timeline: { gap: 16 },
   timelineItem: { flexDirection: 'row', alignItems: 'center', gap: 12 },
@@ -262,8 +264,8 @@ const s = StyleSheet.create({
   ministryCardPressed: { backgroundColor: '#fffaf5', borderColor: 'rgba(166,75,67,0.45)', transform: [{ scale: 0.985 }] },
   ministryCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   ministryIcon: { width: 46, height: 46, borderRadius: 16, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
-  ministryIndex: { color: 'rgba(166,75,67,0.35)', fontFamily: serif, fontWeight: '700', fontSize: 25 },
-  ministryTitle: { color: C.ink, fontFamily: serif, fontSize: 22, fontWeight: '700' },
+  ministryIndex: { color: 'rgba(166,75,67,0.35)', fontFamily: sans, fontWeight: '700', fontSize: 22 },
+  ministryTitle: { color: C.ink, fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 19 },
   ministryText: { color: C.muted, fontSize: 14, lineHeight: 21, marginTop: 5 },
   ministryAction: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 13 },
   ministryActionText: { color: C.wine, fontSize: 13, fontWeight: '700' },
@@ -283,7 +285,7 @@ const s = StyleSheet.create({
   appFeatureText: { flex: 1, color: C.text, fontSize: 13, lineHeight: 19 },
   donateVerse: { color: C.wine, fontFamily: serif, fontStyle: 'italic', fontSize: 17, lineHeight: 24, marginTop: 16 },
   galleryRegion: { paddingHorizontal: 20, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  galleryRegionTitle: { color: C.ink, fontFamily: serif, fontWeight: '700', fontSize: 18 },
+  galleryRegionTitle: { color: C.ink, fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 17 },
   regionPills: { paddingHorizontal: 20, paddingBottom: 14, gap: 8 },
   regionPill: { minHeight: 34, paddingHorizontal: 13, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(166,75,67,0.2)', backgroundColor: C.sand, justifyContent: 'center' },
   regionPillActive: { backgroundColor: C.wine, borderColor: C.wine },
@@ -294,16 +296,16 @@ const s = StyleSheet.create({
   galleryGlow: { ...StyleSheet.absoluteFill, top: '48%', backgroundColor: 'rgba(31,19,17,0.42)' },
   galleryCaption: { position: 'absolute', left: 16, right: 16, bottom: 16 },
   galleryCaptionEyebrow: { color: '#ffe3c5', fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 5 },
-  galleryCaptionText: { color: '#fff', fontFamily: serif, fontSize: 20, lineHeight: 25, fontWeight: '700' },
+  galleryCaptionText: { color: '#fff', fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 18, lineHeight: 23 },
   galleryOpen: { position: 'absolute', right: 12, top: 12, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(28,17,23,0.46)', alignItems: 'center', justifyContent: 'center' },
   audioCard: { marginTop: 36, marginHorizontal: 20, borderRadius: 20, padding: 18, backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line, flexDirection: 'row', gap: 12, alignItems: 'center' },
   audioIcon: { width: 42, height: 42, borderRadius: 14, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
-  audioTitle: { fontFamily: serif, fontWeight: '700', color: C.ink, fontSize: 19 },
+  audioTitle: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, color: C.ink, fontSize: 18 },
   audioCopy: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 3 },
   birthdayToday: { flexDirection: 'row', alignItems: 'flex-start', gap: 13, backgroundColor: '#fff0ef', borderColor: 'rgba(166,75,67,0.2)' },
   birthdayIcon: { width: 46, height: 46, borderRadius: 16, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   birthdayTodayEyebrow: { color: C.wine, fontSize: 10, letterSpacing: 1.3, fontWeight: '800', textTransform: 'uppercase', marginBottom: 3 },
-  birthdayTodayName: { color: C.ink, fontFamily: serif, fontSize: 20, lineHeight: 25, fontWeight: '700' },
+  birthdayTodayName: { color: C.ink, fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 19, lineHeight: 24 },
   birthdayTodayCopy: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 6 },
   birthdayQuiet: { borderRadius: 15, backgroundColor: C.sand, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 10 },
   birthdayQuietText: { color: C.muted, fontSize: 13, flex: 1 },

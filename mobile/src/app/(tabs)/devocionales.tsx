@@ -3,7 +3,7 @@ import { Link } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ErrorNote, Eyebrow, Loading, Screen, styles as ui, Title, useAsync } from '@/components/ui';
-import { C, serif } from '@/constants/theme';
+import { C, sans } from '@/constants/theme';
 import { api, formatDate } from '@/lib/api';
 
 export default function Devocionales() {
@@ -37,7 +37,7 @@ export default function Devocionales() {
 }
 
 const s = StyleSheet.create({
-  card: { backgroundColor: C.paper, borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(28,17,23,0.14)' },
+  card: { backgroundColor: C.card, borderRadius: 20, overflow: 'hidden', boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)' },
   img: { width: '100%', aspectRatio: 16 / 9, backgroundColor: C.sand },
-  title: { fontFamily: serif, fontSize: 23, lineHeight: 28, color: C.ink, marginBottom: 8 },
+  title: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 21, lineHeight: 26, color: C.ink, marginBottom: 8 },
 });

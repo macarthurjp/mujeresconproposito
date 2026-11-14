@@ -40,14 +40,17 @@ Deno.serve(async (req) => {
         nombreCompleto: nombreCompleto(member),
       }));
 
-    const proximosCumpleanos = Array.from({ length: 30 }, (_, index) => index + 1)
+    // Public endpoint: upcoming birthdays expose only the first name and the
+    // day (no surname, no year) for the next 7 days. The full list goes to
+    // the birthday-calendar team by email (send-birthday-reminders).
+    const nombrePila = (member: Member) => String(member.nombre || "").trim().split(/\s+/)[0] || "Integrante";
+    const proximosCumpleanos = Array.from({ length: 7 }, (_, index) => index + 1)
       .flatMap((days) => {
         const fecha = addDaysISO(todayISO, days);
         return members
           .filter((member) => member.fecha_nacimiento && birthdayMatches(member.fecha_nacimiento, fecha))
-          .map((member) => ({ nombreCompleto: nombreCompleto(member), fecha, dias: days }));
-      })
-      .slice(0, 8);
+          .map((member) => ({ nombreCompleto: nombrePila(member), fecha: fecha.slice(5), dias: days }));
+      });
 
     return jsonResponse({ ok: true, cumpleanerasHoy, proximosCumpleanos });
   } catch (error) {

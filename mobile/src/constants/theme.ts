@@ -15,12 +15,22 @@ export const C = {
   text: '#3f2623',
   muted: '#6d5250',
   line: 'rgba(28,17,23,0.09)',
+  // iOS-style grouped surfaces, warmed to the brand
+  bg: '#faf5f4',
+  card: '#ffffff',
+  fill: 'rgba(166,75,67,0.08)',
+  separator: 'rgba(60,40,38,0.12)',
   live: '#d64545',
 };
 
 export const serif = Platform.select({ ios: 'Georgia', android: 'serif', default: 'Georgia, serif' });
+// System font (SF Pro on iOS, Roboto on Android) for UI and screen titles, like native apps.
+export const sans = Platform.select({ ios: 'System', android: 'sans-serif', default: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' });
 
-export const radius = { sm: 12, md: 18, lg: 26 };
+export const radius = { sm: 12, md: 20, lg: 28 };
+
+// Room left at the bottom of scroll views for the floating translucent tab bar.
+export const TAB_BAR_SPACE = 96;
 export const space = (n: number) => n * 4;
 
 export const SITE_URL = 'https://mcp930.org';

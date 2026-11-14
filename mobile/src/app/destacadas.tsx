@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ErrorNote, Loading, Screen, Title, Eyebrow, useAsync } from '@/components/ui';
-import { C, serif } from '@/constants/theme';
+import { C, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
 
 export default function Destacadas() {
@@ -62,12 +62,12 @@ const s = StyleSheet.create({
   imageFrame: { width: '100%', aspectRatio: 3 / 4, borderRadius: 18, overflow: 'hidden', backgroundColor: C.ivory, borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' },
   imageWarmGlow: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(246,205,166,0.16)' },
   role: { color: C.wine, fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 5 },
-  name: { color: C.ink, fontFamily: serif, fontWeight: '700', fontSize: 20, lineHeight: 25, marginTop: 12 },
+  name: { color: C.ink, fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 19, lineHeight: 25, marginTop: 12 },
   expand: { position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(28,17,23,0.58)', alignItems: 'center', justifyContent: 'center' },
   modal: { flex: 1, backgroundColor: 'rgba(25,14,16,0.94)', justifyContent: 'center', padding: 20 },
   modalContent: { alignItems: 'center' },
   modalImage: { width: '100%', height: '72%' },
-  modalName: { color: '#fff', fontFamily: serif, fontWeight: '700', fontSize: 25, textAlign: 'center', marginTop: 18 },
+  modalName: { color: '#fff', fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 24, textAlign: 'center', marginTop: 18 },
   modalRole: { color: '#f0c5aa', fontSize: 13, marginTop: 6, textAlign: 'center' },
   close: { position: 'absolute', top: 0, right: 0, width: 40, height: 40, borderRadius: 20, backgroundColor: C.ivory, alignItems: 'center', justifyContent: 'center' },
 });

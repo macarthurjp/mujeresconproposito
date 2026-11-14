@@ -101,7 +101,7 @@ export default function Mas() {
 }
 
 const s = StyleSheet.create({
-  group: { backgroundColor: C.paper, borderRadius: 18, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(28,17,23,0.14)' },
+  group: { backgroundColor: C.card, borderRadius: 20, overflow: 'hidden', boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, paddingVertical: 14 },
   icon: { width: 36, height: 36, borderRadius: 10, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
   label: { color: C.ink, fontSize: 16, fontWeight: '600' },
