@@ -7,13 +7,8 @@ import { PhotoTile } from '@/components/media';
 import { ErrorNote, Loading, Screen, Title, Eyebrow, useAsync } from '@/components/ui';
 import { C } from '@/constants/theme';
 import { api } from '@/lib/api';
+import { GALLERY_REGIONS as REGIONS, galleryRegionKey } from '@/lib/gallery';
 
-// Same three regions as the website gallery tabs.
-const REGIONS = [
-  { key: 'usa', label: 'Estados Unidos', match: /estados|usa|eeuu|united/i },
-  { key: 'rd', label: 'Rep. Dominicana', match: /dominicana|\brd\b/i },
-  { key: 'eu', label: 'Europa', match: /europa|europe|luxem|belg|españa|francia/i },
-];
 
 export default function Galeria() {
   const { data, error, loading, reload } = useAsync(api.galeria);
@@ -24,7 +19,7 @@ export default function Galeria() {
 
   const fotos = useMemo(() => {
     const r = REGIONS.find((x) => x.key === region)!;
-    return (data ?? []).filter((f) => r.match.test(f.categoria));
+    return (data ?? []).filter((f) => galleryRegionKey(f.categoria) === r.key);
   }, [data, region]);
   const selectedPhoto = fotos.find((photo) => photo.id === selectedId) ?? null;
   // Two-column masonry: each photo goes to the shorter column, so no gaps.
@@ -49,7 +44,7 @@ export default function Galeria() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
           {REGIONS.map((r) => (
             <Pressable key={r.key} onPress={() => setRegion(r.key)} style={[s.tab, region === r.key && s.tabActive]}>
-                            <Text style={[s.tabText, region === r.key && { color: '#fff' }]}>{r.label}</Text>
+                            <Text style={[s.tabText, region === r.key && { color: '#fff' }]}>{r.short}</Text>
             </Pressable>
           ))}
         </ScrollView>

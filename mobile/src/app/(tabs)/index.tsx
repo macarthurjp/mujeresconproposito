@@ -12,12 +12,7 @@ import { PhotoTile, PosterCard } from '@/components/media';
 import { Button, Card, Eyebrow, tapFeedback, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
 import { C, TAB_BAR_SPACE, serif, SOUNDCLOUD_URL, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
-
-const galleryRegions = [
-  { key: 'usa', label: 'Estados Unidos', match: /estados|usa|eeuu|united/i },
-  { key: 'rd', label: 'República Dominicana', match: /dominicana|\brd\b/i },
-  { key: 'eu', label: 'Europa', match: /europa|europe|luxem|belg|españa|francia/i },
-];
+import { GALLERY_REGIONS as galleryRegions, galleryRegionKey } from '@/lib/gallery';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -32,7 +27,7 @@ export default function Home() {
   const galleryCardWidth = Math.min(screenWidth - 96, 300);
   const galleryImages = useMemo(() => {
     const region = galleryRegions.find((item) => item.key === selectedGalleryRegion)!;
-    return (galeria.data ?? []).filter((photo) => region.match.test(photo.categoria)).slice(0, 8);
+    return (galeria.data ?? []).filter((photo) => galleryRegionKey(photo.categoria) === region.key).slice(0, 8);
   }, [galeria.data, selectedGalleryRegion]);
 
   return (
