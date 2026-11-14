@@ -66,7 +66,8 @@ export default function Mas() {
         <Group
           title="Participa"
           items={[
-            { icon: 'person-add-outline', label: 'Únete a la comunidad', hint: 'Formulario de inscripción', onPress: open(`${SITE_URL}/#join`) },
+            { icon: 'person-add-outline', label: 'Únete a la comunidad', hint: 'Formulario de inscripción en la app', onPress: go('/(tabs)/unirse') },
+            { icon: 'heart-outline', label: 'Aportar', hint: 'Código QR, cuentas y PayPal', onPress: go('/aportar') },
             { icon: 'mail-outline', label: 'Contacto', hint: CONTACT_EMAIL, onPress: open(`mailto:${CONTACT_EMAIL}`) },
             { icon: 'chatbubbles-outline', label: 'Escríbenos desde la web', onPress: open(`${SITE_URL}/#contact`) },
           ]}

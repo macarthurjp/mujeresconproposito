@@ -25,6 +25,29 @@ async function rpc(name: string, body: Record<string, unknown>) {
   if (!response.ok) throw new Error(`Error ${response.status}: ${await response.text()}`);
 }
 
+async function submitJoin(payload: Record<string, unknown>) {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/submit-join`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json().catch(() => ({})) as { error?: string; notificationsSent?: boolean };
+  if (!response.ok) throw new Error(result.error || `Error ${response.status} al enviar la solicitud`);
+  return result;
+}
+
+export type Birthday = { nombreCompleto: string; fecha?: string; dias?: number };
+
+async function birthdays() {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/get-today-birthdays`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({}),
+  });
+  if (!response.ok) throw new Error(`Error ${response.status} al cargar los cumpleaños`);
+  return response.json() as Promise<{ cumpleanerasHoy: Birthday[]; proximosCumpleanos: Birthday[] }>;
+}
+
 export type Evento = {
   id: string;
   icono: string | null;
@@ -80,6 +103,8 @@ export const api = {
   registerPushToken: (token: string, plataforma: 'ios' | 'android', zona: string) =>
     rpc('register_push_token', { p_token: token, p_plataforma: plataforma, p_zona_horaria: zona }),
   unregisterPushToken: (token: string) => rpc('unregister_push_token', { p_token: token }),
+  submitJoin,
+  birthdays,
 };
 
 /** Turns stored rich-text HTML into plain paragraphs for native rendering. */

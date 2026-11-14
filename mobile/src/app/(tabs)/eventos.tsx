@@ -23,7 +23,11 @@ export default function Eventos() {
     () =>
       (data ?? [])
         .map((e) => ({ e, ...eventStatus(e, now) }))
-        .sort((a, b) => Number(b.live) - Number(a.live) || (a.next?.getTime() ?? Infinity) - (b.next?.getTime() ?? Infinity)),
+        .sort((a, b) =>
+          Number(b.live) - Number(a.live) ||
+          (a.next?.getTime() ?? Infinity) - (b.next?.getTime() ?? Infinity) ||
+          a.e.orden - b.e.orden,
+        ),
     [data, now],
   );
 

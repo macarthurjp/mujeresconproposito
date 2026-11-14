@@ -54,8 +54,8 @@ export default function RootLayout() {
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="devocional/[slug]" options={{ title: 'Devocional' }} />
-        <Stack.Screen name="galeria" options={{ title: 'Galería' }} />
-        <Stack.Screen name="destacadas" options={{ title: 'Destacadas' }} />
+        <Stack.Screen name="galeria" options={{ title: '', headerShadowVisible: false }} />
+        <Stack.Screen name="destacadas" options={{ title: '', headerShadowVisible: false }} />
       </Stack>
     </>
   );

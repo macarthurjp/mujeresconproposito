@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Verificación · Mujeres con Propósito</title>
+  <!--
+    Used only by the mobile app: it opens this page in a WebView so Cloudflare
+    Turnstile runs on mcp930.org (the hostname submit-join accepts) and posts
+    the resulting token back to the app.
+  -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=mcpReady&render=explicit" async defer></script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #fff7f6; font-family: -apple-system, system-ui, sans-serif; color: #3f2623; }
+    main { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 20px; box-sizing: border-box; text-align: center; }
+    p { margin: 0; font-size: 15px; color: #6d5250; }
+  </style>
+</head>
+<body>
+  <main>
+    <p>Verificando que eres una persona…</p>
+    <div id="widget"></div>
+  </main>
+  <script>
+    function send(message) {
+      if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(message));
+    }
+    function mcpReady() {
+      var action = new URLSearchParams(location.search).get("action") === "contact" ? "contact" : "join";
+      window.turnstile.render("#widget", {
+        sitekey: "0x4AAAAAAEh_oJLzQvnRIJsH",
+        action: action,
+        callback: function (token) { send({ type: "turnstile", token: token }); },
+        "error-callback": function () { send({ type: "turnstile-error" }); },
+        "expired-callback": function () { send({ type: "turnstile-expired" }); }
+      });
+    }
+  </script>
+</body>
+</html>

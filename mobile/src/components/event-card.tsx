@@ -25,6 +25,7 @@ function formatNext(date: Date) {
     weekday: 'long',
     hour: 'numeric',
     minute: '2-digit',
+    timeZoneName: 'short',
   }).format(date);
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
