@@ -66,12 +66,6 @@ export default function Home() {
         </View>
       </View>
 
-      {/* Agenda: the next activities in the viewer's local time */}
-      <Section eyebrow="Agenda" title="Próximas actividades">
-        {eventos.error ? <ErrorNote message={eventos.error} onRetry={eventos.reload} /> : null}
-        {eventos.data ? <Agenda eventos={eventos.data} /> : null}
-      </Section>
-
       {/* Destacadas — first content section, matching the website */}
       {destacadas.data?.length ? (
         <Section eyebrow="Voces que inspiran" title="Destacadas">
@@ -149,6 +143,12 @@ export default function Home() {
         <View style={s.joinHighlight}><Text style={s.joinHighlightTitle}>+ Red de apoyo</Text><Text style={s.joinHighlightText}>Un espacio seguro para crecer juntas.</Text></View>
         <Button label="Quiero unirme" icon="arrow-forward" onPress={() => router.push('/(tabs)/unirse')} style={{ alignSelf: 'flex-start', marginTop: 12 }} />
       </View>
+
+      {/* Agenda: same place as Eventos on the website: after Únete, before YouTube; the next activities in the viewer's local time */}
+      <Section eyebrow="Agenda" title="Próximas actividades">
+        {eventos.error ? <ErrorNote message={eventos.error} onRetry={eventos.reload} /> : null}
+        {eventos.data ? <Agenda eventos={eventos.data} /> : null}
+      </Section>
 
       {/* YouTube */}
       {videos.data?.length ? (
