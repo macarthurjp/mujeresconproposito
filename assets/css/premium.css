@@ -1809,3 +1809,40 @@ body.theme-premium {
 
 /* Elements hidden via the hidden attribute always stay hidden */
 .theme-premium [hidden] { display: none !important; }
+
+/* ---------- Join form polish ---------- */
+/* Compact header so the form gets the space */
+.theme-premium #joinModal .join-modal-premium-head { padding: 26px 34px 24px !important; }
+.theme-premium #joinModal .join-modal-premium-head h3 { font-size: clamp(1.9rem, 3.2vw, 2.5rem) !important; line-height: 1.05 !important; }
+.theme-premium #joinModal .join-modal-premium-head p { margin-top: 8px !important; font-size: 0.95rem !important; line-height: 1.55 !important; }
+.theme-premium .join-modal-premium-badge { margin-bottom: 10px !important; }
+
+/* Every single-line field has the same height so rows line up */
+.theme-premium #joinForm :is(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select) {
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  line-height: 48px !important;
+  box-sizing: border-box !important;
+}
+.theme-premium #joinForm .iti { width: 100%; }
+
+/* Empty required selects/date read as placeholders, not as chosen values */
+.theme-premium #joinForm select:invalid,
+.theme-premium #joinForm input[type="date"]:invalid { color: rgba(109, 82, 80, 0.55) !important; }
+.theme-premium #joinForm select option { color: var(--p-ink); }
+.theme-premium #joinForm input[type="date"]:invalid::-webkit-datetime-edit { color: rgba(109, 82, 80, 0.55) !important; }
+
+@media (max-width: 600px) {
+  .theme-premium #joinModal .join-modal-premium-head { padding: 22px 20px 20px !important; }
+  .theme-premium #joinModal .join-modal-premium-head h3 { font-size: 1.8rem !important; padding-right: 44px; }
+}
+
+/* Labels and fields stay at the top of each cell even when a neighbour has helper text */
+.theme-premium #joinForm .join-field { align-content: start !important; }
+
+/* Floating buttons sit below open modals and lightboxes */
+.theme-premium .whatsapp-float,
+.theme-premium .back-to-top { z-index: 1900 !important; }

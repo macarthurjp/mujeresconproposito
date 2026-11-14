@@ -51,3 +51,13 @@
     });
   });
 })();
+
+// Birth date can't be in the future.
+(function () {
+  var birth = document.getElementById("fecha_nacimiento");
+  if (!birth) return;
+  var d = new Date();
+  var pad = function (n) { return String(n).padStart(2, "0"); };
+  birth.max = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  birth.min = "1920-01-01";
+})();
