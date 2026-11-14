@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
   <link rel="stylesheet" href="assets/css/admin.css?v=20260905-review-highlight-1" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261114-6" />
+  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261114-7" />
 </head>
 <body class="mcp-brand admin-locked" data-admin-page="true">
   <header class="admin-site-header">
@@ -65,21 +66,40 @@
       </div>
 
       <div class="admin-dashboard" id="adminDashboard" style="display:none;">
-        <div class="admin-dashboard-head">
-          <div class="admin-dashboard-flourish" aria-hidden="true">
-            <span>Juntas<br />creamos<br />más impacto</span>
-            <i class="fa-regular fa-heart"></i>
-          </div>
-          <div>
-            <span class="admin-dashboard-kicker">Contenido público</span>
-            <h3>Centro de gestión</h3>
-            <p class="admin-dashboard-subtitle">Administra y organiza todo el contenido de la comunidad desde un solo lugar.</p>
-          </div>
-          <div class="admin-dashboard-actions">
-            <button type="button" class="admin-logout-btn admin-share-btn" id="adminShareJoinLink"><i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir formulario</button>
-            <button type="button" class="admin-logout-btn" id="adminLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</button>
-          </div>
+        <aside class="admin-sidebar" id="adminSidebar" aria-label="Menú del administrador">
+          <a href="index.html" class="admin-sidebar-brand">
+            <span class="admin-sidebar-mark"><img src="assets/images/apple-touch-icon.png" alt="" /></span>
+            <span><strong>Mujeres con Propósito</strong><small>Administración</small></span>
+          </a>
+          <span class="admin-sidebar-label">Contenido</span>
+          <div class="admin-tabs" role="tablist" aria-orientation="vertical">
+          <button type="button" class="admin-tab active" data-admin-tab="eventos"><i class="fa-solid fa-calendar-days"></i> <span>Eventos</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="destacadas"><i class="fa-solid fa-heart"></i> <span>Destacadas</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="galeria"><i class="fa-solid fa-image"></i> <span>Galería</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="youtube"><i class="fa-solid fa-play"></i> <span>YouTube</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-solid fa-file-lines"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="banner"><i class="fa-solid fa-bullhorn"></i> <span>Banner</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-solid fa-users"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
         </div>
+          <div class="admin-sidebar-footer">
+            <span class="admin-sidebar-label">Accesos</span>
+            <a class="admin-side-link" href="index.html"><i class="fa-solid fa-house" aria-hidden="true"></i> <span>Página principal</span></a>
+            <a class="admin-side-link" href="dashboard.html"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> <span>Dashboard</span></a>
+            <button type="button" class="admin-side-link admin-share-btn" id="adminShareJoinLink"><i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir formulario</button>
+            <button type="button" class="admin-side-link admin-side-logout" id="adminLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</button>
+          </div>
+        </aside>
+        <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop" hidden></div>
+
+        <div class="admin-main">
+          <div class="admin-topbar" role="banner">
+            <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Abrir menú" aria-controls="adminSidebar" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+            <div class="admin-topbar-title">
+              <span class="admin-topbar-kicker">Centro de gestión</span>
+              <h2 id="adminSectionTitle">Eventos</h2>
+            </div>
+          </div>
+
 
         <div class="admin-stats-grid" id="adminStatsGrid">
           <div class="admin-stat-tile">
@@ -125,15 +145,6 @@
           </div>
         </div>
 
-        <div class="admin-tabs">
-          <button type="button" class="admin-tab active" data-admin-tab="eventos"><i class="fa-solid fa-calendar-days"></i> <span>Eventos</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="destacadas"><i class="fa-solid fa-heart"></i> <span>Destacadas</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="galeria"><i class="fa-solid fa-image"></i> <span>Galería</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="youtube"><i class="fa-solid fa-play"></i> <span>YouTube</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-solid fa-file-lines"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="banner"><i class="fa-solid fa-bullhorn"></i> <span>Banner</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-solid fa-users"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-        </div>
 
         <div class="admin-tab-panel active" id="admin-eventos">
           <div class="admin-edit-modal" id="adminEventoOverlay" hidden>
@@ -700,6 +711,7 @@
 
           <div class="admin-roles-security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Solo el Super Admin puede asignar o revocar roles de administración.</div>
         </div>
+        </div>
       </div>
     </section>
   </main>
@@ -707,8 +719,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20261114-birthday-perm-3"></script>
+  <script src="assets/js/main.js?v=20261114-admin-shell-2"></script>
   <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
   <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
+  <script src="assets/js/admin-shell.js?v=20261114-1"></script>
 </body>
 </html>

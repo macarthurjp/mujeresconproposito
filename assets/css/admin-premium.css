@@ -1,0 +1,563 @@
+/* =====================================================================
+   ADMIN — PREMIUM APP SHELL
+   Loaded after admin.css + brand.css. Scoped to the signed-in admin
+   (body.admin-unlocked) so the login screen keeps its current design.
+   ===================================================================== */
+
+:root {
+  --a-sidebar: 272px;
+  --a-ink: #3f2623;
+  --a-text: #3f2623;
+  --a-muted: #6d5250;
+  --a-wine: #a64b43;
+  --a-wine-2: #8f3f38;
+  --a-blush: #f9e4e0;
+  --a-sand: #f9edea;
+  --a-line: rgba(166, 75, 67, 0.12);
+  --a-line-strong: rgba(63, 38, 35, 0.16);
+  --a-card: rgba(255, 255, 255, 0.92);
+  --a-shadow: 0 1px 2px rgba(63, 38, 35, 0.04), 0 10px 30px rgba(166, 75, 67, 0.08);
+  --a-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Shell ---------- */
+body.admin-unlocked .admin-site-header,
+body.admin-unlocked .admin-hero-premium { display: none !important; }
+
+body.admin-unlocked .admin-page-main,
+body.admin-unlocked .admin-panel {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+body.admin-unlocked #adminDashboard {
+  display: grid !important;
+  grid-template-columns: var(--a-sidebar) minmax(0, 1fr);
+  min-height: 100vh;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ---------- Sidebar ---------- */
+.admin-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 22px 16px;
+  overflow-y: auto;
+  background: rgba(255, 250, 249, 0.94);
+  border-right: 1px solid var(--a-line);
+  z-index: 50;
+}
+
+.admin-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 20px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--a-line);
+  text-decoration: none !important;
+}
+.admin-sidebar-mark {
+  width: 42px; height: 42px; flex: 0 0 auto;
+  border-radius: 12px; overflow: hidden; background: #fff7f5;
+  display: grid; place-items: center;
+  box-shadow: 0 2px 10px rgba(166, 75, 67, 0.12);
+}
+.admin-sidebar-mark img { width: 80px; height: 80px; object-fit: cover; }
+.admin-sidebar-brand strong { display: block; font-family: var(--b-serif) !important; font-weight: 500 !important; font-size: 1.12rem; line-height: 1.1; color: var(--a-ink); }
+.admin-sidebar-brand small { display: block; margin-top: 2px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--a-wine); }
+
+.admin-sidebar-label {
+  display: block;
+  padding: 14px 12px 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(109, 82, 80, 0.75);
+}
+
+body.mcp-brand .admin-sidebar .admin-tabs {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+  gap: 2px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+body.mcp-brand .admin-sidebar .admin-tab,
+.admin-side-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-height: 44px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--a-text) !important;
+  -webkit-text-fill-color: currentColor !important;
+  font: 600 0.93rem var(--b-sans) !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background 0.2s var(--a-ease), color 0.2s var(--a-ease) !important;
+  flex: 0 0 auto !important;
+}
+body.mcp-brand .admin-sidebar .admin-tab i:not(.admin-tab-chevron),
+.admin-side-link i { width: 20px; text-align: center; color: var(--a-muted) !important; font-size: 0.95rem; }
+body.mcp-brand .admin-sidebar .admin-tab .admin-tab-chevron { display: none !important; }
+body.mcp-brand .admin-sidebar .admin-tab:hover,
+.admin-side-link:hover { background: rgba(166, 75, 67, 0.06) !important; color: var(--a-wine) !important; }
+body.mcp-brand .admin-sidebar .admin-tab.active {
+  background: var(--a-blush) !important;
+  color: var(--a-wine) !important;
+}
+body.mcp-brand .admin-sidebar .admin-tab.active i { color: var(--a-wine) !important; }
+body.mcp-brand .admin-sidebar .admin-tab[hidden] { display: none !important; }
+
+.admin-sidebar-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--a-line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+body.mcp-brand .admin-sidebar .admin-side-link[hidden] { display: none !important; }
+.admin-side-logout,
+.admin-side-logout i { color: var(--a-wine) !important; }
+
+/* ---------- Main column ---------- */
+.admin-main {
+  min-width: 0;
+  padding: 0 clamp(18px, 3vw, 40px) 60px;
+}
+
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 calc(-1 * clamp(18px, 3vw, 40px)) 24px;
+  padding: 18px clamp(18px, 3vw, 40px);
+  background: rgba(255, 248, 246, 0.86);
+  backdrop-filter: saturate(160%) blur(14px) !important;
+  -webkit-backdrop-filter: saturate(160%) blur(14px) !important;
+  border-bottom: 1px solid var(--a-line);
+}
+.admin-topbar-kicker { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--a-wine); }
+body.mcp-brand .admin-topbar h2 { margin: 2px 0 0 !important; font-size: clamp(1.7rem, 3vw, 2.3rem) !important; line-height: 1.05 !important; }
+.admin-menu-toggle {
+  display: none;
+  width: 42px; height: 42px; flex: 0 0 auto;
+  border-radius: 12px; border: 1px solid var(--a-line-strong);
+  background: #fff; color: var(--a-ink); font-size: 1.05rem; cursor: pointer;
+}
+
+/* Stats: compact overview row */
+body.mcp-brand .admin-main .admin-stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  margin: 0 0 24px !important;
+}
+body.mcp-brand .admin-main .admin-stats-grid[hidden] { display: none !important; }
+body.mcp-brand .admin-main .admin-stat-tile {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 12px !important;
+  align-items: center !important;
+  min-height: 0 !important;
+  padding: 14px 16px !important;
+  text-align: left !important;
+  border-radius: 16px !important;
+}
+body.mcp-brand .admin-main .admin-stat-top { grid-row: 1 / span 2; margin: 0 !important; }
+body.mcp-brand .admin-main .admin-stat-icon { width: 38px !important; height: 38px !important; border-radius: 11px !important; font-size: 0.95rem !important; }
+body.mcp-brand .admin-main .admin-stat-value { font-size: 1.5rem !important; line-height: 1 !important; margin: 0 !important; }
+body.mcp-brand .admin-main .admin-stat-label { font-size: 0.78rem !important; margin: 2px 0 0 !important; text-align: left !important; }
+body.mcp-brand .admin-main .admin-stat-link { position: absolute !important; inset: 0 !important; width: auto !important; height: auto !important; opacity: 0 !important; border-radius: 16px !important; }
+body.mcp-brand .admin-main .admin-stat-tile:hover { border-color: rgba(166, 75, 67, 0.3) !important; }
+body.mcp-brand .admin-main .admin-stat-pill { position: absolute; top: 8px; right: 8px; }
+
+/* Section toolbar ("Eventos" + "Nuevo evento") */
+body.mcp-brand .admin-main .admin-devotional-page-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  margin: 0 0 16px !important;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+body.mcp-brand .admin-main .admin-devotional-page-head h3 { font-size: 1.5rem !important; margin: 0 !important; }
+
+/* Cards */
+body.mcp-brand .admin-main .admin-card {
+  padding: clamp(18px, 2.4vw, 28px) !important;
+  border-radius: 20px !important;
+  background: var(--a-card) !important;
+  border: 1px solid var(--a-line) !important;
+  box-shadow: var(--a-shadow) !important;
+  margin: 0 0 18px !important;
+  max-width: none !important;
+  width: auto !important;
+}
+body.mcp-brand .admin-main .admin-card h3 { font-size: 1.35rem !important; text-align: left !important; margin: 0 0 6px !important; }
+body.mcp-brand .admin-main .admin-reorder-hint,
+body.mcp-brand .admin-main .admin-card-subtitle { text-align: left !important; color: var(--a-muted) !important; font-size: 0.88rem !important; }
+body.mcp-brand .admin-main .admin-import-btn { margin: 6px 0 14px !important; }
+
+/* ---------- Content rows ---------- */
+body.mcp-brand .admin-main .admin-content-list { display: flex !important; flex-direction: column !important; gap: 8px !important; }
+body.mcp-brand .admin-main .admin-content-item {
+  display: grid !important;
+  grid-template-columns: auto 56px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 10px 14px !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  border: 1px solid var(--a-line) !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s var(--a-ease), box-shadow 0.2s var(--a-ease) !important;
+}
+body.mcp-brand .admin-main .admin-content-item:hover { border-color: rgba(166, 75, 67, 0.28) !important; box-shadow: var(--a-shadow) !important; }
+body.mcp-brand .admin-main .admin-item-order-badge { display: none !important; }
+body.mcp-brand .admin-main .admin-drag-handle { color: rgba(109, 82, 80, 0.45) !important; cursor: grab; font-size: 1.1rem; }
+body.mcp-brand .admin-main .admin-item-media { width: 56px !important; height: 56px !important; border-radius: 12px !important; overflow: hidden; background: var(--a-sand) !important; display: grid; place-items: center; }
+body.mcp-brand .admin-main .admin-item-media img { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+body.mcp-brand .admin-main .admin-item-body { text-align: left !important; min-width: 0; }
+body.mcp-brand .admin-main .admin-item-body strong { display: block; font-size: 0.98rem !important; font-weight: 650 !important; color: var(--a-ink) !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.mcp-brand .admin-main .admin-item-body > span,
+body.mcp-brand .admin-main .admin-item-body small { display: block; font-size: 0.82rem !important; color: var(--a-muted) !important; }
+body.mcp-brand .admin-main .admin-item-actions { display: flex !important; align-items: center !important; gap: 6px !important; flex-wrap: nowrap !important; }
+body.mcp-brand .admin-main .admin-item-actions button:not(.admin-switch) {
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--a-line-strong) !important;
+  background: #fff !important;
+  color: var(--a-ink) !important;
+  font: 600 0.82rem var(--b-sans) !important;
+  box-shadow: none !important;
+}
+body.mcp-brand .admin-main .admin-item-actions button:not(.admin-switch):hover { border-color: var(--a-wine) !important; color: var(--a-wine) !important; }
+body.mcp-brand .admin-main .admin-item-actions button.danger { color: #b3261e !important; }
+body.mcp-brand .admin-main .admin-item-actions button.danger:hover { border-color: #b3261e !important; background: #fdecea !important; }
+body.mcp-brand .admin-main .admin-item-actions button.is-portada { background: var(--a-blush) !important; color: var(--a-wine) !important; border-color: transparent !important; }
+/* Status text is now shown by the switch */
+body.mcp-brand .admin-main .admin-item-status-dot,
+body.mcp-brand .admin-main .admin-item-status-text { display: none !important; }
+
+/* ---------- Switches ---------- */
+/* Row switch (button role=switch) */
+.admin-switch {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 36px !important;
+  padding: 0 10px 0 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  color: var(--a-muted) !important;
+  font: 600 0.8rem var(--b-sans) !important;
+}
+.admin-switch-track {
+  position: relative;
+  width: 40px; height: 24px; flex: 0 0 auto;
+  border-radius: 999px;
+  background: #d9cfcd;
+  transition: background 0.25s var(--a-ease);
+}
+.admin-switch-track::after {
+  content: "";
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s var(--a-ease);
+}
+.admin-switch[aria-checked="true"] { color: var(--a-wine) !important; }
+.admin-switch[aria-checked="true"] .admin-switch-track { background: var(--a-wine); }
+.admin-switch[aria-checked="true"] .admin-switch-track::after { transform: translateX(16px); }
+.admin-switch-label { min-width: 46px; text-align: left; }
+
+/* Checkbox switches: every on/off checkbox in the admin */
+body.mcp-brand :is(.admin-switch-input, .admin-permission-check input, .admin-banner-toggle input, #adminEventoNotificar, .admin-toggle-switch input) {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  position: relative !important;
+  width: 40px !important; height: 24px !important;
+  min-width: 40px !important; min-height: 0 !important;
+  margin: 0 !important; padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #d9cfcd !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  opacity: 1 !important;
+  flex: 0 0 auto;
+  transition: background 0.25s var(--a-ease) !important;
+}
+body.mcp-brand :is(.admin-switch-input, .admin-permission-check input, .admin-banner-toggle input, #adminEventoNotificar, .admin-toggle-switch input)::after {
+  content: "";
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s var(--a-ease);
+}
+body.mcp-brand :is(.admin-switch-input, .admin-permission-check input, .admin-banner-toggle input, #adminEventoNotificar, .admin-toggle-switch input):checked { background: var(--a-wine) !important; }
+body.mcp-brand :is(.admin-switch-input, .admin-permission-check input, .admin-banner-toggle input, #adminEventoNotificar, .admin-toggle-switch input):checked::after { transform: translateX(16px); }
+body.mcp-brand :is(.admin-switch-input, .admin-permission-check input, .admin-banner-toggle input, #adminEventoNotificar, .admin-toggle-switch input):disabled { opacity: 0.45 !important; cursor: not-allowed; }
+body.mcp-brand :is(.admin-switch-input, .admin-permission-check input, .admin-banner-toggle input, #adminEventoNotificar, .admin-toggle-switch input):focus-visible { outline: 2px solid var(--a-wine) !important; outline-offset: 2px !important; }
+body.mcp-brand .admin-toggle-switch .admin-toggle-track { display: none !important; }
+body.mcp-brand .admin-toggle-switch { display: inline-flex !important; width: auto !important; height: auto !important; }
+
+/* Rows that hold a switch: label on the left, switch on the right */
+body.mcp-brand .admin-permission-check,
+body.mcp-brand .admin-banner-toggle,
+body.mcp-brand .admin-switch-field,
+body.mcp-brand .admin-check-inline > span:last-child {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  flex-direction: row-reverse !important;
+  padding: 10px 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  font-weight: 600 !important;
+  color: var(--a-ink) !important;
+  cursor: pointer;
+}
+body.mcp-brand .admin-permission-check + .admin-permission-check { border-top: 1px solid var(--a-line) !important; }
+body.mcp-brand .admin-switch-field { flex-direction: row !important; padding: 12px 14px !important; border: 1px solid var(--a-line) !important; border-radius: 14px !important; background: #fff !important; }
+.admin-switch-field-copy strong { display: block; font-weight: 650; color: var(--a-ink); }
+.admin-switch-field-copy small { display: block; margin-top: 2px; font-size: 0.8rem; color: var(--a-muted); font-weight: 500; }
+body.mcp-brand .admin-toggle-field {
+  display: flex !important; align-items: center !important; justify-content: space-between !important;
+  flex-direction: row-reverse !important; gap: 14px !important;
+  padding: 12px 14px !important; border: 1px solid var(--a-line) !important; border-radius: 14px !important; background: #fff !important;
+}
+
+/* ---------- Chips (days, devotional categories) ---------- */
+body.mcp-brand #adminEventoDias,
+body.mcp-brand .admin-schedule-days,
+body.mcp-brand .admin-devotional-field:has(input[name="devCategoria"]) > div:not(:first-child),
+body.mcp-brand .admin-devotional-categories {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+body.mcp-brand #adminEventoDias > span { flex-basis: 100%; font-weight: 600; color: var(--a-ink); }
+body.mcp-brand :is(#adminEventoDias label, .admin-schedule-days label, label:has(> input[name="devCategoria"])) {
+  position: relative;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 38px !important;
+  padding: 0 16px !important;
+  margin: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--a-line-strong) !important;
+  background: #fff !important;
+  color: var(--a-ink) !important;
+  font: 600 0.86rem var(--b-sans) !important;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s var(--a-ease), border-color 0.2s var(--a-ease), color 0.2s var(--a-ease) !important;
+}
+body.mcp-brand :is(#adminEventoDias label, .admin-schedule-days label, label:has(> input[name="devCategoria"])) input {
+  position: absolute !important; opacity: 0 !important; width: 1px !important; height: 1px !important; pointer-events: none;
+}
+body.mcp-brand :is(#adminEventoDias label, .admin-schedule-days label, label:has(> input[name="devCategoria"])):has(input:checked) {
+  background: var(--a-wine) !important;
+  border-color: var(--a-wine) !important;
+  color: #fff !important;
+}
+body.mcp-brand :is(#adminEventoDias label, .admin-schedule-days label, label:has(> input[name="devCategoria"])):has(input:focus-visible) { outline: 2px solid var(--a-wine); outline-offset: 2px; }
+body.mcp-brand #adminEventoDias.is-hidden { display: none !important; }
+
+/* ---------- Modals stay above the shell ---------- */
+body.mcp-brand .admin-edit-modal { z-index: 20000 !important; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1180px) {
+  body.mcp-brand .admin-main .admin-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 900px) {
+  body.admin-unlocked #adminDashboard { grid-template-columns: minmax(0, 1fr); }
+  .admin-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: min(300px, 86vw);
+    height: 100%;
+    transform: translateX(-102%);
+    transition: transform 0.3s var(--a-ease);
+    box-shadow: 0 30px 80px rgba(63, 38, 35, 0.25);
+    z-index: 15000;
+  }
+  body.admin-drawer-open .admin-sidebar { transform: none; }
+  .admin-sidebar-backdrop { position: fixed; inset: 0; background: rgba(63, 38, 35, 0.35); z-index: 14000; }
+  .admin-sidebar-backdrop[hidden] { display: none; }
+  .admin-menu-toggle { display: inline-grid; place-items: center; }
+  body.mcp-brand .admin-main .admin-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  body.mcp-brand .admin-main .admin-content-item { grid-template-columns: 48px minmax(0, 1fr) !important; }
+  body.mcp-brand .admin-main .admin-drag-handle { display: none !important; }
+  body.mcp-brand .admin-main .admin-item-media { width: 48px !important; height: 48px !important; }
+  body.mcp-brand .admin-main .admin-item-actions { grid-column: 1 / -1; justify-content: flex-end !important; }
+}
+
+@media (max-width: 520px) {
+  body.mcp-brand .admin-main .admin-devotional-page-head { flex-wrap: wrap !important; }
+  body.mcp-brand .admin-main .admin-devotional-page-head .btn { width: 100%; }
+}
+
+/* Legacy admin rules center text; the shell is left-aligned */
+body.mcp-brand .admin-sidebar,
+body.mcp-brand .admin-sidebar *,
+body.mcp-brand .admin-topbar,
+body.mcp-brand .admin-topbar * { text-align: left !important; }
+body.mcp-brand .admin-main .admin-list-card { text-align: left !important; }
+body.mcp-brand .admin-main .admin-empty { text-align: center !important; }
+
+/* Row switch must beat legacy ".admin-item-actions button" rules */
+body.mcp-brand .admin-main .admin-item-actions button.admin-switch {
+  min-height: 36px !important;
+  padding: 0 8px 0 2px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font: 600 0.8rem var(--b-sans) !important;
+  color: var(--a-muted) !important;
+}
+body.mcp-brand .admin-main .admin-item-actions button.admin-switch[aria-checked="true"] { color: var(--a-wine) !important; }
+body.mcp-brand .admin-main .admin-item-actions button.admin-switch:hover { background: rgba(166, 75, 67, 0.06) !important; }
+
+/* The topbar already names the section */
+body.mcp-brand .admin-main .admin-tab-panel > .admin-devotional-page-head > div:first-child:has(> h3:only-child) { visibility: hidden; }
+
+body.mcp-brand .admin-schedule-days { padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+body.mcp-brand .admin-schedule-days > span { flex-basis: 100%; font-weight: 600; color: var(--a-ink); }
+body.mcp-brand .admin-schedule-days.is-hidden { display: none !important; }
+
+/* Overview stats only make sense on the content sections */
+#adminDashboard:has(#admin-roles.active, #admin-banner.active, #admin-devocionales.active) .admin-stats-grid { display: none !important; }
+/* The topbar already shows "Usuarios y roles" */
+body.mcp-brand .admin-main .admin-roles-page-head { display: none !important; }
+
+/* Banner switch row: beat legacy label layout */
+body.mcp-brand .admin-main #adminBannerForm .admin-banner-toggle {
+  display: flex !important; flex-direction: row-reverse !important; justify-content: flex-end !important;
+  align-items: center !important; gap: 14px !important;
+  padding: 14px 16px !important; border: 1px solid var(--a-line) !important; border-radius: 14px !important; background: #fff !important;
+}
+body.mcp-brand .admin-main #adminBannerForm :is(input[type="text"], textarea) { width: 100% !important; max-width: none !important; }
+body.mcp-brand .admin-main #adminBannerForm .admin-yt-submit-row { justify-content: flex-end !important; border: 0 !important; }
+
+body.mcp-brand .admin-main #adminBannerForm .admin-banner-toggle { justify-content: space-between !important; }
+
+@media (max-width: 900px) {
+  body.mcp-brand .admin-main .admin-stats-grid {
+    display: flex !important;
+    overflow-x: auto !important;
+    gap: 10px !important;
+    margin: 0 -18px 20px !important;
+    padding: 2px 18px 6px !important;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  body.mcp-brand .admin-main .admin-stats-grid::-webkit-scrollbar { display: none; }
+  body.mcp-brand .admin-main .admin-stat-tile { flex: 0 0 150px !important; scroll-snap-align: start; }
+}
+
+/* Fixed sidebar (sticky is blocked by legacy overflow on ancestors) */
+@media (min-width: 901px) {
+  body.admin-unlocked #adminDashboard { display: block !important; padding-left: var(--a-sidebar) !important; }
+  .admin-sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: var(--a-sidebar); height: auto; }
+}
+
+/* Modal primary button: solid brand color */
+body.mcp-brand .admin-edit-modal button[type="submit"],
+body.mcp-brand .admin-edit-modal .btn {
+  background: var(--a-wine) !important;
+  background-image: none !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  opacity: 1 !important;
+  box-shadow: 0 10px 26px rgba(166, 75, 67, 0.26) !important;
+}
+body.mcp-brand .admin-edit-modal button[type="submit"]:hover { background: var(--a-wine-2) !important; }
+
+body.mcp-brand .admin-main .admin-stat-label { word-break: normal !important; overflow-wrap: normal !important; hyphens: none !important; }
+
+/* Invite form: fields on top, permissions as a 2-column switch list, button last */
+body.mcp-brand .admin-main .admin-invite-form {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: start !important;
+}
+body.mcp-brand .admin-main .admin-invite-form > .admin-permission-group {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  column-gap: 28px !important;
+  padding: 6px 16px !important;
+  border: 1px solid var(--a-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+}
+body.mcp-brand .admin-main .admin-invite-form > .admin-permission-group > label:first-child { grid-column: 1 / -1; padding: 10px 0 4px !important; font-weight: 700 !important; }
+body.mcp-brand .admin-main .admin-invite-form > .admin-permission-group .admin-permission-check + .admin-permission-check { border-top: 0 !important; }
+body.mcp-brand .admin-main .admin-invite-form > button[type="submit"] { grid-column: 1 / -1; justify-self: end; }
+body.mcp-brand .admin-main .admin-permission-check { font-size: 0.9rem !important; }
+
+/* Existing users: permissions as a tidy list */
+body.mcp-brand .admin-main .admin-role-row .admin-permission-group { min-width: 280px; }
+
+@media (max-width: 700px) {
+  body.mcp-brand .admin-main .admin-invite-form,
+  body.mcp-brand .admin-main .admin-invite-form > .admin-permission-group { grid-template-columns: minmax(0, 1fr) !important; }
+  body.mcp-brand .admin-main .admin-invite-form > button[type="submit"] { justify-self: stretch; }
+}

@@ -2855,11 +2855,11 @@ function renderContactCalendar(apiData = {}) {
 	          <div class="admin-item-body">
 	            <strong>${escapeHtml(title)}</strong>
 	            <span>${escapeHtml(subtitle)}</span>
-	            <small>Orden ${escapeHtml(row.orden || 1)} · ${row.activa === false ? "Oculto" : "Visible"}</small>
+	            <small>Orden ${escapeHtml(row.orden || 1)}</small>
 	          </div>
 	          <div class="admin-item-actions">
+	            <button type="button" class="admin-switch" role="switch" aria-checked="${row.activa !== false ? "true" : "false"}" data-admin-action="toggle" title="${row.activa !== false ? "Visible en la web · tocar para ocultar" : "Oculto · tocar para mostrar"}"><span class="admin-switch-track" aria-hidden="true"></span><span class="admin-switch-label">${row.activa !== false ? "Visible" : "Oculto"}</span></button>
 	            <button type="button" data-admin-action="edit">Editar</button>
-	            <button type="button" data-admin-action="toggle">${row.activa === false ? "Mostrar" : "Ocultar"}</button>
 	            <button type="button" data-admin-action="delete" class="danger">Borrar</button>
 	          </div>
 	        </div>
@@ -2904,8 +2904,8 @@ function renderContactCalendar(apiData = {}) {
 	            <span>${escapeHtml(subtitle)}</span>
 	          </div>
 	          <div class="admin-item-actions">
+	            <button type="button" class="admin-switch" role="switch" aria-checked="${isVisible ? "true" : "false"}" data-admin-action="toggle" title="${isVisible ? "Visible en la web · tocar para ocultar" : "Oculto · tocar para mostrar"}"><span class="admin-switch-track" aria-hidden="true"></span><span class="admin-switch-label">${isVisible ? "Visible" : "Oculto"}</span></button>
 	            <button type="button" data-admin-action="edit" title="Editar" aria-label="Editar">${ADMIN_ICON_EDIT}</button>
-	            <button type="button" data-admin-action="toggle" title="${isVisible ? "Ocultar" : "Mostrar"}" aria-label="${isVisible ? "Ocultar" : "Mostrar"}">${isVisible ? ADMIN_ICON_EYE_OFF : ADMIN_ICON_EYE}</button>
 	            <button type="button" data-admin-action="delete" class="danger" title="Borrar" aria-label="Borrar">${ADMIN_ICON_TRASH}</button>
 	          </div>
 	        </div>
@@ -2987,12 +2987,12 @@ function renderContactCalendar(apiData = {}) {
 	                <div class="admin-item-body">
 	                  <strong>${escapeHtml(title)}</strong>
 	                  <span>${escapeHtml(community.label)}</span>
-	                  <small>Orden ${escapeHtml(row.orden || 1)} · ${row.activa === false ? "Oculto" : "Visible"}${row.portada ? ' · <span class="admin-portada-badge">★ Portada</span>' : ""}</small>
+	                  <small>Orden ${escapeHtml(row.orden || 1)}${row.portada ? ' · <span class="admin-portada-badge">★ Portada</span>' : ""}</small>
 	                </div>
 	                <div class="admin-item-actions">
+	                  <button type="button" class="admin-switch" role="switch" aria-checked="${row.activa !== false ? "true" : "false"}" data-admin-action="toggle" title="${row.activa !== false ? "Visible en la web · tocar para ocultar" : "Oculto · tocar para mostrar"}"><span class="admin-switch-track" aria-hidden="true"></span><span class="admin-switch-label">${row.activa !== false ? "Visible" : "Oculto"}</span></button>
 	                  <button type="button" data-admin-action="edit">Editar</button>
 	                  <button type="button" data-admin-action="portada" class="${row.portada ? "is-portada" : ""}">${row.portada ? "★ Portada" : "Marcar portada"}</button>
-	                  <button type="button" data-admin-action="toggle">${row.activa === false ? "Mostrar" : "Ocultar"}</button>
 	                  <button type="button" data-admin-action="delete" class="danger">Borrar</button>
 	                </div>
 	              </div>
@@ -3385,9 +3385,9 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "horario", label: "Horario", type: "schedule", value: row.horario || "" },
 	        { name: "link", label: "Link", value: row.link || "" },
 	        { name: "zona_horaria", label: "Zona horaria", type: "select-options", options: window.MCP_EVENT_TIMEZONES || [["Europe/Luxembourg", "Europa (CET)"]], value: row.zona_horaria || "Europe/Luxembourg" },
-	        { name: "notificar", label: "Notificación push al empezar", type: "select-options", options: [["true", "Sí, avisar en la app"], ["false", "No avisar"]], value: row.notificar === false ? "false" : "true" },
+	        { name: "notificar", label: "Notificación push al empezar", type: "switch", onLabel: "Avisar en la app cuando empiece", offLabel: "Sin aviso", value: row.notificar === false ? "false" : "true" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
+	        { name: "activa", label: "Publicado", type: "select", value: row.activa === false ? "false" : "true" }
 	      ];
 	    }
 
@@ -3398,7 +3398,7 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "nombre", label: "Nombre", value: row.nombre || "" },
 	        { name: "titulo", label: "Título", value: row.titulo || "" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
+	        { name: "activa", label: "Publicado", type: "select", value: row.activa === false ? "false" : "true" }
 	      ];
 	    }
 
@@ -3409,7 +3409,7 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "subtitulo", label: "Subtítulo", value: row.subtitulo || "" },
 	        { name: "etiqueta", label: "Etiqueta", value: row.etiqueta || "Conferencia" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
+	        { name: "activa", label: "Publicado", type: "select", value: row.activa === false ? "false" : "true" }
 	      ];
 	    }
 
@@ -3419,7 +3419,7 @@ function renderContactCalendar(apiData = {}) {
 	      { name: "categoria", label: "Comunidad", type: "select-category", value: row.categoria || "usa" },
 	      { name: "texto", label: "Categoría / evento", value: row.texto || "" },
 	      { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	      { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" },
+	      { name: "activa", label: "Publicado", type: "select", value: row.activa === false ? "false" : "true" },
 	      { name: "portada", label: "Usar como foto de portada de esta categoría", type: "checkbox", value: row.portada ? "true" : "false" }
 	    ];
 	  }
@@ -3446,14 +3446,20 @@ function renderContactCalendar(apiData = {}) {
 	                `;
 	              }
 
-	              if (field.type === "select") {
+	              // On/off fields render as a switch; a hidden input keeps the
+	              // "true"/"false" value the save code already expects.
+	              if (field.type === "select" || field.type === "switch") {
+	                const isOn = String(field.value) !== "false";
+	                const onLabel = field.onLabel || "Visible en la web";
+	                const offLabel = field.offLabel || "Oculto";
 	                return `
-	                  <label>
-	                    <span>${escapeHtml(field.label)}</span>
-	                    <select name="${escapeHtml(field.name)}">
-	                      <option value="true" ${field.value === "true" ? "selected" : ""}>Visible</option>
-	                      <option value="false" ${field.value === "false" ? "selected" : ""}>Oculto</option>
-	                    </select>
+	                  <label class="admin-switch-field">
+	                    <span class="admin-switch-field-copy">
+	                      <strong>${escapeHtml(field.label)}</strong>
+	                      <small data-switch-state data-on="${escapeHtml(onLabel)}" data-off="${escapeHtml(offLabel)}">${escapeHtml(isOn ? onLabel : offLabel)}</small>
+	                    </span>
+	                    <input type="checkbox" class="admin-switch-input" data-switch-for="${escapeHtml(field.name)}" ${isOn ? "checked" : ""} />
+	                    <input type="hidden" name="${escapeHtml(field.name)}" value="${isOn ? "true" : "false"}" />
 	                  </label>
 	                `;
 	              }
