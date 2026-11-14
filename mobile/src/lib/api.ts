@@ -78,7 +78,7 @@ export type Evento = {
 };
 
 export type Destacada = { id: string; foto_url: string; nombre: string; titulo: string | null };
-export type Foto = { id: string; foto_url: string; categoria: string; texto: string | null };
+export type Foto = { id: string; foto_url: string; categoria: string; texto: string | null; orden: number | null; portada: boolean | null };
 export type Video = { id: string; video_id: string; titulo: string; subtitulo: string | null; etiqueta: string };
 export type Devocional = {
   id: number;
@@ -106,7 +106,7 @@ export type CuentaAporte = {
 export const api = {
   eventos: () => rest<Evento[]>('eventos?select=*&activa=eq.true&order=orden.asc'),
   destacadas: () => rest<Destacada[]>('destacadas?select=id,foto_url,nombre,titulo&activa=eq.true&order=orden.asc'),
-  galeria: () => rest<Foto[]>('galeria?select=id,foto_url,categoria,texto&activa=eq.true&order=orden.asc'),
+  galeria: () => rest<Foto[]>('galeria?select=id,foto_url,categoria,texto,orden,portada&activa=eq.true&order=orden.asc'),
   videos: () => rest<Video[]>('youtube?select=id,video_id,titulo,subtitulo,etiqueta&activa=eq.true&order=orden.asc'),
   devocionales: () =>
     rest<Devocional[]>(

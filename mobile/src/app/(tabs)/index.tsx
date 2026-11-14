@@ -8,11 +8,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
 import { BirthdayWeek } from '@/components/birthday-week';
-import { PhotoTile, PosterCard } from '@/components/media';
+import { AlbumCard, PosterCard } from '@/components/media';
+import { PhotoViewer } from '@/components/photo-viewer';
 import { Button, Card, Eyebrow, tapFeedback, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
 import { C, TAB_BAR_SPACE, serif, SOUNDCLOUD_URL, sans } from '@/constants/theme';
-import { api } from '@/lib/api';
-import { GALLERY_REGIONS as galleryRegions, galleryRegionKey } from '@/lib/gallery';
+import { api, type Foto } from '@/lib/api';
+import { albumsFor, GALLERY_REGIONS as galleryRegions, type Album, type RegionKey } from '@/lib/gallery';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -23,14 +24,13 @@ export default function Home() {
   const galeria = useAsync(api.galeria);
   const videos = useAsync(api.videos);
   const birthdays = useAsync(api.birthdays);
-  const [selectedGalleryRegion, setSelectedGalleryRegion] = useState('usa');
-  const galleryCardWidth = Math.min(screenWidth - 96, 300);
-  const galleryImages = useMemo(() => {
-    const region = galleryRegions.find((item) => item.key === selectedGalleryRegion)!;
-    return (galeria.data ?? []).filter((photo) => galleryRegionKey(photo.categoria) === region.key).slice(0, 8);
-  }, [galeria.data, selectedGalleryRegion]);
+  const [selectedGalleryRegion, setSelectedGalleryRegion] = useState<RegionKey>('usa');
+  const [openAlbum, setOpenAlbum] = useState<Album<Foto> | null>(null);
+  const galleryCardWidth = Math.min(screenWidth * 0.46, 200);
+  const galleryAlbums = useMemo(() => albumsFor(galeria.data ?? [], selectedGalleryRegion), [galeria.data, selectedGalleryRegion]);
 
   return (
+    <>
     <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_SPACE }}>
       {/* Hero */}
       <View style={[s.hero, { paddingTop: insets.top + 20 }]}>
@@ -162,15 +162,15 @@ export default function Home() {
       {/* Gallery */}
       <Section eyebrow="Momentos" title="Galería">
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.bleedTrack, { gap: 8, paddingBottom: 14 }]} style={s.bleed}>
-          {galleryRegions.map((region) => <Pressable key={region.key} onPress={() => setSelectedGalleryRegion(region.key)} style={[s.regionPill, selectedGalleryRegion === region.key && s.regionPillActive]}><Text style={[s.regionPillText, selectedGalleryRegion === region.key && s.regionPillTextActive]}>{region.label}</Text></Pressable>)}
+          {galleryRegions.map((region) => <Pressable key={region.key} onPress={() => { tapFeedback(); setSelectedGalleryRegion(region.key); }} style={[s.regionPill, selectedGalleryRegion === region.key && s.regionPillActive]}><Text style={[s.regionPillText, selectedGalleryRegion === region.key && s.regionPillTextActive]}>{region.label}</Text></Pressable>)}
         </ScrollView>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} decelerationRate="fast" snapToInterval={galleryCardWidth + 12} contentContainerStyle={s.bleedTrack} style={s.bleed}>
-          {galleryImages.map((photo) => (
-            <PhotoTile key={photo.id} uri={photo.foto_url} caption={photo.texto} onPress={() => router.push('/galeria')} style={{ width: galleryCardWidth, height: galleryCardWidth * 1.15 }} />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} decelerationRate="fast" snapToInterval={galleryCardWidth + 14} contentContainerStyle={s.bleedTrack} style={s.bleed}>
+          {galleryAlbums.map((album) => (
+            <AlbumCard key={album.key} title={album.title} coverUri={album.cover.foto_url} count={album.photos.length} width={galleryCardWidth} onPress={() => setOpenAlbum(album)} />
           ))}
         </ScrollView>
-        <Pressable onPress={() => router.push('/galeria')} style={s.seeAll}><Text style={s.seeAllText}>Ver toda la galería</Text><Ionicons name="chevron-forward" size={16} color={C.wine} /></Pressable>
-        {!galeria.loading && !galleryImages.length ? <Text style={[ui.body, { paddingHorizontal: 20 }]}>Explora fotos de nuestra comunidad por región.</Text> : null}
+        <Pressable onPress={() => router.push('/galeria')} style={s.seeAll}><Text style={s.seeAllText}>Ver todas las galerías</Text><Ionicons name="chevron-forward" size={16} color={C.wine} /></Pressable>
+        {!galeria.loading && !galleryAlbums.length ? <Text style={[ui.body, { paddingHorizontal: 20 }]}>Explora fotos de nuestra comunidad por región.</Text> : null}
       </Section>
 
       {/* SoundCloud */}
@@ -211,6 +211,8 @@ export default function Home() {
         <View style={s.audioPlay}><Ionicons name="play" size={20} color="#8f3f38" style={{ marginLeft: 2 }} /></View>
       </Pressable>
     </ScrollView>
+    <PhotoViewer visible={!!openAlbum} title={openAlbum?.title ?? ''} photos={openAlbum?.photos ?? []} onClose={() => setOpenAlbum(null)} />
+    </>
   );
 }
 

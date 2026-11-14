@@ -103,3 +103,54 @@ const m = StyleSheet.create({
   posterName: { fontFamily: sans, fontSize: 17, lineHeight: 22, fontWeight: '600', letterSpacing: -0.3, color: C.ink },
   posterRole: { fontFamily: sans, fontSize: 13, lineHeight: 18, color: C.muted },
 });
+
+/**
+ * Album card: cover photo with two photos peeking behind it (like the
+ * website's stacked cards), title and photo count.
+ */
+export function AlbumCard({
+  title,
+  coverUri,
+  count,
+  onPress,
+  width,
+}: {
+  title: string;
+  coverUri: string;
+  count: number;
+  onPress: () => void;
+  width: number;
+}) {
+  const height = width * 1.05;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Abrir galería ${title}, ${count} fotos`}
+      onPress={() => { tapFeedback(); onPress(); }}
+      style={({ pressed }) => [{ width }, pressed && { transform: [{ scale: 0.98 }] }]}>
+      <View style={{ height: height + 10 }}>
+        {count > 2 ? <View style={[a.stack, { top: 0, left: 16, right: 16, height }]} /> : null}
+        {count > 1 ? <View style={[a.stack, a.stack2, { top: 5, left: 8, right: 8, height }]} /> : null}
+        <View style={[a.cover, { top: 10, height }]}>
+          <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
+          <View style={a.countPill}>
+            <Ionicons name="images" size={12} color="#fff" />
+            <Text style={a.countText}>{count}</Text>
+          </View>
+        </View>
+      </View>
+      <Text style={a.title} numberOfLines={2}>{title}</Text>
+      <Text style={a.sub}>{count === 1 ? '1 foto' : `${count} fotos`}</Text>
+    </Pressable>
+  );
+}
+
+const a = StyleSheet.create({
+  stack: { position: 'absolute', borderRadius: 18, backgroundColor: '#ead6d2' },
+  stack2: { backgroundColor: '#f2e2de' },
+  cover: { position: 'absolute', left: 0, right: 0, borderRadius: 18, overflow: 'hidden', backgroundColor: C.sand, boxShadow: '0 1px 2px rgba(63,38,35,0.05), 0 10px 26px rgba(63,38,35,0.12)' },
+  countPill: { position: 'absolute', right: 10, bottom: 10, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999, backgroundColor: 'rgba(20,12,14,0.5)' },
+  countText: { fontFamily: sans, color: '#fff', fontSize: 12, fontWeight: '700' },
+  title: { fontFamily: sans, fontSize: 15, lineHeight: 19, fontWeight: '600', letterSpacing: -0.2, color: C.ink, marginTop: 10 },
+  sub: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 2 },
+});

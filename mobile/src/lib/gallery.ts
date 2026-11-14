@@ -19,3 +19,30 @@ export function galleryRegionKey(categoria: string | null | undefined): RegionKe
   if (value === 'europa' || value === 'eu') return 'eu';
   return '';
 }
+
+export type Album<T> = { key: string; title: string; cover: T; photos: T[]; order: number };
+
+type PhotoLike = { texto: string | null; categoria: string; orden?: number | null; portada?: boolean | null };
+
+/**
+ * Groups a region's photos into albums exactly like the website: by title
+ * (texto), albums ordered by their first photo's order, and the photo
+ * marked "portada" first (it is the cover).
+ */
+export function albumsFor<T extends PhotoLike>(photos: T[], region: RegionKey): Album<T>[] {
+  const map = new Map<string, Album<T>>();
+  photos.forEach((photo, index) => {
+    if (galleryRegionKey(photo.categoria) !== region) return;
+    const title = String(photo.texto || '').trim() || 'Actividad';
+    const key = normalize(title) || `actividad-${index}`;
+    const order = Number.isFinite(Number(photo.orden)) ? Number(photo.orden) : index + 1;
+    if (!map.has(key)) map.set(key, { key, title, cover: photo, photos: [], order });
+    map.get(key)!.photos.push(photo);
+  });
+  return [...map.values()]
+    .map((album) => {
+      const sorted = [...album.photos].sort((a, b) => Number(Boolean(b.portada)) - Number(Boolean(a.portada)));
+      return { ...album, photos: sorted, cover: sorted[0] };
+    })
+    .sort((a, b) => a.order - b.order);
+}
