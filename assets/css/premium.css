@@ -1560,3 +1560,110 @@ body.theme-premium {
 .theme-premium .hero-stat { border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
 .theme-premium .hero-stat + .hero-stat { border-left: 1px solid rgba(166, 75, 67, 0.16) !important; }
 .theme-premium .hero-premium h2 { gap: 0 !important; row-gap: 0 !important; }
+
+/* =====================================================================
+   POLISH PASS (Safari review)
+   ===================================================================== */
+
+/* 1. Ghost rectangles: legacy backdrop-filter draws faint edges in Safari.
+      Only the header and modal overlays keep the blur. */
+.theme-premium *:not(header):not(.modal-overlay):not(.join-overlay) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 2. Hero stats: no leftover rounded borders */
+.theme-premium .hero-stat,
+.theme-premium .hero-stat::before,
+.theme-premium .hero-stat::after { border-top: 0 !important; border-right: 0 !important; border-bottom: 0 !important; outline: 0 !important; }
+.theme-premium .hero-stat::before,
+.theme-premium .hero-stat::after { content: none !important; }
+.theme-premium .hero-stat:first-child { border-left: 0 !important; }
+.theme-premium .hero-kicker::after { content: none !important; }
+
+/* 3. Scripture: calmer spacing, quotes already live in the text */
+.theme-premium .scripture { padding-top: clamp(72px, 8vw, 104px) !important; }
+.theme-premium .verse-block,
+.theme-premium .verse-block.enhanced { margin: 0 auto !important; max-width: 860px; }
+.theme-premium .verse-block::before { content: none !important; display: none !important; }
+
+/* 4. Timeline: identical cards, one alignment */
+.theme-premium #timeline .timeline-horizontal { align-items: stretch !important; }
+.theme-premium #timeline .timeline-step { margin: 0 !important; top: 0 !important; transform: none !important; }
+.theme-premium #timeline .timeline-step h3,
+.theme-premium #timeline .timeline-step p { text-align: left !important; margin-left: 0 !important; }
+.theme-premium #timeline .timeline-step h3 { margin: 0 0 8px !important; }
+
+/* 5. Events: no scrollbar, arrows outside the cards, buttons aligned */
+.theme-premium #eventsGrid {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none;
+  align-items: stretch !important;
+  padding-bottom: 8px !important;
+}
+.theme-premium #eventsGrid::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+.theme-premium #events .events-wrapper { position: relative; padding: 0 64px !important; }
+.theme-premium #events .events-arrow.left { left: 0 !important; }
+.theme-premium #events .events-arrow.right { right: 0 !important; }
+.theme-premium #events .events-arrow { top: 50% !important; transform: translateY(-50%) !important; z-index: 2; }
+.theme-premium #eventsGrid .card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  height: auto !important;
+}
+.theme-premium #eventsGrid .card .card-icon { margin: 0 auto 20px !important; }
+.theme-premium #eventsGrid .card h3 { min-height: 2.3em; display: flex; align-items: center; justify-content: center; margin: 0 0 6px !important; }
+.theme-premium #eventsGrid .card > :last-child { margin-top: auto !important; }
+.theme-premium #eventsGrid .card a,
+.theme-premium #eventsGrid .card button { margin-top: 22px !important; }
+@media (max-width: 700px) {
+  .theme-premium #events .events-wrapper { padding: 0 !important; }
+}
+
+/* 6. Gallery: equal title heights, cleaner stacked cards */
+.theme-premium .gallery-activity-title {
+  min-height: 2.4em;
+  display: flex !important;
+  align-items: flex-end;
+  justify-content: center;
+  margin: 0 0 22px !important;
+  font-family: var(--p-serif) !important;
+  font-weight: 500 !important;
+  font-size: 1.6rem !important;
+  line-height: 1.15 !important;
+  color: var(--p-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.theme-premium .gallery-row .gallery-stack-photo {
+  border: 6px solid #fff !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 30px rgba(166, 75, 67, 0.14) !important;
+}
+.theme-premium .gallery-row .gallery-stack-photo.stack-2,
+.theme-premium .gallery-row .gallery-stack-photo.stack-3 { filter: saturate(0.85) brightness(1.04); }
+.theme-premium .gallery-row .gallery-stack-photo:hover { transform: none; }
+.theme-premium .gallery-row .gallery-stack-photo.stack-2 { transform: rotate(-4deg) !important; }
+.theme-premium .gallery-row .gallery-stack-photo.stack-3 { transform: rotate(4deg) !important; }
+.theme-premium .gallery-stack-card:hover .gallery-stack-photo.stack-2 { transform: rotate(-7deg) translateX(-4px) !important; }
+.theme-premium .gallery-stack-card:hover .gallery-stack-photo.stack-3 { transform: rotate(7deg) translateX(4px) !important; }
+
+/* 7. Reveal animation: short, vertical only, so nothing looks misaligned mid-scroll */
+.theme-premium .p-reveal { transform: translateY(14px); transition-duration: 0.6s; }
+.theme-premium .p-reveal.p-in { transform: none; }
+.theme-premium .youtube-explore h2 {
+  white-space: normal !important;
+  max-width: 100% !important;
+  overflow-wrap: break-word;
+  padding: 0 !important;
+}
+.theme-premium .youtube-explore { overflow: hidden; }
+@media (max-width: 520px) {
+  .theme-premium .section-header-premium h2,
+  .theme-premium .youtube-explore h2,
+  .theme-premium :is(#invitees, #about, #events, #donate, #gallery, #contact) .section-header-premium h2 {
+    font-size: clamp(2rem, 9vw, 2.6rem) !important;
+  }
+}
