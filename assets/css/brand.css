@@ -283,3 +283,10 @@ body.mcp-brand[class] .admin-devotional-editor h3 {
 .mcp-brand .admin-dashboard-kicker { display: flex !important; margin: 0 0 6px !important; padding: 0 !important; text-indent: 0 !important; }
 .mcp-brand .admin-dashboard-kicker::before,
 .mcp-brand .admin-dashboard-kicker::after { content: none !important; }
+
+/* Dashboard: community bars all start at the same x */
+.mcp-brand .community-breakdown { display: grid !important; grid-template-columns: max-content 1fr auto; column-gap: 14px; row-gap: 12px; align-items: center; }
+.mcp-brand .community-breakdown > .community-row { display: contents !important; }
+.mcp-brand .community-row > strong { font-weight: 600 !important; white-space: nowrap; }
+.mcp-brand .community-row > span { font-variant-numeric: tabular-nums; color: var(--b-muted) !important; font-weight: 600; text-align: right; }
+.mcp-brand .community-bar { width: 100% !important; margin: 0 !important; }
