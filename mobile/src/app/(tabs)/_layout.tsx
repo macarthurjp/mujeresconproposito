@@ -44,7 +44,7 @@ export default function TabsLayout() {
       }}>
       <Tabs.Screen name="index" options={tab('Inicio', 'home-outline', 'home')} />
       <Tabs.Screen name="eventos" options={tab('Reuniones', 'videocam-outline', 'videocam')} />
-      <Tabs.Screen name="devocionales" options={tab('Devocional', 'book-outline', 'book')} />
+      <Tabs.Screen name="devocionales" options={tab('Devocional', 'reader-outline', 'reader')} />
       <Tabs.Screen name="unirse" options={tab('Únete', 'person-add-outline', 'person-add')} />
       <Tabs.Screen name="aportar" options={{ href: null }} />
       <Tabs.Screen name="mas" options={tab('Más', 'grid-outline', 'grid')} />

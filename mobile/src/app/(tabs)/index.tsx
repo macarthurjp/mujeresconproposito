@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
@@ -7,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
 import { PhotoTile, PosterCard } from '@/components/media';
-import { Button, Card, Eyebrow, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
+import { Button, Card, Eyebrow, tapFeedback, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
 import { C, TAB_BAR_SPACE, serif, SOUNDCLOUD_URL, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
 
@@ -210,10 +211,23 @@ export default function Home() {
         ) : !birthdays.error ? <Text style={s.noUpcomingBirthdays}>No hay cumpleaños próximos registrados.</Text> : null}
       </Section>
 
-      <Pressable onPress={() => Linking.openURL(SOUNDCLOUD_URL)} style={s.audioCard}>
-        <View style={s.audioIcon}><Ionicons name="headset-outline" size={23} color={C.wine} /></View>
-        <View style={{ flex: 1 }}><Eyebrow>Porción</Eyebrow><Text style={s.audioTitle}>Escucha nuestros audios</Text><Text style={s.audioCopy}>Mensajes y reflexiones de Mujeres con Propósito.</Text></View>
-        <Ionicons name="arrow-forward-circle" size={26} color={C.wine} />
+      {/* Porción: Apple Music–style card that opens the SoundCloud playlist */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Escuchar Porción, audios de Mujeres con Propósito"
+        onPress={() => { tapFeedback(); Linking.openURL(SOUNDCLOUD_URL); }}
+        style={({ pressed }) => [s.audioCard, pressed && { transform: [{ scale: 0.985 }] }]}>
+        <LinearGradient colors={['#b5564d', '#8f3f38', '#5e2a26']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        <View style={s.audioWave} pointerEvents="none">
+          {[14, 30, 48, 26, 58, 38, 22].map((h, i) => <View key={i} style={[s.audioBar, { height: h }]} />)}
+        </View>
+        <View style={s.audioArt}><Ionicons name="musical-notes" size={26} color="#fff" /></View>
+        <View style={{ flex: 1 }}>
+          <Text style={s.audioEyebrow}>Porción · Playlist</Text>
+          <Text style={s.audioTitle}>Escucha nuestros audios</Text>
+          <Text style={s.audioCopy}>Mensajes y reflexiones para tu día.</Text>
+        </View>
+        <View style={s.audioPlay}><Ionicons name="play" size={20} color="#8f3f38" style={{ marginLeft: 2 }} /></View>
       </Pressable>
     </ScrollView>
   );
@@ -260,6 +274,14 @@ const s = StyleSheet.create({
   appFeature: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, marginTop: 14 },
   appFeatureText: { flex: 1, color: C.text, fontSize: 13, lineHeight: 19 },
   donateVerse: { color: C.wine, fontFamily: serif, fontStyle: 'italic', fontSize: 17, lineHeight: 24, marginTop: 16 },
+  audioCard: { marginTop: 40, marginHorizontal: 20, minHeight: 116, borderRadius: 22, overflow: 'hidden', padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, boxShadow: '0 12px 30px rgba(143,63,56,0.28)' },
+  audioWave: { position: 'absolute', right: 8, bottom: 0, flexDirection: 'row', alignItems: 'flex-end', gap: 5, opacity: 0.16 },
+  audioBar: { width: 5, borderTopLeftRadius: 3, borderTopRightRadius: 3, backgroundColor: '#fff' },
+  audioArt: { width: 56, height: 56, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' },
+  audioEyebrow: { fontFamily: sans, color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '600', letterSpacing: 0.4, textTransform: 'uppercase' },
+  audioTitle: { fontFamily: sans, fontWeight: '700', letterSpacing: -0.4, color: '#fff', fontSize: 19, marginTop: 2 },
+  audioCopy: { fontFamily: sans, color: 'rgba(255,255,255,0.8)', fontSize: 13, lineHeight: 18, marginTop: 2 },
+  audioPlay: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   bleed: { marginHorizontal: -20 },
   bleedTrack: { paddingHorizontal: 20, paddingTop: 2, paddingBottom: 18, gap: 14 },
   seeAll: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingVertical: 4 },
@@ -268,10 +290,6 @@ const s = StyleSheet.create({
   regionPillActive: { backgroundColor: C.wine, borderColor: C.wine },
   regionPillText: { fontFamily: sans, color: C.wine, fontSize: 13, fontWeight: '600' },
   regionPillTextActive: { color: '#fff' },
-  audioCard: { marginTop: 36, marginHorizontal: 20, borderRadius: 20, padding: 18, backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line, flexDirection: 'row', gap: 12, alignItems: 'center' },
-  audioIcon: { width: 42, height: 42, borderRadius: 14, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
-  audioTitle: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, color: C.ink, fontSize: 18 },
-  audioCopy: { color: C.muted, fontSize: 12, lineHeight: 17, marginTop: 3 },
   birthdayToday: { flexDirection: 'row', alignItems: 'flex-start', gap: 13, backgroundColor: '#fff0ef', borderColor: 'rgba(166,75,67,0.2)' },
   birthdayIcon: { width: 46, height: 46, borderRadius: 16, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   birthdayTodayEyebrow: { color: C.wine, fontSize: 10, letterSpacing: 1.3, fontWeight: '800', textTransform: 'uppercase', marginBottom: 3 },

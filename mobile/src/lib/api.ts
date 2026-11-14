@@ -38,7 +38,26 @@ async function submitJoin(payload: Record<string, unknown>) {
 
 export type Birthday = { nombreCompleto: string; fecha?: string; dias?: number };
 
+// Development-only preview: open the web preview with ?demo=cumple to see
+// sample birthdays without touching real data. Never active in release builds.
+function demoBirthdays() {
+  if (!__DEV__ || typeof window === 'undefined' || !window.location?.search?.includes('demo=cumple')) return null;
+  const day = (offset: number) => {
+    const d = new Date(Date.now() + offset * 86_400_000);
+    return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  return {
+    cumpleanerasHoy: [{ nombreCompleto: 'Lucía' }],
+    proximosCumpleanos: [
+      { nombreCompleto: 'Marisol', fecha: day(1), dias: 1 },
+      { nombreCompleto: 'Esther', fecha: day(4), dias: 4 },
+    ],
+  };
+}
+
 async function birthdays() {
+  const demo = demoBirthdays();
+  if (demo) return demo;
   const response = await fetch(`${SUPABASE_URL}/functions/v1/get-today-birthdays`, {
     method: 'POST',
     headers,
