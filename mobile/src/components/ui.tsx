@@ -112,12 +112,16 @@ export function Title({ children, light, size = 34, editorial = false }: { child
   );
 }
 
-export function Section({ eyebrow, title, children, style }: { eyebrow?: string; title?: string; children: ReactNode; style?: StyleProp<ViewStyle> }) {
+/**
+ * Home-style section. `band` paints a full-width tinted background so
+ * consecutive sections read as distinct blocks (alternate it down the page).
+ */
+export function Section({ eyebrow, title, children, style, band = false }: { eyebrow?: string; title?: string; children: ReactNode; style?: StyleProp<ViewStyle>; band?: boolean }) {
   return (
-    <View style={[{ paddingHorizontal: 20, marginTop: 40 }, style]}>
+    <View style={[band ? styles.band : styles.plain, style]}>
       {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
-      {title ? <Title size={24}>{title}</Title> : null}
-      <View style={{ marginTop: title ? 16 : 0 }}>{children}</View>
+      {title ? <Title size={26}>{title}</Title> : null}
+      <View style={{ marginTop: title ? 18 : 0 }}>{children}</View>
     </View>
   );
 }
@@ -175,6 +179,13 @@ export function ErrorNote({ message, onRetry }: { message: string; onRetry: () =
 }
 
 export const styles = StyleSheet.create({
+  plain: { paddingHorizontal: 20, paddingTop: 44, paddingBottom: 8 },
+  band: {
+    paddingHorizontal: 20, paddingTop: 36, paddingBottom: 36, marginTop: 40,
+    backgroundColor: '#f3e9e6',
+    borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(166,75,67,0.10)',
+  },
   eyebrow: {
     color: C.wine,
     fontFamily: sans,

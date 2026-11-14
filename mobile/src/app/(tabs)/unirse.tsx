@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Linking, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { HumanCheck } from '@/components/human-check';
 import { Button, Card, Screen, Eyebrow, Title, styles as ui } from '@/components/ui';
 import { C, SITE_URL, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
+import { DEFAULT_DIAL, DIAL_CODES, flag } from '@/lib/dial-codes';
 import { formOptions } from '@/lib/form-options';
+import { WheelPicker } from '@/components/wheel-picker';
 
 type FieldName = 'nombre' | 'apellido' | 'email' | 'telefono' | 'fecha_nacimiento' | 'estatus_matrimonial' | 'pais_nacimiento' | 'pais_residencia' | 'cristiana' | 'comunidad' | 'hijos' | 'comments';
 type FormValues = Record<FieldName, string>;
@@ -24,30 +26,27 @@ function Field({ label, value, onChangeText, placeholder, keyboardType, multilin
 }
 
 function Choice({ label, value, options, onSelect }: { label: string; value: string; options: readonly string[]; onSelect: (value: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const filtered = options.filter((option) => option.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   return <View style={s.field}>
     <Text style={s.label}>{label}</Text>
-    <Pressable accessibilityRole="button" onPress={() => { setQuery(''); setOpen(true); }} style={s.select}>
-      <Text style={[s.selectValue, !value && { color: '#a58e88' }]}>{value || 'Selecciona una opción'}</Text>
-      <Ionicons name="chevron-down" size={18} color={C.wine} />
-    </Pressable>
-    <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-      <View style={s.sheetBackdrop}>
-        <View style={s.sheet}>
-          <View style={s.sheetHead}><Text style={s.sheetTitle}>{label}</Text><Pressable accessibilityRole="button" accessibilityLabel="Cerrar opciones" onPress={() => setOpen(false)} style={s.close}><Ionicons name="close" size={21} color={C.ink} /></Pressable></View>
-          <TextInput value={query} onChangeText={setQuery} placeholder="Buscar" placeholderTextColor="#a58e88" autoCapitalize="none" style={s.search} />
-          <ScrollView style={s.optionList} keyboardShouldPersistTaps="handled">
-            {filtered.map((option) => <Pressable key={option} onPress={() => { onSelect(option); setOpen(false); }} style={[s.optionRow, value === option && s.optionSelected]}>
-              <Text style={[s.optionText, value === option && { color: C.wine, fontWeight: '700' }]}>{option}</Text>
-              {value === option ? <Ionicons name="checkmark" size={20} color={C.wine} /> : null}
-            </Pressable>)}
-            {!filtered.length ? <Text style={s.noOptions}>No encontramos esa opción.</Text> : null}
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    <WheelPicker title={label} value={value} options={options.map((o) => ({ value: o, label: o }))} onChange={onSelect} />
+  </View>;
+}
+
+/** Phone number with a country dialling-code wheel (flag + code), like the website. */
+function PhoneField({ dial, onDial, value, onChangeText }: { dial: string; onDial: (iso: string) => void; value: string; onChangeText: (v: string) => void }) {
+  return <View style={s.field}>
+    <Text style={s.label}>Teléfono</Text>
+    <View style={{ flexDirection: 'row', gap: 8 }}>
+      <WheelPicker
+        title="Código de país"
+        value={dial}
+        options={DIAL_CODES.map((c) => ({ value: c.iso, label: `${flag(c.iso)}  ${c.name}  +${c.code}` }))}
+        renderValue={(o) => { const c = DIAL_CODES.find((d) => d.iso === o?.value); return c ? `${flag(c.iso)} +${c.code}` : ''; }}
+        onChange={onDial}
+        style={{ width: 118, flexShrink: 0 }}
+      />
+      <TextInput value={value} onChangeText={(v) => onChangeText(v.replace(/[^\d\s]/g, ''))} placeholder="Número" placeholderTextColor="#a58e88" keyboardType="phone-pad" inputMode="tel" textContentType="telephoneNumber" style={[s.input, { flex: 1, minWidth: 0 }]} />
+    </View>
   </View>;
 }
 
@@ -55,16 +54,20 @@ export default function Unirse() {
   const [form, setForm] = useState(initial);
   const [sending, setSending] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [dial, setDial] = useState(DEFAULT_DIAL.iso);
+  const dialCode = DIAL_CODES.find((c) => c.iso === dial)?.code ?? DEFAULT_DIAL.code;
+  // Full international number: +<code><digits>, without a leading trunk 0.
+  const fullPhone = () => `+${dialCode}${form.telefono.replace(/\D/g, '').replace(/^0+/, '')}`;
   const set = (key: FieldName) => (value: string) => setForm((current) => ({ ...current, [key]: value }));
 
   async function send() {
     const nombre = form.nombre.trim();
     const apellido = form.apellido.trim();
     const email = form.email.trim().toLowerCase();
-    const telefono = form.telefono.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+    const telefono = fullPhone();
     if (nombre.length < 2 || apellido.length < 2) return Alert.alert('Revisa tu nombre', 'Escribe tu nombre y apellido completos.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return Alert.alert('Correo no válido', 'Escribe un correo electrónico válido.');
-    if (!/^\+?\d{7,15}$/.test(telefono)) return Alert.alert('Teléfono no válido', 'Incluye el código de país y al menos 7 dígitos.');
+    if (!/^\+?\d{7,15}$/.test(telefono)) return Alert.alert('Teléfono no válido', 'Revisa el código de país y escribe al menos 7 dígitos.');
     if (!form.fecha_nacimiento) return Alert.alert('Fecha requerida', 'Indica tu fecha de nacimiento.');
     const birth = new Date(`${form.fecha_nacimiento}T00:00:00`);
     const age = new Date().getFullYear() - birth.getFullYear() - ((new Date().getMonth() < birth.getMonth() || (new Date().getMonth() === birth.getMonth() && new Date().getDate() < birth.getDate())) ? 1 : 0);
@@ -84,7 +87,7 @@ export default function Unirse() {
     const nombre = form.nombre.trim();
     const apellido = form.apellido.trim();
     const email = form.email.trim().toLowerCase();
-    const telefono = form.telefono.replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+    const telefono = fullPhone();
     setSending(true);
     try {
       await api.submitJoin({ turnstileToken, id: createId(), action: 'register', nombre, apellido, email, telefono, fecha_nacimiento: form.fecha_nacimiento, estatus_matrimonial: form.estatus_matrimonial, pais_nacimiento: form.pais_nacimiento, pais_residencia: form.pais_residencia, cristiana: form.cristiana, comunidad: form.comunidad, comments: form.comments.trim(), hijos: form.hijos || '0' });
@@ -114,7 +117,7 @@ export default function Unirse() {
           <Field label="Nombre" value={form.nombre} onChangeText={set('nombre')} />
           <Field label="Apellido" value={form.apellido} onChangeText={set('apellido')} />
           <Field label="Correo electrónico" value={form.email} onChangeText={set('email')} keyboardType="email-address" inputMode="email" autoCapitalize="none" />
-          <Field label="Teléfono con código de país" value={form.telefono} onChangeText={set('telefono')} keyboardType="phone-pad" inputMode="tel" autoCapitalize="none" />
+          <PhoneField dial={dial} onDial={setDial} value={form.telefono} onChangeText={set('telefono')} />
           <Field label="Fecha de nacimiento" value={form.fecha_nacimiento} onChangeText={set('fecha_nacimiento')} placeholder="AAAA-MM-DD" inputMode="numeric" autoCapitalize="none" />
           <Choice label="Estatus matrimonial" value={form.estatus_matrimonial} options={formOptions.maritalStatuses} onSelect={set('estatus_matrimonial')} />
         </Card>
@@ -167,18 +170,5 @@ const s = StyleSheet.create({
   label: { fontSize: 13, color: C.ink, fontWeight: '600' },
   input: { minHeight: 50, borderRadius: 13, borderWidth: 1, borderColor: 'rgba(28,17,23,0.13)', backgroundColor: '#fffaf9', paddingHorizontal: 14, color: C.ink, fontSize: 15 },
   textarea: { minHeight: 100, paddingTop: 13, textAlignVertical: 'top' },
-  select: { minHeight: 50, borderRadius: 13, borderWidth: 1, borderColor: 'rgba(28,17,23,0.13)', backgroundColor: '#fffaf9', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  selectValue: { color: C.ink, fontSize: 15, flex: 1 },
-  sheetBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(25,14,16,0.46)' },
-  sheet: { height: '82%', backgroundColor: C.ivory, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 20, paddingHorizontal: 20, paddingBottom: 12 },
-  sheetHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  sheetTitle: { color: C.ink, fontFamily: sans, fontWeight: '700', letterSpacing: -0.4, fontSize: 20, flex: 1 },
-  close: { width: 38, height: 38, borderRadius: 19, backgroundColor: C.sand, alignItems: 'center', justifyContent: 'center' },
-  search: { height: 48, borderRadius: 13, borderWidth: 1, borderColor: 'rgba(28,17,23,0.13)', backgroundColor: '#fff', paddingHorizontal: 14, color: C.ink, fontSize: 15, marginBottom: 10 },
-  optionList: { flex: 1 },
-  optionRow: { minHeight: 50, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  optionSelected: { backgroundColor: C.sand },
-  optionText: { color: C.ink, fontSize: 15 },
-  noOptions: { color: C.muted, fontSize: 14, padding: 18, textAlign: 'center' },
   footnote: { color: C.muted, fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: -4, marginBottom: 20 },
 });

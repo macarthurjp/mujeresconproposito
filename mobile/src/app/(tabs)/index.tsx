@@ -83,7 +83,7 @@ export default function Home() {
       </View>
 
       {/* About */}
-      <Section eyebrow="Nosotras" title="¿Quiénes somos?">
+      <Section eyebrow="Nosotras" title="¿Quiénes somos?" band>
         <Text style={ui.body}>Nuestra misión, visión y propósito</Text>
         <Text style={[ui.body, { marginTop: 12 }]}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
       </Section>
@@ -98,7 +98,7 @@ export default function Home() {
       </Section>
 
       {/* Ministry */}
-      <Section eyebrow="Ministerio" title="Lo que hacemos">
+      <Section eyebrow="Ministerio" title="Lo que hacemos" band>
         <Text style={[ui.body, { marginBottom: 18 }]}>Espacios para crecer en la fe, encontrarnos y acompañarnos en oración.</Text>
         <View style={s.ministryGrid}>{[
           { icon: 'book-cross', title: 'Devocionales', copy: 'Reflexiones semanales para fortalecer tu caminar con Dios.', action: () => router.push('/(tabs)/devocionales') },
@@ -131,7 +131,7 @@ export default function Home() {
       </View>
 
       {/* Agenda: same place as Eventos on the website: after Únete, before YouTube; the next activities in the viewer's local time */}
-      <Section eyebrow="Agenda" title="Próximas actividades">
+      <Section eyebrow="Agenda" title="Próximas actividades" band>
         {eventos.error ? <ErrorNote message={eventos.error} onRetry={eventos.reload} /> : null}
         {eventos.data ? <Agenda eventos={eventos.data} /> : null}
       </Section>
@@ -162,7 +162,7 @@ export default function Home() {
       </View>
 
       {/* Donations */}
-      <Section eyebrow="Siembra con nosotras" title="Apoya nuestra misión">
+      <Section eyebrow="Siembra con nosotras" title="Apoya nuestra misión" band>
         <Text style={ui.body}>Tu generosidad nos permite seguir compartiendo esperanza, fe y propósito con mujeres alrededor del mundo. Cada aporte es una semilla que Dios multiplica.</Text>
         <Text style={s.donateVerse}>“Cada uno dé como propuso en su corazón; no con tristeza, ni por obligación, porque Dios ama al dador alegre.” — 2 Corintios 9:7</Text>
         <Button label="Quiero aportar" icon="heart-outline" onPress={() => router.push('/aportar')} style={{ alignSelf: 'flex-start', marginTop: 16 }} />
@@ -183,7 +183,7 @@ export default function Home() {
       </Section>
 
       {/* SoundCloud */}
-      <Section eyebrow="Celebramos juntas" title="Cumpleaños">
+      <Section eyebrow="Celebramos juntas" title="Cumpleaños" band>
         {birthdays.error ? <ErrorNote message={birthdays.error} onRetry={birthdays.reload} /> : null}
         {birthdays.data?.cumpleanerasHoy?.length ? (
           <Card style={s.birthdayToday}>
