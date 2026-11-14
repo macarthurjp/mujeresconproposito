@@ -1701,3 +1701,111 @@ body.theme-premium {
 /* Events: breathing room between schedule and button */
 .theme-premium #events #eventsGrid .card > p { margin: 0 0 24px !important; }
 .theme-premium #events #eventsGrid .card > a.btn { margin-top: auto !important; }
+
+/* =====================================================================
+   MODALS: Únete + Donar
+   ===================================================================== */
+/* Remove the hard-coded "Comunidad Mujeres con Propósito" strip that sat on top of the close button */
+.theme-premium .modal-content::before,
+.theme-premium .join-modal-content::before { content: none !important; display: none !important; }
+
+.theme-premium :is(.modal-content, .join-modal-content) .close-btn,
+.theme-premium :is(.modal-content, .join-modal-content) .close-modal {
+  width: 40px !important; height: 40px !important;
+  display: inline-flex !important; align-items: center; justify-content: center;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(63, 38, 35, 0.12) !important;
+  color: var(--p-ink) !important;
+  font-size: 1.4rem !important; line-height: 1 !important;
+  box-shadow: 0 4px 14px rgba(63, 38, 35, 0.1) !important;
+  z-index: 5;
+}
+
+/* Join header: brand solid, no stray symbol */
+.theme-premium .join-modal-premium-head {
+  background: linear-gradient(150deg, #b5564d, #8f3f38) !important;
+}
+.theme-premium .join-modal-premium-head::after { opacity: 0.5; }
+.theme-premium .join-modal-premium-head h3 { color: #fff !important; -webkit-text-fill-color: #fff !important; }
+.theme-premium .join-modal-premium-badge { font-family: var(--p-sans) !important; font-weight: 700 !important; letter-spacing: 0.16em !important; }
+.theme-premium .join-section-title { font-family: var(--p-sans) !important; font-weight: 700 !important; letter-spacing: 0.12em !important; color: var(--p-wine) !important; }
+.theme-premium .join-form-premium label { font-weight: 600 !important; color: var(--p-ink) !important; }
+.theme-premium .join-form-premium :is(input, select, textarea) {
+  border-radius: 14px !important;
+  border: 1px solid rgba(63, 38, 35, 0.16) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.theme-premium .join-form-premium :is(input, select, textarea):focus {
+  outline: none !important;
+  border-color: var(--p-wine) !important;
+  box-shadow: 0 0 0 4px rgba(166, 75, 67, 0.12) !important;
+}
+.theme-premium .join-form-premium button[type="submit"],
+.theme-premium #joinForm button[type="submit"] {
+  width: 100%;
+  min-height: 54px !important;
+  border-radius: 999px !important;
+  background: var(--p-wine) !important;
+  background-image: none !important;
+  color: #fff !important;
+  font-weight: 650 !important;
+  border: 0 !important;
+  box-shadow: 0 12px 30px rgba(166, 75, 67, 0.26) !important;
+}
+
+/* Donate modal */
+.theme-premium #donateModal .modal-content { max-width: 560px !important; }
+.theme-premium #donateModal h2 { font-size: clamp(2rem, 4vw, 2.6rem) !important; margin-bottom: 6px !important; }
+.theme-premium #donateModal .donate-subtitle { color: var(--p-muted) !important; margin-bottom: 22px !important; }
+.theme-premium #donateModal .donate-amounts {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin: 0 0 18px !important;
+}
+.theme-premium #donateModal .donate-amounts .amount {
+  min-height: 54px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  border-radius: 14px !important;
+}
+.theme-premium #donateModal .donate-custom label { font-weight: 600 !important; color: var(--p-ink) !important; }
+.theme-premium #donateModal #customDonateAmount {
+  min-height: 52px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(63, 38, 35, 0.16) !important;
+  box-shadow: none !important;
+}
+.theme-premium #donateModal #customDonateAmount:focus { border-color: var(--p-wine) !important; box-shadow: 0 0 0 4px rgba(166, 75, 67, 0.12) !important; outline: none !important; }
+.theme-premium #donate-button-container { width: 100% !important; max-width: none !important; }
+.theme-premium #donate-button-helper {
+  background: none !important; border: 0 !important; box-shadow: none !important;
+  color: var(--p-muted) !important; font-weight: 500 !important; padding: 0 !important; margin: 6px 0 12px !important;
+}
+.theme-premium #donate-button,
+.theme-premium #donate-button button,
+.theme-premium #donate-button a {
+  border-radius: 999px !important;
+  background: var(--p-wine) !important;
+  background-image: none !important;
+  box-shadow: 0 12px 30px rgba(166, 75, 67, 0.26) !important;
+}
+.theme-premium #donate-button::before { content: none !important; }
+.theme-premium .paypal-qr-card {
+  border-radius: 20px !important;
+  border: 1px solid rgba(166, 75, 67, 0.12) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.theme-premium .paypal-qr-image { max-width: 220px !important; margin: 0 auto !important; display: block; }
+.theme-premium .paypal-qr-caption { color: var(--p-muted) !important; font-weight: 500 !important; }
+@media (max-width: 520px) {
+  .theme-premium #donateModal .donate-amounts { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+/* Elements hidden via the hidden attribute always stay hidden */
+.theme-premium [hidden] { display: none !important; }
