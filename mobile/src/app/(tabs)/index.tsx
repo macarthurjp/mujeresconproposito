@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Agenda } from '@/components/agenda';
 import { Button, Card, Eyebrow, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
 import { C, TAB_BAR_SPACE, serif, SOUNDCLOUD_URL, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
@@ -28,6 +29,7 @@ export default function Home() {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const posterWidth = screenWidth - 48;
+  const eventos = useAsync(api.eventos);
   const destacadas = useAsync(api.destacadas);
   const galeria = useAsync(api.galeria);
   const videos = useAsync(api.videos);
@@ -53,20 +55,22 @@ export default function Home() {
           </View>
         </View>
         <Eyebrow>Comunidad cristiana internacional</Eyebrow>
-        <Title size={42} editorial>
+        <Title size={34} editorial>
           Bienvenida a <Text style={{ fontStyle: 'italic', color: C.wine }}>Mujeres</Text> con Propósito
         </Title>
         <Text style={s.heroCopy}>
           Un espacio donde la fe, la hermandad y el propósito se unen para transformar vidas.
         </Text>
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 24, flexWrap: 'wrap' }}>
+        <View style={{ flexDirection: 'row', marginTop: 20 }}>
           <Button label="Únete a la comunidad" icon="person-add-outline" variant="primary" onPress={() => router.push('/(tabs)/unirse')} />
-          <Pressable onPress={() => router.push('/eventos')} style={s.heroLink}><Text style={s.heroLinkText}>Ver actividades</Text><Ionicons name="arrow-forward" size={16} color={C.wine} /></Pressable>
-        </View>
-        <View style={s.heroStats}>
-          {[['Fe', 'Devocionales y oración'], ['Comunidad', 'Mujeres creciendo juntas'], ['Propósito', 'Encuentros y enseñanzas']].map(([label, note]) => <View key={label} style={s.heroStat}><Text style={s.heroStatTitle}>{label}</Text><Text style={s.heroStatText}>{note}</Text></View>)}
         </View>
       </View>
+
+      {/* Agenda: the next activities in the viewer's local time */}
+      <Section eyebrow="Agenda" title="Próximas actividades">
+        {eventos.error ? <ErrorNote message={eventos.error} onRetry={eventos.reload} /> : null}
+        {eventos.data ? <Agenda eventos={eventos.data} /> : null}
+      </Section>
 
       {/* Destacadas — first content section, matching the website */}
       {destacadas.data?.length ? (
@@ -230,18 +234,12 @@ export default function Home() {
 }
 
 const s = StyleSheet.create({
-  hero: { backgroundColor: '#f9e1dc', paddingHorizontal: 22, paddingBottom: 36, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 32 },
+  hero: { backgroundColor: '#f9e1dc', paddingHorizontal: 22, paddingBottom: 26, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 22 },
   mark: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', backgroundColor: '#fff7f5', alignItems: 'center', justifyContent: 'center' },
   brand: { fontFamily: serif, color: C.ink, fontSize: 18 },
   brandSub: { color: C.muted, fontSize: 10, letterSpacing: 2, marginTop: 2 },
-  heroCopy: { color: C.muted, fontSize: 16, lineHeight: 24, marginTop: 14 },
-  heroLink: { minHeight: 50, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  heroLinkText: { color: C.wine, fontSize: 14, fontWeight: '700' },
-  heroStats: { flexDirection: 'row', marginTop: 28, gap: 8 },
-  heroStat: { flex: 1, borderLeftWidth: 2, borderLeftColor: C.rose, paddingLeft: 8 },
-  heroStatTitle: { color: C.ink, fontSize: 12, fontWeight: '800' },
-  heroStatText: { color: C.muted, fontSize: 10, lineHeight: 14, marginTop: 4 },
+  heroCopy: { color: C.muted, fontSize: 16, lineHeight: 23, marginTop: 10 },
   verse: { marginTop: 44, paddingHorizontal: 28, alignItems: 'center' },
   quote: { fontFamily: serif, fontSize: 64, lineHeight: 64, color: C.gold, height: 44 },
   verseText: { fontFamily: serif, fontStyle: 'italic', fontSize: 22, lineHeight: 30, color: C.ink, textAlign: 'center' },
