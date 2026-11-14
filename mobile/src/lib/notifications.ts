@@ -28,6 +28,18 @@ export async function configureNotificationChannels() {
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#7a2e42',
     });
+    // Meeting-start channel: own chime and a stronger vibration pattern.
+    // (Android channel sound/vibration can't change after creation, hence a new id.)
+    await Notifications.setNotificationChannelAsync('reuniones-en-vivo', {
+      name: 'Reunión en vivo',
+      description: 'Aviso cuando una reunión acaba de empezar',
+      // eslint-disable-next-line import/namespace -- re-exported enum
+      importance: Notifications.AndroidImportance.MAX,
+      sound: 'reunion.wav',
+      vibrationPattern: [0, 400, 200, 400, 200, 800],
+      enableVibrate: true,
+      lightColor: '#a64b43',
+    });
   }
   // "Unirme" button on the notification itself (long-press on iOS, expand on Android).
   await Notifications.setNotificationCategoryAsync(MEETING_CATEGORY, [

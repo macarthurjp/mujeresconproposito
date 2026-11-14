@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { useEffect, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useEffect, useRef, useState } from 'react';
 import { AppState, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,6 +47,16 @@ export function LiveBanner() {
     }
     return null;
   })();
+
+  // Buzz once when a meeting goes live while the app is open (iOS haptics).
+  const announced = useRef<string | null>(null);
+  const liveKey = live?.key ?? null;
+  useEffect(() => {
+    if (liveKey && announced.current !== liveKey && Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    }
+    announced.current = liveKey;
+  }, [liveKey]);
 
   if (!live) return null;
 

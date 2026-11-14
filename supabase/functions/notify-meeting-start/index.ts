@@ -166,9 +166,12 @@ Deno.serve(async (req) => {
         const messages = batch.map((to) => ({
           to,
           ...content,
-          sound: "default",
+          // Start: own chime + live channel (stronger vibration on Android).
+          sound: kind === "start" ? "reunion.wav" : "default",
           priority: "high",
-          channelId: "reuniones",
+          channelId: kind === "start" ? "reuniones-en-vivo" : "reuniones",
+          // iOS: stands out on the lock screen and breaks through Focus.
+          interruptionLevel: "time-sensitive",
           categoryId: kind === "start" && link ? "meeting" : undefined,
           data: { type: kind === "start" ? "meeting_start" : "meeting_soon", eventoId: evento.id, titulo, link, inicio: inicio.toISOString() },
         }));

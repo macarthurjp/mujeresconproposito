@@ -10,7 +10,10 @@
     "ios": {
       "bundleIdentifier": "org.mcp930.app",
       "supportsTablet": true,
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "entitlements": {
+        "com.apple.developer.usernotifications.time-sensitive": true
+      }
     },
     "android": {
       "package": "org.mcp930.app",
@@ -39,7 +42,10 @@
         {
           "color": "#7A2E42",
           "defaultChannel": "reuniones",
-          "enableRemoteNotifications": true
+          "enableRemoteNotifications": true,
+          "sounds": [
+            "./assets/sounds/reunion.wav"
+          ]
         }
       ],
       "@react-native-community/datetimepicker"
