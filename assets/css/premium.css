@@ -1667,3 +1667,37 @@ body.theme-premium {
     font-size: clamp(2rem, 9vw, 2.6rem) !important;
   }
 }
+
+/* Safari draws faint layer seams on elements that keep a transform.
+   The legacy .reveal script leaves one behind; neutralize it. */
+.theme-premium .reveal:not(.p-reveal),
+.theme-premium .reveal.visible:not(.p-reveal),
+.theme-premium .verse-block,
+.theme-premium .verse-block.enhanced,
+.theme-premium .invitees-track,
+.theme-premium #timeline.timeline-section {
+  transform: none !important;
+  opacity: 1 !important;
+  will-change: auto !important;
+}
+.theme-premium .p-reveal.p-in { transform: none !important; will-change: auto !important; }
+
+/* Destacadas: three portraits per row on desktop (JS sets 2 inline) */
+.theme-premium #inviteesTrack > .card {
+  flex: 0 0 calc(33.333% - 16px) !important;
+  width: calc(33.333% - 16px) !important;
+  min-width: calc(33.333% - 16px) !important;
+  max-width: calc(33.333% - 16px) !important;
+}
+.theme-premium #inviteesTrack > .card img { aspect-ratio: 4 / 5 !important; max-height: 460px; }
+.theme-premium #inviteesTrack > .card h3 { font-size: 1.45rem !important; margin: 0 0 4px !important; }
+@media (max-width: 960px) {
+  .theme-premium #inviteesTrack > .card { flex-basis: calc(50% - 12px) !important; width: calc(50% - 12px) !important; min-width: calc(50% - 12px) !important; max-width: calc(50% - 12px) !important; }
+}
+@media (max-width: 600px) {
+  .theme-premium #inviteesTrack > .card { flex-basis: 82% !important; width: 82% !important; min-width: 82% !important; max-width: 82% !important; }
+}
+
+/* Events: breathing room between schedule and button */
+.theme-premium #events #eventsGrid .card > p { margin: 0 0 24px !important; }
+.theme-premium #events #eventsGrid .card > a.btn { margin-top: auto !important; }
