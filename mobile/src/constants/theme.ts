@@ -2,18 +2,18 @@ import { Platform } from 'react-native';
 
 // Same palette as the website's premium layer (assets/css/premium.css).
 export const C = {
-  ink: '#1c1117',
-  plum: '#3d1a2b',
-  wine: '#7a2e42',
-  rose: '#d69aa0',
-  blush: '#f4e4e1',
+  ink: '#3f2623',
+  plum: '#f3d5d1',
+  wine: '#a64b43',
+  rose: '#e7a8a0',
+  blush: '#f9e4e0',
   gold: '#c9a46b',
-  gold2: '#e3c995',
-  ivory: '#fbf8f4',
-  sand: '#f3ece4',
+  gold2: '#b8864a',
+  ivory: '#fff7f6',
+  sand: '#f9edea',
   paper: '#ffffff',
-  text: '#2b2026',
-  muted: '#6f6168',
+  text: '#3f2623',
+  muted: '#6d5250',
   line: 'rgba(28,17,23,0.09)',
   live: '#d64545',
 };

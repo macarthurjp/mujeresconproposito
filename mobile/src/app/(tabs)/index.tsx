@@ -53,16 +53,16 @@ export default function Home() {
             <Text style={s.brandSub}>930 A.S.B.L.</Text>
           </View>
         </View>
-        <Eyebrow light>Comunidad cristiana internacional</Eyebrow>
-        <Title light size={42}>
-          Bienvenida a <Text style={{ fontStyle: 'italic', color: C.gold2 }}>Mujeres</Text> con Propósito
+        <Eyebrow>Comunidad cristiana internacional</Eyebrow>
+        <Title size={42}>
+          Bienvenida a <Text style={{ fontStyle: 'italic', color: C.wine }}>Mujeres</Text> con Propósito
         </Title>
         <Text style={s.heroCopy}>
           Un espacio donde la fe, la hermandad y el propósito se unen para transformar vidas.
         </Text>
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 24, flexWrap: 'wrap' }}>
-          <Button label="Reuniones" icon="videocam" variant="gold" onPress={() => router.push('/eventos')} />
-          <Button label="Únete" variant="light" onPress={() => Linking.openURL('https://mcp930.org/#join')} />
+          <Button label="Reuniones" icon="videocam" variant="primary" onPress={() => router.push('/eventos')} />
+          <Button label="Únete" variant="ghost" onPress={() => Linking.openURL('https://mcp930.org/#join')} />
         </View>
       </View>
 
@@ -152,12 +152,12 @@ export default function Home() {
 }
 
 const s = StyleSheet.create({
-  hero: { backgroundColor: C.ink, paddingHorizontal: 22, paddingBottom: 36, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 },
+  hero: { backgroundColor: '#f9e1dc', paddingHorizontal: 22, paddingBottom: 36, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 32 },
   mark: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', backgroundColor: '#fff7f5', alignItems: 'center', justifyContent: 'center' },
-  brand: { fontFamily: serif, color: '#fff', fontSize: 18 },
-  brandSub: { color: 'rgba(255,255,255,0.6)', fontSize: 10, letterSpacing: 2, marginTop: 2 },
-  heroCopy: { color: 'rgba(255,255,255,0.72)', fontSize: 16, lineHeight: 24, marginTop: 14 },
+  brand: { fontFamily: serif, color: C.ink, fontSize: 18 },
+  brandSub: { color: C.muted, fontSize: 10, letterSpacing: 2, marginTop: 2 },
+  heroCopy: { color: C.muted, fontSize: 16, lineHeight: 24, marginTop: 14 },
   verse: { marginTop: 44, paddingHorizontal: 28, alignItems: 'center' },
   quote: { fontFamily: serif, fontSize: 64, lineHeight: 64, color: C.gold, height: 44 },
   verseText: { fontFamily: serif, fontStyle: 'italic', fontSize: 22, lineHeight: 30, color: C.ink, textAlign: 'center' },

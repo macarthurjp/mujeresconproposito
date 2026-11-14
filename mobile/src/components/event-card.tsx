@@ -19,11 +19,12 @@ export function eventStatus(evento: Evento, now = new Date()) {
 }
 
 function formatNext(date: Date) {
-  return new Intl.DateTimeFormat('es', {
+  const text = new Intl.DateTimeFormat('es', {
     weekday: 'long',
     hour: 'numeric',
     minute: '2-digit',
   }).format(date);
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export function EventCard({ evento, now }: { evento: Evento; now: Date }) {
@@ -71,7 +72,7 @@ const s = StyleSheet.create({
   icon: { width: 48, height: 48, borderRadius: 14, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: serif, fontSize: 21, color: C.ink, marginBottom: 4 },
   meta: { color: C.muted, fontSize: 14 },
-  next: { color: C.wine, fontSize: 13, marginTop: 6, fontWeight: '600', textTransform: 'capitalize' },
+  next: { color: C.wine, fontSize: 13, marginTop: 6, fontWeight: '600' },
   livePill: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', backgroundColor: '#fde8e8', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 8 },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.live },
   liveText: { color: C.live, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
