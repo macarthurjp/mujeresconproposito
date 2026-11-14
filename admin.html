@@ -208,6 +208,23 @@
                 <small class="admin-yt-help">Enlace de la reunión, transmisión o más información.</small>
               </label>
 
+              <div class="admin-evt-row">
+                <label><span><i class="fa-solid fa-earth-americas" aria-hidden="true"></i> Zona horaria</span>
+                  <select id="adminEventoZona">
+                    <option value="Europe/Luxembourg">Europa — Luxemburgo / Bélgica / París / Madrid (CET)</option>
+                    <option value="Europe/London">Europa — Londres / Lisboa</option>
+                    <option value="America/New_York">EE.UU. — Este (Nueva York, Miami)</option>
+                    <option value="America/Chicago">EE.UU. — Centro (Chicago, Houston)</option>
+                    <option value="America/Denver">EE.UU. — Montaña (Denver)</option>
+                    <option value="America/Los_Angeles">EE.UU. — Pacífico (Los Ángeles)</option>
+                    <option value="America/Santo_Domingo">República Dominicana / Puerto Rico</option>
+                  </select>
+                </label>
+                <label class="admin-check-inline"><span><i class="fa-regular fa-bell" aria-hidden="true"></i> Notificación push</span>
+                  <span><input type="checkbox" id="adminEventoNotificar" checked /> Avisar en la app cuando empiece la reunión</span>
+                </label>
+              </div>
+
               <label><span><i class="fa-solid fa-arrow-up-short-wide" aria-hidden="true"></i> Orden</span>
                 <div class="admin-yt-stepper">
                   <button type="button" class="admin-yt-stepper-btn" data-evt-step="-1" aria-label="Disminuir orden">−</button>

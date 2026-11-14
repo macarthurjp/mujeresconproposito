@@ -2614,7 +2614,19 @@ function renderContactCalendar(apiData = {}) {
     return fotoUrl;
   };
 
-  window.mcpSaveEvento = async function ({ icono, titulo, horario, link, orden, activa }) {
+  // Time zones offered for events; the push-notification function uses them to
+  // know when a recurring meeting actually starts.
+  const MCP_EVENT_TIMEZONES = window.MCP_EVENT_TIMEZONES = [
+    ["Europe/Luxembourg", "Europa — Luxemburgo / Bélgica / París / Madrid (CET)"],
+    ["Europe/London", "Europa — Londres / Lisboa"],
+    ["America/New_York", "EE.UU. — Este (Nueva York, Miami)"],
+    ["America/Chicago", "EE.UU. — Centro (Chicago, Houston)"],
+    ["America/Denver", "EE.UU. — Montaña (Denver)"],
+    ["America/Los_Angeles", "EE.UU. — Pacífico (Los Ángeles)"],
+    ["America/Santo_Domingo", "República Dominicana / Puerto Rico"]
+  ];
+
+  window.mcpSaveEvento = async function ({ icono, titulo, horario, link, orden, activa, zona_horaria, notificar }) {
     const client = getAdminSupabaseClient();
     const { error } = await client.from("eventos").insert({
       icono: icono || "✦",
@@ -2622,7 +2634,9 @@ function renderContactCalendar(apiData = {}) {
       horario,
       link,
       orden: Number(orden || 1),
-      activa: activa !== false
+      activa: activa !== false,
+      zona_horaria: zona_horaria || "Europe/Luxembourg",
+      notificar: notificar !== false
     });
     if (error) throw error;
     return true;
@@ -3303,6 +3317,8 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "titulo", label: "Título", value: row.titulo || "" },
 	        { name: "horario", label: "Horario", type: "schedule", value: row.horario || "" },
 	        { name: "link", label: "Link", value: row.link || "" },
+	        { name: "zona_horaria", label: "Zona horaria", type: "select-options", options: window.MCP_EVENT_TIMEZONES || [["Europe/Luxembourg", "Europa (CET)"]], value: row.zona_horaria || "Europe/Luxembourg" },
+	        { name: "notificar", label: "Notificación push al empezar", type: "select-options", options: [["true", "Sí, avisar en la app"], ["false", "No avisar"]], value: row.notificar === false ? "false" : "true" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
 	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
 	      ];
@@ -3352,6 +3368,17 @@ function renderContactCalendar(apiData = {}) {
 	          <h3>Editar ${escapeHtml(typeLabel)}</h3>
 	          <form class="admin-edit-form">
 	            ${fields.map((field) => {
+	              if (field.type === "select-options") {
+	                return `
+	                  <label>
+	                    <span>${escapeHtml(field.label)}</span>
+	                    <select name="${escapeHtml(field.name)}">
+	                      ${(field.options || []).map(([value, label]) => `<option value="${escapeHtml(value)}" ${String(field.value) === String(value) ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}
+	                    </select>
+	                  </label>
+	                `;
+	              }
+
 	              if (field.type === "select") {
 	                return `
 	                  <label>
@@ -3537,6 +3564,8 @@ function renderContactCalendar(apiData = {}) {
 	        titulo: values.titulo || "",
 	        horario: formatTimeForDisplay(values.horario),
 	        link: values.link || "",
+	        zona_horaria: values.zona_horaria || row.zona_horaria || "Europe/Luxembourg",
+	        notificar: values.notificar !== "false",
 	        orden: Number(values.orden || 1),
 	        activa: values.activa !== "false"
 	      });
@@ -4569,7 +4598,9 @@ function renderContactCalendar(apiData = {}) {
         horario: getAdminEventScheduleFromForm(),
         link: document.getElementById("adminEventoLink")?.value || "",
         activa: document.getElementById("adminEventoActiva")?.checked !== false,
-        orden: document.getElementById("adminEventoOrden")?.value || 1
+        orden: document.getElementById("adminEventoOrden")?.value || 1,
+        zona_horaria: document.getElementById("adminEventoZona")?.value || "Europe/Luxembourg",
+        notificar: document.getElementById("adminEventoNotificar")?.checked !== false
 	      });
 
 	      this.reset();
