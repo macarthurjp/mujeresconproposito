@@ -117,6 +117,24 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, message: "Correo del Super Admin actualizado." });
     }
 
+    // Super Admins can't edit their own role, but may opt in/out of the
+    // birthday reminder on their own account (it grants no extra access).
+    if (action === "set_my_birthday_calendar") {
+      const enabled = Boolean(body.enabled);
+      const { data: ownRole, error: ownError } = await admin.from("user_roles").select("permissions").eq("user_id", requester.id).single();
+      if (ownError) throw ownError;
+      const current: string[] = Array.isArray(ownRole?.permissions) ? ownRole.permissions : ["read_only"];
+      const next = enabled
+        ? Array.from(new Set([...current, "birthday_calendar"]))
+        : current.filter((p) => p !== "birthday_calendar");
+      const { error } = await admin.from("user_roles").update({
+        permissions: next,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", requester.id);
+      if (error) throw error;
+      return jsonResponse({ ok: true, message: enabled ? "Recibirás el aviso de cumpleaños." : "Ya no recibirás el aviso de cumpleaños." });
+    }
+
     const userId = String(body.userId || "");
     if (!userId) return jsonResponse({ ok: false, error: "Usuario requerido." }, 400);
 

@@ -4093,7 +4093,7 @@ function renderContactCalendar(apiData = {}) {
 	    };
 	  }
 
-	  function adminPermissionCheckboxes(access, { forceDisabled } = {}) {
+	  function adminPermissionCheckboxes(access, { forceDisabled, birthdayEditable } = {}) {
 	    const isSuperAdmin = Boolean(access?.is_super_admin);
 	    const permissions = Array.isArray(access?.permissions) ? access.permissions : [];
 	    const otherDisabled = forceDisabled || isSuperAdmin ? "disabled" : "";
@@ -4102,7 +4102,7 @@ function renderContactCalendar(apiData = {}) {
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="editor" ${permissions.includes("editor") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Editor de devocionales</label>
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer" ${permissions.includes("reviewer") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Revisor de devocionales</label>
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="read_export" ${permissions.includes("read_export") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Manager (exportar)</label>
-	      <label class="admin-permission-check"><input type="checkbox" data-permission="birthday_calendar" ${permissions.includes("birthday_calendar") ? "checked" : ""} ${superDisabled} /> Calendario de cumpleaños (aviso 2 días antes)</label>
+	      <label class="admin-permission-check"><input type="checkbox" data-permission="birthday_calendar" ${permissions.includes("birthday_calendar") ? "checked" : ""} ${birthdayEditable ? "" : superDisabled} /> Calendario de cumpleaños (aviso 2 días antes)</label>
 	      <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin" ${isSuperAdmin ? "checked" : ""} ${superDisabled} /> Super Admin</label>
 	    `;
 	  }
@@ -4179,8 +4179,8 @@ function renderContactCalendar(apiData = {}) {
             <strong>${escapeHtml(entry.email || "Cuenta sin email")}</strong>
 	            <small>${isCurrentUser ? "Tu cuenta · Super Admin" : isRevoked ? "Acceso revocado" : "Cuenta autorizada"}</small>
 	          </div>
-	          <div class="admin-permission-group" data-role-user-id="${escapeHtml(entry.userId)}" aria-label="Permisos de ${escapeHtml(entry.email || "usuario")}">
-	            ${adminPermissionCheckboxes(access, { forceDisabled: isCurrentUser || isRevoked })}
+	          <div class="admin-permission-group" data-role-user-id="${escapeHtml(entry.userId)}" ${isCurrentUser ? 'data-self="true"' : ""} aria-label="Permisos de ${escapeHtml(entry.email || "usuario")}">
+	            ${adminPermissionCheckboxes(access, { forceDisabled: isCurrentUser || isRevoked, birthdayEditable: isCurrentUser && !isRevoked })}
 	          </div>
 	          <div class="admin-role-actions">
 	            <button type="button" class="admin-role-access-btn password-reset" data-password-reset data-role-user-id="${escapeHtml(entry.userId)}" data-role-user-email="${escapeHtml(entry.email || "")}">Cambiar contraseña</button>
@@ -4212,6 +4212,21 @@ function renderContactCalendar(apiData = {}) {
 	    const group = event.target.closest(".admin-permission-group");
 	    if (!group) return;
 	    const userId = group.dataset.roleUserId;
+	    if (group.dataset.self === "true") {
+	      if (checkbox.dataset.permission !== "birthday_calendar") return;
+	      const enabled = checkbox.checked;
+	      checkbox.disabled = true;
+	      try {
+	        await invokeManageUsers({ action: "set_my_birthday_calendar", enabled });
+	        showAdminToast("success", "Aviso de cumpleaños", enabled ? "Recibirás el aviso 2 días antes de cada cumpleaños." : "Ya no recibirás el aviso de cumpleaños.");
+	        await loadAdminRoles();
+	      } catch (error) {
+	        checkbox.checked = !enabled;
+	        checkbox.disabled = false;
+	        showAdminToast("error", "No se pudo actualizar", error?.message || "Intenta nuevamente.");
+	      }
+	      return;
+	    }
 	    const inputs = Array.from(group.querySelectorAll("[data-permission]"));
 	    const previousState = inputs.map((input) => ({ input, checked: input.checked, disabled: input.disabled }));
 	    inputs.forEach((input) => { input.disabled = true; });
