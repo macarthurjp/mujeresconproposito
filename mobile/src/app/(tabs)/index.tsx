@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -101,13 +101,13 @@ export default function Home() {
       <Section eyebrow="Ministerio" title="Lo que hacemos">
         <Text style={[ui.body, { marginBottom: 18 }]}>Espacios para crecer en la fe, encontrarnos y acompañarnos en oración.</Text>
         <View style={s.ministryGrid}>{[
-          { icon: 'book-open-outline', title: 'Devocionales', copy: 'Reflexiones semanales para fortalecer tu caminar con Dios.', action: () => router.push('/(tabs)/devocionales') },
+          { icon: 'book-cross', title: 'Devocionales', copy: 'Reflexiones semanales para fortalecer tu caminar con Dios.', action: () => router.push('/(tabs)/devocionales') },
           { icon: 'calendar-outline', title: 'Encuentros', copy: 'Reuniones y actividades para crecer juntas en fe.', action: () => router.push('/eventos') },
           { icon: 'hand-left-outline', title: 'Oración', copy: 'Comparte tus peticiones y permite que oremos contigo.', action: null },
         ].map((item, index) => {
           const content = <>
             <View style={s.ministryCardTop}>
-              <View style={s.ministryIcon}><Ionicons name={item.icon as keyof typeof Ionicons.glyphMap} size={23} color={C.wine} /></View>
+              <View style={s.ministryIcon}>{item.icon === 'book-cross' ? <MaterialCommunityIcons name="book-cross" size={23} color={C.wine} /> : <Ionicons name={item.icon as keyof typeof Ionicons.glyphMap} size={23} color={C.wine} />}</View>
               <Text style={s.ministryIndex}>0{index + 1}</Text>
             </View>
             <Text style={s.ministryTitle}>{item.title}</Text>

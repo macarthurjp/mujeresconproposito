@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { Platform, StyleSheet, View, type ColorValue } from 'react-native';
@@ -44,7 +44,16 @@ export default function TabsLayout() {
       }}>
       <Tabs.Screen name="index" options={tab('Inicio', 'home-outline', 'home')} />
       <Tabs.Screen name="eventos" options={tab('Reuniones', 'videocam-outline', 'videocam')} />
-      <Tabs.Screen name="devocionales" options={tab('Devocional', 'reader-outline', 'reader')} />
+      <Tabs.Screen
+        name="devocionales"
+        options={{
+          title: 'Devocional',
+          // Closed Bible with a cross (Ionicons only has an open book)
+          tabBarIcon: ({ color }: { color: ColorValue }) => (
+            <MaterialCommunityIcons name="book-cross" size={25} color={typeof color === 'string' ? color : C.muted} />
+          ),
+        }}
+      />
       <Tabs.Screen name="unirse" options={tab('Únete', 'person-add-outline', 'person-add')} />
       <Tabs.Screen name="aportar" options={{ href: null }} />
       <Tabs.Screen name="mas" options={tab('Más', 'grid-outline', 'grid')} />
