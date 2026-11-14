@@ -7,6 +7,7 @@ import { Linking, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimens
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
+import { BirthdayWeek } from '@/components/birthday-week';
 import { PhotoTile, PosterCard } from '@/components/media';
 import { Button, Card, Eyebrow, tapFeedback, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
 import { C, TAB_BAR_SPACE, serif, SOUNDCLOUD_URL, sans } from '@/constants/theme';
@@ -17,15 +18,6 @@ const galleryRegions = [
   { key: 'rd', label: 'República Dominicana', match: /dominicana|\brd\b/i },
   { key: 'eu', label: 'Europa', match: /europa|europe|luxem|belg|españa|francia/i },
 ];
-
-// Accepts "MM-DD" (public API, no year) or a full "YYYY-MM-DD".
-function birthdayDateLabel(value: string) {
-  const iso = /^\d{2}-\d{2}$/.test(value) ? `2000-${value}` : value;
-  return new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', timeZone: 'UTC' })
-    .format(new Date(`${iso}T12:00:00Z`))
-    .replace('.', '')
-    .toUpperCase();
-}
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -201,13 +193,7 @@ export default function Home() {
         ) : !birthdays.error ? <View style={s.birthdayQuiet}><Ionicons name="heart-outline" size={19} color={C.wine} /><Text style={s.birthdayQuietText}>Hoy no tenemos cumpleaños registrados.</Text></View> : null}
         <Text style={s.upcomingBirthdayHeading}>Esta semana</Text>
         {birthdays.data?.proximosCumpleanos?.length ? (
-          <View style={s.upcomingBirthdayList}>{birthdays.data.proximosCumpleanos.map((person, index) => (
-            <View key={`${person.nombreCompleto}-${person.fecha}-${index}`} style={s.upcomingBirthdayRow}>
-              <View style={s.birthdayDateBadge}><Text style={s.birthdayDateText}>{person.fecha ? birthdayDateLabel(person.fecha) : 'PRONTO'}</Text></View>
-              <Text style={s.upcomingBirthdayName}>{person.nombreCompleto}</Text>
-              <Text style={s.daysUntil}>{person.dias === 1 ? 'Mañana' : `En ${person.dias} días`}</Text>
-            </View>
-          ))}</View>
+          <BirthdayWeek people={birthdays.data.proximosCumpleanos} />
         ) : !birthdays.error ? <Text style={s.noUpcomingBirthdays}>No hay cumpleaños próximos registrados.</Text> : null}
       </Section>
 
@@ -298,11 +284,5 @@ const s = StyleSheet.create({
   birthdayQuiet: { borderRadius: 15, backgroundColor: C.sand, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 10 },
   birthdayQuietText: { color: C.muted, fontSize: 13, flex: 1 },
   upcomingBirthdayHeading: { color: C.ink, fontSize: 14, fontWeight: '800', marginTop: 18, marginBottom: 9 },
-  upcomingBirthdayList: { backgroundColor: C.paper, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line, overflow: 'hidden' },
-  upcomingBirthdayRow: { minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 13, paddingVertical: 9, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.line },
-  birthdayDateBadge: { minWidth: 53, height: 42, borderRadius: 12, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  birthdayDateText: { color: C.wine, fontSize: 11, fontWeight: '800', letterSpacing: 0.3 },
-  upcomingBirthdayName: { color: C.ink, fontSize: 14, fontWeight: '700', flex: 1 },
-  daysUntil: { color: C.muted, fontSize: 11, fontWeight: '600' },
   noUpcomingBirthdays: { color: C.muted, fontSize: 13, paddingVertical: 10 },
 });
