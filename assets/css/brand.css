@@ -274,3 +274,12 @@ body.mcp-brand[class] .admin-devotional-editor h3 {
 
 /* Role-based hiding (hidden attribute) must always win over brand display rules */
 .mcp-brand [hidden] { display: none !important; }
+
+/* Admin tabs: never stretch a lone tab (editor/reviewer roles see only one) */
+.mcp-brand .admin-tabs .admin-tab { flex: 0 1 auto !important; }
+
+/* Eyebrow sits flush above its heading */
+.mcp-brand .admin-devotional-page-head .admin-dashboard-kicker,
+.mcp-brand .admin-dashboard-kicker { display: flex !important; margin: 0 0 6px !important; padding: 0 !important; text-indent: 0 !important; }
+.mcp-brand .admin-dashboard-kicker::before,
+.mcp-brand .admin-dashboard-kicker::after { content: none !important; }
