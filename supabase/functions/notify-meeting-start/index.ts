@@ -12,7 +12,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { isValidTimeZone, parseSchedule, startedOccurrence } from "../_shared/schedule.ts";
 
-const DEFAULT_TIME_ZONE = "Europe/Luxembourg";
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 const EXPO_BATCH = 100;
 
@@ -102,7 +101,9 @@ Deno.serve(async (req) => {
         skipped.push({ id: evento.id, reason: `horario no reconocido: ${evento.horario}` });
         continue;
       }
-      const zone = evento.zona_horaria && isValidTimeZone(evento.zona_horaria) ? evento.zona_horaria : DEFAULT_TIME_ZONE;
+      const zone = evento.zona_horaria && isValidTimeZone(evento.zona_horaria)
+        ? evento.zona_horaria
+        : /europ/i.test(evento.titulo || "") ? "Europe/Luxembourg" : "America/Santo_Domingo";
       const inicio = startedOccurrence(schedule, zone, now);
       if (!inicio) continue;
       if (evento.ultimo_aviso_inicio && new Date(evento.ultimo_aviso_inicio).getTime() >= inicio.getTime()) continue;

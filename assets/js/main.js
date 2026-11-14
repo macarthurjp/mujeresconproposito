@@ -471,12 +471,19 @@ function isImageUrl(value) {
 
     const rawItems = Array.isArray(events) ? events : [];
 
-    const items = rawItems.map(item => ({
-      icon: getField(item, ["icon", "Icon"], "✨"),
-      title: getField(item, ["title", "titulo", "Titulo", "nombre", "Nombre"], "Actividad"),
-      schedule: getField(item, ["schedule", "horario", "Horario", "fecha", "Fecha"], "Próximamente"),
-      link: getField(item, ["link", "Link", "url", "URL"], "#")
-    }));
+    const items = rawItems.map(item => {
+      const schedule = getField(item, ["schedule", "horario", "Horario", "fecha", "Fecha"], "Próximamente");
+      const title = getField(item, ["title", "titulo", "Titulo", "nombre", "Nombre"], "Actividad");
+      const localSchedule = window.MCPSchedule
+        ? window.MCPSchedule.localScheduleLabel({ titulo: title, horario: schedule, zona_horaria: item.zona_horaria })
+        : null;
+      return {
+        icon: getField(item, ["icon", "Icon", "icono"], "✨"),
+        title,
+        schedule: localSchedule || schedule,
+        link: getField(item, ["link", "Link", "url", "URL"], "#")
+      };
+    });
 
     function renderEventIcon(icon, title) {
       const safeIcon = String(icon || "✦").trim();
@@ -2215,7 +2222,7 @@ function renderGaleria(galeria) {
             .order("orden", { ascending: true }),
           supabaseBrowserClient
             .from("eventos")
-            .select("icon:icono,title:titulo,schedule:horario,link,activa,orden")
+            .select("*")
             .eq("activa", true)
             .order("orden", { ascending: true }),
           supabaseBrowserClient
@@ -2365,8 +2372,64 @@ function renderContactCalendar(apiData = {}) {
   const sourceActivities = rawEventos.map(item => ({
         title: getField(item, ["title", "titulo", "Titulo", "nombre", "Nombre"], "Actividad"),
         schedule: getField(item, ["schedule", "horario", "Horario", "fecha", "Fecha"], "Próximamente"),
-        description: getField(item, ["description", "descripcion", "Descripcion", "detalle", "Detalle"], "Actividad de Mujeres con Propósito.")
+        zona_horaria: item.zona_horaria || "",
+        description: getField(item, ["description", "descripcion", "Descripcion", "detalle", "Detalle"], "")
       }));
+
+  // Converts each schedule (written in its own time zone) to the visitor's
+  // local time, so summer/winter time changes are always correct.
+  if (window.MCPSchedule) {
+    const S = window.MCPSchedule;
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+    const planned = sourceActivities.map(item => {
+      const event = { titulo: item.title, horario: item.schedule, zona_horaria: item.zona_horaria };
+      const occurrences = S.occurrences(event, startOfToday, 8);
+      const localLabel = S.localScheduleLabel(event, now);
+      return {
+        title: item.title,
+        description: [localLabel || item.schedule, item.description].filter(Boolean).join(" · "),
+        occurrences
+      };
+    });
+
+    const calendarItem = (label, item) => `
+        <div class="calendar-item">
+          <span class="calendar-item-time">${escapeHtml(label)}</span>
+          <div class="calendar-item-title">${escapeHtml(item.title)}</div>
+          <div class="calendar-item-desc">${escapeHtml(item.description)}</div>
+        </div>`;
+
+    const today = planned
+      .map(item => ({ item, at: item.occurrences.find(d => d >= startOfToday && d < startOfTomorrow) }))
+      .filter(x => x.at)
+      .sort((a, b) => a.at - b.at);
+
+    const upcoming = planned
+      .map(item => ({ item, at: item.occurrences.find(d => d >= startOfTomorrow) }))
+      .filter(x => x.at)
+      .sort((a, b) => a.at - b.at);
+
+    if (today.length) {
+      activitiesList.innerHTML = today.map(x => calendarItem(S.formatTime(x.at), x.item)).join("");
+    } else if (upcoming.length) {
+      activitiesList.innerHTML = `<div class="calendar-note">No hay actividades programadas para hoy, pero aquí están las próximas sesiones disponibles:</div>` +
+        upcoming.map(x => calendarItem(`${S.dayName(x.at)} · ${S.formatTime(x.at)}`, x.item)).join("");
+    } else {
+      activitiesList.innerHTML = '<div class="calendar-empty">No hay actividades programadas para hoy.</div>';
+    }
+
+    if (nextActivityList) {
+      const next = upcoming[0];
+      nextActivityList.innerHTML = next
+        ? calendarItem(`${S.dayName(next.at)} · ${S.formatTime(next.at)}`, next.item)
+        : '<div class="calendar-empty">No hay próximas actividades programadas.</div>';
+    }
+
+    renderTodayBirthdays();
+    return;
+  }
 
   const dayMap = {
     domingo: 0,
@@ -2534,6 +2597,9 @@ function renderContactCalendar(apiData = {}) {
       : '<div class="calendar-empty">No hay próximas actividades programadas.</div>';
   }
 
+  renderTodayBirthdays();
+
+  function renderTodayBirthdays() {
   const todayBirthdays = Array.isArray(apiData.cumpleanerasHoy)
     ? apiData.cumpleanerasHoy
     : [];
@@ -2546,6 +2612,7 @@ function renderContactCalendar(apiData = {}) {
         </div>
       `).join("")
     : '<div class="calendar-empty">No hay cumpleaños registrados para hoy.</div>';
+  }
 }
 
   /* -----------------------------------------
@@ -4035,6 +4102,7 @@ function renderContactCalendar(apiData = {}) {
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="editor" ${permissions.includes("editor") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Editor de devocionales</label>
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer" ${permissions.includes("reviewer") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Revisor de devocionales</label>
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="read_export" ${permissions.includes("read_export") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Manager (exportar)</label>
+	      <label class="admin-permission-check"><input type="checkbox" data-permission="birthday_calendar" ${permissions.includes("birthday_calendar") ? "checked" : ""} ${superDisabled} /> Calendario de cumpleaños (aviso 2 días antes)</label>
 	      <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin" ${isSuperAdmin ? "checked" : ""} ${superDisabled} /> Super Admin</label>
 	    `;
 	  }
@@ -4045,6 +4113,8 @@ function renderContactCalendar(apiData = {}) {
 	    if (container.querySelector('[data-permission="editor"]')?.checked) permissions.push("editor");
 	    if (container.querySelector('[data-permission="reviewer"]')?.checked) permissions.push("reviewer");
 	    if (container.querySelector('[data-permission="read_export"]')?.checked) permissions.push("read_export");
+	    // Independent of Super Admin: decides who receives the 2-day birthday reminder.
+	    if (container.querySelector('[data-permission="birthday_calendar"]')?.checked) permissions.push("birthday_calendar");
 	    return { isSuperAdmin, permissions };
 	  }
 

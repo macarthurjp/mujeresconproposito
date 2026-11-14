@@ -143,6 +143,7 @@ function composeDashboardRoleLabel(access) {
   if (access.permissions.includes("editor")) labels.push("Editor de devocionales");
   if (access.permissions.includes("reviewer")) labels.push("Revisor de devocionales");
   if (access.permissions.includes("read_export")) labels.push("Manager");
+  if (access.permissions.includes("birthday_calendar")) labels.push("Calendario de cumpleaños");
   return labels.length ? labels.join(" + ") : "Vista simple";
 }
 

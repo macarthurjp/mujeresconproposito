@@ -11,7 +11,9 @@ const LIVE_MINUTES = 90;
 
 export function eventStatus(evento: Evento, now = new Date()) {
   const schedule = parseSchedule(evento.horario);
-  const zone = evento.zona_horaria && isValidTimeZone(evento.zona_horaria) ? evento.zona_horaria : 'Europe/Luxembourg';
+  const zone = evento.zona_horaria && isValidTimeZone(evento.zona_horaria)
+    ? evento.zona_horaria
+    : /europ/i.test(evento.titulo) ? 'Europe/Luxembourg' : 'America/Santo_Domingo';
   if (!schedule) return { live: false, next: null as Date | null };
   const next = nextOccurrence(schedule, zone, now, LIVE_MINUTES);
   const live = !!next && next.getTime() <= now.getTime();
