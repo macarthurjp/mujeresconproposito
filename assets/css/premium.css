@@ -1464,3 +1464,67 @@ body.theme-premium {
 .theme-premium .site-footer .footer-bottom span { color: var(--p-muted) !important; -webkit-text-fill-color: currentColor !important; }
 .theme-premium .site-footer .footer-email { color: var(--p-wine) !important; -webkit-text-fill-color: currentColor !important; }
 .theme-premium .site-footer .footer-logo { background: #fff !important; border-radius: 12px; }
+
+/* =====================================================================
+   TYPOGRAPHY SYSTEM — exactly two families.
+   Cormorant Garamond: h1–h3 and editorial statements.
+   Manrope: everything else. Icon fonts are left alone.
+   ===================================================================== */
+.theme-premium :where(*:not(i):not(.fa):not(.fas):not(.far):not(.fab):not([class^="fa-"]):not([class*=" fa-"]):not(.iti__flag)) {
+  font-family: var(--p-sans) !important;
+}
+.theme-premium :is(h1, h2, h3),
+.theme-premium :is(h1, h2, h3) span:not(.icon),
+.theme-premium .modal-content :is(h2, h3),
+.theme-premium .join-modal-premium-head h3,
+.theme-premium .verse-block p,
+.theme-premium #about > p,
+.theme-premium #donate .donate-text,
+.theme-premium .hero-stat strong,
+.theme-premium .hero-floating-card strong,
+.theme-premium #timeline .timeline-step .year,
+.theme-premium .join-image-overlay span,
+.theme-premium #calendarTodayText,
+.theme-premium #scCurrentTitle {
+  font-family: var(--p-serif) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+}
+/* Small UI headings stay in the sans family for clarity */
+.theme-premium :is(h4, h5, h6),
+.theme-premium .calendar-block-title,
+.theme-premium .calendar-item-title,
+.theme-premium .yt-lightbox-footer h4 {
+  font-family: var(--p-sans) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+.theme-premium #soundcloud h2,
+.theme-premium #soundcloud .sc-mini-head h2,
+.theme-premium #joinModal .join-modal-premium-head h3 {
+  font-family: var(--p-serif) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Consistent type scale for card-level titles */
+.theme-premium #soundcloud .sc-mini-head h2 {
+  font-size: clamp(1.8rem, 3vw, 2.4rem) !important;
+  line-height: 1.1 !important;
+  color: var(--p-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+  background: none !important;
+  text-align: left !important;
+}
+.theme-premium #soundcloud h2::before { display: none !important; }
+.theme-premium #contact .calendar-card h3,
+.theme-premium #contact .calendar-head h3 { font-size: 1.9rem !important; line-height: 1.1 !important; }
+.theme-premium #calendarTodayText { font-size: 1.4rem !important; color: var(--p-muted) !important; }
+.theme-premium #soundcloud .sc-mini-link,
+.theme-premium #soundcloud .sc-mini-btn-play {
+  background: var(--p-wine) !important;
+  border-color: var(--p-wine) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 26px rgba(166, 75, 67, 0.25) !important;
+}
+.theme-premium #soundcloud .sc-mini-link { border-radius: 999px !important; font-weight: 600 !important; }
