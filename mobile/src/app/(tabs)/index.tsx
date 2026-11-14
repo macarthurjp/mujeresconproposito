@@ -6,6 +6,7 @@ import { Linking, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimens
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
+import { PhotoTile, PosterCard } from '@/components/media';
 import { Button, Card, Eyebrow, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
 import { C, TAB_BAR_SPACE, serif, SOUNDCLOUD_URL, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
@@ -28,14 +29,14 @@ function birthdayDateLabel(value: string) {
 export default function Home() {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
-  const posterWidth = screenWidth - 48;
+  const posterWidth = Math.min(screenWidth - 72, 340);
   const eventos = useAsync(api.eventos);
   const destacadas = useAsync(api.destacadas);
   const galeria = useAsync(api.galeria);
   const videos = useAsync(api.videos);
   const birthdays = useAsync(api.birthdays);
   const [selectedGalleryRegion, setSelectedGalleryRegion] = useState('usa');
-  const galleryCardWidth = screenWidth - 72;
+  const galleryCardWidth = Math.min(screenWidth - 96, 300);
   const galleryImages = useMemo(() => {
     const region = galleryRegions.find((item) => item.key === selectedGalleryRegion)!;
     return (galeria.data ?? []).filter((photo) => region.match.test(photo.categoria)).slice(0, 8);
@@ -69,21 +70,9 @@ export default function Home() {
       {/* Destacadas — first content section, matching the website */}
       {destacadas.data?.length ? (
         <Section eyebrow="Voces que inspiran" title="Destacadas">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={posterWidth + 18} decelerationRate="fast" contentContainerStyle={s.portraitList}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={posterWidth + 14} decelerationRate="fast" contentContainerStyle={s.bleedTrack} style={s.bleed}>
             {destacadas.data.slice(0, 8).map((d) => (
-              <Pressable key={d.id} onPress={() => router.push('/destacadas')} style={[s.portrait, { width: posterWidth }]}>
-                <View style={s.portraitGlow}>
-                  <View style={s.portraitShell}>
-                  <View style={s.portraitFrame}>
-                    <Image source={{ uri: d.foto_url }} style={StyleSheet.absoluteFill} contentFit="cover" blurRadius={24} transition={200} />
-                    <View style={s.portraitWarmGlow} />
-                    <Image source={{ uri: d.foto_url }} style={StyleSheet.absoluteFill} contentFit="contain" transition={200} />
-                  </View>
-                  </View>
-                </View>
-                <Text style={s.portraitName}>{d.nombre}</Text>
-                {d.titulo ? <Text style={s.portraitRole}>{d.titulo}</Text> : null}
-              </Pressable>
+              <PosterCard key={d.id} uri={d.foto_url} name={d.nombre} role={d.titulo} onPress={() => router.push('/destacadas')} style={{ width: posterWidth }} />
             ))}
           </ScrollView>
         </Section>
@@ -184,18 +173,15 @@ export default function Home() {
 
       {/* Gallery */}
       <Section eyebrow="Momentos" title="Galería">
-        <View style={s.galleryRegion}><Text style={s.galleryRegionTitle}>{galleryRegions.find((item) => item.key === selectedGalleryRegion)?.label}</Text><Pressable onPress={() => router.push('/galeria')}><Text style={s.moreLinkText}>Ver toda la galería  →</Text></Pressable></View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.regionPills}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.bleedTrack, { gap: 8, paddingBottom: 14 }]} style={s.bleed}>
           {galleryRegions.map((region) => <Pressable key={region.key} onPress={() => setSelectedGalleryRegion(region.key)} style={[s.regionPill, selectedGalleryRegion === region.key && s.regionPillActive]}><Text style={[s.regionPillText, selectedGalleryRegion === region.key && s.regionPillTextActive]}>{region.label}</Text></Pressable>)}
         </ScrollView>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} decelerationRate="fast" snapToInterval={galleryCardWidth + 16} contentContainerStyle={s.galleryTrack}>
-          {galleryImages.map((photo, index) => <Pressable key={photo.id} onPress={() => router.push('/galeria')} style={[s.galleryCard, { width: galleryCardWidth, height: index % 2 === 0 ? 270 : 236 }]}>
-            <Image source={{ uri: photo.foto_url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
-            <View style={s.galleryGlow} />
-            <View style={s.galleryCaption}><Text style={s.galleryCaptionEyebrow}>{galleryRegions.find((item) => item.key === selectedGalleryRegion)?.label}</Text><Text style={s.galleryCaptionText} numberOfLines={2}>{photo.texto || 'Un momento juntas, creciendo en fe y propósito'}</Text></View>
-            <View style={s.galleryOpen}><Ionicons name="expand-outline" size={16} color="#fff" /></View>
-          </Pressable>)}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} decelerationRate="fast" snapToInterval={galleryCardWidth + 12} contentContainerStyle={s.bleedTrack} style={s.bleed}>
+          {galleryImages.map((photo) => (
+            <PhotoTile key={photo.id} uri={photo.foto_url} caption={photo.texto} onPress={() => router.push('/galeria')} style={{ width: galleryCardWidth, height: galleryCardWidth * 1.15 }} />
+          ))}
         </ScrollView>
+        <Pressable onPress={() => router.push('/galeria')} style={s.seeAll}><Text style={s.seeAllText}>Ver toda la galería</Text><Ionicons name="chevron-forward" size={16} color={C.wine} /></Pressable>
         {!galeria.loading && !galleryImages.length ? <Text style={[ui.body, { paddingHorizontal: 20 }]}>Explora fotos de nuestra comunidad por región.</Text> : null}
       </Section>
 
@@ -243,14 +229,6 @@ const s = StyleSheet.create({
   verse: { marginTop: 44, paddingHorizontal: 28, alignItems: 'center' },
   quote: { fontFamily: serif, fontSize: 64, lineHeight: 64, color: C.gold, height: 44 },
   verseText: { fontFamily: serif, fontStyle: 'italic', fontSize: 22, lineHeight: 30, color: C.ink, textAlign: 'center' },
-  portraitList: { paddingHorizontal: 4, paddingTop: 4, paddingBottom: 10, gap: 18 },
-  portrait: { width: '100%' },
-  portraitGlow: { borderRadius: 36, padding: 2, backgroundColor: 'rgba(166,75,67,0.12)', boxShadow: '0 0 34px rgba(166,75,67,0.28), 0 12px 32px rgba(63,38,35,0.12)' },
-  portraitShell: { borderRadius: 32, padding: 5, backgroundColor: '#fff8f7', borderWidth: 1, borderColor: 'rgba(166,75,67,0.34)' },
-  portraitFrame: { width: '100%', aspectRatio: 3 / 4, borderRadius: 18, overflow: 'hidden', backgroundColor: C.ivory, borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' },
-  portraitWarmGlow: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(246,205,166,0.16)' },
-  portraitName: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 18, lineHeight: 23, color: C.ink, marginTop: 12, flexWrap: 'wrap' },
-  portraitRole: { color: C.wine, fontSize: 11, lineHeight: 16, marginTop: 3, letterSpacing: 1, textTransform: 'uppercase', fontWeight: '700', flexWrap: 'wrap' },
   timeline: { gap: 16 },
   timelineItem: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   timelineYear: { fontFamily: serif, fontSize: 24, color: C.wine, width: 56 },
@@ -282,20 +260,14 @@ const s = StyleSheet.create({
   appFeature: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, marginTop: 14 },
   appFeatureText: { flex: 1, color: C.text, fontSize: 13, lineHeight: 19 },
   donateVerse: { color: C.wine, fontFamily: serif, fontStyle: 'italic', fontSize: 17, lineHeight: 24, marginTop: 16 },
-  galleryRegion: { paddingHorizontal: 20, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  galleryRegionTitle: { color: C.ink, fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 17 },
-  regionPills: { paddingHorizontal: 20, paddingBottom: 14, gap: 8 },
-  regionPill: { minHeight: 34, paddingHorizontal: 13, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(166,75,67,0.2)', backgroundColor: C.sand, justifyContent: 'center' },
+  bleed: { marginHorizontal: -20 },
+  bleedTrack: { paddingHorizontal: 20, paddingTop: 2, paddingBottom: 18, gap: 14 },
+  seeAll: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingVertical: 4 },
+  seeAllText: { fontFamily: sans, fontSize: 15, fontWeight: '600', color: C.wine },
+  regionPill: { minHeight: 34, paddingHorizontal: 14, borderRadius: 999, backgroundColor: C.fill, justifyContent: 'center' },
   regionPillActive: { backgroundColor: C.wine, borderColor: C.wine },
-  regionPillText: { color: C.muted, fontSize: 11, fontWeight: '700' },
+  regionPillText: { fontFamily: sans, color: C.wine, fontSize: 13, fontWeight: '600' },
   regionPillTextActive: { color: '#fff' },
-  galleryTrack: { paddingHorizontal: 4, paddingTop: 4, paddingBottom: 14, gap: 16 },
-  galleryCard: { borderRadius: 22, overflow: 'hidden', backgroundColor: C.sand, borderWidth: 1, borderColor: 'rgba(201,164,107,0.42)', boxShadow: '0 8px 22px rgba(63,38,35,0.16)' },
-  galleryGlow: { ...StyleSheet.absoluteFill, top: '48%', backgroundColor: 'rgba(31,19,17,0.42)' },
-  galleryCaption: { position: 'absolute', left: 16, right: 16, bottom: 16 },
-  galleryCaptionEyebrow: { color: '#ffe3c5', fontSize: 10, fontWeight: '800', letterSpacing: 1.4, textTransform: 'uppercase', marginBottom: 5 },
-  galleryCaptionText: { color: '#fff', fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 18, lineHeight: 23 },
-  galleryOpen: { position: 'absolute', right: 12, top: 12, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(28,17,23,0.46)', alignItems: 'center', justifyContent: 'center' },
   audioCard: { marginTop: 36, marginHorizontal: 20, borderRadius: 20, padding: 18, backgroundColor: C.paper, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line, flexDirection: 'row', gap: 12, alignItems: 'center' },
   audioIcon: { width: 42, height: 42, borderRadius: 14, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
   audioTitle: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, color: C.ink, fontSize: 18 },

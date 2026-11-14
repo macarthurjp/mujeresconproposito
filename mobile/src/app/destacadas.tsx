@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { PosterCard } from '@/components/media';
 import { ErrorNote, Loading, Screen, Title, Eyebrow, useAsync } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { api } from '@/lib/api';
@@ -21,20 +22,7 @@ export default function Destacadas() {
         {loading && !data ? <Loading /> : null}
         {error ? <ErrorNote message={error} onRetry={reload} /> : null}
         <View style={s.grid}>{(data ?? []).map((d) => (
-          <Pressable key={d.id} onPress={() => setSelected(d.id)} style={s.card}>
-            <View style={s.imageGlow}>
-              <View style={s.imageShell}>
-                <View style={s.imageFrame}>
-                  <Image source={{ uri: d.foto_url }} style={StyleSheet.absoluteFill} contentFit="cover" blurRadius={24} transition={200} />
-                  <View style={s.imageWarmGlow} />
-                  <Image source={{ uri: d.foto_url }} style={StyleSheet.absoluteFill} contentFit="contain" transition={200} />
-                  <View style={s.expand}><Ionicons name="expand-outline" size={16} color="#fff" /></View>
-                </View>
-              </View>
-            </View>
-            <Text style={s.name}>{d.nombre}</Text>
-            {d.titulo ? <Text style={s.role}>{d.titulo}</Text> : null}
-          </Pressable>
+          <PosterCard key={d.id} uri={d.foto_url} name={d.nombre} role={d.titulo} onPress={() => setSelected(d.id)} />
         ))}</View>
         {!loading && !data?.length && !error ? <Text style={s.intro}>Pronto presentaremos a nuestras conferencistas.</Text> : null}
       </View>
@@ -56,14 +44,6 @@ const s = StyleSheet.create({
   container: { paddingHorizontal: 20 },
   intro: { color: C.muted, fontSize: 15, lineHeight: 23, marginTop: 10, marginBottom: 22 },
   grid: { gap: 20 },
-  card: { width: '100%' },
-  imageGlow: { borderRadius: 36, padding: 2, backgroundColor: 'rgba(166,75,67,0.12)', boxShadow: '0 0 34px rgba(166,75,67,0.28), 0 12px 32px rgba(63,38,35,0.12)' },
-  imageShell: { borderRadius: 32, padding: 5, backgroundColor: '#fff8f7', borderWidth: 1, borderColor: 'rgba(166,75,67,0.34)' },
-  imageFrame: { width: '100%', aspectRatio: 3 / 4, borderRadius: 18, overflow: 'hidden', backgroundColor: C.ivory, borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' },
-  imageWarmGlow: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(246,205,166,0.16)' },
-  role: { color: C.wine, fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 5 },
-  name: { color: C.ink, fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 19, lineHeight: 25, marginTop: 12 },
-  expand: { position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(28,17,23,0.58)', alignItems: 'center', justifyContent: 'center' },
   modal: { flex: 1, backgroundColor: 'rgba(25,14,16,0.94)', justifyContent: 'center', padding: 20 },
   modalContent: { alignItems: 'center' },
   modalImage: { width: '100%', height: '72%' },

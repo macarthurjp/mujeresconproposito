@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { PhotoTile } from '@/components/media';
 import { ErrorNote, Loading, Screen, Title, Eyebrow, useAsync } from '@/components/ui';
 import { C } from '@/constants/theme';
 import { api } from '@/lib/api';
@@ -19,13 +20,24 @@ export default function Galeria() {
   const [region, setRegion] = useState('usa');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { width } = useWindowDimensions();
-  const size = (width - 48) / 2;
+  const colWidth = (width - 40 - 10) / 2;
 
   const fotos = useMemo(() => {
     const r = REGIONS.find((x) => x.key === region)!;
     return (data ?? []).filter((f) => r.match.test(f.categoria));
   }, [data, region]);
   const selectedPhoto = fotos.find((photo) => photo.id === selectedId) ?? null;
+  // Two-column masonry: each photo goes to the shorter column, so no gaps.
+  const columns = useMemo(() => {
+    const cols: { items: { f: (typeof fotos)[number]; h: number }[]; total: number }[] = [{ items: [], total: 0 }, { items: [], total: 0 }];
+    fotos.slice(1).forEach((f, i) => {
+      const h = colWidth * [1.25, 0.95, 1.1, 1.35, 1][i % 5];
+      const target = cols[0].total <= cols[1].total ? cols[0] : cols[1];
+      target.items.push({ f, h });
+      target.total += h + 10;
+    });
+    return cols;
+  }, [fotos, colWidth]);
 
   return (
     <>
@@ -37,24 +49,23 @@ export default function Galeria() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabs}>
           {REGIONS.map((r) => (
             <Pressable key={r.key} onPress={() => setRegion(r.key)} style={[s.tab, region === r.key && s.tabActive]}>
-              {region === r.key ? <Ionicons name="location" size={14} color="#fff" /> : null}
-              <Text style={[s.tabText, region === r.key && { color: '#fff' }]}>{r.label}</Text>
+                            <Text style={[s.tabText, region === r.key && { color: '#fff' }]}>{r.label}</Text>
             </Pressable>
           ))}
         </ScrollView>
         {!loading && !error ? <View style={s.countRow}><Text style={s.count}>{fotos.length} {fotos.length === 1 ? 'momento' : 'momentos'}</Text><View style={s.countRule} /></View> : null}
         {loading && !data ? <Loading /> : null}
         {error ? <ErrorNote message={error} onRetry={reload} /> : null}
+        {fotos[0] ? (
+          <PhotoTile uri={fotos[0].foto_url} caption={fotos[0].texto} onPress={() => setSelectedId(fotos[0].id)} style={{ width: width - 40, height: (width - 40) * 0.72, marginBottom: 10 }} />
+        ) : null}
         <View style={s.grid}>
-          {fotos.map((f, index) => (
-            <Pressable key={f.id} accessibilityRole="imagebutton" accessibilityLabel={f.texto || 'Ampliar foto'} onPress={() => setSelectedId(f.id)} style={[s.photoCard, { width: index === 0 ? width - 40 : size, height: index === 0 ? size * 1.08 : size * (index % 2 === 0 ? 1.16 : 0.9) }]}>
-              <View style={s.photoShell}>
-                <Image source={{ uri: f.foto_url }} style={s.photo} contentFit="cover" transition={250} accessibilityLabel={f.texto ?? undefined} />
-                <View style={s.photoShade} />
-                {f.texto ? <View style={s.caption}><Text style={s.captionText} numberOfLines={3}>{f.texto}</Text></View> : null}
-                <View style={s.zoom}><Ionicons name="expand-outline" size={15} color="#fff" /></View>
-              </View>
-            </Pressable>
+          {columns.map((col, c) => (
+            <View key={c} style={{ width: colWidth, gap: 10 }}>
+              {col.items.map(({ f, h }) => (
+                <PhotoTile key={f.id} uri={f.foto_url} caption={f.texto} onPress={() => setSelectedId(f.id)} style={{ width: colWidth, height: h }} />
+              ))}
+            </View>
           ))}
         </View>
         {!loading && !fotos.length && !error ? <Text style={{ color: C.muted, marginTop: 20 }}>Aún no hay fotos en esta región.</Text> : null}
@@ -75,20 +86,13 @@ export default function Galeria() {
 
 const s = StyleSheet.create({
   tabs: { flexDirection: 'row', gap: 8, paddingBottom: 14 },
-  tab: { minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 15, borderRadius: 999, backgroundColor: C.sand, borderWidth: 1, borderColor: 'rgba(184,134,74,0.2)' },
+  tab: { minHeight: 34, paddingHorizontal: 14, borderRadius: 999, backgroundColor: C.fill, justifyContent: 'center' },
   tabActive: { backgroundColor: C.wine, borderColor: C.wine },
-  tabText: { color: C.muted, fontWeight: '700', fontSize: 12 },
+  tabText: { color: C.wine, fontWeight: '600', fontSize: 13 },
   countRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   count: { color: C.wine, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
   countRule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(166,75,67,0.22)' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  photoCard: { borderRadius: 19, padding: 2, backgroundColor: '#fffaf5', borderWidth: 1, borderColor: 'rgba(201,164,107,0.42)', boxShadow: '0 7px 18px rgba(63,38,35,0.1)' },
-  photoShell: { flex: 1, borderRadius: 16, overflow: 'hidden', backgroundColor: C.sand },
-  photo: { ...StyleSheet.absoluteFill, backgroundColor: C.sand },
-  photoShade: { ...StyleSheet.absoluteFill, top: '58%', backgroundColor: 'rgba(35,20,19,0.3)' },
-  caption: { ...StyleSheet.absoluteFill, top: '60%', justifyContent: 'flex-end', padding: 10 },
-  captionText: { color: '#fff', fontSize: 12, lineHeight: 17, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.3)', textShadowRadius: 5 },
-  zoom: { position: 'absolute', top: 9, right: 9, width: 29, height: 29, borderRadius: 15, backgroundColor: 'rgba(28,17,23,0.48)', alignItems: 'center', justifyContent: 'center' },
+  grid: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   modal: { flex: 1, backgroundColor: 'rgba(25,14,16,0.94)', justifyContent: 'center', padding: 16 },
   modalContent: { alignItems: 'center' },
   fullPhoto: { width: '100%', height: '78%' },
