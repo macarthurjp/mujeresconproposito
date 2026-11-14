@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, type Href } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -40,6 +41,15 @@ function Group({ title, items }: { title: string; items: Item[] }) {
 
 const open = (url: string) => () => Linking.openURL(url);
 const go = (href: Href) => () => router.push(href);
+// Team tools open the website admin inside the app (Safari view: keeps
+// sign-in, Face ID/passkeys and every admin feature in one place).
+const openTeam = (path: string) => () =>
+  WebBrowser.openBrowserAsync(`${SITE_URL}/${path}`, {
+    controlsColor: C.wine,
+    toolbarColor: C.bg,
+    presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+    dismissButtonStyle: 'close',
+  });
 
 export default function Mas() {
   const [push, setPush] = useState<PushStatus | null>(null);
@@ -70,6 +80,13 @@ export default function Mas() {
             { icon: 'heart-outline', label: 'Aportar', hint: 'Código QR, cuentas y PayPal', onPress: go('/aportar') },
             { icon: 'mail-outline', label: 'Contacto', hint: CONTACT_EMAIL, onPress: open(`mailto:${CONTACT_EMAIL}`) },
             { icon: 'chatbubbles-outline', label: 'Escríbenos desde la web', onPress: open(`${SITE_URL}/#contact`) },
+          ]}
+        />
+        <Group
+          title="Equipo"
+          items={[
+            { icon: 'shield-checkmark-outline', label: 'Administración', hint: 'Eventos, galería, devocionales y usuarios', onPress: openTeam('admin.html') },
+            { icon: 'stats-chart-outline', label: 'Dashboard', hint: 'Registros de la comunidad', onPress: openTeam('dashboard.html') },
           ]}
         />
         <Group
