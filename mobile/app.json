@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "Mujeres con Propósito",
+    "slug": "mujeres-con-proposito",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "mcp930",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "org.mcp930.app",
+      "supportsTablet": true,
+      "icon": "./assets/images/icon.png"
+    },
+    "android": {
+      "package": "org.mcp930.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FBF8F4",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#1C1117",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#7A2E42",
+          "defaultChannel": "reuniones",
+          "enableRemoteNotifications": true
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
