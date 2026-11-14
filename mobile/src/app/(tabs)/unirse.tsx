@@ -9,6 +9,7 @@ import { api } from '@/lib/api';
 import { DEFAULT_DIAL, DIAL_CODES, flag } from '@/lib/dial-codes';
 import { formOptions } from '@/lib/form-options';
 import { WheelPicker } from '@/components/wheel-picker';
+import { DateField } from '@/components/date-field';
 
 type FieldName = 'nombre' | 'apellido' | 'email' | 'telefono' | 'fecha_nacimiento' | 'estatus_matrimonial' | 'pais_nacimiento' | 'pais_residencia' | 'cristiana' | 'comunidad' | 'hijos' | 'comments';
 type FormValues = Record<FieldName, string>;
@@ -118,7 +119,10 @@ export default function Unirse() {
           <Field label="Apellido" value={form.apellido} onChangeText={set('apellido')} />
           <Field label="Correo electrónico" value={form.email} onChangeText={set('email')} keyboardType="email-address" inputMode="email" autoCapitalize="none" />
           <PhoneField dial={dial} onDial={setDial} value={form.telefono} onChangeText={set('telefono')} />
-          <Field label="Fecha de nacimiento" value={form.fecha_nacimiento} onChangeText={set('fecha_nacimiento')} placeholder="AAAA-MM-DD" inputMode="numeric" autoCapitalize="none" />
+          <View style={s.field}>
+            <Text style={s.label}>Fecha de nacimiento</Text>
+            <DateField title="Fecha de nacimiento" value={form.fecha_nacimiento} onChange={set('fecha_nacimiento')} />
+          </View>
           <Choice label="Estatus matrimonial" value={form.estatus_matrimonial} options={formOptions.maritalStatuses} onSelect={set('estatus_matrimonial')} />
         </Card>
 

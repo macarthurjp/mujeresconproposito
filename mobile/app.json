@@ -41,7 +41,8 @@
           "defaultChannel": "reuniones",
           "enableRemoteNotifications": true
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
