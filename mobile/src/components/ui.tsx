@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   Platform,
   Pressable,
   RefreshControl,
@@ -61,6 +62,15 @@ export function useAsync<T>(load: () => Promise<T>) {
   const reload = useCallback(() => {
     setLoading(true);
     fetchData();
+  }, [fetchData]);
+
+  // Refresh silently whenever the app comes back to the foreground, so
+  // content changed on the server shows up without restarting the app.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') fetchData();
+    });
+    return () => sub.remove();
   }, [fetchData]);
 
   return { data, error, loading, reload };

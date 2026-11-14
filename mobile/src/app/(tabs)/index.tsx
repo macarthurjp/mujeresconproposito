@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
@@ -31,7 +31,16 @@ export default function Home() {
 
   return (
     <>
-    <ScrollView style={{ flex: 1, backgroundColor: C.bg }} contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_SPACE }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: C.bg }}
+      contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_SPACE }}
+      refreshControl={
+        <RefreshControl
+          refreshing={false}
+          tintColor={C.wine}
+          onRefresh={() => { eventos.reload(); destacadas.reload(); galeria.reload(); videos.reload(); birthdays.reload(); }}
+        />
+      }>
       {/* Hero */}
       <View style={[s.hero, { paddingTop: insets.top + 20 }]}>
         <View style={s.brandRow}>
