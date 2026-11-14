@@ -394,7 +394,7 @@ body.theme-premium {
 .theme-premium .hero-premium h2 span { color: inherit !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
 
 .theme-premium .hero-premium h2 .hero-title-accent {
-  font-style: italic !important;
+  font-style: normal !important;
   color: var(--p-gold-2) !important;
 }
 
