@@ -1846,3 +1846,34 @@ body.theme-premium {
 /* Floating buttons sit below open modals and lightboxes */
 .theme-premium .whatsapp-float,
 .theme-premium .back-to-top { z-index: 1900 !important; }
+
+/* ---------- Calendar subscription ---------- */
+.theme-premium .p-sync { margin: 22px auto 0; max-width: 620px; text-align: center; }
+.theme-premium .p-sync summary {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 46px; padding: 0 22px;
+  border-radius: 999px; border: 1px solid rgba(63, 38, 35, 0.18);
+  background: #fff; color: var(--p-ink); font-weight: 600; font-size: 0.95rem;
+  cursor: pointer; list-style: none; transition: border-color 0.3s var(--p-ease), background 0.3s var(--p-ease);
+}
+.theme-premium .p-sync summary::-webkit-details-marker { display: none; }
+.theme-premium .p-sync summary:hover,
+.theme-premium .p-sync[open] summary { border-color: var(--p-wine); background: var(--p-sand); }
+.theme-premium .p-sync summary i { color: var(--p-wine); }
+.theme-premium .p-sync-panel {
+  margin-top: 14px; padding: 20px; border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(166, 75, 67, 0.12);
+  box-shadow: 0 14px 36px rgba(166, 75, 67, 0.1);
+}
+.theme-premium .p-sync-panel p { margin: 0 0 14px !important; color: var(--p-muted) !important; font-size: 0.92rem !important; }
+.theme-premium .p-sync-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.theme-premium .p-sync-option {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 0 14px; border-radius: 14px;
+  border: 1px solid rgba(63, 38, 35, 0.14); background: #fff;
+  color: var(--p-ink) !important; font: 600 0.9rem var(--p-sans); text-decoration: none !important; cursor: pointer;
+  transition: border-color 0.25s var(--p-ease), background 0.25s var(--p-ease);
+}
+.theme-premium .p-sync-option:hover { border-color: var(--p-wine); background: var(--p-sand); }
+.theme-premium .p-sync-option i { color: var(--p-wine); }
+@media (max-width: 420px) { .theme-premium .p-sync-options { grid-template-columns: 1fr; } }

@@ -61,3 +61,22 @@
   birth.max = d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
   birth.min = "1920-01-01";
 })();
+
+// "Copiar enlace" for the calendar subscription.
+(function () {
+  document.addEventListener("click", function (event) {
+    var button = event.target.closest && event.target.closest("[data-copy-calendar]");
+    if (!button) return;
+    var url = button.getAttribute("data-copy-calendar");
+    var original = button.innerHTML;
+    var done = function () {
+      button.innerHTML = '<i class="fa-solid fa-check" aria-hidden="true"></i> Enlace copiado';
+      setTimeout(function () { button.innerHTML = original; }, 2000);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(done, function () { window.prompt("Copia este enlace:", url); });
+    } else {
+      window.prompt("Copia este enlace:", url);
+    }
+  });
+})();

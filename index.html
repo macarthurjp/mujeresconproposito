@@ -37,7 +37,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/css/intlTelInput.css" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260830-mobile-visual-fixes-1" />
   <link rel="stylesheet" href="assets/css/promo-banner.css?v=20260905-1" />
-  <link rel="stylesheet" href="assets/css/premium.css?v=20261114-11" />
+  <link rel="stylesheet" href="assets/css/premium.css?v=20261114-12" />
   <style>
     /* JOIN FORM PREMIUM REDESIGN */
     .join-modal-content {
@@ -888,6 +888,18 @@
       <span class="p-eyebrow">Agenda</span>
       <h2><span class="icon">✦</span> Eventos <span class="icon">✦</span></h2>
       <p class="subtitle">Horarios mostrados en tu hora local.</p>
+      <details class="p-sync">
+        <summary><i class="fa-regular fa-calendar-plus" aria-hidden="true"></i> Añadir a mi calendario</summary>
+        <div class="p-sync-panel">
+          <p>Suscríbete una vez y las actividades aparecerán en tu calendario, actualizadas automáticamente.</p>
+          <div class="p-sync-options">
+            <a class="p-sync-option" href="webcal://mcp930.org/calendario.ics"><i class="fa-brands fa-apple" aria-hidden="true"></i> iPhone / Mac</a>
+            <a class="p-sync-option" href="https://calendar.google.com/calendar/render?cid=webcal%3A%2F%2Fmcp930.org%2Fcalendario.ics" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-google" aria-hidden="true"></i> Google / Android</a>
+            <a class="p-sync-option" href="https://outlook.live.com/calendar/0/addfromweb?url=https%3A%2F%2Fmcp930.org%2Fcalendario.ics&amp;name=Mujeres%20con%20Prop%C3%B3sito" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-microsoft" aria-hidden="true"></i> Outlook</a>
+            <button type="button" class="p-sync-option" data-copy-calendar="https://mcp930.org/calendario.ics"><i class="fa-regular fa-copy" aria-hidden="true"></i> Copiar enlace</button>
+          </div>
+        </div>
+      </details>
     </div>
 
     <div class="events-wrapper events-wrapper-slider">
@@ -1549,6 +1561,6 @@
   <script src="assets/js/main.js?v=20261114-calendar-tz-1"></script>
   <script src="assets/js/analytics.js?v=20260830-ga4-1" defer></script>
   <script src="assets/js/promo-banner.js?v=20260905-2" defer></script>
-  <script src="assets/js/premium.js?v=20261114-2" defer></script>
+  <script src="assets/js/premium.js?v=20261114-3" defer></script>
 </body>
 </html>
