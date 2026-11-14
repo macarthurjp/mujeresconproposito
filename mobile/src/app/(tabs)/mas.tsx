@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, type Href } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Eyebrow, Screen, Title } from '@/components/ui';
+import { Eyebrow, Screen, tapFeedback, Title } from '@/components/ui';
 import { C, CONTACT_EMAIL, FACEBOOK_URL, INSTAGRAM_URL, SITE_URL, SOUNDCLOUD_URL, YOUTUBE_URL } from '@/constants/theme';
 import { getPushStatus, registerForMeetingAlerts, type PushStatus } from '@/lib/notifications';
 
@@ -53,6 +53,16 @@ const openTeam = (path: string) => () =>
 
 export default function Mas() {
   const [push, setPush] = useState<PushStatus | null>(null);
+  // Team tools stay hidden; revealed like the website's private access:
+  // 3 quick taps or a long press on the footer.
+  const [showTeam, setShowTeam] = useState(false);
+  const taps = useRef({ count: 0, at: 0 });
+  const revealTeam = () => { tapFeedback(); setShowTeam(true); };
+  const onFooterTap = () => {
+    const now = Date.now();
+    taps.current = { count: now - taps.current.at < 700 ? taps.current.count + 1 : 1, at: now };
+    if (taps.current.count >= 3) { taps.current.count = 0; revealTeam(); }
+  };
   useEffect(() => {
     getPushStatus().then(setPush).catch(() => setPush('unsupported'));
   }, []);
@@ -83,13 +93,6 @@ export default function Mas() {
           ]}
         />
         <Group
-          title="Equipo"
-          items={[
-            { icon: 'shield-checkmark-outline', label: 'Administración', hint: 'Eventos, galería, devocionales y usuarios', onPress: openTeam('admin.html') },
-            { icon: 'stats-chart-outline', label: 'Dashboard', hint: 'Registros de la comunidad', onPress: openTeam('dashboard.html') },
-          ]}
-        />
-        <Group
           title="Ajustes"
           items={[
             {
@@ -111,7 +114,18 @@ export default function Mas() {
             { icon: 'globe-outline', label: 'mcp930.org', onPress: open(SITE_URL) },
           ]}
         />
-        <Text style={s.footer}>Mujeres con Propósito 930 a.s.b.l.</Text>
+        {showTeam ? (
+          <Group
+          title="Equipo"
+          items={[
+            { icon: 'shield-checkmark-outline', label: 'Administración', hint: 'Eventos, galería, devocionales y usuarios', onPress: openTeam('admin.html') },
+            { icon: 'stats-chart-outline', label: 'Dashboard', hint: 'Registros de la comunidad', onPress: openTeam('dashboard.html') },
+          ]}
+        />
+        ) : null}
+        <Pressable onPress={onFooterTap} onLongPress={revealTeam} delayLongPress={800} accessible={false}>
+          <Text style={s.footer}>Mujeres con Propósito 930 a.s.b.l.</Text>
+        </Pressable>
       </View>
     </Screen>
   );
