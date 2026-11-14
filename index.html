@@ -33,10 +33,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/css/intlTelInput.css" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260830-mobile-visual-fixes-1" />
   <link rel="stylesheet" href="assets/css/promo-banner.css?v=20260905-1" />
+  <link rel="stylesheet" href="assets/css/premium.css?v=20261114-1" />
   <style>
     /* JOIN FORM PREMIUM REDESIGN */
     .join-modal-content {
@@ -617,7 +619,7 @@
     }
   </style>
 </head>
-<body id="top">
+<body id="top" class="theme-premium">
 
   <!-- LOADER -->
   <div id="loadingOverlay" style="display:none;">
@@ -631,7 +633,7 @@
   <header>
     <div class="header-left">
       <a href="#top" class="logo">
-        <img src="assets/images/logo.webp" alt="Mujeres con Propósito" />
+        <img src="assets/images/apple-touch-icon.png" alt="Mujeres con Propósito" />
       </a>
       <div class="header-title-group">
         <h1>Mujeres con Propósito</h1>
@@ -656,6 +658,7 @@
   </header>
 
   <section id="home" class="hero hero-premium">
+    <div class="p-hero-grain" aria-hidden="true"></div>
     <div class="hero-premium-content">
       <div class="hero-kicker">✦ Comunidad cristiana internacional</div>
       <h2><span>Bienvenida</span><span class="hero-title-accent">a Mujeres</span><span>con Propósito</span></h2>
@@ -684,7 +687,8 @@
 
     <div class="hero-premium-panel" aria-hidden="true">
       <div class="hero-logo-card">
-        <img src="assets/images/logo.webp" alt="" />
+        <img class="p-hero-photo" src="assets/images/IMG_8285.webp" alt="" fetchpriority="high" decoding="async" />
+        <img class="p-hero-seal" src="assets/images/logo.webp" alt="" />
         <div class="hero-floating-card">
           <strong>Transformadas con propósito</strong>
           <span>Una comunidad para inspirarte, acompañarte y recordarte que Dios cumple su obra en ti.</span>
@@ -697,6 +701,7 @@
 
 <section id="invitees">
     <div class="section-header-premium reveal">
+      <span class="p-eyebrow">Voces que inspiran</span>
       <h2><span class="icon">✦</span> Destacadas <span class="icon">✦</span></h2>
     </div>
 
@@ -740,6 +745,7 @@
 
   <section id="about">
     <div class="section-header-premium reveal">
+      <span class="p-eyebrow">Nosotras</span>
       <h2><span class="icon">✦</span> ¿Quiénes somos? <span class="icon">✦</span></h2>
       <p class="subtitle">Nuestra misión, visión y propósito</p>
     </div>
@@ -774,6 +780,7 @@
 
   <section id="timeline" class="timeline-section reveal">
     <div class="section-header-premium">
+      <span class="p-eyebrow">Desde 2023</span>
       <h2><span>Nuestra Historia</span></h2>
       <p>El camino que Dios ha trazado para Mujeres con Propósito.</p>
     </div>
@@ -808,7 +815,10 @@
   <div class="divider-glow"></div>
 
   <section class="ofrecemos-section">
-    <h2>✦ Lo Que Hacemos ✦</h2>
+    <div class="section-header-premium">
+      <span class="p-eyebrow">Ministerio</span>
+      <h2>Lo que hacemos</h2>
+    </div>
 
     <div class="ofrecemos-grid">
       <div class="ofrecemos-card">
@@ -876,6 +886,7 @@
 
 <section id="events">
     <div class="section-header-premium">
+      <span class="p-eyebrow">Agenda</span>
       <h2><span class="icon">✦</span> Eventos <span class="icon">✦</span></h2>
     </div>
 
@@ -931,8 +942,32 @@
 
   <div class="divider-glow"></div>
 
+  <section class="p-app" id="app" aria-labelledby="appTitle">
+    <div class="p-app-card">
+      <div>
+        <span class="p-eyebrow">Nuestra app</span>
+        <h2 id="appTitle">Tu comunidad, siempre contigo.</h2>
+        <p>Muy pronto en iOS y Android: devocionales, eventos, música y donaciones en un solo lugar.</p>
+        <ul class="p-app-features">
+          <li><i class="fa-solid fa-bell" aria-hidden="true"></i><span>Aviso al instante cuando empieza una reunión, y te unes con un toque desde la notificación.</span></li>
+          <li><i class="fa-solid fa-qrcode" aria-hidden="true"></i><span>Aporta escaneando el código QR o con los datos de cuenta de la app.</span></li>
+          <li><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>Devocionales, destacadas, galería y música al alcance de tu mano.</span></li>
+        </ul>
+        <span class="p-app-soon"><i class="fa-solid fa-mobile-screen" aria-hidden="true"></i> Próximamente en App Store y Google Play</span>
+      </div>
+      <div class="p-phone" aria-hidden="true">
+        <div class="p-phone-screen">
+          <div class="p-phone-notif"><b>La reunión ha comenzado</b>Oración de los martes · en vivo ahora<span class="p-join">Unirme</span></div>
+          <div class="p-phone-tile"></div>
+          <div class="p-phone-tile"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="donate">
     <div class="section-header-premium">
+      <span class="p-eyebrow">Siembra con nosotras</span>
       <h2><span class="icon">✦</span> Apoya Nuestra Misión <span class="icon">✦</span></h2>
     </div>
 
@@ -955,6 +990,7 @@
 
   <section id="gallery">
     <div class="section-header-premium">
+      <span class="p-eyebrow">Momentos</span>
       <h2><span class="icon">✦</span> Galería <span class="icon">✦</span></h2>
     </div>
 
@@ -1078,7 +1114,8 @@
 
    <section id="contact">
   <div class="section-header-premium">
-    <h2><span class="icon">✦</span> Contacto <span class="icon">✦</span></h2>
+    <span class="p-eyebrow">Escríbenos</span>
+      <h2><span class="icon">✦</span> Contacto <span class="icon">✦</span></h2>
 
   </div>
 
@@ -1511,5 +1548,6 @@
   <script src="assets/js/main.js?v=20260831-shared-form-fields-1"></script>
   <script src="assets/js/analytics.js?v=20260830-ga4-1" defer></script>
   <script src="assets/js/promo-banner.js?v=20260905-2" defer></script>
+  <script src="assets/js/premium.js?v=20261114-1" defer></script>
 </body>
 </html>
