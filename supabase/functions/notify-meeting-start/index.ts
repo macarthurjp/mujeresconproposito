@@ -14,6 +14,7 @@ import { isValidTimeZone, parseSchedule, startedOccurrence } from "../_shared/sc
 
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
 const EXPO_BATCH = 100;
+const SOON_MINUTES = 15;
 
 type Evento = {
   id: string;
@@ -22,6 +23,7 @@ type Evento = {
   link: string | null;
   zona_horaria: string | null;
   ultimo_aviso_inicio: string | null;
+  ultimo_aviso_previo: string | null;
 };
 
 type ExpoTicket = { status: "ok" | "error"; id?: string; message?: string; details?: { error?: string } };
@@ -87,13 +89,17 @@ Deno.serve(async (req) => {
 
     const { data: eventos, error: eventosError } = await supabase
       .from("eventos")
-      .select("id,titulo,horario,link,zona_horaria,ultimo_aviso_inicio")
+      .select("id,titulo,horario,link,zona_horaria,ultimo_aviso_inicio,ultimo_aviso_previo")
       .eq("activa", true)
       .eq("notificar", true);
     if (eventosError) throw eventosError;
 
-    const started: Array<{ evento: Evento; inicio: Date; link: string | null }> = [];
+    // Two alerts per occurrence: a heads-up 15 minutes before, and "started".
+    type Kind = "soon" | "start";
+    type Due = { evento: Evento; inicio: Date; link: string | null; kind: Kind };
+    const due: Due[] = [];
     const skipped: Array<{ id: string; reason: string }> = [];
+    const markerColumn = (kind: Kind) => (kind === "soon" ? "ultimo_aviso_previo" : "ultimo_aviso_inicio");
 
     for (const evento of (eventos || []) as Evento[]) {
       const schedule = parseSchedule(evento.horario);
@@ -104,22 +110,30 @@ Deno.serve(async (req) => {
       const zone = evento.zona_horaria && isValidTimeZone(evento.zona_horaria)
         ? evento.zona_horaria
         : /europ/i.test(evento.titulo || "") ? "Europe/Luxembourg" : "America/Santo_Domingo";
+      const link = safeLink(evento.link);
+
+      // Starts within the next 5..15 minutes (cron runs every minute).
+      const soon = startedOccurrence(schedule, zone, new Date(now.getTime() + SOON_MINUTES * 60_000), 10);
+      if (soon && !(evento.ultimo_aviso_previo && new Date(evento.ultimo_aviso_previo).getTime() >= soon.getTime())) {
+        due.push({ evento, inicio: soon, link, kind: "soon" });
+      }
+
       const inicio = startedOccurrence(schedule, zone, now);
-      if (!inicio) continue;
-      if (evento.ultimo_aviso_inicio && new Date(evento.ultimo_aviso_inicio).getTime() >= inicio.getTime()) continue;
-      started.push({ evento, inicio, link: safeLink(evento.link) });
+      if (inicio && !(evento.ultimo_aviso_inicio && new Date(evento.ultimo_aviso_inicio).getTime() >= inicio.getTime())) {
+        due.push({ evento, inicio, link, kind: "start" });
+      }
     }
 
     if (dryRun) {
       return json({
         dryRun: true,
         at: now.toISOString(),
-        wouldNotify: started.map(({ evento, inicio, link }) => ({ id: evento.id, titulo: evento.titulo, inicio, link })),
+        wouldNotify: due.map(({ evento, inicio, link, kind }) => ({ id: evento.id, titulo: evento.titulo, kind, inicio, link })),
         skipped,
       });
     }
 
-    if (started.length === 0) return json({ ok: true, notified: 0 });
+    if (due.length === 0) return json({ ok: true, notified: 0 });
 
     const { data: tokens, error: tokensError } = await supabase.from("push_tokens").select("token").eq("activo", true);
     if (tokensError) throw tokensError;
@@ -128,31 +142,35 @@ Deno.serve(async (req) => {
     const results = [];
     const deadTokens = new Set<string>();
 
-    for (const { evento, inicio, link } of started) {
+    for (const { evento, inicio, link, kind } of due) {
       // Claim this occurrence atomically so overlapping cron runs never double-send.
+      const column = markerColumn(kind);
       const { data: claimed, error: claimError } = await supabase
         .from("eventos")
-        .update({ ultimo_aviso_inicio: inicio.toISOString() })
+        .update({ [column]: inicio.toISOString() })
         .eq("id", evento.id)
-        .or(`ultimo_aviso_inicio.is.null,ultimo_aviso_inicio.lt.${inicio.toISOString()}`)
+        .or(`${column}.is.null,${column}.lt.${inicio.toISOString()}`)
         .select("id");
       if (claimError) throw claimError;
       if (!claimed?.length) continue;
 
       const titulo = evento.titulo?.trim() || "Reunión de Mujeres con Propósito";
+      const minutes = Math.max(1, Math.round((inicio.getTime() - now.getTime()) / 60_000));
+      const content = kind === "soon"
+        ? { title: `${titulo} empieza en ${minutes} minutos`, body: link ? "Prepárate. Te avisaremos cuando empiece para que te unas." : "Prepárate, comenzamos pronto." }
+        : { title: "La reunión ha comenzado", body: link ? `${titulo} está en vivo. Toca para unirte.` : `${titulo} está comenzando.` };
       let sent = 0;
 
       for (let i = 0; i < recipients.length; i += EXPO_BATCH) {
         const batch = recipients.slice(i, i + EXPO_BATCH);
         const messages = batch.map((to) => ({
           to,
-          title: "La reunión ha comenzado",
-          body: link ? `${titulo} está en vivo. Toca para unirte.` : `${titulo} está comenzando.`,
+          ...content,
           sound: "default",
           priority: "high",
           channelId: "reuniones",
-          categoryId: link ? "meeting" : undefined,
-          data: { type: "meeting_start", eventoId: evento.id, titulo, link, inicio: inicio.toISOString() },
+          categoryId: kind === "start" && link ? "meeting" : undefined,
+          data: { type: kind === "start" ? "meeting_start" : "meeting_soon", eventoId: evento.id, titulo, link, inicio: inicio.toISOString() },
         }));
 
         const tickets = await sendExpoBatch(messages);
@@ -162,7 +180,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      results.push({ id: evento.id, titulo, inicio, sent });
+      results.push({ id: evento.id, titulo, kind, inicio, sent });
     }
 
     if (deadTokens.size) {

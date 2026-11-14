@@ -3,6 +3,7 @@ import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
 import { Platform, StyleSheet, View, type ColorValue } from 'react-native';
 
+import { LiveBanner } from '@/components/live-banner';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 
@@ -26,6 +27,7 @@ function TabBarBackground() {
 
 export default function TabsLayout() {
   return (
+    <View style={{ flex: 1 }}>
     <Tabs
       screenListeners={{ tabPress: () => tapFeedback() }}
       screenOptions={{
@@ -58,5 +60,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="aportar" options={{ href: null }} />
       <Tabs.Screen name="mas" options={tab('Más', 'grid-outline', 'grid')} />
     </Tabs>
+    <LiveBanner />
+    </View>
   );
 }
