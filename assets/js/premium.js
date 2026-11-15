@@ -90,3 +90,22 @@
     if (main) main.click();
   });
 })();
+
+// Destacadas posters: show the whole flyer (like the app's PosterCard) over a
+// blurred copy of itself. Cards are re-rendered by main.js, so watch the track.
+(function () {
+  var track = document.getElementById("inviteesTrack");
+  if (!track) return;
+  function enhance() {
+    track.querySelectorAll(".card > img:not([data-poster])").forEach(function (img) {
+      img.setAttribute("data-poster", "1");
+      var wrap = document.createElement("div");
+      wrap.className = "poster-media";
+      wrap.style.setProperty("--poster", 'url("' + (img.currentSrc || img.src) + '")');
+      img.replaceWith(wrap);
+      wrap.appendChild(img);
+    });
+  }
+  enhance();
+  new MutationObserver(enhance).observe(track, { childList: true, subtree: true });
+})();
