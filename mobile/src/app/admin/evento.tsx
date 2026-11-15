@@ -1,5 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -21,6 +22,12 @@ const ICONS = [
   '🕊️', '🎵', '🎤', '🎧', '🙌', '🛐', '📿', '🫶', '🤍', '🌿',
   '🌸', '🌻', '☀️', '🌙', '⭐', '🔥', '💡', '🧡', '👥', '🤝',
   '👩‍👩‍👧', '🧒', '🏠', '🌍', '📅', '🎉', '🗣️', '💭', '📝', '🔔',
+  'ion:calendar-outline', 'ion:people-outline', 'ion:book-outline', 'ion:heart-outline',
+  'ion:hand-left-outline', 'ion:business-outline', 'ion:chatbubble-ellipses-outline',
+  'ion:musical-notes-outline', 'ion:mic-outline', 'ion:headset-outline', 'ion:sparkles-outline',
+  'ion:leaf-outline', 'ion:flower-outline', 'ion:sunny-outline', 'ion:moon-outline',
+  'ion:star-outline', 'ion:flame-outline', 'ion:home-outline', 'ion:globe-outline',
+  'ion:notifications-outline', 'ion:camera-outline', 'ion:videocam-outline', 'ion:gift-outline',
 ];
 
 export default function AdminEvento() {
@@ -122,10 +129,10 @@ export default function AdminEvento() {
       <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
         <Group header="Reunión">
           <InputRow label="Nombre" value={titulo} onChangeText={setTitulo} placeholder="Ej. Oración Matutina" />
-          <FieldRow label="Icono">
-            {isImageIcon || pickedIcon ? <View style={s.imageIconPreview}><Image source={{ uri: pickedIcon?.uri ?? icono }} style={s.imageIcon} contentFit="contain" /><Text style={s.imageIconLabel}>Imagen personalizada</Text></View> : <Chips options={ICONS} selected={[icono]} onToggle={(o) => setIcono(o)} iconOptions />}
+          <FieldRow label="Icono predeterminado">
+            {isImageIcon || pickedIcon ? <View style={s.imageIconPreview}><Image source={{ uri: pickedIcon?.uri ?? icono }} style={s.imageIcon} contentFit="contain" /><Text style={s.imageIconLabel}>Imagen personalizada</Text></View> : <Chips options={ICONS} selected={[icono]} onToggle={(o) => { setPickedIcon(null); setIcono(o); }} iconOptions />}
             <Pressable accessibilityRole="button" onPress={() => { void chooseIcon(); }} style={s.chooseIcon}><Text style={s.chooseIconText}>{isImageIcon || pickedIcon ? 'Cambiar imagen' : 'Elegir imagen del evento'}</Text></Pressable>
-            {isImageIcon || pickedIcon ? <Pressable onPress={() => { setPickedIcon(null); setIcono('🙏'); }} style={s.removeIcon}><Text style={s.removeIconText}>Usar un emoji</Text></Pressable> : null}
+            {isImageIcon || pickedIcon ? <Pressable onPress={() => { setPickedIcon(null); setIcono('🙏'); }} style={s.removeIcon}><Text style={s.removeIconText}>Usar icono predeterminado</Text></Pressable> : null}
           </FieldRow>
         </Group>
 

@@ -2879,3 +2879,40 @@ body[data-admin-page="true"] .admin-form label > span:first-child {
 }
 
 #adminYoutubeList .admin-item-actions button svg { display: block; }
+#adminEventForm .admin-event-icon-presets,
+.admin-edit-form .admin-event-icon-presets {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  color: var(--admin-muted, #765f5d);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.admin-event-icon-options {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 2px 1px 8px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-event-icon-options button {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(164, 74, 65, 0.12);
+  border-radius: 50%;
+  background: #f8efed;
+  color: #a64b43;
+  font-size: 16px;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.admin-event-icon-options button:hover { transform: translateY(-1px); }
+.admin-event-icon-options button.is-active { background: #a64b43; color: #fff; }

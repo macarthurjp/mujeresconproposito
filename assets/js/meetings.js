@@ -48,6 +48,19 @@
   function icon(ev) {
     var value = String(ev.icono || "").trim();
     if (/^https?:\/\//i.test(value)) return '<img src="' + esc(value) + '" alt="" loading="lazy" />';
+    if (value.indexOf("ion:") === 0) {
+      var names = {
+        "calendar-outline": "fa-calendar-days", "people-outline": "fa-people-group", "book-outline": "fa-book-open",
+        "heart-outline": "fa-heart", "hand-left-outline": "fa-hands-praying", "business-outline": "fa-church",
+        "chatbubble-ellipses-outline": "fa-comments", "musical-notes-outline": "fa-music", "mic-outline": "fa-microphone",
+        "headset-outline": "fa-headphones", "sparkles-outline": "fa-wand-magic-sparkles", "leaf-outline": "fa-leaf",
+        "flower-outline": "fa-spa", "sunny-outline": "fa-sun", "moon-outline": "fa-moon", "star-outline": "fa-star",
+        "flame-outline": "fa-fire", "home-outline": "fa-house", "globe-outline": "fa-globe", "notifications-outline": "fa-bell",
+        "camera-outline": "fa-camera", "videocam-outline": "fa-video", "gift-outline": "fa-gift"
+      };
+      var className = names[value.slice(4)] || "fa-calendar-days";
+      return '<i class="fa-solid ' + className + ' mt-platform-icon" aria-hidden="true"></i>';
+    }
     return "<span>" + esc(value || "✦") + "</span>";
   }
 
@@ -137,6 +150,39 @@
       "</div>";
   }
 
+  // ---------- Floating "EN VIVO AHORA" banner (same as the app) ----------
+  var DISMISS_KEY = "mcp-live-dismissed";
+  function dismissedKeys() {
+    try { return JSON.parse(sessionStorage.getItem(DISMISS_KEY) || "[]"); } catch (_) { return []; }
+  }
+  function renderLiveBanner() {
+    var now = new Date();
+    var live = occurrences(now).filter(function (o) { return o.live && safeLink(o.ev.link); })
+      .find(function (o) { return dismissedKeys().indexOf(o.ev.id + "@" + o.start.toISOString()) === -1; });
+    var bar = document.getElementById("mtLiveBanner");
+    if (!live) { if (bar) bar.remove(); return; }
+    var key = live.ev.id + "@" + live.start.toISOString();
+    if (bar && bar.getAttribute("data-key") === key) return;
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "mtLiveBanner";
+      bar.className = "mt-live-banner";
+      bar.setAttribute("role", "status");
+      document.body.appendChild(bar);
+    }
+    bar.setAttribute("data-key", key);
+    bar.innerHTML =
+      '<span class="mt-live-pulse" aria-hidden="true"><i></i></span>' +
+      '<span class="mt-live-copy"><small>En vivo ahora</small><strong>' + esc(String(live.ev.titulo || "Reunión").trim()) + "</strong></span>" +
+      '<a class="mt-live-join" href="' + esc(safeLink(live.ev.link)) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-video" aria-hidden="true"></i> Unirme</a>' +
+      '<button type="button" class="mt-live-close" aria-label="Cerrar aviso"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>';
+    bar.querySelector(".mt-live-close").addEventListener("click", function () {
+      var keys = dismissedKeys(); keys.push(key);
+      try { sessionStorage.setItem(DISMISS_KEY, JSON.stringify(keys)); } catch (_) {}
+      bar.remove();
+    });
+  }
+
   document.addEventListener("click", function (event) {
     var button = event.target.closest && event.target.closest("[data-mt-day]");
     if (!button) return;
@@ -148,7 +194,8 @@
     render: function (rows) {
       events = (rows || []).filter(function (row) { return row && row.activa !== false; });
       render();
-      if (!timer) timer = setInterval(render, 30000);
+      renderLiveBanner();
+      if (!timer) timer = setInterval(function () { render(); renderLiveBanner(); }, 30000);
     }
   };
 })();

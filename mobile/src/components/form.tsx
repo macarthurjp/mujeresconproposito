@@ -123,11 +123,11 @@ export function Chips({ options, selected, onToggle, iconOptions = false }: { op
           <Pressable
             key={o}
             accessibilityRole="checkbox"
-            accessibilityLabel={iconOptions ? `Icono ${o}` : o}
+            accessibilityLabel={iconOptions ? `Icono ${o.startsWith('ion:') ? o.slice(4).replaceAll('-', ' ') : o}` : o}
             accessibilityState={{ checked: on }}
             onPress={() => { tapFeedback(); onToggle(o); }}
             style={[iconOptions ? f.iconChip : f.chip, on && f.chipOn]}>
-            {iconOptions ? <Ionicons name={selectionIcons[o] ?? 'ellipse-outline'} size={21} color={on ? '#fff' : C.wine} /> : <Text style={[f.chipText, on && { color: '#fff' }]}>{o.length > 4 ? o.slice(0, 3) : o}</Text>}
+            {iconOptions ? <Ionicons name={(o.startsWith('ion:') ? o.slice(4) : selectionIcons[o] ?? 'ellipse-outline') as ComponentProps<typeof Ionicons>['name']} size={21} color={on ? '#fff' : C.wine} /> : <Text style={[f.chipText, on && { color: '#fff' }]}>{o.length > 4 ? o.slice(0, 3) : o}</Text>}
           </Pressable>
         );
       })}

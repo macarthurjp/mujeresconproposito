@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { ComponentProps } from 'react';
 
 import { C, sans, serif } from '@/constants/theme';
 import type { Evento } from '@/lib/api';
@@ -12,6 +13,14 @@ import { followMeeting, isFollowing, LIVE_ACTIVITY_WINDOW_MS, liveActivitiesSupp
 import { tapFeedback } from './ui';
 
 type Platform = { name: string; icon: keyof typeof Ionicons.glyphMap };
+type AppIconName = ComponentProps<typeof Ionicons>['name'];
+
+export function EventArtwork({ icon, size, tint, emojiSize }: { icon: string | null; size: number; tint: string; emojiSize: number }) {
+  const value = icon || '✦';
+  if (/^https?:\/\//.test(value)) return <Image source={{ uri: value }} style={{ width: size * 1.3, height: size * 1.3 }} contentFit="cover" />;
+  if (value.startsWith('ion:')) return <Ionicons name={value.slice(4) as AppIconName} size={emojiSize} color={tint} />;
+  return <Text style={{ fontSize: emojiSize }}>{value}</Text>;
+}
 
 /** Recognises the video platform from the meeting link. */
 export function meetingPlatform(link: string | null): Platform | null {
@@ -45,7 +54,6 @@ function relative(date: Date, now: Date) {
 export function MeetingCard({ evento, next, live, now }: { evento: Evento; next: Date | null; live: boolean; now: Date }) {
   const link = evento.link && /^https?:\/\//i.test(evento.link) ? evento.link : null;
   const platform = meetingPlatform(link);
-  const isImage = !!evento.icono && /^https?:\/\//.test(evento.icono);
   const recurrence = evento.horario.split('·')[0].trim();
   const [liveActivitiesEnabled, setLiveActivitiesEnabled] = useState(true);
   useFocusEffect(useCallback(() => {
@@ -61,9 +69,7 @@ export function MeetingCard({ evento, next, live, now }: { evento: Evento; next:
     <View style={[m.card, live && m.cardLive]}>
       <View style={m.top}>
         <View style={m.art}>
-          {isImage
-            ? <Image source={{ uri: evento.icono! }} style={{ width: 34, height: 34 }} contentFit="contain" />
-            : <Text style={{ fontSize: 22 }}>{evento.icono || '✦'}</Text>}
+          <EventArtwork icon={evento.icono} size={50} tint={C.wine} emojiSize={32} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={m.title} numberOfLines={2}>{evento.titulo.trim()}</Text>
@@ -122,7 +128,7 @@ const m = StyleSheet.create({
   card: { backgroundColor: C.card, borderRadius: 22, padding: 16, gap: 14, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 10px 28px rgba(63,38,35,0.07)' },
   cardLive: { borderWidth: 1.5, borderColor: 'rgba(214,69,69,0.45)', boxShadow: '0 12px 32px rgba(214,69,69,0.18)' },
   top: { flexDirection: 'row', alignItems: 'center', gap: 13 },
-  art: { width: 50, height: 50, borderRadius: 14, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
+  art: { width: 50, height: 50, borderRadius: 14, backgroundColor: 'transparent', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: sans, fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.3, color: C.ink },
   recurrence: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 2 },
   time: { fontFamily: sans, fontSize: 24, fontWeight: '700', letterSpacing: -0.6, color: C.ink, fontVariant: ['tabular-nums'] },
@@ -171,7 +177,6 @@ function dayLabel(date: Date, now: Date) {
 /** Hero card for the next (or live) meeting. */
 export function MeetingHero({ evento, next, live, now }: { evento: Evento; next: Date; live: boolean; now: Date }) {
   const { link, platform, canFollow, following, toggle } = useFollow(evento, next, live, now);
-  const isImage = !!evento.icono && /^https?:\/\//.test(evento.icono);
   return (
     <View style={h.card}>
       <LinearGradient colors={live ? ['#d85a4e', '#b8433b', '#8f2f2a'] : ['#b8645a', '#a64b43', '#7f3530']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
@@ -182,7 +187,7 @@ export function MeetingHero({ evento, next, live, now }: { evento: Evento; next:
           <Text style={h.badgeText}>{live ? 'EN VIVO AHORA' : 'PRÓXIMA REUNIÓN'}</Text>
         </View>
         <View style={h.art}>
-          {isImage ? <Image source={{ uri: evento.icono! }} style={{ width: 30, height: 30 }} contentFit="contain" /> : <Text style={{ fontSize: 20 }}>{evento.icono || '✦'}</Text>}
+          <EventArtwork icon={evento.icono} size={46} tint="#fff" emojiSize={28} />
         </View>
       </View>
       <Text style={h.title} numberOfLines={2}>{evento.titulo.trim()}</Text>
@@ -217,7 +222,6 @@ export function MeetingHero({ evento, next, live, now }: { evento: Evento; next:
 export function AgendaRow({ evento, start, live, now }: { evento: Evento; start: Date; live: boolean; now: Date }) {
   const link = evento.link && /^https?:\/\//i.test(evento.link) ? evento.link : null;
   const platform = meetingPlatform(link);
-  const isImage = !!evento.icono && /^https?:\/\//.test(evento.icono);
   const recurrence = evento.horario.split('·')[0].trim();
   const past = !live && start.getTime() < now.getTime();
   return (
@@ -228,7 +232,7 @@ export function AgendaRow({ evento, start, live, now }: { evento: Evento; start:
       </View>
       <View style={[a.rule, live && { backgroundColor: C.live }]} />
       <View style={a.art}>
-        {isImage ? <Image source={{ uri: evento.icono! }} style={{ width: 26, height: 26 }} contentFit="contain" /> : <Text style={{ fontSize: 18 }}>{evento.icono || '✦'}</Text>}
+        <EventArtwork icon={evento.icono} size={38} tint={C.wine} emojiSize={24} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={a.title} numberOfLines={2}>{evento.titulo.trim()}</Text>
@@ -256,7 +260,7 @@ const h = StyleSheet.create({
   badgeLive: { backgroundColor: 'rgba(255,255,255,0.24)' },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#fff' },
   badgeText: { fontFamily: sans, fontSize: 11, fontWeight: '800', letterSpacing: 1, color: '#fff' },
-  art: { width: 46, height: 46, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
+  art: { width: 46, height: 46, borderRadius: 14, backgroundColor: 'transparent', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: serif, fontSize: 30, lineHeight: 35, color: '#fff', letterSpacing: -0.3 },
   whenRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   time: { fontFamily: sans, fontSize: 44, lineHeight: 48, fontWeight: '700', letterSpacing: -1.5, color: '#fff', fontVariant: ['tabular-nums'] },
@@ -275,7 +279,7 @@ const a = StyleSheet.create({
   time: { fontFamily: sans, fontSize: 17, fontWeight: '700', color: C.ink, fontVariant: ['tabular-nums'], letterSpacing: -0.3 },
   sub: { fontFamily: sans, fontSize: 11, fontWeight: '600', color: C.muted, marginTop: 1 },
   rule: { width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: C.blush },
-  art: { width: 38, height: 38, borderRadius: 11, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
+  art: { width: 38, height: 38, borderRadius: 11, backgroundColor: 'transparent', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink, letterSpacing: -0.2 },
   recurrence: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 1 },
   join: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.fill, alignItems: 'center', justifyContent: 'center' },

@@ -163,6 +163,13 @@ export default function Mas() {
         </View>
 
         <View style={s.section}>
+          <Eyebrow>Cumpleaños</Eyebrow>
+          <View style={s.group}>
+            <Row icon="gift-outline" label="Avisos de cumpleaños" hint="Elige los días y la hora del recordatorio" onPress={go('/avisos-cumpleanos')} />
+          </View>
+        </View>
+
+        <View style={s.section}>
           <Eyebrow>Calendario de actividades</Eyebrow>
           <View style={s.group}>
             <SwitchRow icon="calendar-outline" label="Próximas actividades en Inicio" hint="Muestra u oculta la agenda en la página principal." value={showActivities} onValueChange={(value) => { void toggleHomeActivities(value); }} />

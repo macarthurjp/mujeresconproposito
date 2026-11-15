@@ -101,7 +101,7 @@ export default function Home() {
 
       {/* About */}
       <Section eyebrow="Nosotras" title="¿Quiénes somos?" band>
-        <Text style={ui.body}>Nuestra misión, visión y propósito</Text>
+        <Text style={[ui.body, { fontWeight: '700', color: C.ink }]}>Nuestra misión, visión y propósito</Text>
         <Text style={[ui.body, { marginTop: 12 }]}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
         <Pressable onPress={() => setAboutVisible(true)} onPressIn={tapFeedback} accessibilityRole="button" accessibilityLabel="Ver misión, visión y valores" style={({ pressed }) => [s.moreLink, pressed && { opacity: 0.72 }]}>
           <Text style={s.moreLinkText}>Ver más</Text><Ionicons name="arrow-forward" size={16} color={C.wine} />

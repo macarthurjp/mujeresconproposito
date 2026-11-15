@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
@@ -10,6 +9,7 @@ import { C, sans } from '@/constants/theme';
 import { deleteEvento, listEventos, setEventoActiva, setEventoOrden, type AdminEvento } from '@/lib/admin';
 import { meetingPlatform } from '@/components/meeting-card';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
+import { EventArtwork } from '@/components/meeting-card';
 import { useAdmin } from '@/lib/use-admin';
 
 export default function AdminEventos() {
@@ -88,13 +88,12 @@ export default function AdminEventos() {
         ) : null}
         <View style={{ gap: 10 }}>
           {items?.map((item) => {
-            const isImage = !!item.icono && /^https?:\/\//.test(item.icono);
             const platform = meetingPlatform(item.link);
             return (
               <AdminGestureRow key={item.id} onEdit={() => { tapFeedback(); router.push({ pathname: '/admin/evento', params: { id: item.id } }); }} onDelete={() => remove(item)} onReorder={(steps) => void move(item, steps)} stepHeight={74}>
               <View style={[s.card, !item.activa && { opacity: 0.6 }]}>
                 <Pressable onPress={() => { tapFeedback(); router.push({ pathname: '/admin/evento', params: { id: item.id } }); }} style={s.cardContent}>
-                  <View style={s.icon}>{isImage ? <Image source={{ uri: item.icono! }} style={{ width: 30, height: 30 }} contentFit="contain" /> : <Text style={{ fontSize: 20 }}>{item.icono || '✦'}</Text>}</View>
+                  <View style={s.icon}><EventArtwork icon={item.icono} size={30} tint={C.wine} emojiSize={20} /></View>
                   <View style={{ flex: 1 }}><Text style={s.title} numberOfLines={1}>{item.titulo.trim()}</Text><Text style={s.meta} numberOfLines={1}>{item.horario}</Text><Text style={s.platform} numberOfLines={1}>{platform ? platform.name : 'Sin enlace'}</Text></View>
                 </Pressable>
                 <View style={s.eventActions}>

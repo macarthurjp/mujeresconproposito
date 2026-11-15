@@ -38,6 +38,19 @@ document.addEventListener("DOMContentLoaded", function () {
     return minutes === "00" ? `${hour24}h` : `${hour24}h${minutes}`;
   }
 
+  function platformEventIconClass(value) {
+    const names = {
+      "calendar-outline": "fa-calendar-days", "people-outline": "fa-people-group", "book-outline": "fa-book-open",
+      "heart-outline": "fa-heart", "hand-left-outline": "fa-hands-praying", "business-outline": "fa-church",
+      "chatbubble-ellipses-outline": "fa-comments", "musical-notes-outline": "fa-music", "mic-outline": "fa-microphone",
+      "headset-outline": "fa-headphones", "sparkles-outline": "fa-wand-magic-sparkles", "leaf-outline": "fa-leaf",
+      "flower-outline": "fa-spa", "sunny-outline": "fa-sun", "moon-outline": "fa-moon", "star-outline": "fa-star",
+      "flame-outline": "fa-fire", "home-outline": "fa-house", "globe-outline": "fa-globe", "notifications-outline": "fa-bell",
+      "camera-outline": "fa-camera", "videocam-outline": "fa-video", "gift-outline": "fa-gift"
+    };
+    return names[String(value || "").slice(4)] || "fa-calendar-days";
+  }
+
   function getTimeInputValue(scheduleText) {
     const value = String(scheduleText || "").trim();
     if (!value) return "";
@@ -498,6 +511,10 @@ function isImageUrl(value) {
             <img src="${escapeHtml(safeIcon)}" alt="${escapeHtml(title || "Icono del evento")}" loading="lazy">
           </div>
         `;
+      }
+
+      if (safeIcon.startsWith("ion:")) {
+        return `<div class="card-icon premium-icon"><i class="fa-solid ${platformEventIconClass(safeIcon)}" aria-hidden="true"></i></div>`;
       }
 
       return `<div class="card-icon premium-icon">${escapeHtml(safeIcon || "✦")}</div>`;
@@ -2854,8 +2871,10 @@ function renderContactCalendar(apiData = {}) {
 	        ? `<img src="https://img.youtube.com/vi/${escapeHtml(row.video_id)}/hqdefault.jpg" alt="${escapeHtml(title)}" loading="lazy">`
 	        : row.foto_url
 	          ? `<img src="${escapeHtml(row.foto_url)}" alt="${escapeHtml(title)}" loading="lazy">`
-	          : isImageUrl(row.icono)
+	            : isImageUrl(row.icono)
             ? `<img src="${escapeHtml(row.icono)}" alt="${escapeHtml(title)}" loading="lazy">`
+	            : String(row.icono || "").startsWith("ion:")
+	              ? `<span class="admin-item-icon"><i class="fa-solid ${platformEventIconClass(row.icono)}" aria-hidden="true"></i></span>`
             : `<span class="admin-item-icon">${escapeHtml(row.icono || "✦")}</span>`;
 
 	      return `
@@ -3385,10 +3404,23 @@ function renderContactCalendar(apiData = {}) {
 		    });
 		  }
 
-	  function getAdminEditFields(type, row) {
+  const ADMIN_EVENT_ICON_PRESETS = [
+    ["ion:calendar-outline", "Calendario", "fa-calendar-days"], ["ion:people-outline", "Comunidad", "fa-people-group"],
+    ["ion:book-outline", "Estudio bíblico", "fa-book-open"], ["ion:heart-outline", "Corazón", "fa-heart"],
+    ["ion:hand-left-outline", "Oración", "fa-hands-praying"], ["ion:business-outline", "Iglesia", "fa-church"],
+    ["ion:chatbubble-ellipses-outline", "Conversación", "fa-comments"], ["ion:musical-notes-outline", "Música", "fa-music"],
+    ["ion:mic-outline", "Micrófono", "fa-microphone"], ["ion:headset-outline", "Audífonos", "fa-headphones"],
+    ["ion:sparkles-outline", "Inspiración", "fa-wand-magic-sparkles"], ["ion:leaf-outline", "Naturaleza", "fa-leaf"],
+    ["ion:flower-outline", "Flor", "fa-spa"], ["ion:sunny-outline", "Día", "fa-sun"], ["ion:moon-outline", "Noche", "fa-moon"],
+    ["ion:star-outline", "Estrella", "fa-star"], ["ion:flame-outline", "Fuego", "fa-fire"], ["ion:home-outline", "Hogar", "fa-house"],
+    ["ion:globe-outline", "Mundo", "fa-globe"], ["ion:notifications-outline", "Avisos", "fa-bell"],
+    ["ion:camera-outline", "Cámara", "fa-camera"], ["ion:videocam-outline", "Video", "fa-video"], ["ion:gift-outline", "Celebración", "fa-gift"]
+  ];
+
+  function getAdminEditFields(type, row) {
 	    if (type === "eventos") {
 	      return [
-	        { name: "icono", label: "Icono actual o emoji", value: row.icono || "✦" },
+	        { name: "icono", label: "Icono, emoji o imagen URL", type: "event-icon", value: row.icono || "✦" },
 	        { name: "icono_file", label: "Cambiar icono con imagen (opcional)", type: "file" },
 	        { name: "titulo", label: "Título", value: row.titulo || "" },
 	        { name: "horario", label: "Horario", type: "schedule", value: row.horario || "" },
@@ -3444,6 +3476,15 @@ function renderContactCalendar(apiData = {}) {
 	          <h3>Editar ${escapeHtml(typeLabel)}</h3>
 	          <form class="admin-edit-form">
 	            ${fields.map((field) => {
+	              if (field.type === "event-icon") {
+	                return `
+	                  <label><span>${escapeHtml(field.label)}</span><input type="text" name="${escapeHtml(field.name)}" value="${escapeHtml(field.value)}" placeholder="Elige un icono o escribe emoji/URL" /></label>
+	                  <div class="admin-event-icon-presets" aria-label="Iconos predeterminados"><span>Iconos predeterminados</span><div class="admin-event-icon-options" data-event-icon-picker="${escapeHtml(field.name)}">
+	                    ${ADMIN_EVENT_ICON_PRESETS.map(([value, label, iconClass]) => `<button type="button" data-event-icon="${escapeHtml(value)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" class="${field.value === value ? "is-active" : ""}"><i class="fa-solid ${escapeHtml(iconClass)}"></i></button>`).join("")}
+	                  </div></div>
+	                `;
+	              }
+
 	              if (field.type === "select-options") {
 	                return `
 	                  <label>
@@ -3567,6 +3608,13 @@ function renderContactCalendar(apiData = {}) {
 
 	      document.body.appendChild(modal);
 	      document.body.style.overflow = "hidden";
+	      modal.querySelectorAll("[data-event-icon]").forEach((button) => button.addEventListener("click", () => {
+	        const picker = button.closest("[data-event-icon-picker]") || button.closest(".admin-event-icon-presets");
+	        const fieldName = picker?.getAttribute("data-event-icon-picker") || "icono";
+	        const input = modal.querySelector(`input[name="${fieldName}"]`);
+	        if (input) { input.value = button.getAttribute("data-event-icon") || ""; input.dispatchEvent(new Event("input", { bubbles: true })); }
+	        picker?.querySelectorAll("[data-event-icon]").forEach((item) => item.classList.toggle("is-active", item === button));
+	      }));
 	      modal.querySelectorAll("[data-schedule-group]").forEach((group) => {
 	        const frequencySelect = group.querySelector("[data-schedule-frequency]");
 	        const daysContainer = group.querySelector("[data-schedule-days]");
@@ -4672,6 +4720,14 @@ function renderContactCalendar(apiData = {}) {
     }
   );
   function updateEventoIconoFileName() { eventoIconoPreview.clear(); }
+
+  document.querySelectorAll("#adminEventForm .admin-event-icon-options [data-event-icon]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = document.getElementById("adminEventoIcono");
+      if (input) input.value = button.getAttribute("data-event-icon") || "";
+      document.querySelectorAll("#adminEventForm .admin-event-icon-options [data-event-icon]").forEach((item) => item.classList.toggle("is-active", item === button));
+    });
+  });
 
   document.querySelectorAll("[data-evt-step]").forEach((button) => {
     button.addEventListener("click", () => {

@@ -557,8 +557,8 @@ html body.theme-premium[class] #events .mt-hero-top { display: flex; align-items
 html body.theme-premium[class] #events .mt-badge { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,0.18); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
 html body.theme-premium[class] #events .mt-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: mtPulse 1.6s ease-in-out infinite; }
 @keyframes mtPulse { 50% { opacity: .35; } }
-html body.theme-premium[class] #events .mt-hero-art { width: 52px; height: 52px; border-radius: 16px; background: rgba(255,255,255,0.94); display: grid; place-items: center; font-size: 24px; }
-html body.theme-premium[class] #events .mt-hero-art img, html body.theme-premium[class] #events .mt-row-art img { width: 70%; height: 70%; object-fit: contain; }
+html body.theme-premium[class] #events .mt-hero-art { width: 52px; height: 52px; border-radius: 16px; background: transparent; overflow: hidden; display: grid; place-items: center; font-size: 24px; }
+html body.theme-premium[class] #events .mt-hero-art img, html body.theme-premium[class] #events .mt-row-art img { width: 130%; height: 130%; object-fit: cover; }
 html body.theme-premium[class] #events .mt-hero-title { margin: 6px 0 0 !important; font-family: Georgia, "New York", serif !important; font-weight: 400 !important; font-size: clamp(30px, 3.2vw, 40px) !important; line-height: 1.1 !important; color: #fff !important; text-align: left !important; }
 html body.theme-premium[class] #events .mt-hero-when { display: flex; align-items: center; gap: 16px; }
 html body.theme-premium[class] #events .mt-hero-time { font-size: clamp(48px, 5vw, 60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; color: #fff; }
@@ -592,7 +592,9 @@ html body.theme-premium[class] #events .mt-row-time small { display: block; font
 html body.theme-premium[class] #events .mt-row.is-live .mt-row-time :is(strong, small) { color: #d64545; }
 html body.theme-premium[class] #events .mt-row-rule { width: 3px; align-self: stretch; border-radius: 2px; background: #f9e4e0; }
 html body.theme-premium[class] #events .mt-row.is-live .mt-row-rule { background: #d64545; }
-html body.theme-premium[class] #events .mt-row-art { width: 40px; height: 40px; flex: none; border-radius: 12px; background: #f9e4e0; display: grid; place-items: center; font-size: 18px; }
+html body.theme-premium[class] #events .mt-row-art { width: 40px; height: 40px; flex: none; border-radius: 12px; background: transparent; overflow: hidden; display: grid; place-items: center; font-size: 18px; }
+html body.theme-premium[class] #events .mt-platform-icon { font-size: 21px; color: currentColor; }
+html body.theme-premium[class] #events .mt-hero-art .mt-platform-icon { font-size: 27px; color: #fff; }
 html body.theme-premium[class] #events .mt-row-copy { flex: 1; min-width: 0; }
 html body.theme-premium[class] #events .mt-row-copy strong { display: block; font-size: 16px; font-weight: 600; color: #3f2623; line-height: 1.25; }
 html body.theme-premium[class] #events .mt-row-copy small { display: block; font-size: 13px; color: #6d5250; margin-top: 2px; }
@@ -637,3 +639,71 @@ html body.theme-premium[class] #calendarCard .calendar-item-title { margin: 0 !i
 html body.theme-premium[class] #calendarCard .calendar-item-desc { margin: 2px 0 0 !important; font-size: 13px !important; color: #6d5250 !important; line-height: 1.3 !important; }
 html body.theme-premium[class] #calendarCard .calendar-empty,
 html body.theme-premium[class] #calendarCard .calendar-note { margin: 0 !important; padding: 12px 14px !important; border: 0 !important; border-radius: 14px !important; background: #faf5f4 !important; box-shadow: none !important; font-size: 14px !important; font-weight: 500 !important; color: #6d5250 !important; text-align: left !important; }
+
+/* ---------- Floating "EN VIVO AHORA" banner (mirrors the app) ---------- */
+.mt-live-banner { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1200; width: min(560px, calc(100% - 32px));
+  display: flex; align-items: center; gap: 14px; padding: 12px 12px 12px 16px; border-radius: 22px;
+  background: rgba(255,255,255,0.94); -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px);
+  border: 1px solid rgba(214,69,69,0.18); box-shadow: 0 18px 40px rgba(63,38,35,0.18), 0 2px 6px rgba(63,38,35,0.08);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", sans-serif; animation: mtLiveIn .45s cubic-bezier(.22,1,.36,1); }
+@keyframes mtLiveIn { from { opacity: 0; transform: translate(-50%, 24px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.mt-live-pulse { position: relative; width: 38px; height: 38px; flex: none; border-radius: 50%; background: rgba(214,69,69,0.12); display: grid; place-items: center; }
+.mt-live-pulse i { width: 12px; height: 12px; border-radius: 50%; background: #d64545; box-shadow: 0 0 0 0 rgba(214,69,69,0.6); animation: mtLivePulse 1.6s ease-out infinite; }
+@keyframes mtLivePulse { 70% { box-shadow: 0 0 0 10px rgba(214,69,69,0); } 100% { box-shadow: 0 0 0 0 rgba(214,69,69,0); } }
+.mt-live-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mt-live-copy small { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #d64545; }
+.mt-live-copy strong { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; color: #3f2623; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mt-live-join { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 999px; background: #d64545; color: #fff !important; font-weight: 700; font-size: 15px; text-decoration: none !important; box-shadow: 0 8px 18px rgba(214,69,69,0.3); transition: transform .2s ease; }
+.mt-live-join:hover { transform: translateY(-1px); }
+.mt-live-close { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: #3f2623; font-size: 17px; cursor: pointer; }
+.mt-live-close:hover { background: rgba(63,38,35,0.07); }
+@media (max-width: 560px) {
+  .mt-live-banner { bottom: 14px; gap: 10px; padding: 10px 8px 10px 12px; }
+  .mt-live-copy strong { font-size: 15px; }
+  .mt-live-join { padding: 10px 14px; font-size: 14px; }
+}
+body:has(.mt-live-banner) :is(.back-to-top, #backToTop) { bottom: 104px !important; }
+/* Keep floating buttons clear of the live banner. */
+body:has(.mt-live-banner) .social-follow,
+body:has(.mt-live-banner) .whatsapp-float { transform: translateY(-92px) !important; transition: transform .35s cubic-bezier(.22,1,.36,1); }
+@media (min-width: 900px) {
+  body:has(.mt-live-banner) .social-follow,
+  body:has(.mt-live-banner) .whatsapp-float { transform: none !important; }
+}
+
+/* ---------- Visual review fixes (2026-11-15) ---------- */
+/* Join photo caption: both lines left-aligned. */
+html body.theme-premium[class] .join-image-overlay,
+html body.theme-premium[class] .join-image-overlay :is(span, p) { text-align: left !important; }
+/* Audio playlist: titles read left to right, not centered. */
+html body.theme-premium[class] .sc-track-title { text-align: left !important; flex: 1 1 auto !important; }
+/* Gallery country tabs: a horizontal pill row on phones instead of stacked buttons. */
+@media (max-width: 640px) {
+  html body.theme-premium[class] #gallery .gallery-tabs { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 8px !important; overflow-x: auto !important; scrollbar-width: none; padding-bottom: 4px !important; }
+  html body.theme-premium[class] #gallery .gallery-tabs::-webkit-scrollbar { display: none; }
+  html body.theme-premium[class] #gallery .gallery-tabs .tab { flex: 0 0 auto !important; width: auto !important; white-space: nowrap !important; padding: 10px 16px !important; }
+}
+/* Hero seal: new logo, a bit larger inside the circle. */
+html body.theme-premium[class] .p-hero-seal { object-fit: contain !important; padding: 10px !important; }
+/* Footer mark uses the square flower icon. */
+html body.theme-premium[class] .footer-logo { object-fit: cover !important; border-radius: 14px !important; }
+
+/* ---------- ¿Quiénes somos?: intro + Misión / Visión cards ---------- */
+html body.theme-premium[class] #about .about-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 40px; align-items: center; margin-top: 8px; }
+html body.theme-premium[class] #about .about-intro p { margin: 0 0 24px !important; max-width: 34em; }
+html body.theme-premium[class] #about .about-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+html body.theme-premium[class] #about .about-card { background: #fff; border-radius: 22px; padding: 24px 22px; text-align: left; box-shadow: 0 1px 2px rgba(63,38,35,0.04), 0 10px 28px rgba(63,38,35,0.06); }
+html body.theme-premium[class] #about .about-card-icon { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; background: #f9e4e0; color: #a64b43; font-size: 18px; margin-bottom: 14px; }
+html body.theme-premium[class] #about .about-card h3 { margin: 0 0 8px !important; font-family: Georgia, "New York", serif !important; font-weight: 400 !important; font-size: 24px !important; color: #3f2623 !important; text-align: left !important; }
+html body.theme-premium[class] #about .about-card p { margin: 0 !important; font-size: 15px !important; line-height: 1.6 !important; color: #6d5250 !important; text-align: left !important; text-indent: 0 !important; }
+@media (max-width: 900px) {
+  html body.theme-premium[class] #about .about-grid { grid-template-columns: 1fr; gap: 24px; }
+}
+@media (max-width: 560px) {
+  html body.theme-premium[class] #about .about-cards { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* Join form: Día / Mes / Año instead of the US-style native date input. */
+html body.theme-premium[class] .dob-picker { display: grid; grid-template-columns: 0.8fr 1.4fr 1fr; gap: 8px; }
+html body.theme-premium[class] .dob-picker select { width: 100% !important; min-width: 0 !important; }
+html body.theme-premium[class] #about .about-intro p { text-align: left !important; text-indent: 0 !important; }

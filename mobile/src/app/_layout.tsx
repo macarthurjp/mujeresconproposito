@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 
 import { C } from '@/constants/theme';
 import { loadLiveActivitiesPreference } from '@/lib/live-activity';
-import { configureNotificationChannels, getMeetingAlertsEnabled, handleNotificationResponse, registerForMeetingAlerts } from '@/lib/notifications';
+import { configureNotificationChannels, handleNotificationResponse, refreshNotificationRegistration } from '@/lib/notifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,8 +20,8 @@ function NotificationResponder() {
   useEffect(() => {
     configureNotificationChannels().catch(() => {});
     loadLiveActivitiesPreference().catch(() => {});
-    // Re-register silently on every launch (token can rotate); never prompts here.
-    getMeetingAlertsEnabled().then((enabled) => enabled ? registerForMeetingAlerts(false) : null).catch(() => {});
+    // Silently restore meeting and birthday preferences when the Expo token rotates.
+    refreshNotificationRegistration().catch(() => {});
   }, []);
 
   // Covers both a cold start from a notification and taps while running.
@@ -61,6 +61,7 @@ export default function RootLayout() {
         <Stack.Screen name="destacadas" options={{ title: '', headerShadowVisible: false }} />
         <Stack.Screen name="aportar" options={{ title: 'Donar' }} />
         <Stack.Screen name="contacto" options={{ title: 'Contacto' }} />
+        <Stack.Screen name="avisos-cumpleanos" options={{ title: 'Avisos de cumpleaños' }} />
         <Stack.Screen name="join" options={{ headerShown: false }} />
         <Stack.Screen name="admin" options={{ headerShown: false }} />
       </Stack>

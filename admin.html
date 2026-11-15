@@ -12,16 +12,16 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260905-review-highlight-1" />
-  <link rel="stylesheet" href="assets/css/brand.css?v=20261114-6" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20261115-meeting-icons-1" />
+  <link rel="stylesheet" href="assets/css/brand.css?v=20261115-3" />
   <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261115-6" />
-  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-16" />
+  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-meeting-icons-1" />
 </head>
 <body class="mcp-brand admin-locked" data-admin-page="true">
   <header class="admin-site-header">
     <div class="header-left">
       <a href="index.html" class="logo">
-        <img src="assets/images/logo.webp" alt="Mujeres con Propósito" />
+        <img src="assets/images/logo.webp?v=2" alt="Mujeres con Propósito" />
       </a>
       <h1>Admin</h1>
     </div>
@@ -45,7 +45,7 @@
       </div>
 
       <div class="admin-login-card private-access-card" id="adminLoginCard">
-        <img class="private-access-brand" src="assets/images/logo.webp" alt="Mujeres con Propósito" />
+        <img class="private-access-brand" src="assets/images/logo.webp?v=2" alt="Mujeres con Propósito" />
         <span class="private-access-eyebrow">Panel privado</span>
         <h3>Bienvenida</h3>
         <p>Accede con tu cuenta autorizada.</p>
@@ -165,9 +165,39 @@
             </div>
             <form id="adminEventForm" class="admin-form admin-evt-form">
               <div class="admin-evt-row">
+                <div>
                 <label><span><i class="fa-regular fa-face-smile" aria-hidden="true"></i> Icono</span>
                   <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
                 </label>
+                <div class="admin-event-icon-presets" aria-label="Iconos predeterminados">
+                  <span>Iconos predeterminados</span>
+                  <div class="admin-event-icon-options">
+                    <button type="button" data-event-icon="ion:calendar-outline" aria-label="Calendario"><i class="fa-solid fa-calendar-days"></i></button>
+                    <button type="button" data-event-icon="ion:people-outline" aria-label="Comunidad"><i class="fa-solid fa-people-group"></i></button>
+                    <button type="button" data-event-icon="ion:book-outline" aria-label="Estudio bíblico"><i class="fa-solid fa-book-open"></i></button>
+                    <button type="button" data-event-icon="ion:heart-outline" aria-label="Corazón"><i class="fa-solid fa-heart"></i></button>
+                    <button type="button" data-event-icon="ion:hand-left-outline" aria-label="Oración"><i class="fa-solid fa-hands-praying"></i></button>
+                    <button type="button" data-event-icon="ion:business-outline" aria-label="Iglesia"><i class="fa-solid fa-church"></i></button>
+                    <button type="button" data-event-icon="ion:chatbubble-ellipses-outline" aria-label="Conversación"><i class="fa-solid fa-comments"></i></button>
+                    <button type="button" data-event-icon="ion:musical-notes-outline" aria-label="Música"><i class="fa-solid fa-music"></i></button>
+                    <button type="button" data-event-icon="ion:mic-outline" aria-label="Micrófono"><i class="fa-solid fa-microphone"></i></button>
+                    <button type="button" data-event-icon="ion:headset-outline" aria-label="Audífonos"><i class="fa-solid fa-headphones"></i></button>
+                    <button type="button" data-event-icon="ion:sparkles-outline" aria-label="Inspiración"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                    <button type="button" data-event-icon="ion:leaf-outline" aria-label="Naturaleza"><i class="fa-solid fa-leaf"></i></button>
+                    <button type="button" data-event-icon="ion:flower-outline" aria-label="Flor"><i class="fa-solid fa-spa"></i></button>
+                    <button type="button" data-event-icon="ion:sunny-outline" aria-label="Día"><i class="fa-solid fa-sun"></i></button>
+                    <button type="button" data-event-icon="ion:moon-outline" aria-label="Noche"><i class="fa-solid fa-moon"></i></button>
+                    <button type="button" data-event-icon="ion:star-outline" aria-label="Estrella"><i class="fa-solid fa-star"></i></button>
+                    <button type="button" data-event-icon="ion:flame-outline" aria-label="Fuego"><i class="fa-solid fa-fire"></i></button>
+                    <button type="button" data-event-icon="ion:home-outline" aria-label="Hogar"><i class="fa-solid fa-house"></i></button>
+                    <button type="button" data-event-icon="ion:globe-outline" aria-label="Mundo"><i class="fa-solid fa-globe"></i></button>
+                    <button type="button" data-event-icon="ion:notifications-outline" aria-label="Avisos"><i class="fa-solid fa-bell"></i></button>
+                    <button type="button" data-event-icon="ion:camera-outline" aria-label="Cámara"><i class="fa-solid fa-camera"></i></button>
+                    <button type="button" data-event-icon="ion:videocam-outline" aria-label="Video"><i class="fa-solid fa-video"></i></button>
+                    <button type="button" data-event-icon="ion:gift-outline" aria-label="Celebración"><i class="fa-solid fa-gift"></i></button>
+                  </div>
+                </div>
+                </div>
                 <div>
                   <label><span><i class="fa-regular fa-image" aria-hidden="true"></i> Imagen de icono</span> <small class="admin-yt-help">(opcional, reemplaza el emoji)</small></label>
                   <div class="admin-gallery-dropzone admin-gallery-dropzone-compact" id="adminEventoIconoDropzone">
@@ -273,7 +303,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Eventos publicados</h3>
-            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
+            <p class="admin-reorder-hint">Mantén pulsado y arrastra para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="eventos">Importar eventos actuales</button>
             <div id="adminEventosList" class="admin-content-list"></div>
           </div>
@@ -327,7 +357,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Destacadas publicadas</h3>
-            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
+            <p class="admin-reorder-hint">Mantén pulsado y arrastra para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="destacadas">Importar destacadas actuales</button>
             <div id="adminDestacadasList" class="admin-content-list"></div>
           </div>
@@ -401,7 +431,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Fotos publicadas</h3>
-            <p class="admin-reorder-hint">Arrastra ⠿ para reordenar las categorías, o las fotos dentro de cada una.</p>
+            <p class="admin-reorder-hint">Mantén pulsado y arrastra para reordenar las galerías o las fotos de cada una.</p>
             <button type="button" class="admin-import-btn" data-admin-import="galeria">Importar galería actual</button>
             <div id="adminGaleriaList" class="admin-content-list"></div>
           </div>
@@ -488,7 +518,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Videos publicados</h3>
-            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
+            <p class="admin-reorder-hint">Mantén pulsado y arrastra para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="youtube">Importar videos actuales</button>
             <div id="adminYoutubeList" class="admin-content-list"></div>
           </div>
@@ -770,9 +800,10 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
+  <script src="assets/js/login-polish.js?v=20261115-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
-  <script src="assets/js/main.js?v=20261115-eye-1"></script>
+  <script src="assets/js/main.js?v=20261115-meeting-icons-1"></script>
   <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
   <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
   <script src="assets/js/recipients-admin.js?v=20261115-3"></script>

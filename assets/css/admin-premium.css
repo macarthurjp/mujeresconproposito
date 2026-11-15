@@ -484,7 +484,7 @@ body.mcp-brand .admin-schedule-days > span { flex-basis: 100%; font-weight: 600;
 body.mcp-brand .admin-schedule-days.is-hidden { display: none !important; }
 
 /* Overview stats only make sense on the content sections */
-#adminDashboard:has(#admin-roles.active, #admin-banner.active, #admin-devocionales.active) .admin-stats-grid { display: none !important; }
+#adminDashboard:has(#admin-roles.active, #admin-banner.active, #admin-devocionales.active, #admin-correos.active) .admin-stats-grid { display: none !important; }
 /* The topbar already shows "Usuarios y roles" */
 body.mcp-brand .admin-main .admin-roles-page-head { display: none !important; }
 

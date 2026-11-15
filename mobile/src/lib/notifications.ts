@@ -67,17 +67,69 @@ export async function getMeetingAlertsEnabled() {
 export async function enableMeetingAlerts(): Promise<PushStatus> {
   const status = await registerForMeetingAlerts(true);
   await AsyncStorage.setItem(MEETING_ALERTS_ENABLED_KEY, String(status === 'granted'));
+  if (status === 'granted') {
+    const token = await deviceToken().catch(() => null);
+    if (token) await api.setMeetingAlerts(token, true);
+  }
   return status;
 }
 
 export async function disableMeetingAlerts() {
   // Persist the opt-out first so app launch never silently re-registers this device.
   await AsyncStorage.setItem(MEETING_ALERTS_ENABLED_KEY, 'false');
-  if (Platform.OS === 'web' || !Device.isDevice) return;
+  const token = await deviceToken();
+  // Meeting alerts off for this device; birthday reminders keep working.
+  if (token) await api.setMeetingAlerts(token, false);
+}
 
+async function deviceToken() {
+  if (Platform.OS === 'web' || !Device.isDevice) return null;
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-  const { data: token } = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
-  await api.unregisterPushToken(token);
+  const { data } = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
+  return data;
+}
+
+// ---------- Birthday reminders chosen in Más → Avisos de cumpleaños ----------
+export type BirthdayPushPrefs = { avisos: number[]; hora: number; minuto: number };
+const BIRTHDAY_PUSH_KEY = 'mcp930:birthday-push';
+export const DEFAULT_BIRTHDAY_PUSH: BirthdayPushPrefs = { avisos: [], hora: 9, minuto: 0 };
+
+export async function getBirthdayPushPrefs(): Promise<BirthdayPushPrefs> {
+  try {
+    const raw = await AsyncStorage.getItem(BIRTHDAY_PUSH_KEY);
+    return raw ? { ...DEFAULT_BIRTHDAY_PUSH, ...JSON.parse(raw) } : DEFAULT_BIRTHDAY_PUSH;
+  } catch {
+    return DEFAULT_BIRTHDAY_PUSH;
+  }
+}
+
+/** Saves the choice on this phone and on the server (which sends the pushes). */
+export async function saveBirthdayPushPrefs(prefs: BirthdayPushPrefs): Promise<PushStatus> {
+  await AsyncStorage.setItem(BIRTHDAY_PUSH_KEY, JSON.stringify(prefs));
+  if (Platform.OS === 'web' || !Device.isDevice) return 'unsupported';
+  const status = prefs.avisos.length ? await registerForMeetingAlerts(true) : await getPushStatus();
+  if (prefs.avisos.length && status !== 'granted') return status;
+  const token = await deviceToken().catch(() => null);
+  if (!token) return prefs.avisos.length ? 'error' : status;
+  const zona = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  await api.setBirthdayPush(token, prefs.avisos, prefs.hora, prefs.minuto, zona);
+  // Registering may have created the device with meeting alerts on; respect the user's choice.
+  if (prefs.avisos.length) await api.setMeetingAlerts(token, await getMeetingAlertsEnabled());
+  return 'granted';
+}
+
+/** Re-registers the current token and restores each independent notification preference. */
+export async function refreshNotificationRegistration() {
+  const [meetingsEnabled, birthdays] = await Promise.all([getMeetingAlertsEnabled(), getBirthdayPushPrefs()]);
+  if (!meetingsEnabled && !birthdays.avisos.length) return;
+  const status = await registerForMeetingAlerts(false);
+  if (status !== 'granted') return;
+  const token = await deviceToken();
+  if (!token) return;
+  await api.setMeetingAlerts(token, meetingsEnabled);
+  if (birthdays.avisos.length) {
+    await api.setBirthdayPush(token, birthdays.avisos, birthdays.hora, birthdays.minuto, Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }
 }
 
 /**

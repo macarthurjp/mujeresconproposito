@@ -133,6 +133,9 @@ export const api = {
   registerPushToken: (token: string, plataforma: 'ios' | 'android', zona: string) =>
     rpc('register_push_token', { p_token: token, p_plataforma: plataforma, p_zona_horaria: zona }),
   unregisterPushToken: (token: string) => rpc('unregister_push_token', { p_token: token }),
+  setMeetingAlerts: (token: string, enabled: boolean) => rpc('set_meeting_alerts', { p_token: token, p_enabled: enabled }),
+  setBirthdayPush: (token: string, avisos: number[], hora: number, minuto: number, zona: string) =>
+    rpc('set_birthday_push_prefs', { p_token: token, p_avisos: avisos, p_hora: hora, p_minuto: minuto, p_zona_horaria: zona }),
   submitJoin,
   submitContact,
   birthdays,
