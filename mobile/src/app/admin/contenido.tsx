@@ -5,6 +5,7 @@ import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
+import { tapFeedback } from '@/components/ui';
 import { Group, InputRow, Row } from '@/components/form';
 import { C, sans } from '@/constants/theme';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
@@ -125,6 +126,17 @@ export default function AdminContenido() {
     } },
   ]);
 
+  const toggleVisible = async (item: Item) => {
+    tapFeedback();
+    const next = !item.activa;
+    setItems((cur) => cur.map((entry) => (entry.id === item.id ? { ...entry, activa: next } : entry)));
+    const { error } = await supabase.from(kind).update({ activa: next }).eq('id', item.id);
+    if (error) {
+      setItems((cur) => cur.map((entry) => (entry.id === item.id ? { ...entry, activa: !next } : entry)));
+      Alert.alert('No se pudo actualizar', error.message);
+    }
+  };
+
   const moveItem = async (item: Item, delta: number) => {
     const ordered = [...items].sort((a, b) => a.orden - b.orden);
     const index = ordered.findIndex((entry) => entry.id === item.id);
@@ -174,8 +186,19 @@ export default function AdminContenido() {
               <AdminGestureRow key={item.id} onEdit={() => beginEdit(item)} onDelete={() => remove(item)} onReorder={(steps) => void moveItem(item, steps)} stepHeight={82}>
               <View style={s.item}>
                 <Pressable onPress={() => beginEdit(item)} style={s.itemMain}>
-                  {kind === 'destacadas' && item.foto_url ? <Image source={{ uri: item.foto_url }} style={s.thumb} contentFit="cover" /> : <View style={s.thumbIcon}><Ionicons name="logo-youtube" size={21} color={C.wine} /></View>}
-                  <View style={{ flex: 1 }}><Text numberOfLines={2} style={s.itemTitle}>{item.titulo || item.nombre}</Text><Text numberOfLines={1} style={s.itemMeta}>{item.activa ? 'Publicado' : 'Oculto'} · Orden {item.orden}</Text></View>
+                  <View>
+                    {kind === 'destacadas' && item.foto_url ? <Image source={{ uri: item.foto_url }} style={[s.thumb, !item.activa && { opacity: 0.35 }]} contentFit="cover" /> : <View style={[s.thumbIcon, !item.activa && { opacity: 0.45 }]}><Ionicons name="logo-youtube" size={21} color={C.wine} /></View>}
+                    <Pressable
+                      accessibilityRole="switch"
+                      accessibilityState={{ checked: item.activa }}
+                      accessibilityLabel={item.activa ? 'Visible. Toca para ocultar' : 'Oculto. Toca para mostrar'}
+                      hitSlop={8}
+                      onPress={() => void toggleVisible(item)}
+                      style={[s.eye, !item.activa && s.eyeOff]}>
+                      <Ionicons name={item.activa ? 'eye' : 'eye-off'} size={13} color={item.activa ? C.wine : '#fff'} />
+                    </Pressable>
+                  </View>
+                  <View style={{ flex: 1 }}><Text numberOfLines={2} style={s.itemTitle}>{item.titulo || item.nombre}</Text><Text numberOfLines={1} style={s.itemMeta}>{item.activa ? 'Visible en la web y la app' : 'Oculto'} · Orden {item.orden}</Text></View>
                   <Ionicons name="chevron-forward" size={18} color="#ab9693" />
                 </Pressable>
               </View>
@@ -205,6 +228,8 @@ export default function AdminContenido() {
 }
 
 const s = StyleSheet.create({
+  eye: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.18)' },
+  eyeOff: { backgroundColor: 'rgba(40,24,22,0.85)' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg }, page: { padding: 18, paddingBottom: 70 },
   kicker: { fontFamily: sans, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: C.wine, marginTop: 6 },
   title: { fontFamily: sans, fontSize: 31, fontWeight: '700', letterSpacing: -0.8, color: C.ink, marginTop: 5 },

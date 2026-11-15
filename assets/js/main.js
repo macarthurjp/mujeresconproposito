@@ -2853,14 +2853,13 @@ function renderContactCalendar(apiData = {}) {
 	      return `
 	        <div class="admin-content-item" data-admin-type="${type}" data-admin-id="${escapeHtml(row.id)}">
 	          <span class="admin-drag-handle" aria-hidden="true">⠿</span>
-	          <div class="admin-item-media">${image}</div>
+	          <div class="admin-item-media${row.activa !== false ? "" : " is-hidden"}">${image}<button type="button" class="admin-eye${row.activa !== false ? "" : " is-off"}" data-admin-action="toggle" aria-pressed="${row.activa !== false ? "true" : "false"}" aria-label="${row.activa !== false ? "Visible en la web y la app. Toca para ocultar" : "Oculto. Toca para mostrar"}" title="${row.activa !== false ? "Visible en la web y la app" : "Oculto"}">${row.activa !== false ? ADMIN_ICON_EYE : ADMIN_ICON_EYE_OFF}</button></div>
 	          <div class="admin-item-body">
 	            <strong>${escapeHtml(title)}</strong>
 	            <span>${escapeHtml(subtitle)}</span>
 	            <small>Orden ${escapeHtml(row.orden || 1)}</small>
 	          </div>
 	          <div class="admin-item-actions">
-	            <button type="button" class="admin-switch" role="switch" aria-checked="${row.activa !== false ? "true" : "false"}" data-admin-action="toggle" title="${row.activa !== false ? "Visible en la web · tocar para ocultar" : "Oculto · tocar para mostrar"}"><span class="admin-switch-track" aria-hidden="true"></span><span class="admin-switch-label">${row.activa !== false ? "Visible" : "Oculto"}</span></button>
 	            <button type="button" data-admin-action="edit">Editar</button>
 	            <button type="button" data-admin-action="delete" class="danger">Borrar</button>
 	          </div>
@@ -2893,8 +2892,9 @@ function renderContactCalendar(apiData = {}) {
 	        <div class="admin-content-item" data-admin-type="youtube" data-admin-id="${escapeHtml(row.id)}">
 	          <span class="admin-drag-handle" aria-hidden="true">⠿</span>
 	          <span class="admin-item-order-badge">#${escapeHtml(row.orden || 1)}</span>
-	          <div class="admin-item-media">
+	          <div class="admin-item-media${isVisible ? "" : " is-hidden"}">
 	            <img src="https://img.youtube.com/vi/${escapeHtml(row.video_id)}/hqdefault.jpg" alt="${escapeHtml(title)}" loading="lazy">
+	            <button type="button" class="admin-eye${isVisible ? "" : " is-off"}" data-admin-action="toggle" aria-pressed="${isVisible ? "true" : "false"}" aria-label="${isVisible ? "Visible en la web y la app. Toca para ocultar" : "Oculto. Toca para mostrar"}" title="${isVisible ? "Visible en la web y la app" : "Oculto"}">${isVisible ? ADMIN_ICON_EYE : ADMIN_ICON_EYE_OFF}</button>
 	          </div>
 	          <div class="admin-item-body">
 	            <div class="admin-item-tagrow">
@@ -2906,7 +2906,6 @@ function renderContactCalendar(apiData = {}) {
 	            <span>${escapeHtml(subtitle)}</span>
 	          </div>
 	          <div class="admin-item-actions">
-	            <button type="button" class="admin-switch" role="switch" aria-checked="${isVisible ? "true" : "false"}" data-admin-action="toggle" title="${isVisible ? "Visible en la web · tocar para ocultar" : "Oculto · tocar para mostrar"}"><span class="admin-switch-track" aria-hidden="true"></span><span class="admin-switch-label">${isVisible ? "Visible" : "Oculto"}</span></button>
 	            <button type="button" data-admin-action="edit" title="Editar" aria-label="Editar">${ADMIN_ICON_EDIT}</button>
 	            <button type="button" data-admin-action="delete" class="danger" title="Borrar" aria-label="Borrar">${ADMIN_ICON_TRASH}</button>
 	          </div>
@@ -2985,14 +2984,13 @@ function renderContactCalendar(apiData = {}) {
             return `
 	              <div class="admin-content-item" data-admin-type="galeria" data-admin-id="${escapeHtml(row.id)}">
 	                <span class="admin-drag-handle" aria-hidden="true">⠿</span>
-	                <div class="admin-item-media">${image}</div>
+	                <div class="admin-item-media${row.activa !== false ? "" : " is-hidden"}">${image}<button type="button" class="admin-eye${row.activa !== false ? "" : " is-off"}" data-admin-action="toggle" aria-pressed="${row.activa !== false ? "true" : "false"}" aria-label="${row.activa !== false ? "Visible en la web y la app. Toca para ocultar" : "Oculto. Toca para mostrar"}" title="${row.activa !== false ? "Visible en la web y la app" : "Oculto"}">${row.activa !== false ? ADMIN_ICON_EYE : ADMIN_ICON_EYE_OFF}</button></div>
 	                <div class="admin-item-body">
 	                  <strong>${escapeHtml(title)}</strong>
 	                  <span>${escapeHtml(community.label)}</span>
 	                  <small>Orden ${escapeHtml(row.orden || 1)}${row.portada ? ' · <span class="admin-portada-badge">★ Portada</span>' : ""}</small>
 	                </div>
 	                <div class="admin-item-actions">
-	                  <button type="button" class="admin-switch" role="switch" aria-checked="${row.activa !== false ? "true" : "false"}" data-admin-action="toggle" title="${row.activa !== false ? "Visible en la web · tocar para ocultar" : "Oculto · tocar para mostrar"}"><span class="admin-switch-track" aria-hidden="true"></span><span class="admin-switch-label">${row.activa !== false ? "Visible" : "Oculto"}</span></button>
 	                  <button type="button" data-admin-action="edit">Editar</button>
 	                  <button type="button" data-admin-action="portada" class="${row.portada ? "is-portada" : ""}">${row.portada ? "★ Portada" : "Marcar portada"}</button>
 	                  <button type="button" data-admin-action="delete" class="danger">Borrar</button>

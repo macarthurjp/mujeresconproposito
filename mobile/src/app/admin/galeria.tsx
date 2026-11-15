@@ -13,7 +13,7 @@ import { C, sans } from '@/constants/theme';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
-import { addGalleryPhoto, listGalleryAlbums, listGalleryPhotos, removeGalleryPhoto, reorderGalleryAlbum, reorderGalleryPhoto, saveGalleryPhoto, setGalleryCover, uploadImage, type GalleryPhoto, type GalleryRegion } from '@/lib/admin';
+import { addGalleryPhoto, listGalleryAlbums, listGalleryPhotos, removeGalleryPhoto, reorderGalleryAlbum, saveGalleryPhoto, setGalleryCover, uploadImage, type GalleryPhoto, type GalleryRegion } from '@/lib/admin';
 
 const REGIONS = [
   { value: 'usa', label: 'Estados Unidos' },
@@ -44,6 +44,7 @@ export default function AdminGaleria() {
   const [editOrder, setEditOrder] = useState('1');
   const [replacePhoto, setReplacePhoto] = useState<Picked | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [openAlbum, setOpenAlbum] = useState<string | null>(null);
 
   const loadManaged = async () => {
     setManagedLoading(true);
@@ -125,6 +126,16 @@ export default function AdminGaleria() {
     try { await action(); await loadManaged(); if (success) Alert.alert(success); }
     catch (error) { Alert.alert('No se pudo actualizar la galería', error instanceof Error ? error.message : ''); }
   };
+  const toggleVisible = async (photo: GalleryPhoto) => {
+    tapFeedback();
+    const next = !photo.activa;
+    setManaged((cur) => cur.map((p) => (p.id === photo.id ? { ...p, activa: next } : p)));
+    try { await saveGalleryPhoto(photo.id, { activa: next }); }
+    catch (error) {
+      setManaged((cur) => cur.map((p) => (p.id === photo.id ? { ...p, activa: !next } : p)));
+      Alert.alert('No se pudo actualizar', error instanceof Error ? error.message : '');
+    }
+  };
   const deletePhoto = (photo: GalleryPhoto) => Alert.alert('Eliminar foto', 'Esta foto dejará de aparecer en la galería. Esta acción no se puede deshacer.', [
     { text: 'Cancelar', style: 'cancel' },
     { text: 'Eliminar', style: 'destructive', onPress: () => { void manage(() => removeGalleryPhoto(photo.id)); } },
@@ -190,20 +201,64 @@ export default function AdminGaleria() {
           </Group>
         ) : null}
         </> : <>
-          <Group header="Comunidad"><FieldRow label="País"><WheelPicker title="Comunidad de la galería" value={region} options={REGIONS} onChange={(value) => setRegion(value as GalleryRegion)} /></FieldRow></Group>
-          {managedLoading ? <ActivityIndicator color={C.wine} style={{ marginTop: 24 }} /> : groups.length ? groups.map((group) => <AdminGestureRow key={group.title} onReorder={(steps) => void manage(async () => { for (let i = 0; i < Math.abs(steps); i += 1) await reorderGalleryAlbum(region, group.title, steps < 0 ? -1 : 1); })} stepHeight={320}>
-          <Group header={group.title} footer={`${group.photos.length} ${group.photos.length === 1 ? 'foto' : 'fotos'} · Mantén pulsado y arrastra para ordenar galerías`}>
-            {group.photos.map((photo) => <AdminGestureRow key={photo.id} onEdit={() => editManagedPhoto(photo)} onDelete={() => deletePhoto(photo)} onReorder={(steps) => void manage(async () => { for (let i = 0; i < Math.abs(steps); i += 1) await reorderGalleryPhoto(region, group.title, photo.id, steps < 0 ? -1 : 1); })} stepHeight={112}>
-            <View style={s.photoRow}>
-              <Pressable onPress={() => editManagedPhoto(photo)} style={s.photoMain}><Image source={{ uri: photo.foto_url }} style={s.photoThumb} contentFit="cover" /><View style={{ flex: 1 }}><Text style={s.photoTitle} numberOfLines={2}>{photo.texto || 'Foto de galería'}</Text><Text style={s.photoMeta}>Orden {photo.orden}{photo.portada ? ' · Portada' : ''}</Text></View></Pressable>
-              <View style={s.photoActions}>
-                <Pressable accessibilityLabel={photo.portada ? 'Foto de portada' : 'Marcar como portada'} onPress={() => void manage(() => setGalleryCover(photo), 'Portada actualizada')} style={s.smallAction}><Ionicons name={photo.portada ? 'star' : 'star-outline'} size={17} color={C.wine} /></Pressable>
+          {openAlbum && groups.some((g) => g.title === openAlbum) ? (() => {
+            const group = groups.find((g) => g.title === openAlbum)!;
+            const hidden = group.photos.filter((p) => !p.activa).length;
+            const tile = (width - 32 - 16) / 3;
+            return <>
+              <Pressable accessibilityRole="button" onPress={() => setOpenAlbum(null)} style={s.backRow}>
+                <Ionicons name="chevron-back" size={18} color={C.wine} /><Text style={s.backText}>Galerías</Text>
+              </Pressable>
+              <Text style={s.albumHeading}>{group.title}</Text>
+              <Text style={s.albumSub}>{group.photos.length} {group.photos.length === 1 ? 'foto' : 'fotos'}{hidden ? ` · ${hidden} ${hidden === 1 ? 'oculta' : 'ocultas'}` : ''}</Text>
+              <View style={s.legend}>
+                <View style={s.legendItem}><Ionicons name="eye" size={14} color={C.wine} /><Text style={s.legendText}>Visible en la web y la app</Text></View>
+                <View style={s.legendItem}><Ionicons name="eye-off" size={14} color={C.muted} /><Text style={s.legendText}>Oculta</Text></View>
               </View>
-              <View style={s.activeToggle}><SwitchRow label="Visible" value={photo.activa} onValueChange={(value) => void manage(() => saveGalleryPhoto(photo.id, { activa: value }))} /></View>
+              <View style={s.photoGrid}>
+                {group.photos.map((photo) => (
+                  <Pressable key={photo.id} onPress={() => editManagedPhoto(photo)} accessibilityLabel={`Editar foto ${photo.orden}`} style={[s.tile, { width: tile, height: tile }]}>
+                    <Image source={{ uri: photo.foto_url }} style={[s.tileImage, !photo.activa && { opacity: 0.35 }]} contentFit="cover" />
+                    {photo.portada ? <View style={s.tileStar}><Ionicons name="star" size={11} color="#fff" /></View> : null}
+                    <Pressable
+                      accessibilityRole="switch"
+                      accessibilityState={{ checked: photo.activa }}
+                      accessibilityLabel={photo.activa ? 'Visible. Toca para ocultar' : 'Oculta. Toca para mostrar'}
+                      hitSlop={6}
+                      onPress={() => void toggleVisible(photo)}
+                      style={[s.eye, !photo.activa && s.eyeOff]}>
+                      <Ionicons name={photo.activa ? 'eye' : 'eye-off'} size={16} color={photo.activa ? C.wine : '#fff'} />
+                    </Pressable>
+                  </Pressable>
+                ))}
+              </View>
+              <Text style={s.hint}>Toca el ojo para mostrar u ocultar. Toca la foto para editarla, cambiar el orden, elegirla como portada o eliminarla.</Text>
+            </>;
+          })() : <>
+          <Group header="Comunidad"><FieldRow label="País"><WheelPicker title="Comunidad de la galería" value={region} options={REGIONS} onChange={(value) => { setOpenAlbum(null); setRegion(value as GalleryRegion); }} /></FieldRow></Group>
+          {managedLoading ? <ActivityIndicator color={C.wine} style={{ marginTop: 24 }} /> : groups.length ? <>
+            <Text style={s.sectionHeader}>Galerías · {groups.length}</Text>
+            <View style={s.albumList}>
+              {groups.map((group) => {
+                const coverPhoto = group.photos.find((p) => p.portada) ?? group.photos[0];
+                const hidden = group.photos.filter((p) => !p.activa).length;
+                return (
+                  <AdminGestureRow key={group.title} onReorder={(steps) => void manage(async () => { for (let i = 0; i < Math.abs(steps); i += 1) await reorderGalleryAlbum(region, group.title, steps < 0 ? -1 : 1); })} stepHeight={96}>
+                    <Pressable accessibilityRole="button" onPress={() => { tapFeedback(); setOpenAlbum(group.title); }} style={({ pressed }) => [s.albumCard, pressed && { opacity: 0.85 }]}>
+                      <Image source={{ uri: coverPhoto?.foto_url }} style={s.albumCover} contentFit="cover" />
+                      <View style={{ flex: 1, minWidth: 0 }}>
+                        <Text style={s.albumTitle} numberOfLines={2}>{group.title}</Text>
+                        <Text style={s.albumMeta}>{group.photos.length} {group.photos.length === 1 ? 'foto' : 'fotos'}{hidden ? ` · ${hidden} ${hidden === 1 ? 'oculta' : 'ocultas'}` : ''}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={18} color="rgba(60,40,38,0.3)" />
+                    </Pressable>
+                  </AdminGestureRow>
+                );
+              })}
             </View>
-            </AdminGestureRow>)}
-          </Group>
-          </AdminGestureRow>) : <Group><Row icon="images-outline" label="Todavía no hay fotos" sub="Elige otra comunidad o sube tus primeras imágenes." chevron={false} /></Group>}
+            <Text style={s.hint}>Mantén pulsada una galería y arrástrala para cambiar el orden.</Text>
+          </> : <Group><Row icon="images-outline" label="Todavía no hay fotos" sub="Elige otra comunidad o sube tus primeras imágenes." chevron={false} /></Group>}
+          </>}
         </>}
       </ScrollView>
       <Modal visible={!!editingPhoto} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setEditingPhoto(null)}>
@@ -215,6 +270,10 @@ export default function AdminGaleria() {
             <FieldRow label="Comunidad"><WheelPicker title="Comunidad" value={editRegion} options={REGIONS} onChange={(value) => setEditRegion(value as GalleryRegion)} /></FieldRow>
             <InputRow label="Categoría" value={editTitle} onChangeText={setEditTitle} />
             <InputRow label="Orden" value={editOrder} onChangeText={(value) => setEditOrder(value.replace(/\D/g, ''))} keyboardType="number-pad" />
+            {editingPhoto ? <Group>
+              <Row icon={editingPhoto.portada ? 'star' : 'star-outline'} tint="#c08a3e" label={editingPhoto.portada ? 'Es la portada de la galería' : 'Usar como portada'} chevron={false} onPress={editingPhoto.portada ? undefined : () => { const photo = editingPhoto; setEditingPhoto(null); void manage(() => setGalleryCover(photo), 'Portada actualizada'); }} />
+              <Row icon="trash-outline" tint={C.live} label="Eliminar foto" destructive chevron={false} onPress={() => { const photo = editingPhoto; setEditingPhoto(null); deletePhoto(photo); }} />
+            </Group> : null}
           </ScrollView>
         </View>
       </Modal>
@@ -240,6 +299,25 @@ const s = StyleSheet.create({
   albumOrder: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8 },
   orderLabel: { flex: 1, fontFamily: sans, fontSize: 12, color: C.muted },
   smallAction: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: C.fill },
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', paddingVertical: 6 },
+  backText: { fontFamily: sans, fontSize: 16, color: C.wine, fontWeight: '600' },
+  albumHeading: { fontFamily: sans, fontSize: 26, fontWeight: '700', letterSpacing: -0.5, color: C.ink, marginTop: 6 },
+  albumSub: { fontFamily: sans, fontSize: 14, color: C.muted, marginTop: 2 },
+  legend: { flexDirection: 'row', gap: 16, marginTop: 12, marginBottom: 12 },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  legendText: { fontFamily: sans, fontSize: 12, color: C.muted },
+  photoGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  tile: { borderRadius: 14, overflow: 'hidden', backgroundColor: C.sand },
+  tileImage: { width: '100%', height: '100%' },
+  tileStar: { position: 'absolute', top: 6, left: 6, width: 22, height: 22, borderRadius: 11, backgroundColor: '#c08a3e', alignItems: 'center', justifyContent: 'center' },
+  eye: { position: 'absolute', top: 6, right: 6, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.94)', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.18)' },
+  eyeOff: { backgroundColor: 'rgba(40,24,22,0.78)' },
+  sectionHeader: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.muted, textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 24, marginBottom: 8, marginLeft: 16 },
+  albumList: { gap: 10 },
+  albumCard: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 10, borderRadius: 18, backgroundColor: C.card, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 6px 18px rgba(63,38,35,0.05)' },
+  albumCover: { width: 72, height: 72, borderRadius: 13, backgroundColor: C.sand },
+  albumTitle: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink },
+  albumMeta: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 3 },
   photoRow: { padding: 10, gap: 8 },
   photoMain: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   photoThumb: { width: 62, height: 62, borderRadius: 12, backgroundColor: C.sand },

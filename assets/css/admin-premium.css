@@ -612,3 +612,19 @@ body.mcp-brand .admin-main #admin-correos .admin-recipient-form .btn { height: 5
   body.mcp-brand .admin-main #admin-correos .admin-recipient-add { margin-left: 52px; padding: 6px 12px; font-size: 13px; }
   body.mcp-brand .admin-main #admin-correos .admin-recipient { padding: 12px 16px; gap: 10px; }
 }
+
+/* ---------- Visibility eye on content thumbnails (web + app parity) ---------- */
+body.mcp-brand .admin-main .admin-item-media { position: relative !important; overflow: visible !important; }
+body.mcp-brand .admin-main .admin-item-media > img { transition: opacity .25s var(--a-ease); }
+body.mcp-brand .admin-main .admin-item-media.is-hidden > img { opacity: .35; }
+body.mcp-brand .admin-main .admin-item-media .admin-eye {
+  position: absolute !important; top: -8px !important; right: -8px !important; z-index: 2;
+  width: 30px !important; height: 30px !important; min-width: 0 !important; padding: 0 !important;
+  display: grid !important; place-items: center !important;
+  border-radius: 50% !important; border: 0 !important; cursor: pointer;
+  background: #fff !important; color: var(--a-wine) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18) !important;
+  transition: transform .2s var(--a-ease), background .2s var(--a-ease) !important;
+}
+body.mcp-brand .admin-main .admin-item-media .admin-eye:hover { transform: scale(1.08); }
+body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgba(40, 24, 22, 0.86) !important; color: #fff !important; }
