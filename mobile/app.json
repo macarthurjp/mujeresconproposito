@@ -49,7 +49,13 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-widgets"
+      "expo-widgets",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La app usa tus fotos para subirlas a la galería de Mujeres con Propósito."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -57,6 +57,7 @@ export default function RootLayout() {
         <Stack.Screen name="galeria" options={{ title: '', headerShadowVisible: false }} />
         <Stack.Screen name="destacadas" options={{ title: '', headerShadowVisible: false }} />
         <Stack.Screen name="join" options={{ headerShown: false }} />
+        <Stack.Screen name="admin" options={{ headerShown: false }} />
       </Stack>
     </>
   );

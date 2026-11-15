@@ -118,7 +118,7 @@ export default function Mas() {
           <Group
           title="Equipo"
           items={[
-            { icon: 'shield-checkmark-outline', label: 'Administración', hint: 'Eventos, galería, devocionales y usuarios', onPress: openTeam('admin.html') },
+            { icon: 'shield-checkmark-outline', label: 'Administración', hint: 'Eventos, fotos, usuarios y roles', onPress: go('/admin') },
             { icon: 'stats-chart-outline', label: 'Dashboard', hint: 'Registros de la comunidad', onPress: openTeam('dashboard.html') },
           ]}
         />
