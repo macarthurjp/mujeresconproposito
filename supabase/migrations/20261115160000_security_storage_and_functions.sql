@@ -33,3 +33,6 @@ revoke all on function public.is_super_admin() from public, anon;
 revoke all on function public.has_permission(text) from public, anon;
 grant execute on function public.is_super_admin() to authenticated;
 grant execute on function public.has_permission(text) to authenticated;
+
+-- 4. Dashboard RPC: signed-in users only (it also checks the role inside).
+revoke all on function public.admin_dashboard_members() from anon;
