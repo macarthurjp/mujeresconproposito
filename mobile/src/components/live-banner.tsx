@@ -9,6 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { C, sans, TAB_BAR_SPACE } from '@/constants/theme';
 import { api, type Evento } from '@/lib/api';
 
+import { refreshLiveActivities } from '@/lib/live-activity';
+
 import { eventStatus } from './event-card';
 import { tapFeedback } from './ui';
 
@@ -28,7 +30,7 @@ export function LiveBanner() {
     let alive = true;
     const load = () => api.eventos().then((rows) => { if (alive) setEventos(rows); }).catch(() => {});
     load();
-    const tick = setInterval(() => setNow(new Date()), REFRESH_MS);
+    const tick = setInterval(() => { setNow(new Date()); void refreshLiveActivities(); }, REFRESH_MS);
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') { setNow(new Date()); load(); }
     });

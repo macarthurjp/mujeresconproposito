@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { C, sans } from '@/constants/theme';
 import type { Evento } from '@/lib/api';
+import { followMeeting, isFollowing, LIVE_ACTIVITY_WINDOW_MS, liveActivitiesSupported, unfollowMeeting } from '@/lib/live-activity';
 
 import { tapFeedback } from './ui';
 
@@ -43,6 +45,9 @@ export function MeetingCard({ evento, next, live, now }: { evento: Evento; next:
   const platform = meetingPlatform(link);
   const isImage = !!evento.icono && /^https?:\/\//.test(evento.icono);
   const recurrence = evento.horario.split('·')[0].trim();
+  // Dynamic Island countdown: iPhone only, meetings starting within 8 h.
+  const canFollow = liveActivitiesSupported && !!link && !!platform && !!next && !live && next.getTime() - now.getTime() < LIVE_ACTIVITY_WINDOW_MS;
+  const [following, setFollowing] = useState(() => (next ? isFollowing(evento.id, next) : false));
 
   return (
     <View style={[m.card, live && m.cardLive]}>
@@ -69,6 +74,23 @@ export function MeetingCard({ evento, next, live, now }: { evento: Evento; next:
           <View style={m.liveDot} />
           <Text style={m.liveText}>En vivo · la reunión ya comenzó</Text>
         </View>
+      ) : null}
+
+      {canFollow ? (
+        <Pressable
+          accessibilityRole="switch"
+          accessibilityState={{ checked: following }}
+          onPress={() => {
+            tapFeedback();
+            if (following) { void unfollowMeeting(evento.id, next!); setFollowing(false); }
+            else setFollowing(followMeeting({ eventoId: evento.id, titulo: evento.titulo.trim(), startsAt: next!, link: link!, platform: platform!.name }));
+          }}
+          style={({ pressed }) => [m.follow, following && m.followOn, pressed && { opacity: 0.85 }]}>
+          <Ionicons name={following ? 'checkmark-circle' : 'phone-portrait-outline'} size={16} color={following ? '#fff' : C.wine} />
+          <Text style={[m.followText, following && { color: '#fff' }]}>
+            {following ? 'Cuenta atrás en la Dynamic Island' : 'Seguir en la Dynamic Island'}
+          </Text>
+        </Pressable>
       ) : null}
 
       {link && platform ? (
@@ -103,5 +125,8 @@ const m = StyleSheet.create({
   cta: { minHeight: 50, borderRadius: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
   ctaIdle: { backgroundColor: C.fill },
   ctaLive: { backgroundColor: C.live },
+  follow: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999, backgroundColor: C.fill, marginTop: -4 },
+  followOn: { backgroundColor: C.wine },
+  followText: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.wine },
   ctaText: { fontFamily: sans, fontSize: 15, fontWeight: '700', letterSpacing: -0.2 },
 });
