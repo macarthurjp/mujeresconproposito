@@ -5,6 +5,7 @@
 
   var LIVE_MS = 90 * 60000;
   var events = [];
+  var birthdays = [];
   var selected = 0;
   var timer = null;
 
@@ -79,6 +80,14 @@
     return list.sort(function (a, b) { return a.start - b.start; });
   }
 
+  function birthdaysOn(day, now) {
+    var today = startOfDay(now);
+    return birthdays.filter(function (b) {
+      var dias = Number(b.dias);
+      return Number.isFinite(dias) && addDays(today, dias).getTime() === day.getTime();
+    });
+  }
+
   function joinButton(ev, live, compact) {
     var link = safeLink(ev.link);
     if (!link) return "";
@@ -120,11 +129,19 @@
     var weekHtml = "";
     for (var i = 0; i < 7; i += 1) {
       var d = addDays(today, i);
-      var has = all.some(function (o) { return startOfDay(o.start).getTime() === d.getTime(); });
+      var has = all.some(function (o) { return startOfDay(o.start).getTime() === d.getTime(); }) || birthdaysOn(d, now).length > 0;
       var name = new Intl.DateTimeFormat("es", { weekday: "short" }).format(d).replace(".", "").slice(0, 3).toUpperCase();
       weekHtml += '<button type="button" role="tab" class="mt-day' + (i === selected ? " is-on" : "") + (i === 0 ? " is-today" : "") + '" data-mt-day="' + i + '" aria-selected="' + (i === selected) + '" aria-label="' + esc(new Intl.DateTimeFormat("es", { weekday: "long", day: "numeric" }).format(d)) + '">' +
         "<span>" + name + "</span><strong>" + d.getDate() + '</strong><i class="mt-dot' + (has ? "" : " is-empty") + '"></i></button>';
     }
+
+    var bdayHtml = birthdaysOn(selectedDay, now).map(function (b) {
+      return '<div class="mt-row mt-row-bday">' +
+        '<div class="mt-row-time"><strong aria-hidden="true">🎂</strong><small>Todo el día</small></div>' +
+        '<span class="mt-row-rule"></span>' +
+        '<div class="mt-row-copy"><strong>Cumpleaños de ' + esc(String(b.nombreCompleto || "").trim()) + "</strong><small>" + esc(Number(b.dias) === 0 ? "¡Hoy! No olvides felicitarla" : "No olvides felicitarla") + "</small></div>" +
+      "</div>";
+    }).join("");
 
     var listHtml = dayItems.length ? dayItems.map(function (o) {
       var past = !o.live && o.start < now;
@@ -145,7 +162,7 @@
           '<div class="mt-week-head"><h3>Esta semana</h3></div>' +
           '<div class="mt-week" role="tablist">' + weekHtml + "</div>" +
           '<h4 class="mt-day-title">' + esc(dayLabel(selectedDay, now)) + "</h4>" +
-          '<div class="mt-list">' + listHtml + "</div>" +
+          '<div class="mt-list">' + bdayHtml + (dayItems.length || !bdayHtml ? listHtml : "") + "</div>" +
         "</div>" +
       "</div>";
   }
@@ -191,6 +208,10 @@
   });
 
   window.MCPMeetings = {
+    setBirthdays: function (list) {
+      birthdays = Array.isArray(list) ? list : [];
+      if (events.length) render();
+    },
     render: function (rows) {
       events = (rows || []).filter(function (row) { return row && row.activa !== false; });
       render();
