@@ -290,3 +290,15 @@ body.mcp-brand[class] .admin-devotional-editor h3 {
 .mcp-brand .community-row > strong { font-weight: 600 !important; white-space: nowrap; }
 .mcp-brand .community-row > span { font-variant-numeric: tabular-nums; color: var(--b-muted) !important; font-weight: 600; text-align: right; }
 .mcp-brand .community-bar { width: 100% !important; margin: 0 !important; }
+
+/* Login / reset cards: brand lockup readable (new logo, 2026-11-15). */
+.mcp-brand .private-access-brand,
+.mcp-brand .private-access-card > img:first-child,
+.mcp-brand .reset-card img:first-child { width: 160px !important; max-width: 70% !important; height: auto !important; margin: 0 auto 6px !important; display: block !important; }
+
+/* Login polish: single Face ID option, discreet back link. */
+.mcp-brand .private-passkey-actions[hidden], .mcp-brand .private-passkey-btn[hidden] { display: none !important; }
+.mcp-brand .private-passkey-actions.is-single { grid-template-columns: 1fr !important; display: grid !important; }
+.mcp-brand .private-passkey-btn.private-link-like { background: transparent !important; border: 0 !important; box-shadow: none !important; color: var(--b-wine) !important; font-weight: 600 !important; text-decoration: none !important; min-height: 36px !important; }
+body.mcp-brand .private-access-card .private-cancel-btn.private-back-link, .mcp-brand .private-cancel-btn.private-back-link { background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; color: var(--b-muted) !important; font-weight: 600 !important; min-height: 36px !important; padding: 6px !important; }
+.mcp-brand .private-cancel-btn.private-back-link:hover { color: var(--b-wine) !important; }
