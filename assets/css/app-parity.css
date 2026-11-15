@@ -709,3 +709,6 @@ html body.theme-premium[class] .dob-picker select { width: 100% !important; min-
 html body.theme-premium[class] #about .about-intro p { text-align: left !important; text-indent: 0 !important; }
 html body.theme-premium[class] #calendarCard .calendar-item-birthday .calendar-item-date { font-size: 13px !important; letter-spacing: .04em !important; color: #a64b43 !important; }
 html body.theme-premium[class] #calendarCard .calendar-block[hidden] { display: none !important; }
+html body.theme-premium[class] #events .mt-row-bday { background: linear-gradient(135deg, #fffaf8, #fbeee9) !important; }
+html body.theme-premium[class] #events .mt-row-bday .mt-row-rule { background: #c9a46b !important; }
+html body.theme-premium[class] #events .mt-row-bday .mt-row-time strong { font-size: 20px !important; }

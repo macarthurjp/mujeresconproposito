@@ -102,7 +102,7 @@ function safeLink(value) {
   }
 }
 
-export function buildCalendar(eventos, S) {
+export function buildCalendar(eventos, S, birthdays = [], today = new Date()) {
   const zonesUsed = new Set();
   const vevents = [];
   const skipped = [];
@@ -139,6 +139,34 @@ export function buildCalendar(eventos, S) {
     ].filter(Boolean));
   }
 
+  // Upcoming birthdays (next 7 days, first name only — same data the public
+  // site shows). All-day events; the feed refreshes hourly.
+  for (const person of birthdays) {
+    const name = String(person.nombreCompleto || "").trim();
+    const dias = Number(person.dias);
+    if (!name || !Number.isFinite(dias) || dias < 0 || dias > 7) continue;
+    const day = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + dias));
+    const ymd = day.toISOString().slice(0, 10).replace(/-/g, "");
+    const next = new Date(day.getTime() + 86400000).toISOString().slice(0, 10).replace(/-/g, "");
+    vevents.push([
+      "BEGIN:VEVENT",
+      `UID:cumple-${ymd}-${name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-")}@mcp930.org`,
+      `DTSTAMP:${utcStamp()}`,
+      `DTSTART;VALUE=DATE:${ymd}`,
+      `DTEND;VALUE=DATE:${next}`,
+      `SUMMARY:${escapeText(`🎂 Cumpleaños de ${name}`)}`,
+      `DESCRIPTION:${escapeText(`Hoy celebramos el cumpleaños de ${name}. ¡No olvides felicitarla!`)}`,
+      "TRANSP:TRANSPARENT",
+      // Default reminder: the day before at 09:00 (all-day events start at 00:00).
+      "BEGIN:VALARM",
+      "ACTION:DISPLAY",
+      `DESCRIPTION:${escapeText(`Mañana es el cumpleaños de ${name}`)}`,
+      "TRIGGER:-PT15H",
+      "END:VALARM",
+      "END:VEVENT",
+    ]);
+  }
+
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
@@ -164,9 +192,18 @@ async function main() {
   if (!response.ok) throw new Error(`Supabase respondió ${response.status}`);
   const eventos = await response.json();
   const S = await loadSchedule();
-  const { ics, count, skipped } = buildCalendar(eventos, S);
+  let birthdays = [];
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/get-today-birthdays`, { headers: { apikey: ANON_KEY } });
+    const data = res.ok ? await res.json() : {};
+    birthdays = Array.isArray(data.proximosCumpleanos) ? data.proximosCumpleanos : [];
+  } catch (error) {
+    console.warn("No se pudieron leer los cumpleaños:", error?.message || error);
+  }
+  const lux = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Luxembourg", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const { ics, count, skipped } = buildCalendar(eventos, S, birthdays, new Date(`${lux}T00:00:00Z`));
   await writeFile(OUT_FILE, ics, "utf8");
-  console.log(`calendario.ics: ${count} actividades.`);
+  console.log(`calendario.ics: ${count} eventos (incluye ${birthdays.length} cumpleaños).`);
   if (skipped.length) console.log(`Horarios no reconocidos (omitidos): ${skipped.join("; ")}`);
 }
 

@@ -28,6 +28,7 @@ type Occurrence = { e: Evento; start: Date; live: boolean };
 
 export default function Eventos() {
   const { data, error, loading, reload } = useAsync(api.eventos);
+  const bdays = useAsync(api.birthdays);
   const [now, setNow] = useState(() => new Date());
   const [selected, setSelected] = useState(0); // day offset from today
 
@@ -62,8 +63,16 @@ export default function Eventos() {
     return items[0] ?? null;
   }, [data, now]);
 
+  const birthdaysOn = (d: Date) => {
+    const list = [
+      ...(bdays.data?.cumpleanerasHoy ?? []).map((p) => ({ nombreCompleto: p.nombreCompleto, dias: 0 })),
+      ...(bdays.data?.proximosCumpleanos ?? []),
+    ];
+    return list.filter((p) => typeof p.dias === 'number' && addDays(today, p.dias).getTime() === d.getTime());
+  };
+  const dayBirthdays = birthdaysOn(addDays(today, selected));
   const dayItems = occurrences.filter((o) => startOfDay(o.start).getTime() === addDays(today, selected).getTime());
-  const hasMeetings = (d: Date) => occurrences.some((o) => startOfDay(o.start).getTime() === d.getTime());
+  const hasMeetings = (d: Date) => occurrences.some((o) => startOfDay(o.start).getTime() === d.getTime()) || birthdaysOn(d).length > 0;
   const selectedDate = addDays(today, selected);
   const selectedLabel = selected === 0 ? 'Hoy' : selected === 1 ? 'Mañana' : (() => {
     const t = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'long' }).format(selectedDate);
@@ -71,7 +80,7 @@ export default function Eventos() {
   })();
 
   return (
-    <Screen onRefresh={reload} refreshing={loading && !!data}>
+    <Screen onRefresh={() => { reload(); bdays.reload(); }} refreshing={loading && !!data}>
       <View style={{ paddingHorizontal: 20 }}>
         <Eyebrow>Agenda</Eyebrow>
         <Title>Reuniones</Title>
@@ -110,8 +119,18 @@ export default function Eventos() {
             </View>
 
             <Text style={s.dayTitle}>{selectedLabel}</Text>
-            {dayItems.length ? (
+            {dayItems.length || dayBirthdays.length ? (
               <View style={s.list}>
+                {dayBirthdays.map((p) => (
+                  <View key={`bday-${p.nombreCompleto}`} style={s.bday}>
+                    <View style={s.bdayTime}><Text style={{ fontSize: 20 }}>🎂</Text><Text style={s.bdaySub}>Todo el día</Text></View>
+                    <View style={s.bdayRule} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.bdayTitle} numberOfLines={1}>Cumpleaños de {p.nombreCompleto}</Text>
+                      <Text style={s.bdaySub}>{p.dias === 0 ? '¡Hoy! No olvides felicitarla' : 'No olvides felicitarla'}</Text>
+                    </View>
+                  </View>
+                ))}
                 {dayItems.map((o) => <AgendaRow key={`${o.e.id}-${o.start.getTime()}`} evento={o.e} start={o.start} live={o.live} now={now} />)}
               </View>
             ) : (
@@ -151,6 +170,11 @@ const s = StyleSheet.create({
   dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: C.wine },
   dayTitle: { fontFamily: sans, fontSize: 15, fontWeight: '700', color: C.muted, marginTop: 20, marginBottom: 10, marginLeft: 4 },
   list: { gap: 10 },
+  bday: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 18, backgroundColor: '#fdf1ee' },
+  bdayTime: { width: 54 },
+  bdayRule: { width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: C.gold },
+  bdayTitle: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink },
+  bdaySub: { fontFamily: sans, fontSize: 12, color: C.muted, marginTop: 1 },
   empty: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 16, borderRadius: 18, backgroundColor: C.sand },
   emptyText: { flex: 1, fontFamily: sans, fontSize: 14, color: C.muted },
   calendar: { marginTop: 28, flexDirection: 'row', alignItems: 'center', gap: 13, padding: 14, borderRadius: 18, backgroundColor: C.card, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)' },

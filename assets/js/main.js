@@ -2280,6 +2280,7 @@ function renderGaleria(galeria) {
         if (birthdaysResult?.ok && Array.isArray(birthdaysResult.cumpleanerasHoy)) {
           data.cumpleanerasHoy = birthdaysResult.cumpleanerasHoy;
           data.proximosCumpleanos = Array.isArray(birthdaysResult.proximosCumpleanos) ? birthdaysResult.proximosCumpleanos : [];
+          window.MCPMeetings?.setBirthdays([...data.cumpleanerasHoy.map((p) => ({ ...p, dias: 0 })), ...data.proximosCumpleanos]);
         }
 
         [inviteesRequest, galleryRequest, eventsRequest, youtubeRequest, birthdaysRequest].forEach((request) => {
