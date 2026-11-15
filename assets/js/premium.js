@@ -80,3 +80,13 @@
     }
   });
 })();
+
+// Donation quick-way buttons open the same modal as "Aportar ahora".
+(function () {
+  document.addEventListener("click", function (event) {
+    var way = event.target.closest && event.target.closest("[data-open-donate]");
+    if (!way) return;
+    var main = document.getElementById("openDonateModal");
+    if (main) main.click();
+  });
+})();
