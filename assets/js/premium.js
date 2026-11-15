@@ -109,3 +109,16 @@
   enhance();
   new MutationObserver(enhance).observe(track, { childList: true, subtree: true });
 })();
+
+// Phone mockup status bar shows the visitor's current time (iOS style, no AM/PM).
+(function () {
+  var el = document.querySelector(".ip-time");
+  if (!el) return;
+  function tick() {
+    var d = new Date();
+    el.textContent = d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+  tick();
+  // Sync to the minute boundary, then update every minute.
+  setTimeout(function () { tick(); setInterval(tick, 60000); }, (60 - new Date().getSeconds()) * 1000);
+})();
