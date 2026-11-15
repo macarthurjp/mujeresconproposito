@@ -345,3 +345,39 @@ html body.theme-premium[class] #eventsGrid .card :is(h3, > p) { text-align: cent
 html body.theme-premium[class] .ofrecemos-card { align-items: center !important; text-align: center !important; }
 html body.theme-premium[class] .ofrecemos-card .icon { margin: 0 auto 16px !important; }
 html body.theme-premium[class] .ofrecemos-card :is(h3, p) { text-align: center !important; }
+
+/* ---------- App promo phone: real app screenshot + iOS-style notification ---------- */
+html body.theme-premium[class] .p-phone { width: min(100%, 300px); padding: 11px; border-radius: 48px; background: #2b1b1a; box-shadow: 0 30px 70px rgba(63, 38, 35, 0.28); }
+html body.theme-premium[class] .p-phone-screen { position: relative; padding: 0 !important; border-radius: 38px; overflow: hidden; background: var(--app-bg); display: block; }
+html body.theme-premium[class] .p-phone-shot { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+html body.theme-premium[class] .p-phone-notif {
+  position: absolute; left: 10px; right: 10px; top: 14px;
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 11px 12px; border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(18px) saturate(160%) !important; backdrop-filter: blur(18px) saturate(160%) !important;
+  border: 0 !important;
+  box-shadow: 0 10px 30px rgba(63, 38, 35, 0.22);
+  animation: p-notif 6s var(--p-ease) infinite;
+}
+html body.theme-premium[class] .p-notif-icon { width: 34px; height: 34px; border-radius: 9px; flex: 0 0 auto; object-fit: cover; }
+html body.theme-premium[class] .p-notif-body { flex: 1; min-width: 0; text-align: left; font-size: 0.72rem; line-height: 1.3; color: var(--app-ink); }
+html body.theme-premium[class] .p-notif-top { display: flex; justify-content: space-between; gap: 6px; color: var(--app-muted); font-size: 0.66rem; margin-bottom: 2px; }
+html body.theme-premium[class] .p-notif-body b { display: block; font-size: 0.78rem; font-weight: 700; }
+html body.theme-premium[class] .p-notif-text { display: block; color: var(--app-ink); }
+html body.theme-premium[class] .p-phone-tile { display: none !important; }
+html body.theme-premium[class] .p-phone-notif {
+  background: rgba(255, 255, 255, 0.97) !important;
+  opacity: 1 !important;
+  animation: p-notif-in 7s cubic-bezier(0.22, 1, 0.36, 1) infinite !important;
+}
+html body.theme-premium[class] .p-notif-icon { background: #f9e4e0; padding: 3px; border-radius: 9px; }
+@keyframes p-notif-in {
+  0% { transform: translateY(-120%); }
+  10%, 88% { transform: translateY(0); }
+  100% { transform: translateY(-120%); }
+}
+@media (prefers-reduced-motion: reduce) { html body.theme-premium[class] .p-phone-notif { animation: none !important; } }
+/* Notification gets its own band at the top of the screen, so nothing shows through it */
+html body.theme-premium[class] .p-phone-screen { padding-top: 92px !important; }
+html body.theme-premium[class] .p-phone-notif { background: #fff !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
