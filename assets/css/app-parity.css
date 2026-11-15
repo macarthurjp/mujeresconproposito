@@ -707,3 +707,5 @@ html body.theme-premium[class] #about .about-card p { margin: 0 !important; font
 html body.theme-premium[class] .dob-picker { display: grid; grid-template-columns: 0.8fr 1.4fr 1fr; gap: 8px; }
 html body.theme-premium[class] .dob-picker select { width: 100% !important; min-width: 0 !important; }
 html body.theme-premium[class] #about .about-intro p { text-align: left !important; text-indent: 0 !important; }
+html body.theme-premium[class] #calendarCard .calendar-item-birthday .calendar-item-date { font-size: 13px !important; letter-spacing: .04em !important; color: #a64b43 !important; }
+html body.theme-premium[class] #calendarCard .calendar-block[hidden] { display: none !important; }
