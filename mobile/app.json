@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Mujeres con Propósito",
+    "name": "Mujeres con Proposito",
     "slug": "mujeres-con-proposito",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -80,7 +80,13 @@
           "photosPermission": "La app usa tus fotos para subirlas a la galería de Mujeres con Propósito."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "./plugins/with-display-name",
+        {
+          "displayName": "Mujeres con Propósito"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
