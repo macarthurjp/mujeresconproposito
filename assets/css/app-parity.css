@@ -330,3 +330,18 @@ html body.theme-premium[class] #invitees #inviteesTrack .card .invitee-title {
 html body.theme-premium[class] #invitees #inviteesTrack > .card { display: flex !important; flex-direction: column !important; align-items: stretch !important; }
 /* Poster captions centered (web + app PosterCard) */
 html body.theme-premium[class] #invitees #inviteesTrack .card :is(h3, .invitee-title) { text-align: center !important; }
+
+/* ---------- Eventos + Lo que hacemos: centered (web) ---------- */
+html body.theme-premium[class] :is(#events, .ofrecemos-section) .section-header-premium,
+html body.theme-premium[class] :is(#events, .ofrecemos-section) .section-header-premium :is(h2, p, .subtitle) { text-align: center !important; margin-left: auto !important; margin-right: auto !important; }
+html body.theme-premium[class] :is(#events, .ofrecemos-section) .section-header-premium .p-eyebrow { justify-content: center !important; width: 100%; }
+html body.theme-premium[class] #events .p-sync { margin-left: auto !important; margin-right: auto !important; text-align: center !important; }
+html body.theme-premium[class] #events .p-sync-panel { text-align: center !important; }
+
+html body.theme-premium[class] #eventsGrid .card { align-items: center !important; text-align: center !important; }
+html body.theme-premium[class] #eventsGrid .card .card-icon { align-self: center !important; margin: 0 auto 12px !important; }
+html body.theme-premium[class] #eventsGrid .card :is(h3, > p) { text-align: center !important; justify-content: center !important; }
+
+html body.theme-premium[class] .ofrecemos-card { align-items: center !important; text-align: center !important; }
+html body.theme-premium[class] .ofrecemos-card .icon { margin: 0 auto 16px !important; }
+html body.theme-premium[class] .ofrecemos-card :is(h3, p) { text-align: center !important; }
