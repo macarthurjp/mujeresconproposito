@@ -18,7 +18,7 @@
     "android": {
       "package": "org.mcp930.app",
       "adaptiveIcon": {
-        "backgroundColor": "#FBF8F4",
+        "backgroundColor": "#FCEAE5",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
@@ -46,7 +46,7 @@
         {
           "backgroundColor": "#FFF7F6",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 120
+          "imageWidth": 240
         }
       ],
       [

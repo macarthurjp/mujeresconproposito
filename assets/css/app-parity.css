@@ -516,3 +516,6 @@ html body.theme-premium[class] #oracion .prayer-points { margin: 0 !important; }
 html body.theme-premium[class] #oracion .prayer-points .give-way { text-align: center !important; justify-content: center; }
 html body.theme-premium[class] #donateModal .donate-modal-give .give-title { font-family: var(--app-sans, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif) !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
 html body.theme-premium[class] #oracion .give-cta { margin-top: 0 !important; }
+
+/* New vector-based brand icon: the flower already fills the tile, no zoom needed. */
+html body.theme-premium[class] header a.logo img { transform: scale(1.3) !important; }

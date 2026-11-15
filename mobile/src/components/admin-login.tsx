@@ -13,6 +13,7 @@ import {
   setRememberAdminSession, setRememberedAdminEmail,
 } from '@/lib/app-preferences';
 import { supabase } from '@/lib/supabase';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function maskedEmail(value: string) {
   const [name, domain] = value.trim().split('@');
@@ -21,6 +22,7 @@ function maskedEmail(value: string) {
 }
 
 export function AdminLogin() {
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -104,7 +106,7 @@ export function AdminLogin() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[s.page, { paddingTop: insets.top + 10 }]} keyboardShouldPersistTaps="handled">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Volver al inicio de la aplicación"

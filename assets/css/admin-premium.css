@@ -79,7 +79,7 @@ body.admin-unlocked #adminDashboard {
   display: grid; place-items: center;
   box-shadow: 0 2px 10px rgba(166, 75, 67, 0.12);
 }
-.admin-sidebar-mark img { width: 80px; height: 80px; object-fit: cover; }
+.admin-sidebar-mark img { width: 48px; height: 48px; object-fit: cover; }
 .admin-sidebar-brand strong { display: block; font-family: var(--b-serif) !important; font-weight: 500 !important; font-size: 1.12rem; line-height: 1.1; color: var(--a-ink); }
 .admin-sidebar-brand small { display: block; margin-top: 2px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--a-wine); }
 
