@@ -79,7 +79,18 @@ export function AdminLogin() {
       setBiometricLoginAvailable(false);
       throw new Error('No se encontraron credenciales protegidas. Inicia sesión con tu correo para configurarlo de nuevo.');
     }
-    await signIn(credentials.email, credentials.password);
+    try {
+      await signIn(credentials.email, credentials.password);
+    } catch (error) {
+      // Saved password is outdated (e.g. it was reset): forget it so the user signs in manually.
+      if (error instanceof Error && error.message === 'Correo o contraseña incorrectos.') {
+        await clearBiometricAdminCredentials();
+        setBiometricLoginAvailable(false);
+        setEmail(credentials.email);
+        throw new Error('Tu contraseña cambió. Escríbela de nuevo para entrar y vuelve a activar Face ID o huella.');
+      }
+      throw error;
+    }
   });
 
   const providerSignIn = (provider: 'apple' | 'google') => void run(async () => {
