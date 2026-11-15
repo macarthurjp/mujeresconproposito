@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { C, sans } from '@/constants/theme';
+import { C, sans, serif } from '@/constants/theme';
 import type { Evento } from '@/lib/api';
 import { followMeeting, isFollowing, LIVE_ACTIVITY_WINDOW_MS, liveActivitiesSupported, loadLiveActivitiesPreference, unfollowMeeting } from '@/lib/live-activity';
 
@@ -136,4 +137,147 @@ const m = StyleSheet.create({
   followOn: { backgroundColor: C.wine },
   followText: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.wine },
   ctaText: { fontFamily: sans, fontSize: 15, fontWeight: '700', letterSpacing: -0.2 },
+});
+
+
+function useFollow(evento: Evento, next: Date | null, live: boolean, now: Date) {
+  const link = evento.link && /^https?:\/\//i.test(evento.link) ? evento.link : null;
+  const platform = meetingPlatform(link);
+  const [enabled, setEnabled] = useState(true);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    loadLiveActivitiesPreference().then((value) => { if (active) setEnabled(value); }).catch(() => {});
+    return () => { active = false; };
+  }, []));
+  const canFollow = liveActivitiesSupported && enabled && !!link && !!platform && !!next && !live && next.getTime() - now.getTime() < LIVE_ACTIVITY_WINDOW_MS;
+  const [following, setFollowing] = useState(() => (next ? isFollowing(evento.id, next) : false));
+  const toggle = () => {
+    tapFeedback();
+    if (following) { void unfollowMeeting(evento.id, next!); setFollowing(false); }
+    else setFollowing(followMeeting({ eventoId: evento.id, titulo: evento.titulo.trim(), startsAt: next!, link: link!, platform: platform!.name }));
+  };
+  return { link, platform, canFollow, following, toggle };
+}
+
+function dayLabel(date: Date, now: Date) {
+  const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const diff = Math.round((startOf(date) - startOf(now)) / 86_400_000);
+  if (diff === 0) return 'Hoy';
+  if (diff === 1) return 'Mañana';
+  const text = new Intl.DateTimeFormat('es', { weekday: 'long', day: 'numeric', month: 'short' }).format(date).replace('.', '');
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** Hero card for the next (or live) meeting. */
+export function MeetingHero({ evento, next, live, now }: { evento: Evento; next: Date; live: boolean; now: Date }) {
+  const { link, platform, canFollow, following, toggle } = useFollow(evento, next, live, now);
+  const isImage = !!evento.icono && /^https?:\/\//.test(evento.icono);
+  return (
+    <View style={h.card}>
+      <LinearGradient colors={live ? ['#d85a4e', '#b8433b', '#8f2f2a'] : ['#b8645a', '#a64b43', '#7f3530']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <View style={h.glow} />
+      <View style={h.top}>
+        <View style={[h.badge, live && h.badgeLive]}>
+          {live ? <View style={h.liveDot} /> : <Ionicons name="time-outline" size={12} color="#fff" />}
+          <Text style={h.badgeText}>{live ? 'EN VIVO AHORA' : 'PRÓXIMA REUNIÓN'}</Text>
+        </View>
+        <View style={h.art}>
+          {isImage ? <Image source={{ uri: evento.icono! }} style={{ width: 30, height: 30 }} contentFit="contain" /> : <Text style={{ fontSize: 20 }}>{evento.icono || '✦'}</Text>}
+        </View>
+      </View>
+      <Text style={h.title} numberOfLines={2}>{evento.titulo.trim()}</Text>
+      <View style={h.whenRow}>
+        <Text style={h.time}>{time(next)}</Text>
+        <View>
+          <Text style={h.day}>{dayLabel(next, now)}</Text>
+          <Text style={h.relative}>{live ? 'La reunión ya comenzó' : relative(next, now)}</Text>
+        </View>
+      </View>
+      {link && platform ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Unirme por ${platform.name} a ${evento.titulo}`}
+          onPress={() => { tapFeedback(); void Linking.openURL(link); }}
+          style={({ pressed }) => [h.join, pressed && { transform: [{ scale: 0.98 }], opacity: 0.94 }]}>
+          <Ionicons name={platform.icon} size={18} color={C.wine} />
+          <Text style={h.joinText}>{live ? `Unirme ahora por ${platform.name}` : `Unirme por ${platform.name}`}</Text>
+        </Pressable>
+      ) : null}
+      {canFollow ? (
+        <Pressable accessibilityRole="switch" accessibilityState={{ checked: following }} onPress={toggle} style={({ pressed }) => [h.follow, pressed && { opacity: 0.85 }]}>
+          <Ionicons name={following ? 'checkmark-circle' : 'phone-portrait-outline'} size={15} color="#fff" />
+          <Text style={h.followText}>{following ? 'Cuenta atrás en la Dynamic Island' : 'Seguir en la Dynamic Island'}</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/** Compact agenda row: time column, title and a round join button. */
+export function AgendaRow({ evento, start, live, now }: { evento: Evento; start: Date; live: boolean; now: Date }) {
+  const link = evento.link && /^https?:\/\//i.test(evento.link) ? evento.link : null;
+  const platform = meetingPlatform(link);
+  const isImage = !!evento.icono && /^https?:\/\//.test(evento.icono);
+  const recurrence = evento.horario.split('·')[0].trim();
+  const past = !live && start.getTime() < now.getTime();
+  return (
+    <View style={[a.row, live && a.rowLive, past && { opacity: 0.5 }]}>
+      <View style={a.timeCol}>
+        <Text style={[a.time, live && { color: C.live }]}>{time(start)}</Text>
+        <Text style={[a.sub, live && { color: C.live }]}>{live ? 'En vivo' : past ? 'Terminó' : relative(start, now).replace(/^(Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Domingo)$/i, '')}</Text>
+      </View>
+      <View style={[a.rule, live && { backgroundColor: C.live }]} />
+      <View style={a.art}>
+        {isImage ? <Image source={{ uri: evento.icono! }} style={{ width: 26, height: 26 }} contentFit="contain" /> : <Text style={{ fontSize: 18 }}>{evento.icono || '✦'}</Text>}
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={a.title} numberOfLines={2}>{evento.titulo.trim()}</Text>
+        <Text style={a.recurrence} numberOfLines={1}>{recurrence}</Text>
+      </View>
+      {link && platform && !past ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Unirme por ${platform.name} a ${evento.titulo}`}
+          hitSlop={6}
+          onPress={() => { tapFeedback(); void Linking.openURL(link); }}
+          style={({ pressed }) => [a.join, live && a.joinLive, pressed && { transform: [{ scale: 0.94 }] }]}>
+          <Ionicons name={platform.icon} size={17} color={live ? '#fff' : C.wine} />
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+const h = StyleSheet.create({
+  card: { borderRadius: 26, overflow: 'hidden', padding: 20, gap: 14, boxShadow: '0 18px 40px rgba(127,53,48,0.28)' },
+  glow: { position: 'absolute', top: -80, right: -60, width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(255,255,255,0.10)' },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.18)' },
+  badgeLive: { backgroundColor: 'rgba(255,255,255,0.24)' },
+  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#fff' },
+  badgeText: { fontFamily: sans, fontSize: 11, fontWeight: '800', letterSpacing: 1, color: '#fff' },
+  art: { width: 46, height: 46, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' },
+  title: { fontFamily: serif, fontSize: 30, lineHeight: 35, color: '#fff', letterSpacing: -0.3 },
+  whenRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  time: { fontFamily: sans, fontSize: 44, lineHeight: 48, fontWeight: '700', letterSpacing: -1.5, color: '#fff', fontVariant: ['tabular-nums'] },
+  day: { fontFamily: sans, fontSize: 15, fontWeight: '700', color: '#fff' },
+  relative: { fontFamily: sans, fontSize: 13, color: 'rgba(255,255,255,0.82)', marginTop: 1 },
+  join: { minHeight: 52, borderRadius: 15, backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
+  joinText: { fontFamily: sans, fontSize: 16, fontWeight: '700', color: C.wine, letterSpacing: -0.2 },
+  follow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: -4 },
+  followText: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: '#fff' },
+});
+
+const a = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 18, backgroundColor: C.card, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 6px 18px rgba(63,38,35,0.05)' },
+  rowLive: { borderWidth: 1.5, borderColor: 'rgba(214,69,69,0.4)' },
+  timeCol: { width: 54, alignItems: 'flex-start' },
+  time: { fontFamily: sans, fontSize: 17, fontWeight: '700', color: C.ink, fontVariant: ['tabular-nums'], letterSpacing: -0.3 },
+  sub: { fontFamily: sans, fontSize: 11, fontWeight: '600', color: C.muted, marginTop: 1 },
+  rule: { width: 3, alignSelf: 'stretch', borderRadius: 2, backgroundColor: C.blush },
+  art: { width: 38, height: 38, borderRadius: 11, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
+  title: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink, letterSpacing: -0.2 },
+  recurrence: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 1 },
+  join: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.fill, alignItems: 'center', justifyContent: 'center' },
+  joinLive: { backgroundColor: C.live },
 });

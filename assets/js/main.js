@@ -463,6 +463,10 @@ function isImageUrl(value) {
   }
 
   function renderEvents(events) {
+    if (window.MCPMeetings) {
+      window.MCPMeetings.render(Array.isArray(events) ? events : []);
+      return;
+    }
     const eventsGrid = document.getElementById("eventsGrid") || document.querySelector("#events .card-grid");
     if (!eventsGrid) {
       console.warn("No se encontró el contenedor de eventos (#eventsGrid o #events .card-grid)");

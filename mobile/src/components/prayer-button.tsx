@@ -12,7 +12,7 @@ import { onScrollActivity } from '@/lib/scroll-activity';
 
 import { tapFeedback } from './ui';
 
-const LABEL_WIDTH = 168;
+const LABEL_WIDTH = 200;
 const COLLAPSE_AFTER_MS = 1400;
 
 /**

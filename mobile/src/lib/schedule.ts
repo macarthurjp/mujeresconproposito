@@ -145,3 +145,17 @@ export function nextOccurrence(schedule: ParsedSchedule, timeZone: string, now: 
   }
   return null;
 }
+
+/** App helper: every occurrence start (UTC) between `from` and `to`. */
+export function occurrencesBetween(schedule: ParsedSchedule, timeZone: string, from: Date, to: Date): Date[] {
+  const out: Date[] = [];
+  const days = Math.ceil((to.getTime() - from.getTime()) / 86_400_000) + 1;
+  for (let offsetDays = -1; offsetDays <= days; offsetDays += 1) {
+    const probe = new Date(from.getTime() + offsetDays * 86_400_000);
+    const local = localParts(probe, timeZone);
+    if (!schedule.days.includes(local.weekday)) continue;
+    const start = zonedToUtc(local.year, local.month, local.day, schedule.minutes, timeZone);
+    if (start >= from && start < to && !out.some((d) => d.getTime() === start.getTime())) out.push(start);
+  }
+  return out;
+}

@@ -618,7 +618,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-23" />
+  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-24" />
 </head>
 <body id="top" class="theme-premium">
 
@@ -888,8 +888,8 @@
 <section id="events">
     <div class="section-header-premium">
       <span class="p-eyebrow">Agenda</span>
-      <h2><span class="icon">✦</span> Eventos <span class="icon">✦</span></h2>
-      <p class="subtitle">Horarios mostrados en tu hora local.</p>
+      <h2>Reuniones</h2>
+      <p class="subtitle">En tu hora local. Únete con un toque desde cualquier dispositivo.</p>
       <details class="p-sync">
         <summary><i class="fa-regular fa-calendar-plus" aria-hidden="true"></i> Añadir a mi calendario</summary>
         <div class="p-sync-panel">
@@ -904,23 +904,10 @@
       </details>
     </div>
 
-    <div class="events-wrapper events-wrapper-slider">
-      <button class="events-arrow left" id="eventsLeft" type="button" aria-label="Anterior">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"></polyline></svg>
-      </button>
-
-	      <div class="events-track" id="eventsGrid">
-	        <div class="card">
-	          <div class="card-icon premium-icon">✦</div>
-	          <h3>Cargando eventos...</h3>
-	          <p><strong>Contenido administrado desde Supabase.</strong></p>
-	        </div>
-	      </div>
-
-      <button class="events-arrow right" id="eventsRight" type="button" aria-label="Siguiente">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
-      </button>
+    <div id="meetingsApp" class="mt" aria-live="polite">
+      <div class="mt-loading">Cargando reuniones…</div>
     </div>
+    <div id="eventsGrid" hidden></div>
 </section>
 
 
@@ -1602,7 +1589,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase.js?v=20260830-turnstile-1"></script>
   <script src="assets/js/schedule.js?v=20261114-1"></script>
-  <script src="assets/js/main.js?v=20261115-eye-1"></script>
+  <script src="assets/js/meetings.js?v=20261115-1"></script>
+  <script src="assets/js/main.js?v=20261115-eye-2"></script>
   <script src="assets/js/analytics.js?v=20260830-ga4-1" defer></script>
   <script src="assets/js/promo-banner.js?v=20260905-2" defer></script>
   <script src="assets/js/premium.js?v=20261115-4" defer></script>

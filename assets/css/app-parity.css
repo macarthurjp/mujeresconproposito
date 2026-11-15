@@ -538,3 +538,75 @@ html body.theme-premium[class] .hero-premium-content p.hero-lead em {
   font-style: italic !important;
   color: #a64b43 !important;
 }
+
+/* =====================================================================
+   Reuniones (web) — mirrors the app's Reuniones tab
+   ===================================================================== */
+html body.theme-premium[class] #events .mt { width: min(100%, 1120px); margin: 28px auto 0; padding: 0 4px; text-align: left; }
+html body.theme-premium[class] #events .mt * { box-sizing: border-box; }
+html body.theme-premium[class] #events .mt-loading,
+html body.theme-premium[class] #events .mt-empty { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-radius: 18px; background: #f6ebe8; color: #6d5250; font-size: 15px; }
+html body.theme-premium[class] #events .mt-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 28px; align-items: start; }
+
+/* Hero */
+html body.theme-premium[class] #events .mt-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 26px; display: flex; flex-direction: column; gap: 16px; color: #fff;
+  background: radial-gradient(120% 80% at 100% 0%, rgba(255,255,255,0.14), transparent 55%), linear-gradient(140deg, #b8645a 0%, #a64b43 45%, #7f3530 100%);
+  box-shadow: 0 22px 48px rgba(127, 53, 48, 0.28); }
+html body.theme-premium[class] #events .mt-hero.is-live { background: radial-gradient(120% 80% at 100% 0%, rgba(255,255,255,0.16), transparent 55%), linear-gradient(140deg, #d85a4e, #b8433b 50%, #8f2f2a); }
+html body.theme-premium[class] #events .mt-hero-top { display: flex; align-items: center; justify-content: space-between; }
+html body.theme-premium[class] #events .mt-badge { display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: rgba(255,255,255,0.18); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
+html body.theme-premium[class] #events .mt-live-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: mtPulse 1.6s ease-in-out infinite; }
+@keyframes mtPulse { 50% { opacity: .35; } }
+html body.theme-premium[class] #events .mt-hero-art { width: 52px; height: 52px; border-radius: 16px; background: rgba(255,255,255,0.94); display: grid; place-items: center; font-size: 24px; }
+html body.theme-premium[class] #events .mt-hero-art img, html body.theme-premium[class] #events .mt-row-art img { width: 70%; height: 70%; object-fit: contain; }
+html body.theme-premium[class] #events .mt-hero-title { margin: 6px 0 0 !important; font-family: Georgia, "New York", serif !important; font-weight: 400 !important; font-size: clamp(30px, 3.2vw, 40px) !important; line-height: 1.1 !important; color: #fff !important; text-align: left !important; }
+html body.theme-premium[class] #events .mt-hero-when { display: flex; align-items: center; gap: 16px; }
+html body.theme-premium[class] #events .mt-hero-time { font-size: clamp(48px, 5vw, 60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; color: #fff; }
+html body.theme-premium[class] #events .mt-hero-when strong { display: block; font-size: 17px; color: #fff; }
+html body.theme-premium[class] #events .mt-hero-when small { display: block; font-size: 14px; color: rgba(255,255,255,0.82); margin-top: 2px; }
+html body.theme-premium[class] #events .mt-join { margin-top: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px; padding: 0 22px; border-radius: 16px; background: #fff !important; color: #a64b43 !important; font-weight: 700; font-size: 16px; text-decoration: none !important; transition: transform .2s ease, box-shadow .2s ease; }
+html body.theme-premium[class] #events .mt-join:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.16); }
+
+/* Week + agenda */
+html body.theme-premium[class] #events .mt-week-head h3 { margin: 4px 0 12px !important; font-size: 22px !important; font-weight: 700 !important; letter-spacing: -0.02em !important; color: #3f2623 !important; text-align: left !important; }
+html body.theme-premium[class] #events .mt-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 6px; border-radius: 20px; background: #fff; box-shadow: 0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06); }
+html body.theme-premium[class] #events .mt-day { appearance: none; border: 0; background: transparent; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 0 9px; border-radius: 14px; color: #3f2623; transition: background .2s ease; }
+html body.theme-premium[class] #events .mt-day:hover { background: rgba(166,75,67,0.07); }
+html body.theme-premium[class] #events .mt-day span { font-size: 11px; font-weight: 700; letter-spacing: .05em; color: #6d5250; }
+html body.theme-premium[class] #events .mt-day strong { font-size: 19px; font-weight: 700; font-variant-numeric: tabular-nums; }
+html body.theme-premium[class] #events .mt-day.is-today:not(.is-on) strong { color: #a64b43; }
+html body.theme-premium[class] #events .mt-dot { width: 5px; height: 5px; border-radius: 50%; background: #a64b43; }
+html body.theme-premium[class] #events .mt-dot.is-empty { opacity: 0; }
+html body.theme-premium[class] #events .mt-day.is-on { background: #a64b43; box-shadow: 0 8px 18px rgba(166,75,67,0.3); }
+html body.theme-premium[class] #events .mt-day.is-on span { color: rgba(255,255,255,0.85); }
+html body.theme-premium[class] #events .mt-day.is-on strong { color: #fff; }
+html body.theme-premium[class] #events .mt-day.is-on .mt-dot { background: #fff; }
+html body.theme-premium[class] #events .mt-day-title { margin: 20px 0 10px 4px !important; font-size: 15px !important; font-weight: 700 !important; color: #6d5250 !important; text-align: left !important; }
+html body.theme-premium[class] #events .mt-list { display: flex; flex-direction: column; gap: 10px; }
+html body.theme-premium[class] #events .mt-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: #fff; box-shadow: 0 1px 2px rgba(63,38,35,0.04), 0 6px 18px rgba(63,38,35,0.05); }
+html body.theme-premium[class] #events .mt-row.is-live { outline: 1.5px solid rgba(214,69,69,0.4); }
+html body.theme-premium[class] #events .mt-row.is-past { opacity: .5; }
+html body.theme-premium[class] #events .mt-row-time { width: 58px; flex: none; }
+html body.theme-premium[class] #events .mt-row-time strong { display: block; font-size: 17px; font-weight: 700; color: #3f2623; font-variant-numeric: tabular-nums; }
+html body.theme-premium[class] #events .mt-row-time small { display: block; font-size: 11px; font-weight: 600; color: #6d5250; }
+html body.theme-premium[class] #events .mt-row.is-live .mt-row-time :is(strong, small) { color: #d64545; }
+html body.theme-premium[class] #events .mt-row-rule { width: 3px; align-self: stretch; border-radius: 2px; background: #f9e4e0; }
+html body.theme-premium[class] #events .mt-row.is-live .mt-row-rule { background: #d64545; }
+html body.theme-premium[class] #events .mt-row-art { width: 40px; height: 40px; flex: none; border-radius: 12px; background: #f9e4e0; display: grid; place-items: center; font-size: 18px; }
+html body.theme-premium[class] #events .mt-row-copy { flex: 1; min-width: 0; }
+html body.theme-premium[class] #events .mt-row-copy strong { display: block; font-size: 16px; font-weight: 600; color: #3f2623; line-height: 1.25; }
+html body.theme-premium[class] #events .mt-row-copy small { display: block; font-size: 13px; color: #6d5250; margin-top: 2px; }
+html body.theme-premium[class] #events .mt-join-round { width: 42px; height: 42px; flex: none; border-radius: 50%; display: grid; place-items: center; background: rgba(166,75,67,0.08); color: #a64b43 !important; text-decoration: none !important; transition: transform .2s ease, background .2s ease; }
+html body.theme-premium[class] #events .mt-join-round:hover { background: rgba(166,75,67,0.15); transform: scale(1.05); }
+html body.theme-premium[class] #events .mt-join-round.is-live { background: #d64545; color: #fff !important; }
+
+@media (max-width: 900px) {
+  html body.theme-premium[class] #events .mt-grid { grid-template-columns: 1fr; gap: 26px; }
+}
+@media (max-width: 560px) {
+  html body.theme-premium[class] #events .mt { padding: 0; margin-top: 20px; }
+  html body.theme-premium[class] #events .mt-hero { padding: 20px; border-radius: 24px; }
+  html body.theme-premium[class] #events .mt-join { width: 100%; }
+  html body.theme-premium[class] #events .mt-day { padding: 8px 0 7px; }
+  html body.theme-premium[class] #events .mt-day strong { font-size: 17px; }
+}
