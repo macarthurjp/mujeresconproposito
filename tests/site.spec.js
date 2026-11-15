@@ -80,7 +80,7 @@ test("join and donation modals open and close", async ({ page }) => {
       };
     `
   }));
-  await page.locator("#openDonateModal").click();
+  await page.locator("#openDonateFromMenu").click();
   await expect(page.locator("#donateModal")).toHaveClass(/open/);
   await expect(page.locator("#donate-button")).toContainText("PayPal listo");
 });

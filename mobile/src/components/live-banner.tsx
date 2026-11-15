@@ -20,7 +20,7 @@ const REFRESH_MS = 30_000;
  * Floating "live now" card shown above the tab bar on every tab while a
  * meeting with a link is in progress. Each occurrence can be dismissed.
  */
-export function LiveBanner() {
+export function LiveBanner({ onVisibleChange }: { onVisibleChange?: (visible: boolean) => void } = {}) {
   const insets = useSafeAreaInsets();
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [now, setNow] = useState(() => new Date());
@@ -59,6 +59,9 @@ export function LiveBanner() {
     }
     announced.current = liveKey;
   }, [liveKey]);
+
+  const visible = Boolean(live);
+  useEffect(() => { onVisibleChange?.(visible); }, [visible, onVisibleChange]);
 
   if (!live) return null;
 

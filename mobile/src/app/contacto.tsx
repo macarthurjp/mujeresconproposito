@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -8,6 +9,9 @@ import { C, CONTACT_EMAIL } from '@/constants/theme';
 import { api } from '@/lib/api';
 
 export default function Contacto() {
+  // Same form; ?tema=oracion only adapts the wording for prayer requests.
+  const { tema } = useLocalSearchParams<{ tema?: string }>();
+  const prayer = tema === 'oracion';
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [mensaje, setMensaje] = useState('');
@@ -31,7 +35,7 @@ export default function Contacto() {
       const result = await api.submitContact({
         nombre: nombre.trim(),
         email: email.trim().toLowerCase(),
-        mensaje: mensaje.trim(),
+        mensaje: prayer ? `🙏 Petición de oración\n\n${mensaje.trim()}` : mensaje.trim(),
         destino: CONTACT_EMAIL,
         turnstileToken,
       });
@@ -58,14 +62,14 @@ export default function Contacto() {
     <Screen>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={s.container}>
-          <Eyebrow>Escríbenos</Eyebrow>
-          <Title>Contacto</Title>
-          <Text style={[ui.body, s.intro]}>Estamos aquí para escucharte. Déjanos tu mensaje y nos pondremos en contacto contigo.</Text>
+          <Eyebrow>{prayer ? 'Oramos contigo' : 'Escríbenos'}</Eyebrow>
+          <Title>{prayer ? '¿Necesitas oración?' : 'Contacto'}</Title>
+          <Text style={[ui.body, s.intro]}>{prayer ? 'Cuéntanos tu petición. Nuestro equipo orará por ti y, si lo deseas, te responderá con una palabra de ánimo.' : 'Estamos aquí para escucharte. Déjanos tu mensaje y nos pondremos en contacto contigo.'}</Text>
 
           <Card style={s.form}>
             <Field label="Tu Nombre" value={nombre} onChangeText={setNombre} autoComplete="name" returnKeyType="next" />
             <Field label="Correo Electrónico" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" returnKeyType="next" />
-            <Field label="Tu mensaje" value={mensaje} onChangeText={setMensaje} multiline returnKeyType="default" />
+            <Field label={prayer ? 'Tu petición de oración' : 'Tu mensaje'} value={mensaje} onChangeText={setMensaje} multiline returnKeyType="default" />
           </Card>
 
           <Button

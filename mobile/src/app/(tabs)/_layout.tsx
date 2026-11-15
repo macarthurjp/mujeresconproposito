@@ -1,10 +1,12 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router';
+import { useState } from 'react';
 import { Platform, StyleSheet, View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LiveBanner } from '@/components/live-banner';
+import { PrayerButton } from '@/components/prayer-button';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 
@@ -32,6 +34,7 @@ function TabBarBackground() {
 }
 
 export default function TabsLayout() {
+  const [liveVisible, setLiveVisible] = useState(false);
   const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1 }}>
@@ -74,10 +77,10 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="aportar" options={{ href: null }} />
       <Tabs.Screen name="mas" options={tab('Más', 'grid-outline', 'grid')} />
     </Tabs>
-    <LiveBanner />
+    <LiveBanner onVisibleChange={setLiveVisible} />
+    <PrayerButton raised={liveVisible} />
     </View>
   );
 }

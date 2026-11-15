@@ -59,6 +59,7 @@ export default function RootLayout() {
         <Stack.Screen name="devocional/[slug]" options={{ title: 'Devocional' }} />
         <Stack.Screen name="galeria" options={{ title: '', headerShadowVisible: false }} />
         <Stack.Screen name="destacadas" options={{ title: '', headerShadowVisible: false }} />
+        <Stack.Screen name="aportar" options={{ title: 'Donar' }} />
         <Stack.Screen name="contacto" options={{ title: 'Contacto' }} />
         <Stack.Screen name="join" options={{ headerShown: false }} />
         <Stack.Screen name="admin" options={{ headerShown: false }} />

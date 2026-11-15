@@ -172,6 +172,7 @@ export default function Mas() {
         </View>
 
         <Group title="Participa" items={[
+          { icon: 'heart-outline', label: 'Donar', hint: 'PayPal, código QR o transferencia', onPress: go('/aportar') },
           { icon: 'mail-outline', label: 'Contacto', hint: 'Formulario dentro de la app', onPress: go('/contacto') },
         ]} />
 

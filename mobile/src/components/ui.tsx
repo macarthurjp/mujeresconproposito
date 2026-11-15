@@ -17,6 +17,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, radius, sans, serif, TAB_BAR_SPACE } from '@/constants/theme';
+import { reportScroll } from '@/lib/scroll-activity';
 
 export function tapFeedback() {
   if (Platform.OS !== 'web') Haptics.selectionAsync().catch(() => {});
@@ -94,6 +95,8 @@ export function Screen({
     <ScrollView
       style={{ flex: 1, backgroundColor: dark ? C.ink : C.bg }}
       contentContainerStyle={{ paddingTop: (topInset ? insets.top : 0) + 16, paddingBottom: insets.bottom + TAB_BAR_SPACE }}
+      onScroll={reportScroll}
+      scrollEventThrottle={100}
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.wine} /> : undefined}>
       {children}
     </ScrollView>

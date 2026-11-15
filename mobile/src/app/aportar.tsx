@@ -4,8 +4,9 @@ import { Image } from 'expo-image';
 import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Button, Card, ErrorNote, Eyebrow, Loading, Screen, styles as ui, Title, useAsync } from '@/components/ui';
-import { C, serif, sans } from '@/constants/theme';
+import { Button, Card, ErrorNote, Eyebrow, Loading, Screen, Title, useAsync } from '@/components/ui';
+import { GiveHeader } from '@/components/prayer-card';
+import { C, sans } from '@/constants/theme';
 import { api, type CuentaAporte } from '@/lib/api';
 
 // Shown if the cuentas_aporte table is empty or unreachable: same PayPal the website uses.
@@ -69,16 +70,11 @@ export default function Aportar() {
   const cuentas = data && data.length ? data : error ? FALLBACK : data ? FALLBACK : [];
 
   return (
-    <Screen onRefresh={reload} refreshing={loading && !!data}>
+    <Screen onRefresh={reload} refreshing={loading && !!data} topInset={false}>
       <View style={{ paddingHorizontal: 20 }}>
         <Eyebrow>Siembra con nosotras</Eyebrow>
         <Title>Apoya nuestra misión</Title>
-        <Text style={[ui.body, { marginTop: 10 }]}>
-          Tu generosidad nos permite seguir compartiendo esperanza, fe y propósito con mujeres alrededor del mundo.
-        </Text>
-        <Text style={s.verse}>
-          “Cada uno dé como propuso en su corazón… porque Dios ama al dador alegre.” — 2 Corintios 9:7
-        </Text>
+        <View style={{ marginTop: 16, marginBottom: 22 }}><GiveHeader /></View>
         {loading && !data ? <Loading /> : null}
         {error && !cuentas.length ? <ErrorNote message={error} onRetry={reload} /> : null}
         <View style={{ gap: 16 }}>
@@ -92,7 +88,6 @@ export default function Aportar() {
 }
 
 const s = StyleSheet.create({
-  verse: { fontFamily: serif, fontStyle: 'italic', color: C.wine, fontSize: 17, lineHeight: 25, marginVertical: 20 },
   method: { fontFamily: sans, fontWeight: '600', letterSpacing: -0.3, fontSize: 21, color: C.ink },
   qrWrap: { alignItems: 'center', backgroundColor: C.bg, borderRadius: 16, padding: 16, gap: 10 },
   qr: { width: 200, height: 200 },

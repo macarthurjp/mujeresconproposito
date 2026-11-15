@@ -81,13 +81,21 @@
   });
 })();
 
-// Donation quick-way buttons open the same modal as "Aportar ahora".
+// "Escríbenos tu petición": opens the existing contact form in prayer mode.
 (function () {
   document.addEventListener("click", function (event) {
-    var way = event.target.closest && event.target.closest("[data-open-donate]");
-    if (!way) return;
-    var main = document.getElementById("openDonateModal");
-    if (main) main.click();
+    var trigger = event.target.closest && event.target.closest("[data-open-prayer]");
+    if (!trigger) return;
+    var contact = document.getElementById("contact");
+    var message = document.getElementById("cMensaje");
+    var name = document.getElementById("cNombre");
+    if (!contact) return;
+    if (message) {
+      message.placeholder = "Cuéntanos tu petición de oración";
+      if (!message.value.trim()) message.value = "🙏 Petición de oración:\n";
+    }
+    contact.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(function () { (name && !name.value ? name : message)?.focus({ preventScroll: true }); }, 600);
   });
 })();
 

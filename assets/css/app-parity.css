@@ -237,7 +237,7 @@ html body.theme-premium[class] :is(#invitees, #about, #timeline, #events, #donat
 html body.theme-premium[class] .youtube-explore .yt-kicker { letter-spacing: 0.06em !important; font-size: 0.75rem !important; font-weight: 600 !important; }
 
 /* ---------- Donation card: same structure as the app ---------- */
-html body.theme-premium[class] #donate .give-card {
+html body.theme-premium[class] :is(#donate .give-card, #oracion .prayer-card) {
   max-width: 560px !important;
   margin: 0 !important;
   padding: 22px !important;
@@ -248,23 +248,23 @@ html body.theme-premium[class] #donate .give-card {
   background: linear-gradient(135deg, #fffaf8, #fbe9e4 55%, #f6dcd5) !important;
   box-shadow: 0 14px 34px rgba(166, 75, 67, 0.14) !important;
 }
-#donate .give-head { display: flex; align-items: center; gap: 14px; }
-#donate .give-icon { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 16px; background: var(--app-wine); color: #fff; display: grid; place-items: center; font-size: 22px; box-shadow: 0 8px 18px rgba(166, 75, 67, 0.35); }
-html body.theme-premium[class] #donate .give-title { margin: 0 !important; font-size: 1.2rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; color: var(--app-ink) !important; }
-#donate .give-copy { margin: 3px 0 0 !important; font-size: 0.92rem !important; line-height: 1.45 !important; color: var(--app-muted) !important; }
-html body.theme-premium[class] #donate .give-quote { margin: 0 !important; padding: 14px 16px !important; border-radius: 16px !important; border: 0 !important; border-left: 3px solid #c9a46b !important; background: rgba(255, 255, 255, 0.7) !important; box-shadow: none !important; }
-#donate .give-quote-mark { display: block; height: 22px; font-family: var(--app-serif); font-size: 40px; line-height: 40px; color: #c9a46b; }
-html body.theme-premium[class] #donate .give-quote p { margin: 0 !important; font-family: var(--app-serif) !important; font-style: italic !important; font-size: 1.25rem !important; line-height: 1.3 !important; color: var(--app-ink) !important; }
-#donate .give-quote cite { display: block; margin-top: 6px; font-style: normal; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--app-wine); }
-#donate .give-ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-#donate .give-way { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.75); color: var(--app-ink); font: 600 0.78rem var(--app-sans); cursor: pointer; }
-#donate .give-way i { font-size: 20px; color: var(--app-wine); }
-#donate .give-way:hover { background: #fff; }
-html body.theme-premium[class] #donate .give-cta { width: 100%; min-height: 52px; justify-content: center; gap: 8px; }
+:is(#donate, #oracion, #donateModal) .give-head { display: flex; align-items: center; gap: 14px; }
+:is(#donate, #oracion, #donateModal) .give-icon { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 16px; background: var(--app-wine); color: #fff; display: grid; place-items: center; font-size: 22px; box-shadow: 0 8px 18px rgba(166, 75, 67, 0.35); }
+html body.theme-premium[class] :is(#donate, #oracion, #donateModal) .give-title { margin: 0 !important; font-size: 1.2rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; color: var(--app-ink) !important; }
+#donate .give-copy, #oracion .give-copy, #donateModal .give-copy { margin: 3px 0 0 !important; font-size: 0.92rem !important; line-height: 1.45 !important; color: var(--app-muted) !important; }
+html body.theme-premium[class] :is(#donate, #oracion, #donateModal) .give-quote { margin: 0 !important; padding: 14px 16px !important; border-radius: 16px !important; border: 0 !important; border-left: 3px solid #c9a46b !important; background: rgba(255, 255, 255, 0.7) !important; box-shadow: none !important; }
+:is(#donate, #oracion, #donateModal) .give-quote-mark { display: block; height: 22px; font-family: var(--app-serif); font-size: 40px; line-height: 40px; color: #c9a46b; }
+html body.theme-premium[class] :is(#donate, #oracion, #donateModal) .give-quote p { margin: 0 !important; font-family: var(--app-serif) !important; font-style: italic !important; font-size: 1.25rem !important; line-height: 1.3 !important; color: var(--app-ink) !important; }
+:is(#donate, #oracion, #donateModal) .give-quote cite { display: block; margin-top: 6px; font-style: normal; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--app-wine); }
+:is(#donate, #oracion, #donateModal) .give-ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+:is(#donate, #oracion, #donateModal) .give-way { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.75); color: var(--app-ink); font: 600 0.78rem var(--app-sans); cursor: pointer; }
+:is(#donate, #oracion, #donateModal) .give-way i { font-size: 20px; color: var(--app-wine); }
+:is(#donate, #oracion, #donateModal) .give-way:hover { background: #fff; }
+html body.theme-premium[class] :is(#donate, #oracion) .give-cta { width: 100%; min-height: 52px; justify-content: center; gap: 8px; }
 #donate .give-note { margin: -8px 0 0 !important; text-align: center !important; font-size: 0.75rem !important; color: var(--app-muted) !important; }
 
 /* Donation copy and ministry cards left-aligned like the app */
-html body.theme-premium[class] #donate :is(.give-copy, .give-title, .give-quote, .give-quote p) { text-align: left !important; }
+html body.theme-premium[class] :is(#donate, #oracion, #donateModal) :is(.give-copy, .give-title, .give-quote, .give-quote p, .give-quote cite) { text-align: left !important; }
 html body.theme-premium[class] .ofrecemos-card { text-align: left !important; align-items: flex-start !important; padding: 22px !important; }
 html body.theme-premium[class] .ofrecemos-card .icon { margin: 0 0 16px !important; }
 html body.theme-premium[class] .ofrecemos-card :is(h3, p) { text-align: left !important; }
@@ -481,3 +481,38 @@ html body.theme-premium[class] .p-notif-icon { padding: 0 !important; background
 .social-login-spinner { width: 15px; height: 15px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: mcp-social-spin .7s linear infinite; }
 @keyframes mcp-social-spin { to { transform: rotate(360deg); } }
 @media (max-width: 440px) { .social-login-actions { grid-template-columns: 1fr; } }
+
+
+/* ---------- Prayer section (replaces the donation block) ---------- */
+html body.theme-premium[class] #oracion {
+  width: min(calc(100% - 40px), var(--p-max)) !important;
+  margin: clamp(40px, 5vw, 64px) auto 0 !important;
+  padding: clamp(40px, 5vw, 64px) 0 clamp(48px, 6vw, 72px) !important;
+  position: relative;
+  background: var(--app-band) !important;
+  box-shadow: 0 0 0 100vmax var(--app-band) !important;
+  clip-path: inset(0 -100vmax);
+}
+html body.theme-premium[class] #oracion .prayer-card {
+  max-width: 560px; padding: 22px; display: flex; flex-direction: column; gap: 18px;
+}
+html body.theme-premium[class] #oracion .prayer-points .give-way { cursor: default; }
+html body.theme-premium[class] #oracion .give-icon { font-size: 22px; }
+
+/* ---------- Donar modal: the donation card header on top ---------- */
+html body.theme-premium[class] #donateModal .donate-modal-give {
+  display: flex; flex-direction: column; gap: 14px;
+  margin: 4px 0 18px; padding: 18px; border-radius: 20px;
+  border: 1px solid rgba(201, 164, 107, 0.35);
+  background: linear-gradient(135deg, #fffaf8, #fbe9e4 55%, #f6dcd5);
+}
+html body.theme-premium[class] #donateModal .donate-modal-give .give-title { font-size: 1.15rem !important; margin: 0 !important; padding-right: 36px; }
+html body.theme-premium[class] #donateModal .donate-modal-give .give-quote p { font-size: 1.1rem !important; }
+html body.theme-premium[class] #donateModal .donate-subtitle { text-align: left !important; font-weight: 600 !important; color: var(--app-ink) !important; margin: 0 0 10px !important; }
+html body.theme-premium[class] #oracion .section-header-premium,
+html body.theme-premium[class] #oracion .section-header-premium :is(.p-eyebrow, h2, p) { text-align: center !important; margin-left: auto !important; margin-right: auto !important; }
+html body.theme-premium[class] #oracion .prayer-card { margin: 0 auto !important; }
+html body.theme-premium[class] #oracion .prayer-points { margin: 0 !important; }
+html body.theme-premium[class] #oracion .prayer-points .give-way { text-align: center !important; justify-content: center; }
+html body.theme-premium[class] #donateModal .donate-modal-give .give-title { font-family: var(--app-sans, -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif) !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
+html body.theme-premium[class] #oracion .give-cta { margin-top: 0 !important; }

@@ -8,6 +8,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
 import { BirthdayWeek } from '@/components/birthday-week';
+import { PrayerCard } from '@/components/prayer-card';
+import { reportScroll } from '@/lib/scroll-activity';
 import { AlbumCard, PosterCard } from '@/components/media';
 import { PhotoViewer } from '@/components/photo-viewer';
 import { PorcionPlayer } from '@/components/porcion-player';
@@ -44,6 +46,8 @@ export default function Home() {
     <ScrollView
       style={{ flex: 1, backgroundColor: C.bg }}
       contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_SPACE }}
+      onScroll={reportScroll}
+      scrollEventThrottle={100}
       refreshControl={
         <RefreshControl
           refreshing={false}
@@ -178,45 +182,9 @@ export default function Home() {
       </View>
 
       {/* Donations */}
-      <Section eyebrow="Siembra con nosotras" title="Apoya nuestra misión" band>
-        <View style={s.giveCard}>
-          <LinearGradient colors={['#fffaf8', '#fbe9e4', '#f6dcd5']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-          <View style={s.giveHead}>
-            <View style={s.giveIcon}><Ionicons name="heart" size={24} color="#fff" /></View>
-            <View style={{ flex: 1 }}>
-              <Text style={s.giveTitle}>Cada aporte es una semilla</Text>
-              <Text style={s.giveCopy}>Tu generosidad lleva esperanza, fe y propósito a mujeres alrededor del mundo.</Text>
-            </View>
-          </View>
-
-          <View style={s.giveQuote}>
-            <Text style={s.giveQuoteMark}>“</Text>
-            <Text style={s.giveQuoteText}>Dios ama al dador alegre.</Text>
-            <Text style={s.giveQuoteRef}>2 Corintios 9:7</Text>
-          </View>
-
-          <View style={s.giveWays}>
-            {[
-              { icon: 'qr-code-outline', label: 'Código QR' },
-              { icon: 'logo-paypal', label: 'PayPal' },
-              { icon: 'business-outline', label: 'Transferencia' },
-            ].map((way) => (
-              <Pressable key={way.label} onPress={() => { tapFeedback(); router.push('/aportar'); }} style={({ pressed }) => [s.giveWay, pressed && { opacity: 0.8 }]}>
-                <Ionicons name={way.icon as keyof typeof Ionicons.glyphMap} size={20} color={C.wine} />
-                <Text style={s.giveWayText}>{way.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => { tapFeedback(); router.push('/aportar'); }}
-            style={({ pressed }) => [s.giveCta, pressed && { transform: [{ scale: 0.98 }], opacity: 0.94 }]}>
-            <Ionicons name="heart-outline" size={18} color="#fff" />
-            <Text style={s.giveCtaText}>Aportar ahora</Text>
-          </Pressable>
-          <Text style={s.giveNote}>Seguro · sin pagos dentro de la app</Text>
-        </View>
+      {/* Prayer requests (the donation card now lives in Aportar, like the website's Donar button) */}
+      <Section eyebrow="Oramos contigo" title="¿Necesitas oración?" band>
+        <PrayerCard />
       </Section>
 
       {/* Gallery */}
@@ -341,21 +309,6 @@ const s = StyleSheet.create({
   appPromo: { marginTop: 38, marginHorizontal: 20, padding: 22, borderRadius: 22, backgroundColor: C.sand },
   appFeature: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, marginTop: 14 },
   appFeatureText: { flex: 1, color: C.text, fontSize: 13, lineHeight: 19 },
-  giveCard: { borderRadius: 24, overflow: 'hidden', padding: 20, gap: 18, borderWidth: 1, borderColor: 'rgba(201,164,107,0.35)', boxShadow: '0 14px 34px rgba(166,75,67,0.14)' },
-  giveHead: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  giveIcon: { width: 52, height: 52, borderRadius: 16, backgroundColor: C.wine, alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 18px rgba(166,75,67,0.35)' },
-  giveTitle: { fontFamily: sans, fontSize: 19, fontWeight: '700', letterSpacing: -0.4, color: C.ink },
-  giveCopy: { fontFamily: sans, fontSize: 14, lineHeight: 20, color: C.muted, marginTop: 3 },
-  giveQuote: { backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 16, paddingVertical: 14, paddingHorizontal: 16, borderLeftWidth: 3, borderLeftColor: C.gold },
-  giveQuoteMark: { fontFamily: serif, fontSize: 40, lineHeight: 40, height: 22, color: C.gold },
-  giveQuoteText: { fontFamily: serif, fontStyle: 'italic', fontSize: 20, lineHeight: 26, color: C.ink },
-  giveQuoteRef: { fontFamily: sans, fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: C.wine, marginTop: 6 },
-  giveWays: { flexDirection: 'row', gap: 8 },
-  giveWay: { flex: 1, alignItems: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.75)' },
-  giveWayText: { fontFamily: sans, fontSize: 12, fontWeight: '600', color: C.ink },
-  giveCta: { minHeight: 52, borderRadius: 14, backgroundColor: C.wine, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 10px 24px rgba(166,75,67,0.3)' },
-  giveCtaText: { fontFamily: sans, fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
-  giveNote: { fontFamily: sans, fontSize: 12, color: C.muted, textAlign: 'center', marginTop: -8 },
   audioCard: { marginTop: 40, marginHorizontal: 20, minHeight: 116, borderRadius: 22, overflow: 'hidden', padding: 18, flexDirection: 'row', alignItems: 'center', gap: 14, boxShadow: '0 12px 30px rgba(143,63,56,0.28)' },
   audioWave: { position: 'absolute', right: 8, bottom: 0, flexDirection: 'row', alignItems: 'flex-end', gap: 5, opacity: 0.16 },
   audioBar: { width: 5, borderTopLeftRadius: 3, borderTopRightRadius: 3, backgroundColor: '#fff' },
