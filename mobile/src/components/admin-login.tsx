@@ -25,6 +25,7 @@ export function AdminLogin() {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [useBiometrics, setUseBiometrics] = useState(false);
   const [biometricsSupported, setBiometricsSupported] = useState(false);
@@ -133,7 +134,17 @@ export function AdminLogin() {
         </View>
         <Group>
           <InputRow label="Correo" value={email} onChangeText={setEmail} placeholder="nombre@correo.com" keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="username" />
-          <InputRow label="Contraseña" value={password} onChangeText={setPassword} placeholder="Tu contraseña" secureTextEntry autoComplete="password" textContentType="password" onSubmitEditing={submit} returnKeyType="go" />
+          <View>
+            <InputRow label="Contraseña" value={password} onChangeText={setPassword} placeholder="Tu contraseña" secureTextEntry={!showPassword} autoCapitalize="none" autoCorrect={false} autoComplete="password" textContentType="password" onSubmitEditing={submit} returnKeyType="go" />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              hitSlop={10}
+              onPress={() => setShowPassword((v) => !v)}
+              style={s.eye}>
+              <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={21} color={C.muted} />
+            </Pressable>
+          </View>
         </Group>
         <Group>
           <SwitchRow icon="person-circle" label="Recordarme en este dispositivo" value={remember} onValueChange={setRemember} />
@@ -163,6 +174,7 @@ export function AdminLogin() {
 }
 
 const s = StyleSheet.create({
+  eye: { position: 'absolute', right: 14, bottom: 12, width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   page: { padding: 18, paddingBottom: 56 },
   homeButton: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 7, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 999, backgroundColor: 'rgba(166,75,67,0.08)', borderWidth: 1, borderColor: 'rgba(166,75,67,0.14)' },
   homeButtonText: { fontFamily: sans, color: C.wine, fontSize: 13, fontWeight: '600' },
