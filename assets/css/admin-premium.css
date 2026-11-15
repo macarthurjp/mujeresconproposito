@@ -132,10 +132,12 @@ body.mcp-brand .admin-sidebar .admin-tab,
   flex: 0 0 auto !important;
 }
 body.mcp-brand .admin-sidebar .admin-tab i:not(.admin-tab-chevron),
-.admin-side-link i { width: 20px; text-align: center; color: var(--a-muted) !important; font-size: 0.95rem; }
+.admin-side-link i { width: 22px; text-align: center; color: var(--a-muted) !important; font-size: 1.08rem; transition: color 0.2s var(--a-ease), transform 0.2s var(--a-ease); }
 body.mcp-brand .admin-sidebar .admin-tab .admin-tab-chevron { display: none !important; }
 body.mcp-brand .admin-sidebar .admin-tab:hover,
 .admin-side-link:hover { background: rgba(166, 75, 67, 0.06) !important; color: var(--a-wine) !important; }
+body.mcp-brand .admin-sidebar .admin-tab:hover i:not(.admin-tab-chevron),
+.admin-side-link:hover i { color: var(--a-wine) !important; transform: scale(1.06); }
 body.mcp-brand .admin-sidebar .admin-tab.active {
   background: var(--a-blush) !important;
   color: var(--a-wine) !important;
