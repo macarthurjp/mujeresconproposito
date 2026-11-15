@@ -30,6 +30,18 @@
     "plugins": [
       "expo-router",
       [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Usa Face ID para entrar al panel privado de Mujeres con Propósito sin escribir tu contraseña."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Usa Face ID para entrar al panel privado de Mujeres con Propósito sin escribir tu contraseña."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#FFF7F6",
@@ -55,7 +67,8 @@
         {
           "photosPermission": "La app usa tus fotos para subirlas a la galería de Mujeres con Propósito."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -36,6 +36,17 @@ async function submitJoin(payload: Record<string, unknown>) {
   return result;
 }
 
+async function submitContact(payload: { nombre: string; email: string; mensaje: string; destino: string; turnstileToken: string }) {
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/submit-contact`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ ...payload, action: 'contact', source: 'app' }),
+  });
+  const result = await response.json().catch(() => ({})) as { error?: string; notificationSent?: boolean };
+  if (!response.ok) throw new Error(result.error || `Error ${response.status} al enviar el mensaje`);
+  return result;
+}
+
 export type Birthday = { nombreCompleto: string; fecha?: string; dias?: number };
 
 // Development-only preview: open the web preview with ?demo=cumple to see
@@ -123,6 +134,7 @@ export const api = {
     rpc('register_push_token', { p_token: token, p_plataforma: plataforma, p_zona_horaria: zona }),
   unregisterPushToken: (token: string) => rpc('unregister_push_token', { p_token: token }),
   submitJoin,
+  submitContact,
   birthdays,
 };
 
@@ -131,8 +143,14 @@ export function htmlToParagraphs(html: string | null | undefined): string[] {
   if (!html) return [];
   return html
     .replace(/<\s*br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|h[1-6]|li|blockquote)>/gi, '\n\n')
+    .replace(/<h[1-6][^>]*>/gi, '## ')
+    .replace(/<blockquote[^>]*>/gi, '> ')
     .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<(strong|b)>/gi, '**').replace(/<\/(strong|b)>/gi, '**')
+    .replace(/<(em|i)>/gi, '*').replace(/<\/(em|i)>/gi, '*')
+    .replace(/<u>/gi, '__').replace(/<\/u>/gi, '__')
+    .replace(/<(del|s|strike)>/gi, '~~').replace(/<\/(del|s|strike)>/gi, '~~')
+    .replace(/<\/(p|div|h[1-6]|li|blockquote|ul|ol)>/gi, '\n\n')
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')

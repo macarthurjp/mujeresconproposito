@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Switch, Text, TextInput, View, type TextInputProps } from 'react-native';
+import type { ComponentProps, ReactNode } from 'react';
+import { Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { C, sans } from '@/constants/theme';
 
@@ -103,23 +103,35 @@ export function FieldRow({ label, children }: { label: string; children: ReactNo
 }
 
 /** Multi-select chips (days of the week, etc.). */
-export function Chips({ options, selected, onToggle }: { options: readonly string[]; selected: string[]; onToggle: (o: string) => void }) {
+const selectionIcons: Record<string, ComponentProps<typeof Ionicons>['name']> = {
+  '🙏': 'hand-left-outline', '📖': 'book-outline', '✝️': 'add-circle-outline', '🌅': 'sunny-outline', '🌇': 'partly-sunny-outline',
+  '⛪': 'business-outline', '💬': 'chatbubble-ellipses-outline', '👧': 'person-outline', '❤️': 'heart-outline', '✨': 'sparkles-outline',
+  '🕊️': 'leaf-outline', '🎵': 'musical-notes-outline', '🎤': 'mic-outline', '🎧': 'headset-outline', '🙌': 'hand-right-outline',
+  '🛐': 'leaf-outline', '📿': 'ellipse-outline', '🫶': 'heart-circle-outline', '🤍': 'heart-outline', '🌿': 'leaf-outline',
+  '🌸': 'flower-outline', '🌻': 'sunny-outline', '☀️': 'sunny-outline', '🌙': 'moon-outline', '⭐': 'star-outline',
+  '🔥': 'flame-outline', '💡': 'bulb-outline', '🧡': 'heart-outline', '👥': 'people-outline', '🤝': 'hand-left-outline',
+  '👩‍👩‍👧': 'people-outline', '🧒': 'person-outline', '🏠': 'home-outline', '🌍': 'globe-outline', '📅': 'calendar-outline',
+  '🎉': 'balloon-outline', '🗣️': 'chatbubble-outline', '💭': 'chatbox-ellipses-outline', '📝': 'create-outline', '🔔': 'notifications-outline',
+};
+
+export function Chips({ options, selected, onToggle, iconOptions = false }: { options: readonly string[]; selected: string[]; onToggle: (o: string) => void; iconOptions?: boolean }) {
   return (
-    <View style={f.chips}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={f.chips} keyboardShouldPersistTaps="handled">
       {options.map((o) => {
         const on = selected.includes(o);
         return (
           <Pressable
             key={o}
             accessibilityRole="checkbox"
+            accessibilityLabel={iconOptions ? `Icono ${o}` : o}
             accessibilityState={{ checked: on }}
             onPress={() => { tapFeedback(); onToggle(o); }}
-            style={[f.chip, on && f.chipOn]}>
-            <Text style={[f.chipText, on && { color: '#fff' }]}>{o.length > 4 ? o.slice(0, 3) : o}</Text>
+            style={[iconOptions ? f.iconChip : f.chip, on && f.chipOn]}>
+            {iconOptions ? <Ionicons name={selectionIcons[o] ?? 'ellipse-outline'} size={21} color={on ? '#fff' : C.wine} /> : <Text style={[f.chipText, on && { color: '#fff' }]}>{o.length > 4 ? o.slice(0, 3) : o}</Text>}
           </Pressable>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -137,8 +149,9 @@ export const f = StyleSheet.create({
   inputRow: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, gap: 6 },
   inputLabel: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.muted },
   input: { fontFamily: sans, fontSize: 16, color: C.ink, paddingVertical: 4, outlineStyle: 'none' } as object,
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
-  chip: { minWidth: 44, height: 36, paddingHorizontal: 10, borderRadius: 18, backgroundColor: C.fill, alignItems: 'center', justifyContent: 'center' },
+  chips: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 2, paddingRight: 16 },
+  chip: { minWidth: 48, height: 42, paddingHorizontal: 12, borderRadius: 21, backgroundColor: C.fill, alignItems: 'center', justifyContent: 'center' },
+  iconChip: { width: 48, height: 48, borderRadius: 24, backgroundColor: C.fill, alignItems: 'center', justifyContent: 'center' },
   chipOn: { backgroundColor: C.wine },
   chipText: { fontFamily: sans, fontSize: 14, fontWeight: '600', color: C.wine },
 });

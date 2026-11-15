@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { C, sans } from '@/constants/theme';
 import type { Evento } from '@/lib/api';
-import { followMeeting, isFollowing, LIVE_ACTIVITY_WINDOW_MS, liveActivitiesSupported, unfollowMeeting } from '@/lib/live-activity';
+import { followMeeting, isFollowing, LIVE_ACTIVITY_WINDOW_MS, liveActivitiesSupported, loadLiveActivitiesPreference, unfollowMeeting } from '@/lib/live-activity';
 
 import { tapFeedback } from './ui';
 
@@ -45,8 +46,14 @@ export function MeetingCard({ evento, next, live, now }: { evento: Evento; next:
   const platform = meetingPlatform(link);
   const isImage = !!evento.icono && /^https?:\/\//.test(evento.icono);
   const recurrence = evento.horario.split('·')[0].trim();
+  const [liveActivitiesEnabled, setLiveActivitiesEnabled] = useState(true);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    loadLiveActivitiesPreference().then((enabled) => { if (active) setLiveActivitiesEnabled(enabled); }).catch(() => {});
+    return () => { active = false; };
+  }, []));
   // Dynamic Island countdown: iPhone only, meetings starting within 8 h.
-  const canFollow = liveActivitiesSupported && !!link && !!platform && !!next && !live && next.getTime() - now.getTime() < LIVE_ACTIVITY_WINDOW_MS;
+  const canFollow = liveActivitiesSupported && liveActivitiesEnabled && !!link && !!platform && !!next && !live && next.getTime() - now.getTime() < LIVE_ACTIVITY_WINDOW_MS;
   const [following, setFollowing] = useState(() => (next ? isFollowing(evento.id, next) : false));
 
   return (

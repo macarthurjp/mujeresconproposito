@@ -81,17 +81,19 @@ export function Screen({
   onRefresh,
   refreshing = false,
   dark = false,
+  topInset = true,
 }: {
   children: ReactNode;
   onRefresh?: () => void;
   refreshing?: boolean;
   dark?: boolean;
+  topInset?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: dark ? C.ink : C.bg }}
-      contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + TAB_BAR_SPACE }}
+      contentContainerStyle={{ paddingTop: (topInset ? insets.top : 0) + 16, paddingBottom: insets.bottom + TAB_BAR_SPACE }}
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.wine} /> : undefined}>
       {children}
     </ScrollView>

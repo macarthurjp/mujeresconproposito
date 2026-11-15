@@ -1674,7 +1674,6 @@ body.theme-premium {
 .theme-premium .reveal.visible:not(.p-reveal),
 .theme-premium .verse-block,
 .theme-premium .verse-block.enhanced,
-.theme-premium .invitees-track,
 .theme-premium #timeline.timeline-section {
   transform: none !important;
   opacity: 1 !important;

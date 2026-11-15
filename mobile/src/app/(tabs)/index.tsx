@@ -1,18 +1,20 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Linking, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
 import { BirthdayWeek } from '@/components/birthday-week';
 import { AlbumCard, PosterCard } from '@/components/media';
 import { PhotoViewer } from '@/components/photo-viewer';
+import { PorcionPlayer } from '@/components/porcion-player';
 import { Button, Card, Eyebrow, tapFeedback, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
-import { C, TAB_BAR_SPACE, serif, SOUNDCLOUD_URL, sans } from '@/constants/theme';
+import { C, TAB_BAR_SPACE, serif, sans } from '@/constants/theme';
 import { api, type Foto } from '@/lib/api';
+import { getShowHomeActivities } from '@/lib/app-preferences';
 import { albumsFor, GALLERY_REGIONS as galleryRegions, type Album, type RegionKey } from '@/lib/gallery';
 
 export default function Home() {
@@ -26,8 +28,16 @@ export default function Home() {
   const birthdays = useAsync(api.birthdays);
   const [selectedGalleryRegion, setSelectedGalleryRegion] = useState<RegionKey>('usa');
   const [openAlbum, setOpenAlbum] = useState<Album<Foto> | null>(null);
+  const [aboutVisible, setAboutVisible] = useState(false);
+  const [showHomeActivities, setShowHomeActivities] = useState(true);
   const galleryCardWidth = Math.min(screenWidth * 0.46, 200);
   const galleryAlbums = useMemo(() => albumsFor(galeria.data ?? [], selectedGalleryRegion), [galeria.data, selectedGalleryRegion]);
+
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    getShowHomeActivities().then((enabled) => { if (active) setShowHomeActivities(enabled); }).catch(() => {});
+    return () => { active = false; };
+  }, []));
 
   return (
     <>
@@ -45,7 +55,10 @@ export default function Home() {
       <View style={[s.hero, { paddingTop: insets.top + 20 }]}>
         <View style={s.brandRow}>
           <View style={s.mark}>
-            <Image source={require('@/assets/images/mcp-mark.png')} style={{ width: 70, height: 70 }} />
+            <LinearGradient colors={['#cb685e', '#a64b43', '#863a36']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            <View pointerEvents="none" style={s.markGlow} />
+            <Image source={require('@/assets/images/mcp-mark.png')} style={s.markImage} contentFit="contain" />
+            <View pointerEvents="none" style={s.markRim} />
           </View>
           <View>
             <Text style={s.brand}>Mujeres con Propósito</Text>
@@ -86,6 +99,9 @@ export default function Home() {
       <Section eyebrow="Nosotras" title="¿Quiénes somos?" band>
         <Text style={ui.body}>Nuestra misión, visión y propósito</Text>
         <Text style={[ui.body, { marginTop: 12 }]}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
+        <Pressable onPress={() => setAboutVisible(true)} onPressIn={tapFeedback} accessibilityRole="button" accessibilityLabel="Ver misión, visión y valores" style={({ pressed }) => [s.moreLink, pressed && { opacity: 0.72 }]}>
+          <Text style={s.moreLinkText}>Ver más</Text><Ionicons name="arrow-forward" size={16} color={C.wine} />
+        </Pressable>
       </Section>
 
       {/* Timeline */}
@@ -131,10 +147,10 @@ export default function Home() {
       </View>
 
       {/* Agenda: same place as Eventos on the website: after Únete, before YouTube; the next activities in the viewer's local time */}
-      <Section eyebrow="Agenda" title="Próximas actividades" band>
+      {showHomeActivities ? <Section eyebrow="Agenda" title="Próximas actividades" band>
         {eventos.error ? <ErrorNote message={eventos.error} onRetry={eventos.reload} /> : null}
         {eventos.data ? <Agenda eventos={eventos.data} /> : null}
-      </Section>
+      </Section> : null}
 
       {/* YouTube */}
       {videos.data?.length ? (
@@ -236,34 +252,44 @@ export default function Home() {
         ) : !birthdays.error ? <Text style={s.noUpcomingBirthdays}>No hay cumpleaños próximos registrados.</Text> : null}
       </Section>
 
-      {/* Porción: Apple Music–style card that opens the SoundCloud playlist */}
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Escuchar Porción, audios de Mujeres con Propósito"
-        onPress={() => { tapFeedback(); Linking.openURL(SOUNDCLOUD_URL); }}
-        style={({ pressed }) => [s.audioCard, pressed && { transform: [{ scale: 0.985 }] }]}>
-        <LinearGradient colors={['#b5564d', '#8f3f38', '#5e2a26']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-        <View style={s.audioWave} pointerEvents="none">
-          {[14, 30, 48, 26, 58, 38, 22].map((h, i) => <View key={i} style={[s.audioBar, { height: h }]} />)}
-        </View>
-        <View style={s.audioArt}><Ionicons name="musical-notes" size={26} color="#fff" /></View>
-        <View style={{ flex: 1 }}>
-          <Text style={s.audioEyebrow}>Porción · Playlist</Text>
-          <Text style={s.audioTitle}>Escucha nuestros audios</Text>
-          <Text style={s.audioCopy}>Mensajes y reflexiones para tu día.</Text>
-        </View>
-        <View style={s.audioPlay}><Ionicons name="play" size={20} color="#8f3f38" style={{ marginLeft: 2 }} /></View>
-      </Pressable>
+      {/* Porción: embedded SoundCloud player with native playlist controls */}
+      <PorcionPlayer />
     </ScrollView>
     <PhotoViewer visible={!!openAlbum} title={openAlbum?.title ?? ''} photos={openAlbum?.photos ?? []} onClose={() => setOpenAlbum(null)} />
+    <Modal visible={aboutVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAboutVisible(false)}>
+      <View style={s.aboutModal}>
+        <View style={s.aboutModalHeader}>
+          <View style={{ flex: 1 }}><Text style={s.aboutModalEyebrow}>NOSOTRAS</Text><Text style={s.aboutModalTitle}>Misión, visión y valores</Text></View>
+          <Pressable onPress={() => setAboutVisible(false)} accessibilityRole="button" accessibilityLabel="Cerrar" hitSlop={12} style={s.aboutClose}><Ionicons name="close" size={22} color={C.ink} /></Pressable>
+        </View>
+        <ScrollView contentContainerStyle={s.aboutModalContent} showsVerticalScrollIndicator={false}>
+          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Misión</Text><Text style={s.aboutParagraphText}>Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades; fomentando sus dones y talentos.</Text></View>
+          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Visión</Text><Text style={s.aboutParagraphText}>Ser una comunidad internacional de mujeres transformadas por Dios, que caminan en su propósito, crecen integralmente y generan un impacto social que transforma vidas, familias y comunidades.</Text></View>
+          <View style={s.aboutDetailCard}>
+            <Text style={s.aboutDetailTitle}>Nuestros valores</Text>
+            <View style={s.aboutValuesList}>{[
+              ['Amor', 'Amamos a Dios y a las personas, sirviendo con compasión y empatía.'],
+              ['Unidad', 'Caminamos en armonía, valorando nuestras diferencias y construyendo juntas.'],
+              ['Hermandad', 'Nos acompañamos, apoyamos y fortalecemos unas a otras.'],
+              ['Transparencia', 'Actuamos con apertura, integridad y claridad en nuestras relaciones y recursos.'],
+              ['Honestidad', 'Vivimos y nos relacionamos con verdad, respeto y coherencia.'],
+            ].map(([title, copy]) => <View key={title} style={s.aboutValue}><View style={s.aboutValueDot} /><View style={s.aboutValueCopy}><Text style={s.aboutValueName}>{title}</Text><Text style={s.aboutDetailText}>{copy}</Text></View></View>)}</View>
+          </View>
+        </ScrollView>
+      </View>
+    </Modal>
     </>
   );
 }
 
 const s = StyleSheet.create({
   hero: { backgroundColor: '#f9e1dc', paddingHorizontal: 22, paddingBottom: 26, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 },
-  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 22 },
-  mark: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', backgroundColor: '#fff7f5', alignItems: 'center', justifyContent: 'center' },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 22 },
+  mark: { width: 58, height: 58, borderRadius: 20, overflow: 'hidden', backgroundColor: C.wine, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.58)', boxShadow: '0 9px 18px rgba(105,44,41,0.28), 0 2px 4px rgba(63,38,35,0.15)' },
+  markGlow: { position: 'absolute', width: 42, height: 24, borderRadius: 22, top: -11, left: -3, backgroundColor: 'rgba(255,255,255,0.26)', transform: [{ rotate: '-28deg' }] },
+  // The PNG includes transparent padding; keep it inside the badge so the full mark shows.
+  markImage: { width: 108, height: 108 },
+  markRim: { ...StyleSheet.absoluteFill, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   brand: { fontFamily: serif, color: C.ink, fontSize: 18 },
   brandSub: { color: C.muted, fontSize: 10, letterSpacing: 2, marginTop: 2 },
   heroCopy: { color: C.muted, fontSize: 16, lineHeight: 23, marginTop: 10 },
@@ -297,6 +323,21 @@ const s = StyleSheet.create({
   videoTitle: { color: C.text, fontSize: 14, fontWeight: '600', marginTop: 8, lineHeight: 19 },
   moreLink: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, alignSelf: 'flex-start' },
   moreLinkText: { color: C.wine, fontWeight: '700', fontSize: 13 },
+  aboutModal: { flex: 1, backgroundColor: C.bg, paddingTop: 12 },
+  aboutModalHeader: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 22, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: C.separator },
+  aboutModalEyebrow: { color: C.wine, fontSize: 11, fontWeight: '800', letterSpacing: 2 },
+  aboutModalTitle: { color: C.ink, fontFamily: serif, fontSize: 22, lineHeight: 28, marginTop: 4, flexShrink: 1 },
+  aboutClose: { width: 40, height: 40, borderRadius: 20, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
+  aboutModalContent: { padding: 20, paddingBottom: 36, gap: 14 },
+  aboutDetailCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, borderWidth: 1, borderColor: C.line, gap: 8 },
+  aboutDetailTitle: { color: C.ink, fontFamily: serif, fontSize: 21 },
+  aboutParagraphText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'justify' },
+  aboutDetailText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'left' },
+  aboutValuesList: { gap: 8 },
+  aboutValue: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  aboutValueCopy: { flex: 1, gap: 3 },
+  aboutValueDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: C.wine, marginTop: 7 },
+  aboutValueName: { color: C.ink, fontSize: 15, fontWeight: '700' },
   appPromo: { marginTop: 38, marginHorizontal: 20, padding: 22, borderRadius: 22, backgroundColor: C.sand },
   appFeature: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, marginTop: 14 },
   appFeatureText: { flex: 1, color: C.text, fontSize: 13, lineHeight: 19 },

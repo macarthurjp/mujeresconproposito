@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { WebView } from 'react-native-webview';
 
 import { C, SITE_URL, sans } from '@/constants/theme';
 
-// submit-join only accepts a Cloudflare Turnstile token issued on mcp930.org,
-// so the app runs the check on a tiny page hosted there (app-verify.html).
+// Secure join/contact submissions require a Cloudflare Turnstile token issued
+// on mcp930.org, so the app runs only the verification step in a small WebView.
 const VERIFY_URL = `${SITE_URL}/app-verify.html`;
 
 type Props = {
@@ -17,6 +17,16 @@ type Props = {
 };
 
 export function HumanCheck({ visible, action = 'join', onToken, onCancel, onError }: Props) {
+  // Do not initialize the native WebView module until the user opens the bot check.
+  const [WebView, setWebView] = useState<typeof import('react-native-webview').WebView | null>(null);
+  useEffect(() => {
+    if (!visible) return;
+    let mounted = true;
+    void import('react-native-webview').then((module) => {
+      if (mounted) setWebView(() => module.WebView);
+    }).catch(onError);
+    return () => { mounted = false; };
+  }, [visible, onError]);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={s.backdrop}>
@@ -27,9 +37,9 @@ export function HumanCheck({ visible, action = 'join', onToken, onCancel, onErro
               <Ionicons name="close" size={20} color={C.ink} />
             </Pressable>
           </View>
-          <Text style={s.hint}>Comprobamos que eres una persona antes de enviar tu registro.</Text>
+          <Text style={s.hint}>{action === 'contact' ? 'Comprobamos que eres una persona antes de enviar tu mensaje.' : 'Comprobamos que eres una persona antes de enviar tu registro.'}</Text>
           <View style={s.frame}>
-            {visible ? (
+            {visible && WebView ? (
               <WebView
                 source={{ uri: `${VERIFY_URL}?action=${action}` }}
                 originWhitelist={['https://*']}

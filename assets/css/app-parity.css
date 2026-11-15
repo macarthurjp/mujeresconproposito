@@ -461,3 +461,23 @@ html body.theme-premium[class] .p-phone.ip .p-phone-notif {
   html body.theme-premium[class] .p-phone.ip { width: min(82%, 300px); }
 }
 html body.theme-premium[class] .p-notif-icon { padding: 0 !important; background: #fdf4f1 !important; border-radius: 9px !important; box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.08); }
+
+/* Social provider actions for the private web panels. */
+.social-login-divider { display: flex; align-items: center; gap: 14px; margin: 20px 0 14px; color: var(--b-muted); font-size: .82rem; font-weight: 650; }
+.social-login-divider::before, .social-login-divider::after { content: ""; height: 1px; flex: 1; background: var(--b-line); }
+.social-login-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.social-login-btn {
+  display: inline-flex; min-height: 54px; align-items: center; justify-content: center; gap: 10px;
+  border: 1px solid var(--b-line-strong); border-radius: 16px; background: rgba(255,255,255,.88); color: var(--b-ink);
+  font: 700 .96rem/1 var(--b-sans); cursor: pointer; box-shadow: 0 8px 20px rgba(63,38,35,.06);
+  transition: transform .18s var(--b-ease), box-shadow .18s var(--b-ease), opacity .18s ease;
+}
+.social-login-btn:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(63,38,35,.1); }
+.social-login-btn:active { transform: scale(.985); }
+.social-login-btn:disabled { cursor: wait; opacity: .75; }
+.social-login-apple { color: #fff; border-color: #211d1c; background: linear-gradient(145deg, #312c2b, #171514); }
+.social-login-apple-mark { font: 1.5rem/1 Arial, sans-serif; }
+.social-login-google-mark { display: inline-grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; color: #4285f4; background: #fff; font: 800 1rem/1 Arial, sans-serif; }
+.social-login-spinner { width: 15px; height: 15px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: mcp-social-spin .7s linear infinite; }
+@keyframes mcp-social-spin { to { transform: rotate(360deg); } }
+@media (max-width: 440px) { .social-login-actions { grid-template-columns: 1fr; } }

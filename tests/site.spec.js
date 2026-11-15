@@ -16,7 +16,7 @@ async function mockSupabase(page) {
             insert() { return Promise.resolve({ data: [], error: null }); },
             update() { return this; },
             delete() { return this; },
-            maybeSingle() { return Promise.resolve({ data: null, error: null }); }
+            maybeSingle() { return Promise.resolve({ data: { is_super_admin: false, permissions: ["read_only"], is_revoked: false, nombre: "" }, error: null }); }
           };
           return {
             from() { return Object.create(query); },
@@ -272,6 +272,8 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
   await page.evaluate(() => {
     document.getElementById("dashboardAccessScreen").style.display = "none";
     document.getElementById("pdfArea").style.display = "block";
+    // Contact details are only rendered for roles that may export data.
+    applyDashboardRole({ is_super_admin: false, permissions: ["read_only", "read_export"], is_revoked: false });
     renderTable([{
       nombreCompleto: "Xiomery Mercedes de Jean Pierre",
       email: "xiomerymjeanpierre@icloud.com",
@@ -459,4 +461,17 @@ test("dashboard PDF exports a clean data table instead of the full page", async 
   expect(table.firstRow).toHaveLength(11);
   expect(table.firstRow).toContain("Ana Pérez");
   expect(table.firstRow).toContain("ana@example.com");
+});
+
+test("dashboard hides contact details from simple-view accounts", async ({ page }) => {
+  await page.goto("/dashboard.html");
+  await page.evaluate(() => {
+    document.getElementById("dashboardAccessScreen").style.display = "none";
+    document.getElementById("pdfArea").style.display = "block";
+    applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], is_revoked: false });
+    renderTable([{ nombreCompleto: "Ana Prueba", email: "ana@example.com", telefono: "621 000", paisResidencia: "Luxemburgo", comunidad: "Europa", cristiana: "Sí", timestamp: "2026-07-29" }]);
+  });
+  await expect(page.locator(".user-row-name")).toContainText("Ana Prueba");
+  await expect(page.locator(".user-row")).not.toContainText("ana@example.com");
+  await expect(page.locator(".user-row")).not.toContainText("621");
 });

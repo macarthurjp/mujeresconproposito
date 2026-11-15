@@ -1,12 +1,14 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking, Platform } from 'react-native';
 
 import { api } from './api';
 
 export const MEETING_CATEGORY = 'meeting';
 export const JOIN_ACTION = 'join';
+const MEETING_ALERTS_ENABLED_KEY = 'mcp930:meeting-alerts-enabled';
 
 // Show meeting alerts even while the app is open.
 Notifications.setNotificationHandler({
@@ -47,12 +49,35 @@ export async function configureNotificationChannels() {
   ]);
 }
 
-export type PushStatus = 'granted' | 'denied' | 'undetermined' | 'unsupported';
+export type PushStatus = 'granted' | 'denied' | 'undetermined' | 'unsupported' | 'error';
 
 export async function getPushStatus(): Promise<PushStatus> {
   if (Platform.OS === 'web' || !Device.isDevice) return 'unsupported';
   const { status } = await Notifications.getPermissionsAsync();
   return status === 'granted' ? 'granted' : status === 'denied' ? 'denied' : 'undetermined';
+}
+
+export async function getMeetingAlertsEnabled() {
+  const saved = await AsyncStorage.getItem(MEETING_ALERTS_ENABLED_KEY);
+  if (saved !== null) return saved === 'true';
+  // Preserve the current behavior for existing installs that already allowed alerts.
+  return (await getPushStatus()) === 'granted';
+}
+
+export async function enableMeetingAlerts(): Promise<PushStatus> {
+  const status = await registerForMeetingAlerts(true);
+  await AsyncStorage.setItem(MEETING_ALERTS_ENABLED_KEY, String(status === 'granted'));
+  return status;
+}
+
+export async function disableMeetingAlerts() {
+  // Persist the opt-out first so app launch never silently re-registers this device.
+  await AsyncStorage.setItem(MEETING_ALERTS_ENABLED_KEY, 'false');
+  if (Platform.OS === 'web' || !Device.isDevice) return;
+
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+  const { data: token } = await Notifications.getExpoPushTokenAsync(projectId ? { projectId } : undefined);
+  await api.unregisterPushToken(token);
 }
 
 /**
@@ -74,8 +99,9 @@ export async function registerForMeetingAlerts(ask: boolean): Promise<PushStatus
     const zona = Intl.DateTimeFormat().resolvedOptions().timeZone;
     await api.registerPushToken(token, Platform.OS === 'ios' ? 'ios' : 'android', zona);
   } catch (error) {
-    // Network or missing EAS projectId; the next launch retries.
+    // Network or missing EAS projectId; the settings screen exposes the failure.
     console.warn('No se pudo registrar el token de notificaciones', error);
+    return 'error';
   }
   return 'granted';
 }

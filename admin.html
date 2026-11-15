@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/admin.css?v=20260905-review-highlight-1" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261114-6" />
   <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261114-7" />
-  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-15" />
+  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-16" />
 </head>
 <body class="mcp-brand admin-locked" data-admin-page="true">
   <header class="admin-site-header">
@@ -56,6 +56,11 @@
         </div>
         <div class="private-access-actions private-access-actions-single">
           <button type="button" class="btn" id="adminLoginBtn">Entrar</button>
+        </div>
+        <div class="social-login-divider"><span>o continúa con</span></div>
+        <div class="social-login-actions">
+          <button type="button" class="social-login-btn social-login-apple" id="adminLoginApple"><span class="social-login-apple-mark" aria-hidden="true">&#63743;</span>Apple</button>
+          <button type="button" class="social-login-btn social-login-google" id="adminLoginGoogle"><span class="social-login-google-mark" aria-hidden="true">G</span>Google</button>
         </div>
         <div class="private-passkey-actions">
           <button type="button" class="private-passkey-btn" id="adminUsePasskeyBtn">Usar Face ID / huella</button>
@@ -720,7 +725,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20261114-admin-shell-2"></script>
+  <script src="assets/js/social-auth.js?v=20261115-2"></script>
+  <script src="assets/js/main.js?v=20261115-social-auth-1"></script>
   <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
   <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
   <script src="assets/js/admin-shell.js?v=20261114-1"></script>

@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
         email,
         mensaje,
         destino: payload.destino || null,
-        source: "web",
+        source: payload.source === "app" ? "app" : "web",
       }),
     });
 

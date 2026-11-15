@@ -6,8 +6,11 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressa
 import { Group, InputRow, Row, SwitchRow } from '@/components/form';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
+import { AdminLogin } from '@/components/admin-login';
+import { useAdmin } from '@/lib/use-admin';
+import { WheelPicker } from '@/components/wheel-picker';
 import {
-  inviteUser, listUsers, PERMISSIONS, resetUserPassword, restoreUser, revokeUser,
+  changeMyAdminEmail, inviteUser, listUsers, PERMISSIONS, resetUserPassword, restoreUser, revokeUser,
   setMyBirthdayCalendar, setUserRole, type ManagedUser,
 } from '@/lib/admin';
 
@@ -22,6 +25,7 @@ function UserSheet({ user, onClose, onChanged }: { user: ManagedUser; onClose: (
   const [perms, setPerms] = useState(user.permissions);
   const [superAdmin, setSuperAdmin] = useState(user.isSuperAdmin);
   const [busy, setBusy] = useState(false);
+  const [email, setEmail] = useState(user.email);
   const self = user.isCurrentUser;
 
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
@@ -98,6 +102,18 @@ function UserSheet({ user, onClose, onChanged }: { user: ManagedUser; onClose: (
               )}
             </Group>
           ) : null}
+          {self ? <Group header="Correo de acceso" footer="El sistema enviará la confirmación del cambio al correo nuevo.">
+            <InputRow label="Correo del Super Admin" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+            <Row icon="mail-outline" label="Cambiar mi correo" onPress={() => {
+              const next = email.trim().toLowerCase();
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next)) return Alert.alert('Correo no válido', 'Escribe un correo electrónico válido.');
+              if (next === user.email.toLowerCase()) return Alert.alert('Sin cambios', 'Ese correo ya está asociado a tu cuenta.');
+              Alert.alert('Cambiar correo', `¿Cambiar el correo de acceso a ${next}?`, [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Cambiar', onPress: () => run(() => changeMyAdminEmail(next), 'Solicitud de cambio enviada') },
+              ]);
+            }} />
+          </Group> : null}
           {busy ? <ActivityIndicator color={C.wine} style={{ marginTop: 16 }} /> : null}
         </ScrollView>
       </View>
@@ -156,9 +172,11 @@ function InviteSheet({ onClose, onDone }: { onClose: () => void; onDone: () => v
 }
 
 export default function AdminUsuarios() {
+  const { access, ready } = useAdmin();
   const [users, setUsers] = useState<ManagedUser[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [open, setOpen] = useState<ManagedUser | null>(null);
   const [inviting, setInviting] = useState(false);
 
@@ -169,15 +187,28 @@ export default function AdminUsuarios() {
     finally { setLoading(false); }
   }, []);
   useEffect(() => {
+    if (!ready || !access || access.isRevoked || !access.isSuperAdmin) return;
     let alive = true;
     listUsers()
       .then((list) => { if (alive) setUsers(list); })
       .catch((e) => { if (alive) { setUsers([]); Alert.alert('No se pudieron cargar', e instanceof Error ? e.message : ''); } });
     return () => { alive = false; };
-  }, []);
+  }, [access, ready]);
 
   const q = query.trim().toLowerCase();
-  const filtered = (users ?? []).filter((u) => !q || u.email.toLowerCase().includes(q) || u.nombre.toLowerCase().includes(q));
+  const filtered = (users ?? []).filter((u) => {
+    const matchesText = !q || u.email.toLowerCase().includes(q) || u.nombre.toLowerCase().includes(q);
+    const matchesRole = roleFilter === 'all'
+      || (roleFilter === 'revoked' && u.isRevoked)
+      || (roleFilter === 'super_admin' && u.isSuperAdmin && !u.isRevoked)
+      || (roleFilter === 'read_only' && !u.isRevoked && !u.isSuperAdmin && !u.permissions.some((p) => p !== 'read_only'))
+      || (roleFilter !== 'all' && !['revoked', 'super_admin', 'read_only'].includes(roleFilter) && !u.isRevoked && !u.isSuperAdmin && u.permissions.includes(roleFilter));
+    return matchesText && matchesRole;
+  });
+
+  if (!ready) return <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} />;
+  if (!access) return <AdminLogin />;
+  if (access.isRevoked || !access.isSuperAdmin) return <View style={{ flex: 1, padding: 18 }}><Row icon="lock-closed" label="Solo Super Admin puede administrar usuarios y roles." chevron={false} /></View>;
 
   return (
     <>
@@ -193,6 +224,11 @@ export default function AdminUsuarios() {
           <Ionicons name="search" size={16} color={C.muted} />
           <TextInput value={query} onChangeText={setQuery} placeholder="Buscar por nombre o correo" placeholderTextColor="#b3a3a0" autoCapitalize="none" style={s.searchInput} />
         </View>
+        <Group header="Filtrar por rol"><WheelPicker title="Filtrar usuarios por rol" value={roleFilter} options={[
+          { value: 'all', label: 'Todos los roles' }, { value: 'super_admin', label: 'Super Admin' },
+          { value: 'editor', label: 'Editor de devocionales' }, { value: 'reviewer', label: 'Revisor de devocionales' },
+          { value: 'read_export', label: 'Manager' }, { value: 'read_only', label: 'Vista simple' }, { value: 'revoked', label: 'Acceso revocado' },
+        ]} onChange={setRoleFilter} /></Group>
         {!users ? <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} /> : (
           <Group header={`${filtered.length} ${filtered.length === 1 ? 'cuenta' : 'cuentas'}`}>
             {filtered.map((u) => (

@@ -2761,6 +2761,8 @@ function renderContactCalendar(apiData = {}) {
 	  const adminForgotPasswordBtn = document.getElementById("adminForgotPasswordBtn");
 	  const adminUsePasskeyBtn = document.getElementById("adminUsePasskeyBtn");
 	  const adminEnrollPasskeyBtn = document.getElementById("adminEnrollPasskeyBtn");
+	  const adminLoginAppleBtn = document.getElementById("adminLoginApple");
+	  const adminLoginGoogleBtn = document.getElementById("adminLoginGoogle");
 	  const adminRolesList = document.getElementById("adminRolesList");
 	  const adminRefreshRoles = document.getElementById("adminRefreshRoles");
 	  const adminInviteUserForm = document.getElementById("adminInviteUserForm");
@@ -4352,6 +4354,7 @@ function renderContactCalendar(apiData = {}) {
 	    let access;
 	    try {
 	      access = await getCurrentAdminRole();
+	      await window.McpSocialAuth?.authorizeReturnedUser(getAdminSupabaseClient(), access);
 	      const canEnterAdmin = access.is_super_admin || access.permissions.includes("editor") || access.permissions.includes("reviewer");
 	      if (!canEnterAdmin) {
 	        window.location.href = "dashboard.html";
@@ -4442,6 +4445,12 @@ function renderContactCalendar(apiData = {}) {
 	    if (!await validateAdminPassword()) return;
 	    await unlockAdminPanel();
 	  });
+
+	  const startAdminSocialLogin = (provider, button) => {
+	    window.McpSocialAuth?.signIn(getAdminSupabaseClient(), provider, button, (message) => showAdminMsg(adminLoginMsg, message, false));
+	  };
+	  adminLoginAppleBtn?.addEventListener("click", () => startAdminSocialLogin("apple", adminLoginAppleBtn));
+	  adminLoginGoogleBtn?.addEventListener("click", () => startAdminSocialLogin("google", adminLoginGoogleBtn));
 
 	  adminCancelBtn?.addEventListener("click", function () {
 	    window.location.href = "index.html";
@@ -4534,6 +4543,7 @@ function renderContactCalendar(apiData = {}) {
   if (adminLoginCard && adminDashboard) {
 	    hasPrivateAccessGranted().then(async (hasSession) => {
       if (!hasSession) {
+	        window.McpSocialAuth?.clearPending();
         adminAccessEmail?.focus();
         return;
       }

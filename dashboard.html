@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261114-6" />
-  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-15" />
+  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-16" />
 </head>
 <body class="mcp-brand private-locked" data-private-page="dashboard">
   <section class="private-access-screen" id="dashboardAccessScreen">
@@ -31,6 +31,11 @@
       </div>
       <div class="private-access-actions private-access-actions-single">
         <button type="button" class="btn" id="dashboardLoginBtn">Entrar</button>
+      </div>
+      <div class="social-login-divider"><span>o continúa con</span></div>
+      <div class="social-login-actions">
+        <button type="button" class="social-login-btn social-login-apple" id="dashboardLoginApple"><span class="social-login-apple-mark" aria-hidden="true">&#63743;</span>Apple</button>
+        <button type="button" class="social-login-btn social-login-google" id="dashboardLoginGoogle"><span class="social-login-google-mark" aria-hidden="true">G</span>Google</button>
       </div>
       <div class="private-passkey-actions">
         <button type="button" class="private-passkey-btn" id="dashboardUsePasskeyBtn">Usar Face ID / huella</button>
@@ -184,7 +189,8 @@
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>
   <script src="assets/js/form-options.js?v=20260831-1"></script>
-  <script src="assets/js/dashboard.js?v=20261114-birthday-perm-1"></script>
+  <script src="assets/js/social-auth.js?v=20261115-2"></script>
+  <script src="assets/js/dashboard.js?v=20261115-social-auth-1"></script>
 </body>
 
 </html>

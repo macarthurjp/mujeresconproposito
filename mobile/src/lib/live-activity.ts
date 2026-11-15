@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 
+import { getDynamicIslandEnabled, setDynamicIslandEnabled } from '@/lib/app-preferences';
 import type { MeetingActivityProps } from '@/widgets/meeting-activity';
 
 // Dynamic Island / Lock Screen Live Activities for meetings (iOS 16.1+).
@@ -25,7 +26,34 @@ function factory(): Factory | null {
 
 // Activities started in this app session, with the props we sent them.
 const active = new Map<string, { instance: Instance; props: MeetingActivityProps }>();
+let activitiesEnabled = true;
 const keyFor = (eventoId: string, startsAt: Date) => `${eventoId}@${startsAt.getTime()}`;
+
+export async function loadLiveActivitiesPreference() {
+  activitiesEnabled = await getDynamicIslandEnabled();
+  return activitiesEnabled;
+}
+
+export function isLiveActivitiesEnabled() {
+  return activitiesEnabled;
+}
+
+export async function setLiveActivitiesEnabled(enabled: boolean) {
+  activitiesEnabled = enabled;
+  await setDynamicIslandEnabled(enabled);
+  if (enabled) return;
+
+  try {
+    const f = factory();
+    const instances = f?.getInstances() ?? [];
+    await Promise.all(instances.map((instance) => instance.end('immediate').catch(() => {})));
+  } catch {
+    // Some preview clients do not include the Expo Widgets native module.
+    // Keep the preference saved and suppress new activities in those clients.
+  } finally {
+    active.clear();
+  }
+}
 
 export function isFollowing(eventoId: string, startsAt: Date) {
   return active.has(keyFor(eventoId, startsAt));
@@ -36,6 +64,7 @@ export function isFollowing(eventoId: string, startsAt: Date) {
  * opens the app on /join, which opens the meeting link.
  */
 export function followMeeting(params: { eventoId: string; titulo: string; startsAt: Date; link: string; platform: string }) {
+  if (!activitiesEnabled) return false;
   const f = factory();
   if (!f) return false;
   const key = keyFor(params.eventoId, params.startsAt);
