@@ -121,7 +121,7 @@ test("devotional library page loads directly by link", async ({ page }) => {
   // (lanzamiento por etapas) — esta prueba cubre la página en sí, accedida
   // por su link directo, como la usan los editores mientras se prepara.
   await page.goto("/devocionales.html");
-  await expect(page.getByRole("heading", { name: /Un momento/ , level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Devocional", level: 1 })).toBeVisible();
 });
 
 test("private login and password reset keep only the intended controls", async ({ page }) => {

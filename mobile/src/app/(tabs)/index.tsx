@@ -74,7 +74,7 @@ export default function Home() {
           Bienvenida a <Text style={{ fontStyle: 'italic', color: C.wine }}>Mujeres</Text> con Propósito
         </Title>
         <Text style={s.heroCopy}>
-          Un espacio donde la fe, la hermandad y el propósito se unen para transformar vidas.
+          Un espacio donde la <Text style={s.heroAccent}>fe</Text>, la <Text style={s.heroAccent}>hermandad</Text> y el <Text style={s.heroAccent}>propósito</Text> se unen para transformar vidas.
         </Text>
         <View style={{ flexDirection: 'row', marginTop: 20 }}>
           <Button label="Únete a la comunidad" icon="person-add-outline" variant="primary" onPress={() => router.push('/(tabs)/unirse')} />
@@ -260,7 +260,8 @@ const s = StyleSheet.create({
   markRim: { ...StyleSheet.absoluteFill, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   brand: { fontFamily: serif, color: C.ink, fontSize: 18 },
   brandSub: { color: C.muted, fontSize: 10, letterSpacing: 2, marginTop: 2 },
-  heroCopy: { color: C.muted, fontSize: 16, lineHeight: 23, marginTop: 10 },
+  heroCopy: { color: 'rgba(63,38,35,0.86)', fontFamily: serif, fontSize: 19, lineHeight: 28, marginTop: 14, paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: C.gold },
+  heroAccent: { fontFamily: serif, fontStyle: 'italic', color: C.wine },
   verse: { marginTop: 44, paddingHorizontal: 28, alignItems: 'center' },
   quote: { fontFamily: serif, fontSize: 64, lineHeight: 64, color: C.gold, height: 44 },
   verseText: { fontFamily: serif, fontStyle: 'italic', fontSize: 22, lineHeight: 30, color: C.ink, textAlign: 'center' },

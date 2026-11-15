@@ -30,13 +30,6 @@
     return publisherName(article).split(/\s+/).slice(0, 2).map((word) => word.charAt(0)).join("").toUpperCase();
   }
 
-  function articleMeta(article, compact = false) {
-    return `<div class="dev-meta${compact ? " dev-meta-compact" : ""}">
-      <span class="dev-meta-avatar" aria-hidden="true">${escapeHtml(publisherInitials(article))}</span>
-      <span class="dev-meta-copy"><strong>${escapeHtml(publisherName(article))}</strong><span>${escapeHtml(formatDate(article.fecha_publicacion))}</span></span>
-    </div>`;
-  }
-
   function contentHtml(value) {
     return String(value || "").split(/\n\s*\n/).filter(Boolean)
       .map((paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br>")}</p>`).join("");
@@ -63,43 +56,59 @@
     return template.innerHTML;
   }
 
-  function categoryTags(article) {
-    return Array.isArray(article.categorias) && article.categorias.length
-      ? `<div class="dev-categories">${article.categorias.map((category) => `<span>${escapeHtml(category)}</span>`).join("")}</div>` : "";
+  const PAGE_SIZE = 9;
+  let shown = PAGE_SIZE;
+  const flowerSvg = '<svg viewBox="14 2 269 452" aria-hidden="true"><use href="#dvFlower"></use></svg>';
+
+  function cleanVerse(value) {
+    return String(value || "").trim().replace(/^["“”«]+|["“”»]+$/g, "").replace(/["“”]\s*(—|-)/, " —");
+  }
+
+  function splitVerse(value) {
+    const text = cleanVerse(value);
+    const match = text.match(/^(.*?)[\s"“”]*[—–-]\s*([^—–-]+\d[\d:.,\s-]*)$/);
+    return match ? { text: match[1].replace(/["“”]+$/, "").trim(), ref: match[2].trim() } : { text, ref: "" };
+  }
+
+  function category(article) {
+    return (Array.isArray(article.categorias) && article.categorias[0]) || "Devocional";
+  }
+
+  function cover(article, eager = false) {
+    const fallback = `<div class="dv-cover-fallback"><span class="dv-cover-flower">${flowerSvg}</span><span class="dv-cover-cat">${escapeHtml(category(article))}</span></div>`;
+    if (!article.imagen_url || !/^https:\/\//i.test(article.imagen_url)) return fallback;
+    return `${fallback}<img src="${escapeHtml(article.imagen_url)}" alt="" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" onerror="this.remove()" onload="this.classList.add('is-loaded')" />`;
+  }
+
+  function byline(article) {
+    const minutes = estimateReadMinutes(article.contenido_html || article.contenido);
+    return `<span class="dv-byline"><span class="dv-avatar" aria-hidden="true">${escapeHtml(publisherInitials(article))}</span><span>${escapeHtml(publisherName(article))}</span><span class="dv-dot" aria-hidden="true">·</span><span>${minutes} min</span></span>`;
   }
 
   function articleCard(article) {
-    const image = article.imagen_url
-      ? `<img src="${escapeHtml(article.imagen_url)}" alt="" loading="lazy" />`
-      : `<div class="dev-card-placeholder"><i class="fa-solid fa-book-open" aria-hidden="true"></i></div>`;
-    return `<article class="dev-card">
-      <a href="?articulo=${encodeURIComponent(article.slug)}" class="dev-card-link" aria-label="Leer ${escapeHtml(article.titulo)}">
-        <div class="dev-card-media">${image}</div>
-        <div class="dev-card-body">
-          ${articleMeta(article, true)}
-          ${categoryTags(article)}
+    return `<article class="dv-card">
+      <a href="?articulo=${encodeURIComponent(article.slug)}" aria-label="Leer ${escapeHtml(article.titulo)}">
+        <div class="dv-cover">${cover(article)}</div>
+        <div class="dv-card-body">
+          <span class="dv-date">${escapeHtml(formatDate(article.fecha_publicacion))}</span>
           <h3>${escapeHtml(article.titulo)}</h3>
           <p>${escapeHtml(article.resumen || "Una nueva reflexión para acompañar tu caminar con Dios.")}</p>
-          <span class="dev-read">Leer devocional <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          ${byline(article)}
         </div>
       </a>
     </article>`;
   }
 
   function featuredArticle(article) {
-    const image = article.imagen_url
-      ? `<img src="${escapeHtml(article.imagen_url)}" alt="" />`
-      : `<div class="dev-featured-art" aria-hidden="true"><i class="fa-solid fa-book-bible"></i><span>“Tu palabra es una lámpara a mis pies.”</span></div>`;
-    return `<article>
-      <a href="?articulo=${encodeURIComponent(article.slug)}" class="dev-featured-link" aria-label="Leer ${escapeHtml(article.titulo)}">
-        <div class="dev-featured-media">${image}</div>
-        <div class="dev-featured-copy">
-          <span class="dev-featured-label"><i class="fa-regular fa-star" aria-hidden="true"></i> Lectura destacada</span>
-          ${articleMeta(article)}
-          ${categoryTags(article)}
-          <h3>${escapeHtml(article.titulo)}</h3>
+    return `<article class="dv-featured">
+      <a href="?articulo=${encodeURIComponent(article.slug)}" aria-label="Leer ${escapeHtml(article.titulo)}">
+        <div class="dv-cover dv-featured-cover">${cover(article, true)}</div>
+        <div class="dv-featured-copy">
+          <span class="dv-badge"><i class="fa-solid fa-star" aria-hidden="true"></i> Lectura destacada</span>
+          <span class="dv-date">${escapeHtml(formatDate(article.fecha_publicacion))} · ${escapeHtml(category(article))}</span>
+          <h2>${escapeHtml(article.titulo)}</h2>
           <p>${escapeHtml(article.resumen || "Una nueva reflexión para acompañar tu caminar con Dios.")}</p>
-          <span class="dev-featured-button">Comenzar a leer <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          <span class="dv-featured-foot">${byline(article)}<span class="dv-cta">Leer reflexión <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></span>
         </div>
       </a>
     </article>`;
@@ -110,10 +119,14 @@
     const isFiltering = Boolean(search?.value.trim());
     featured.innerHTML = !isFiltering && visible[0] ? featuredArticle(visible[0]) : "";
     const cards = !isFiltering ? visible.slice(1) : visible;
-    grid.innerHTML = cards.map(articleCard).join("");
+    grid.innerHTML = cards.slice(0, shown).map(articleCard).join("");
+    const more = document.getElementById("devMore");
+    if (more) more.hidden = cards.length <= shown;
+    const count = document.getElementById("devCount");
+    if (count) count.textContent = String(cards.length);
     collectionHead.hidden = cards.length === 0;
     status.hidden = visible.length > 0;
-    if (!visible.length) status.innerHTML = `<div class="dev-empty-icon"><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i></div><strong>${isFiltering ? "No encontramos coincidencias" : "Estamos preparando algo especial"}</strong><span>${isFiltering ? "Prueba con otra palabra o autora." : "Muy pronto encontrarás aquí reflexiones escritas con fe y propósito."}</span>`;
+    if (!visible.length) status.innerHTML = `<span class="dv-status-icon"><i class="fa-solid fa-feather-pointed" aria-hidden="true"></i></span><strong>${isFiltering ? "No encontramos coincidencias" : "Estamos preparando algo especial"}</strong><span>${isFiltering ? "Prueba con otra palabra o autora." : "Muy pronto encontrarás aquí reflexiones escritas con fe y propósito."}</span>`;
   }
 
   const FAV_KEY = "mcp-devocionales-favoritos";
@@ -144,27 +157,22 @@
     document.querySelectorAll("[data-fav-toggle]").forEach((button) => {
       button.setAttribute("aria-pressed", String(pressed));
       const icon = button.querySelector("i");
-      if (icon) icon.className = icon.className.includes("fa-heart")
-        ? `fa-${pressed ? "solid" : "regular"} fa-heart`
-        : `fa-${pressed ? "solid" : "regular"} fa-bookmark`;
+      if (icon) icon.className = `fa-${pressed ? "solid" : "regular"} fa-bookmark`;
       const label = button.querySelector("[data-fav-label]");
-      if (label) label.textContent = pressed ? "Guardado en favoritos" : "Guardar en favoritos";
+      if (label) label.textContent = pressed ? "Guardado" : "Guardar";
     });
   }
 
-  function initReadingProgress(readMinutes) {
+  function initReadingProgress() {
     const content = document.getElementById("devArticleContent");
-    const fill = document.getElementById("devProgressFill");
-    const currentLabel = document.getElementById("devProgressCurrent");
+    const fill = document.getElementById("dvProgress");
     if (!content || !fill) return;
+    document.body.classList.add("dv-reading");
     function update() {
       const rect = content.getBoundingClientRect();
-      const viewportH = window.innerHeight;
-      const total = Math.max(1, rect.height - viewportH * 0.5);
-      const scrolled = Math.min(Math.max(0, viewportH * 0.3 - rect.top), total);
-      const pct = Math.min(1, scrolled / total);
-      fill.style.width = `${Math.round(pct * 100)}%`;
-      if (currentLabel) currentLabel.textContent = Math.max(1, Math.round(pct * readMinutes));
+      const total = Math.max(1, rect.height - window.innerHeight * 0.6);
+      const pct = Math.min(1, Math.max(0, (window.innerHeight * 0.25 - rect.top) / total));
+      fill.style.transform = `scaleX(${pct})`;
     }
     update();
     window.addEventListener("scroll", update, { passive: true });
@@ -223,66 +231,58 @@
       button.addEventListener("click", () => shareArticle(article));
     });
     updateShareCountDisplay(article.compartidos || 0);
-    initReadingProgress(estimateReadMinutes(article.contenido_html || article.contenido));
+    initReadingProgress();
   }
 
   function renderArticle(article) {
     document.title = `${article.titulo} — Mujeres con Propósito`;
-    document.querySelector(".dev-hero").hidden = true;
-    const category = (article.categorias || [])[0] || "Devocional";
+    document.getElementById("dvIntro").hidden = true;
     const readMinutes = estimateReadMinutes(article.contenido_html || article.contenido);
     const favored = isFavorite(article.slug);
-    document.querySelector(".dev-library").innerHTML = `<article class="dev-article">
-      <div class="dev-article-topbar">
-        <span class="dev-kicker">${escapeHtml(category)}</span>
-        <div class="dev-article-tools">
-          <button type="button" class="dev-icon-btn" data-fav-toggle aria-pressed="${favored}" aria-label="Guardar en favoritos"><i class="fa-${favored ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i></button>
-          <a href="devocionales.html" class="dev-icon-btn" aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></a>
+    const verse = article.versiculo ? splitVerse(article.versiculo) : null;
+    const hasImage = article.imagen_url && /^https:\/\//i.test(article.imagen_url);
+    const plain = (value) => String(value || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+    const showLead = article.introduccion_html && plain(article.introduccion_html) !== plain(article.resumen);
+    const others = articles.filter((item) => item.slug !== article.slug).slice(0, 3);
+    document.getElementById("lecturas").innerHTML = `<article class="dv-article">
+      <a href="devocionales.html" class="dv-back"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Devocionales</a>
+      <header class="dv-article-head">
+        <span class="dv-eyebrow">${escapeHtml(category(article))}</span>
+        <h1>${escapeHtml(article.titulo)}</h1>
+        ${article.resumen ? `<p class="dv-dek">${escapeHtml(article.resumen)}</p>` : ""}
+        <div class="dv-article-meta">
+          <span class="dv-avatar dv-avatar-lg" aria-hidden="true">${escapeHtml(publisherInitials(article))}</span>
+          <span class="dv-article-meta-copy"><strong>${escapeHtml(publisherName(article))}</strong><span>${escapeHtml(formatDate(article.fecha_publicacion))} · ${readMinutes} min de lectura</span></span>
+          <span class="dv-tools">
+            <button type="button" class="dv-tool" data-share aria-label="Compartir"><i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i></button>
+            <button type="button" class="dv-tool" data-fav-toggle aria-pressed="${favored}" aria-label="Guardar en favoritos"><i class="fa-${favored ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i></button>
+          </span>
         </div>
-      </div>
-      <div class="dev-progress">
-        <div class="dev-progress-track"><div class="dev-progress-fill" id="devProgressFill"></div></div>
-        <span class="dev-progress-label"><span id="devProgressCurrent">1</span> de ${readMinutes} min de lectura</span>
-      </div>
-      <h1>${escapeHtml(article.titulo)}</h1>
-      ${articleMeta(article)}
-      <div class="dev-article-hero-row">
-        ${article.versiculo ? `<blockquote class="dev-verse"><i class="fa-solid fa-quote-left" aria-hidden="true"></i>${escapeHtml(article.versiculo)}</blockquote>` : ""}
-        ${article.imagen_url ? `<div class="dev-hero-image"><img src="${escapeHtml(article.imagen_url)}" alt="" /></div>` : ""}
-      </div>
-      <div class="dev-article-content" id="devArticleContent">
-        ${(article.introduccion_html || article.resumen) ? `
-          <div class="dev-article-section dev-article-intro">
-            <span class="dev-section-label">Introducción</span>
-            <div class="dev-article-lead">${safeRichHtml(article.introduccion_html, article.resumen)}</div>
-          </div>
-          <div class="dev-article-section dev-article-reflection">
-            <span class="dev-section-label">Reflexión</span>
-            ${safeRichHtml(article.contenido_html, article.contenido)}
-          </div>
-        ` : safeRichHtml(article.contenido_html, article.contenido)}
-      </div>
-      <aside class="dev-sidebar">
-        <div class="dev-sidebar-card dev-notes-card">
-          <span class="dev-sidebar-title"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i> Mis notas</span>
-          <textarea id="devNotesInput" placeholder="Escribe aquí tus pensamientos…"></textarea>
+      </header>
+      ${hasImage ? `<figure class="dv-hero-figure"><img src="${escapeHtml(article.imagen_url)}" alt="" onerror="this.closest('figure').remove()" /></figure>` : ""}
+      <div class="dv-body" id="devArticleContent">
+        ${verse && verse.text ? `<figure class="dv-pullquote"><blockquote>${escapeHtml(verse.text)}</blockquote>${verse.ref ? `<figcaption>${escapeHtml(verse.ref)}</figcaption>` : ""}</figure>` : ""}
+        ${showLead ? `<div class="dv-lead">${safeRichHtml(article.introduccion_html, "")}</div>` : ""}
+        <div class="dv-prose">${safeRichHtml(article.contenido_html, article.contenido)}</div>
+        <div class="dv-article-actions">
+          <button type="button" class="dv-action" data-share><i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i> Compartir</button>
+          <button type="button" class="dv-action dv-action-primary" data-fav-toggle aria-pressed="${favored}"><i class="fa-${favored ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i> <span data-fav-label>${favored ? "Guardado" : "Guardar"}</span></button>
+          <span class="dv-share-count" id="devShareCount" hidden></span>
         </div>
-        <div class="dev-sidebar-card dev-soon-card">
-          <span class="dev-sidebar-title"><i class="fa-regular fa-calendar" aria-hidden="true"></i> Plan de lectura<span class="dev-soon-badge">Próximamente</span></span>
-        </div>
-        <div class="dev-sidebar-card dev-soon-card">
-          <span class="dev-sidebar-title"><i class="fa-solid fa-hands-praying" aria-hidden="true"></i> ¿Necesitas oración?<span class="dev-soon-badge">Próximamente</span></span>
-          <p>Nuestro equipo estará orando por ti.</p>
-        </div>
-      </aside>
-      <div class="dev-author"><span>Publicado por</span><strong>${escapeHtml(publisherName(article))}</strong><small>${escapeHtml(formatDate(article.fecha_publicacion))}</small></div>
-      <div class="dev-article-actions">
-        <button type="button" class="dev-action-btn" data-share><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Compartir</button>
-        <button type="button" class="dev-action-btn dev-action-btn-primary" data-fav-toggle aria-pressed="${favored}"><i class="fa-${favored ? "solid" : "regular"} fa-heart" aria-hidden="true"></i> <span data-fav-label>${favored ? "Guardado en favoritos" : "Guardar en favoritos"}</span></button>
-        <a href="devocionales.html" class="dev-action-btn"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cerrar</a>
+        <section class="dv-panel dv-notes">
+          <h2><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i> Mis notas</h2>
+          <p>Se guardan solo en este dispositivo.</p>
+          <textarea id="devNotesInput" rows="4" placeholder="¿Qué te habló Dios hoy?"></textarea>
+        </section>
+        <a class="dv-panel dv-prayer" href="index.html#oracion">
+          <span class="dv-prayer-icon"><i class="fa-solid fa-hands-praying" aria-hidden="true"></i></span>
+          <span><strong>¿Necesitas oración?</strong><small>Escríbenos tu petición. Nuestro equipo orará por ti con cariño.</small></span>
+          <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+        </a>
       </div>
-      <p class="dev-share-count" id="devShareCount" hidden></p>
+      ${others.length ? `<section class="dv-next"><div class="dv-section-head"><div><span class="dv-eyebrow">Sigue leyendo</span><h2>Más reflexiones</h2></div></div><div class="dv-grid">${others.map(articleCard).join("")}</div></section>` : ""}
     </article>`;
+    window.scrollTo(0, 0);
     initArticleInteractions(article);
   }
 
@@ -309,6 +309,11 @@
       status.innerHTML = `<i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i><strong>No pudimos cargar las lecturas</strong><span>Inténtalo nuevamente en unos minutos.</span>`;
     }
   }
+
+  document.getElementById("devMore")?.addEventListener("click", () => {
+    shown += PAGE_SIZE;
+    renderList();
+  });
 
   search?.addEventListener("input", () => {
     const term = search.value.trim().toLocaleLowerCase("es");
