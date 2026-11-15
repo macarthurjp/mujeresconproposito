@@ -618,7 +618,7 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-24" />
+  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-26" />
 </head>
 <body id="top" class="theme-premium">
 
@@ -1161,58 +1161,35 @@
       </form>
     </div>
 
-    <aside class="calendar-card calendar-card-premium" id="calendarCard">
+    <aside class="calendar-card calendar-card-premium cal-widget" id="calendarCard" aria-label="Calendario de hoy">
       <div class="calendar-head">
-        <span class="calendar-eyebrow">Hoy</span>
-        <h3>Calendario</h3>
-        <p id="calendarTodayText">Hoy</p>
-      </div>
-
-      <div class="calendar-block calendar-block-featured">
-        <div class="calendar-block-title">
-          <span class="calendar-block-icon">✦</span>
-          <h4>Actividades</h4>
-	        </div>
-	        <div id="todayActivitiesList" class="calendar-list">
-	          <div class="calendar-item">
-	            <span class="calendar-item-mark">✦</span>
-	            <span>
-	              <strong>Cargando actividades</strong>
-	              <span>Contenido administrado desde Supabase.</span>
-	            </span>
-	          </div>
-	        </div>
-      </div>
-
-      <div class="calendar-block">
-        <div class="calendar-block-title">
-          <span class="calendar-block-icon">↗</span>
-          <h4>Próxima actividad</h4>
+        <div class="cal-date" aria-hidden="true">
+          <span id="calWeekday"></span>
+          <strong id="calDay"></strong>
         </div>
-        <div id="nextActivityList" class="calendar-list">
-          <div class="calendar-item">
-            <span class="calendar-item-mark">✦</span>
-            <span>
-              <strong>Oración / Encuentro</strong>
-              <span>Próximo encuentro programado de la comunidad</span>
-            </span>
-          </div>
+        <div class="cal-head-copy">
+          <span class="calendar-eyebrow">Calendario</span>
+          <h3>Hoy en la comunidad</h3>
+          <p id="calendarTodayText">Hoy</p>
         </div>
       </div>
 
       <div class="calendar-block">
-        <div class="calendar-block-title">
-          <span class="calendar-block-icon">♡</span>
-          <h4>Cumpleaños de hoy</h4>
+        <h4 class="cal-block-title">Actividades de hoy</h4>
+        <div id="todayActivitiesList" class="calendar-list">
+          <div class="calendar-empty">Cargando actividades…</div>
         </div>
+      </div>
+
+      <div class="calendar-block">
+        <h4 class="cal-block-title">Próxima actividad</h4>
+        <div id="nextActivityList" class="calendar-list"></div>
+      </div>
+
+      <div class="calendar-block">
+        <h4 class="cal-block-title">Cumpleaños de hoy</h4>
         <div id="todayBirthdaysList" class="calendar-list">
-          <div class="calendar-item">
-            <span class="calendar-item-mark">♡</span>
-            <span>
-              <strong>Cumpleaños</strong>
-              <span>Los cumpleaños registrados aparecerán aquí.</span>
-            </span>
-          </div>
+          <div class="calendar-empty">Los cumpleaños registrados aparecerán aquí.</div>
         </div>
       </div>
     </aside>
@@ -1590,7 +1567,7 @@
   <script src="assets/js/supabase.js?v=20260830-turnstile-1"></script>
   <script src="assets/js/schedule.js?v=20261114-1"></script>
   <script src="assets/js/meetings.js?v=20261115-1"></script>
-  <script src="assets/js/main.js?v=20261115-eye-2"></script>
+  <script src="assets/js/main.js?v=20261115-cal-2"></script>
   <script src="assets/js/analytics.js?v=20260830-ga4-1" defer></script>
   <script src="assets/js/promo-banner.js?v=20260905-2" defer></script>
   <script src="assets/js/premium.js?v=20261115-4" defer></script>

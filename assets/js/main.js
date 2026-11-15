@@ -2360,12 +2360,12 @@ function renderContactCalendar(apiData = {}) {
   const now = new Date();
   const dayOfWeek = now.getDay();
 
-  todayText.textContent = now.toLocaleDateString("es-ES", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
+  const monthYear = now.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+  todayText.textContent = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
+  const calWeekday = document.getElementById("calWeekday");
+  const calDay = document.getElementById("calDay");
+  if (calWeekday) calWeekday.textContent = now.toLocaleDateString("es-ES", { weekday: "long" }).toUpperCase();
+  if (calDay) calDay.textContent = String(now.getDate());
 
   const rawEventos = Array.isArray(apiData.eventos)
     ? apiData.eventos
@@ -2393,7 +2393,7 @@ function renderContactCalendar(apiData = {}) {
       const localLabel = S.localScheduleLabel(event, now);
       return {
         title: item.title,
-        description: [localLabel || item.schedule, item.description].filter(Boolean).join(" · "),
+        description: [String(localLabel || item.schedule).split("·")[0].trim(), item.description].filter(Boolean).join(" · "),
         occurrences
       };
     });
@@ -2401,8 +2401,10 @@ function renderContactCalendar(apiData = {}) {
     const calendarItem = (label, item) => `
         <div class="calendar-item">
           <span class="calendar-item-time">${escapeHtml(label)}</span>
-          <div class="calendar-item-title">${escapeHtml(item.title)}</div>
-          <div class="calendar-item-desc">${escapeHtml(item.description)}</div>
+          <div class="calendar-item-copy">
+            <div class="calendar-item-title">${escapeHtml(item.title)}</div>
+            <div class="calendar-item-desc">${escapeHtml(item.description)}</div>
+          </div>
         </div>`;
 
     const today = planned
@@ -2418,8 +2420,7 @@ function renderContactCalendar(apiData = {}) {
     if (today.length) {
       activitiesList.innerHTML = today.map(x => calendarItem(S.formatTime(x.at), x.item)).join("");
     } else if (upcoming.length) {
-      activitiesList.innerHTML = `<div class="calendar-note">No hay actividades programadas para hoy, pero aquí están las próximas sesiones disponibles:</div>` +
-        upcoming.map(x => calendarItem(`${S.dayName(x.at)} · ${S.formatTime(x.at)}`, x.item)).join("");
+      activitiesList.innerHTML = '<div class="calendar-empty">Hoy no hay reuniones programadas.</div>';
     } else {
       activitiesList.innerHTML = '<div class="calendar-empty">No hay actividades programadas para hoy.</div>';
     }
@@ -2427,7 +2428,7 @@ function renderContactCalendar(apiData = {}) {
     if (nextActivityList) {
       const next = upcoming[0];
       nextActivityList.innerHTML = next
-        ? calendarItem(`${S.dayName(next.at)} · ${S.formatTime(next.at)}`, next.item)
+        ? calendarItem(`${S.dayName(next.at).slice(0, 3)}\n${S.formatTime(next.at)}`, next.item)
         : '<div class="calendar-empty">No hay próximas actividades programadas.</div>';
     }
 
@@ -2610,9 +2611,12 @@ function renderContactCalendar(apiData = {}) {
 
   birthdaysList.innerHTML = todayBirthdays.length
     ? todayBirthdays.map(person => `
-        <div class="calendar-item">
+        <div class="calendar-item calendar-item-birthday">
+          <span class="calendar-item-time" aria-hidden="true">🎂</span>
+          <div class="calendar-item-copy">
           <div class="calendar-item-title">${escapeHtml(person.nombreCompleto || "Cumpleañera")}</div>
           <div class="calendar-item-desc">¡Hoy está de cumpleaños!</div>
+          </div>
         </div>
       `).join("")
     : '<div class="calendar-empty">No hay cumpleaños registrados para hoy.</div>';
