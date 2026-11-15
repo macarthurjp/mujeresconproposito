@@ -11,19 +11,29 @@ import { ADMIN_REMEMBER_SESSION_KEY } from './app-preferences';
 const SUPABASE_URL = 'https://jkunywiyiyidhyodsbfh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX';
 
+// "Recordarme" on: the session is persisted on the phone.
+// "Recordarme" off: the session lives only in memory while the app is open
+// (signing in must still work; it is simply forgotten when the app closes).
+const memorySession = new Map<string, string>();
+const remembering = async () => (await AsyncStorage.getItem(ADMIN_REMEMBER_SESSION_KEY)) !== 'false';
+
 const nativeAuthStorage = {
   async getItem(key: string) {
-    if (await AsyncStorage.getItem(ADMIN_REMEMBER_SESSION_KEY) === 'false') return null;
+    if (memorySession.has(key)) return memorySession.get(key)!;
+    if (!(await remembering())) return null;
     return AsyncStorage.getItem(key);
   },
   async setItem(key: string, value: string) {
-    if (await AsyncStorage.getItem(ADMIN_REMEMBER_SESSION_KEY) === 'false') {
-      await AsyncStorage.removeItem(key);
+    if (await remembering()) {
+      memorySession.delete(key);
+      await AsyncStorage.setItem(key, value);
       return;
     }
-    await AsyncStorage.setItem(key, value);
+    memorySession.set(key, value);
+    await AsyncStorage.removeItem(key);
   },
   async removeItem(key: string) {
+    memorySession.delete(key);
     await AsyncStorage.removeItem(key);
   },
 };
