@@ -52,3 +52,8 @@ entrypoint = "./functions/notify-meeting-start/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/send-birthday-reminders/index.ts"
+
+[functions.send-birthday-push]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-birthday-push/index.ts"

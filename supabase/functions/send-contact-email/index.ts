@@ -6,9 +6,24 @@ function normalizeEmail(value: unknown) {
   return String(value || "").trim().toLowerCase();
 }
 
+// Internal-only: called by submit-join / submit-contact with the service role key.
+function isInternalCall(req: Request) {
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const header = req.headers.get("authorization") || "";
+  const token = header.replace(/^Bearer\s+/i, "");
+  if (!key || token.length !== key.length) return false;
+  let diff = 0;
+  for (let i = 0; i < key.length; i += 1) diff |= key.charCodeAt(i) ^ token.charCodeAt(i);
+  return diff === 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ ok: false, error: "Method not allowed" }, 405);
+
+  if (!isInternalCall(req)) {
+    return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), { status: 401, headers: { "Content-Type": "application/json" } });
+  }
 
   try {
     const payload = await req.json();

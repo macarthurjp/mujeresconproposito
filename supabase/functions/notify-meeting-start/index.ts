@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
     if (due.length === 0) return json({ ok: true, notified: 0 });
 
-    const { data: tokens, error: tokensError } = await supabase.from("push_tokens").select("token").eq("activo", true);
+    const { data: tokens, error: tokensError } = await supabase.from("push_tokens").select("token").eq("activo", true).eq("avisos_reuniones", true);
     if (tokensError) throw tokensError;
     const recipients = (tokens || []).map((row: { token: string }) => row.token);
 
