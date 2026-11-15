@@ -2279,6 +2279,7 @@ function renderGaleria(galeria) {
 
         if (birthdaysResult?.ok && Array.isArray(birthdaysResult.cumpleanerasHoy)) {
           data.cumpleanerasHoy = birthdaysResult.cumpleanerasHoy;
+          data.proximosCumpleanos = Array.isArray(birthdaysResult.proximosCumpleanos) ? birthdaysResult.proximosCumpleanos : [];
         }
 
         [inviteesRequest, galleryRequest, eventsRequest, youtubeRequest, birthdaysRequest].forEach((request) => {
@@ -2637,6 +2638,28 @@ function renderContactCalendar(apiData = {}) {
         </div>
       `).join("")
     : '<div class="calendar-empty">No hay cumpleaños registrados para hoy.</div>';
+
+  // Upcoming birthdays (next 7 days), same as the app's "Esta semana".
+  const upcomingBlock = document.getElementById("upcomingBirthdaysBlock");
+  const upcomingList = document.getElementById("upcomingBirthdaysList");
+  const upcoming = Array.isArray(apiData.proximosCumpleanos) ? apiData.proximosCumpleanos : [];
+  if (upcomingBlock && upcomingList) {
+    upcomingBlock.hidden = upcoming.length === 0;
+    const months = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    upcomingList.innerHTML = upcoming.map((person) => {
+      const md = String(person.fecha || "").slice(-5).split("-");
+      const label = md.length === 2 ? `${Number(md[1])} ${months[Number(md[0]) - 1] || ""}`.toUpperCase() : "PRONTO";
+      const when = person.dias === 1 ? "Mañana" : `En ${person.dias} días`;
+      return `
+        <div class="calendar-item calendar-item-birthday">
+          <span class="calendar-item-time calendar-item-date">${escapeHtml(label)}</span>
+          <div class="calendar-item-copy">
+            <div class="calendar-item-title">${escapeHtml(person.nombreCompleto || "Cumpleañera")}</div>
+            <div class="calendar-item-desc">${escapeHtml(when)}</div>
+          </div>
+        </div>`;
+    }).join("");
+  }
   }
 }
 
