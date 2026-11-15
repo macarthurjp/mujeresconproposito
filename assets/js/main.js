@@ -3193,6 +3193,7 @@ function renderContactCalendar(apiData = {}) {
 	    toast.querySelector(".admin-toast-close")?.addEventListener("click", remove);
 	    window.setTimeout(remove, kind === "error" ? 7000 : 4500);
 	  }
+	  window.showAdminToast = showAdminToast;
 
 	  function renderAdminError(containerId, error) {
 	    const container = document.getElementById(containerId);
@@ -4382,7 +4383,7 @@ function renderContactCalendar(apiData = {}) {
 	      window.initDevocionalesAdmin?.(access);
 	      return true;
 	    }
-	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access), window.initPromoBannerAdmin?.(access)]).catch((error) => {
+	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access), window.initPromoBannerAdmin?.(access), window.initRecipientsAdmin?.(access)]).catch((error) => {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
 	    });

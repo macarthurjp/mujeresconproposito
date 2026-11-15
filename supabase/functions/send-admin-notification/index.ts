@@ -1,3 +1,5 @@
+import { getRecipients } from "../_shared/recipients.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -102,7 +104,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const contactEmail = requiredEnv("CONTACT_EMAIL");
     const data = await req.json();
 
     const nombre = String(data.nombre || "").trim();
@@ -118,12 +119,13 @@ Deno.serve(async (req) => {
     const hijos = String(data.hijos ?? "0").trim();
     const comments = String(data.comments || "").trim();
 
+    const recipients = await getRecipients("join", comunidad);
     const fullName = [nombre, apellido].filter(Boolean).join(" ") || "Nuevo registro";
     const safeEmail = escapeHtml(email);
     const dashboardUrl = "https://mcp930.org/dashboard.html";
 
     const providerResponse = await sendEmail({
-      to: contactEmail,
+      to: recipients,
       subject: `Nuevo registro: ${fullName}`,
       replyTo: email || undefined,
       text: [
@@ -201,7 +203,7 @@ Deno.serve(async (req) => {
       `,
     });
 
-    return jsonResponse({ ok: true, sentTo: contactEmail, providerResponse });
+    return jsonResponse({ ok: true, sentTo: recipients, providerResponse });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
     console.error(error);

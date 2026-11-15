@@ -475,3 +475,50 @@ test("dashboard hides contact details from simple-view accounts", async ({ page 
   await expect(page.locator(".user-row")).not.toContainText("ana@example.com");
   await expect(page.locator(".user-row")).not.toContainText("621");
 });
+
+test("super admin manages contact and join e-mail recipients by community", async ({ page }) => {
+  await page.goto("/admin.html");
+  await page.evaluate(() => {
+    const rows = [
+      { id: "1", form: "contact", comunidad: null, email: "contacto@example.org", nombre: "Oficina", active: true },
+      { id: "2", form: "join", comunidad: "Europa", email: "europa@example.org", nombre: null, active: true },
+      { id: "3", form: "join", comunidad: "República Dominicana", email: "rd@example.org", nombre: "Equipo RD", active: false },
+    ];
+    window.__recipientWrites = [];
+    const builder = () => {
+      const q = {
+        select: () => q, order: () => Promise.resolve({ data: rows.map((r) => ({ ...r })), error: null }),
+        insert: (value) => { window.__recipientWrites.push(["insert", value]); rows.push({ id: String(rows.length + 1), active: true, ...value }); return Promise.resolve({ error: null }); },
+        update: (value) => ({ eq: (_c, id) => { window.__recipientWrites.push(["update", id, value]); Object.assign(rows.find((r) => r.id === id), value); return Promise.resolve({ error: null }); } }),
+        delete: () => ({ eq: () => Promise.resolve({ error: null }) }),
+      };
+      return q;
+    };
+    window.McpSupabase.getSupabaseBrowserClient = () => ({ from: builder });
+    document.getElementById("adminLoginCard").style.display = "none";
+    document.getElementById("adminDashboard").style.display = "block";
+    document.body.classList.remove("admin-locked");
+    document.body.classList.add("admin-unlocked");
+    document.querySelector('[data-admin-tab="correos"]').click();
+    return window.initRecipientsAdmin({ is_super_admin: true, permissions: [] });
+  });
+
+  const groups = page.locator(".admin-recipient-group");
+  await expect(groups).toHaveCount(5);
+  await expect(groups.nth(0)).toContainText("contacto@example.org");
+  await expect(groups.filter({ hasText: "Únete · Europa" })).toContainText("europa@example.org");
+  await expect(groups.filter({ hasText: "Únete · Estados Unidos" })).toContainText("se usa el correo principal");
+
+  // "Añadir" on the Europa group preselects Únete + Europa.
+  await groups.filter({ hasText: "Únete · Europa" }).getByRole("button", { name: "Añadir" }).click();
+  await expect(page.locator("#adminRecipientComunidadField")).toBeVisible();
+  await expect(page.locator("#adminRecipientComunidad")).toHaveValue("Europa");
+  await page.fill("#adminRecipientEmail", "Lider.EU@Example.org");
+  await page.locator("#adminRecipientForm button[type=submit]").click();
+  await expect(groups.filter({ hasText: "Únete · Europa" })).toContainText("lider.eu@example.org");
+
+  await page.getByRole("switch", { name: "Activo rd@example.org" }).click();
+  const writes = await page.evaluate(() => window.__recipientWrites);
+  expect(writes[0]).toEqual(["insert", { form: "join", comunidad: "Europa", email: "lider.eu@example.org", nombre: null }]);
+  expect(writes[1]).toEqual(["update", "3", { active: true }]);
+});

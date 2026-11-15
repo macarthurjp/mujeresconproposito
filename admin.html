@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
   <link rel="stylesheet" href="assets/css/admin.css?v=20260905-review-highlight-1" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261114-6" />
-  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261114-7" />
+  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261115-3" />
   <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-16" />
 </head>
 <body class="mcp-brand admin-locked" data-admin-page="true">
@@ -86,6 +86,7 @@
           <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-solid fa-file-lines"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="banner"><i class="fa-solid fa-bullhorn"></i> <span>Banner</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-solid fa-users"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="correos"><i class="fa-solid fa-envelope-open-text"></i> <span>Destinatarios de correo</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
         </div>
           <div class="admin-sidebar-footer">
             <span class="admin-sidebar-label">Accesos</span>
@@ -717,6 +718,50 @@
 
           <div class="admin-roles-security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Solo el Super Admin puede asignar o revocar roles de administración.</div>
         </div>
+
+        <div class="admin-tab-panel" id="admin-correos">
+          <div class="admin-gallery-modal-head admin-roles-page-head">
+            <div class="admin-gallery-modal-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+            <span class="admin-dashboard-kicker">Notificaciones</span>
+            <h3>¿Quién recibe los formularios?</h3>
+            <p class="admin-card-subtitle">Define los correos que reciben los mensajes de contacto y los registros de Únete. En Únete puedes elegir una comunidad: Europa, Estados Unidos o República Dominicana.</p>
+          </div>
+
+          <div class="admin-card admin-roles-card">
+            <h3 class="admin-roles-card-title"><i class="fa-solid fa-plus" aria-hidden="true"></i> Añadir destinatario</h3>
+            <form id="adminRecipientForm" class="admin-recipient-form">
+              <div class="admin-field">
+                <label for="adminRecipientEmail">Correo</label>
+                <input type="email" id="adminRecipientEmail" placeholder="nombre@correo.com" autocomplete="off" required />
+              </div>
+              <div class="admin-field">
+                <label for="adminRecipientNombre">Nombre (opcional)</label>
+                <input type="text" id="adminRecipientNombre" placeholder="Ej: Ana Pérez" autocomplete="off" maxlength="120" />
+              </div>
+              <div class="admin-field">
+                <label for="adminRecipientFormType">Formulario</label>
+                <select id="adminRecipientFormType">
+                  <option value="contact">Contacto y oración</option>
+                  <option value="join">Únete</option>
+                </select>
+              </div>
+              <div class="admin-field" id="adminRecipientComunidadField" hidden>
+                <label for="adminRecipientComunidad">Comunidad</label>
+                <select id="adminRecipientComunidad">
+                  <option value="">Todas las comunidades</option>
+                  <option>Europa</option>
+                  <option>Estados Unidos</option>
+                  <option>República Dominicana</option>
+                </select>
+              </div>
+              <button type="submit" class="btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> Añadir</button>
+            </form>
+          </div>
+
+          <div id="adminRecipientsList" class="admin-recipients-list"><div class="admin-empty">Cargando destinatarios…</div></div>
+
+          <div class="admin-roles-security-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Si un grupo está vacío, los correos se envían al correo principal de la organización.</div>
+        </div>
         </div>
       </div>
     </section>
@@ -726,9 +771,10 @@
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
-  <script src="assets/js/main.js?v=20261115-social-auth-1"></script>
+  <script src="assets/js/main.js?v=20261115-recipients-1"></script>
   <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
   <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
+  <script src="assets/js/recipients-admin.js?v=20261115-3"></script>
   <script src="assets/js/admin-shell.js?v=20261114-1"></script>
 </body>
 </html>

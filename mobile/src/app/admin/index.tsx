@@ -43,6 +43,7 @@ export default function AdminHome() {
           </Group> : null}
           {access.isSuperAdmin ? <Group header="Equipo">
             <Row icon="people" tint="#6b5b95" label="Usuarios y roles" sub="Permisos, invitaciones y accesos" onPress={() => router.push('/admin/usuarios')} />
+            <Row icon="mail-unread" tint="#2f6db5" label="Destinatarios de correo" sub="Contacto y Únete por comunidad" onPress={() => router.push('/admin/correos')} />
           </Group> : null}
           {canWriteEditorial ? <Group header="Devocionales" footer="Gestiona los artículos y el flujo de revisión desde la app.">
             <Row icon="book" label="Devocionales" sub="Escribir, revisar y publicar" onPress={() => router.push('/admin/devocionales')} />

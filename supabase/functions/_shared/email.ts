@@ -1,7 +1,7 @@
 import { requiredEnv } from "./http.ts";
 
 type EmailPayload = {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   text?: string;
@@ -19,7 +19,7 @@ export async function sendEmail({ to, subject, html, text }: EmailPayload) {
     },
     body: JSON.stringify({
       sender,
-      to: [{ email: to }],
+      to: (Array.isArray(to) ? to : [to]).map((email) => ({ email })),
       subject,
       htmlContent: html,
       textContent: text,

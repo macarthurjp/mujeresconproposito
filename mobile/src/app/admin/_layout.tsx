@@ -24,6 +24,7 @@ export default function AdminLayout() {
       <Stack.Screen name="evento" options={{ title: 'Evento', presentation: 'modal' }} />
       <Stack.Screen name="galeria" options={{ title: 'Subir fotos', presentation: 'modal' }} />
       <Stack.Screen name="usuarios" options={{ title: 'Usuarios y roles' }} />
+      <Stack.Screen name="correos" options={{ title: 'Destinatarios de correo' }} />
       <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
       <Stack.Screen name="contenido" options={{ title: 'Contenido' }} />
       <Stack.Screen name="devocionales" options={{ title: 'Devocionales' }} />

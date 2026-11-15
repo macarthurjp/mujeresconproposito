@@ -1,5 +1,6 @@
-import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
+import { corsHeaders, jsonResponse } from "../_shared/http.ts";
 import { escapeHtml, sendEmail } from "../_shared/email.ts";
+import { getRecipients } from "../_shared/recipients.ts";
 
 function normalizeEmail(value: unknown) {
   return String(value || "").trim().toLowerCase();
@@ -10,7 +11,6 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return jsonResponse({ ok: false, error: "Method not allowed" }, 405);
 
   try {
-    const contactEmail = requiredEnv("CONTACT_EMAIL");
     const payload = await req.json();
 
     const nombre = String(payload.nombre || "").trim();
@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     const safeMensaje = escapeHtml(mensaje).replace(/\n/g, "<br>");
 
     const providerResponse = await sendEmail({
-      to: contactEmail,
+      to: await getRecipients("contact"),
       subject: `Nuevo mensaje de ${nombre} - Mujeres con Propósito`,
       text: [
         "Nuevo mensaje desde el formulario de contacto",

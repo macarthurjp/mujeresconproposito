@@ -62,7 +62,7 @@ export function useAsync<T>(load: () => Promise<T>) {
 
   const reload = useCallback(() => {
     setLoading(true);
-    fetchData();
+    return fetchData();
   }, [fetchData]);
 
   // Refresh silently whenever the app comes back to the foreground, so
