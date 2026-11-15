@@ -1,0 +1,133 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Mujeres con Proposito 930//Calendario de actividades//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Mujeres con Propósito
+X-WR-CALDESC:Actividades y reuniones de Mujeres con Propósito. Se actualiz
+ a automáticamente.
+REFRESH-INTERVAL;VALUE=DURATION:PT6H
+X-PUBLISHED-TTL:PT6H
+BEGIN:VTIMEZONE
+TZID:America/Santo_Domingo
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0400
+TZNAME:AST
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VTIMEZONE
+TZID:Europe/Luxembourg
+BEGIN:DAYLIGHT
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+END:DAYLIGHT
+BEGIN:STANDARD
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:evento-1@mcp930.org
+DTSTAMP:20260619T204957Z
+DTSTART;TZID=America/Santo_Domingo:20260104T160000
+DURATION:PT1H
+RRULE:FREQ=WEEKLY;BYDAY=SU
+SUMMARY:Reunión Dominical
+DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: Do
+ mingos · 4:00 PM\nMás información: https://mcp930.org/#events
+URL:https://meet.google.com/hoi-rdok-sym
+LOCATION:https://meet.google.com/hoi-rdok-sym
+END:VEVENT
+BEGIN:VEVENT
+UID:evento-2@mcp930.org
+DTSTAMP:20260619T204957Z
+DTSTART;TZID=America/Santo_Domingo:20260101T050000
+DURATION:PT1H
+RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR
+SUMMARY:Oración Matutina
+DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: Lu
+ nes a Viernes · 5:00 AM\nMás información: https://mcp930.org/#events
+URL:https://meet.google.com/hoi-rdok-sym
+LOCATION:https://meet.google.com/hoi-rdok-sym
+END:VEVENT
+BEGIN:VEVENT
+UID:evento-3@mcp930.org
+DTSTAMP:20260619T204957Z
+DTSTART;TZID=America/Santo_Domingo:20260101T150000
+DURATION:PT1H
+RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR
+SUMMARY:Oración Vespertina
+DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: Lu
+ nes a Viernes · 3:00 PM\nMás información: https://mcp930.org/#events
+URL:https://meet.google.com/hoi-rdok-sym
+LOCATION:https://meet.google.com/hoi-rdok-sym
+END:VEVENT
+BEGIN:VEVENT
+UID:evento-11@mcp930.org
+DTSTAMP:20260624T094847Z
+DTSTART;TZID=Europe/Luxembourg:20260106T190000
+DURATION:PT1H
+RRULE:FREQ=WEEKLY;BYDAY=TU
+SUMMARY:Estudio Bíblico Europa
+DESCRIPTION:Únete aquí: https://meet.google.com/wwi-brjz-upq\nHorario: Ma
+ rtes · 19h\nMás información: https://mcp930.org/#events
+URL:https://meet.google.com/wwi-brjz-upq
+LOCATION:https://meet.google.com/wwi-brjz-upq
+END:VEVENT
+BEGIN:VEVENT
+UID:evento-13@mcp930.org
+DTSTAMP:20260829T233432Z
+DTSTART;TZID=Europe/Luxembourg:20260101T200000
+DURATION:PT1H
+RRULE:FREQ=WEEKLY;BYDAY=TH
+SUMMARY:Oración Europa
+DESCRIPTION:Únete aquí: https://meet.google.com/wwi-brjz-upq\nHorario: Ju
+ eves · 20h\nMás información: https://mcp930.org/#events
+URL:https://meet.google.com/wwi-brjz-upq
+LOCATION:https://meet.google.com/wwi-brjz-upq
+END:VEVENT
+BEGIN:VEVENT
+UID:evento-4@mcp930.org
+DTSTAMP:20260619T204957Z
+DTSTART;TZID=Europe/Luxembourg:20260102T200000
+DURATION:PT1H
+RRULE:FREQ=WEEKLY;BYDAY=FR
+SUMMARY:Reunión de la Comunidad Europea
+DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: Vi
+ ernes · 20:00\nMás información: https://mcp930.org/#events
+URL:https://meet.google.com/hoi-rdok-sym
+LOCATION:https://meet.google.com/hoi-rdok-sym
+END:VEVENT
+BEGIN:VEVENT
+UID:evento-12@mcp930.org
+DTSTAMP:20260829T233003Z
+DTSTART;TZID=America/Santo_Domingo:20260103T100000
+DURATION:PT1H
+RRULE:FREQ=WEEKLY;BYDAY=SA
+SUMMARY:Estudio Bíblico - América
+DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: S
+ ábado · 10h\nMás información: https://mcp930.org/#events
+URL:https://meet.google.com/hoi-rdok-sym
+LOCATION:https://meet.google.com/hoi-rdok-sym
+END:VEVENT
+BEGIN:VEVENT
+UID:evento-5@mcp930.org
+DTSTAMP:20260619T204957Z
+DTSTART;TZID=America/Santo_Domingo:20260103T150000
+DURATION:PT1H
+RRULE:FREQ=WEEKLY;BYDAY=SA
+SUMMARY:Propósito Kids
+DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: S
+ ábados · 3:00 PM\nMás información: https://mcp930.org/#events
+URL:https://meet.google.com/hoi-rdok-sym
+LOCATION:https://meet.google.com/hoi-rdok-sym
+END:VEVENT
+END:VCALENDAR

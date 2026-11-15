@@ -1,0 +1,304 @@
+/* =====================================================================
+   MUJERES CON PROPÓSITO — SHARED BRAND LAYER
+   Same visual system as the home page (premium.css) for the secondary
+   pages: devocionales, admin, dashboard, reset-password, gracias-unirse.
+   Load it LAST on each page and add class "mcp-brand" to <body>.
+   Two families only: Cormorant Garamond (titles) + Manrope (everything else).
+   ===================================================================== */
+
+:root {
+  --b-ink: #3f2623;
+  --b-text: #3f2623;
+  --b-muted: #6d5250;
+  --b-wine: #a64b43;
+  --b-wine-2: #8f3f38;
+  --b-rose: #e7a8a0;
+  --b-blush: #f9e4e0;
+  --b-sand: #f9edea;
+  --b-paper: #ffffff;
+  --b-line: rgba(166, 75, 67, 0.12);
+  --b-line-strong: rgba(63, 38, 35, 0.18);
+  --b-shadow-sm: 0 1px 2px rgba(63, 38, 35, 0.04), 0 6px 18px rgba(166, 75, 67, 0.07);
+  --b-shadow: 0 2px 6px rgba(63, 38, 35, 0.04), 0 22px 54px rgba(166, 75, 67, 0.12);
+  --b-serif: "Cormorant Garamond", Georgia, serif;
+  --b-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --b-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Page background + base ---------- */
+body.mcp-brand {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.95), transparent 25%),
+    linear-gradient(180deg, #fff8f6 0%, #fff1ee 38%, #f7ebe8 100%) fixed !important;
+  color: var(--b-text) !important;
+  -webkit-font-smoothing: antialiased;
+}
+.mcp-brand ::selection { background: var(--b-wine); color: #fff; }
+
+/* ---------- Typography: two families ---------- */
+.mcp-brand :where(*:not(i):not(svg):not(svg *):not(.fa):not(.fas):not(.far):not(.fab):not([class^="fa-"]):not([class*=" fa-"]):not(.iti__flag):not([data-lucide])) {
+  font-family: var(--b-sans) !important;
+}
+.mcp-brand :is(h1, h2, h3),
+.mcp-brand :is(h1, h2, h3) :is(span, em, strong, b, i:not([class*="fa"])),
+.mcp-brand .admin-dashboard-flourish span,
+.mcp-brand .dev-hero-flourish span,
+.mcp-brand .sidebar-quote {
+  font-family: var(--b-serif) !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  -webkit-text-fill-color: currentColor !important;
+  background: none !important;
+  text-shadow: none !important;
+}
+.mcp-brand :is(h1, h2, h3) { color: var(--b-ink) !important; }
+.mcp-brand :is(h4, h5, h6) { font-family: var(--b-sans) !important; font-weight: 600 !important; letter-spacing: 0 !important; }
+
+/* Handwriting flourishes become a quiet serif italic */
+.mcp-brand .admin-dashboard-flourish span,
+.mcp-brand .dev-hero-flourish span {
+  font-style: italic !important;
+  font-size: 1.45rem !important;
+  line-height: 1.25 !important;
+  color: rgba(166, 75, 67, 0.7) !important;
+}
+.mcp-brand .sidebar-quote { font-style: italic !important; font-size: 1.1rem !important; color: var(--b-muted) !important; }
+
+/* Numbers stay in the sans family: Cormorant's old-style digits read as letters */
+.mcp-brand .admin-stat-value,
+.mcp-brand .stat-card strong {
+  font-family: var(--b-sans) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--b-ink) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Eyebrows / small labels ---------- */
+.mcp-brand .admin-hero-badge,
+.mcp-brand .private-access-eyebrow,
+.mcp-brand .dev-eyebrow,
+.mcp-brand .admin-dashboard-kicker {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 12px;
+  padding: 0 !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--b-wine) !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+}
+
+/* ---------- Buttons ---------- */
+.mcp-brand :is(.btn:not(.btn-soft):not(.btn-clear), .private-access-actions .btn, #adminLoginBtn, #dashboardLoginBtn, #savePasswordBtn, .dev-hero-link, #homeBtn) {
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 26px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--b-wine) !important;
+  background: var(--b-wine) !important;
+  background-image: none !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-family: var(--b-sans) !important;
+  font-size: 0.95rem !important;
+  font-weight: 650 !important;
+  letter-spacing: 0.01em !important;
+  text-decoration: none !important;
+  box-shadow: 0 10px 26px rgba(166, 75, 67, 0.24) !important;
+  transition: background 0.3s var(--b-ease), transform 0.3s var(--b-ease), box-shadow 0.3s var(--b-ease) !important;
+  opacity: 1 !important;
+}
+.mcp-brand :is(.btn:not(.btn-soft):not(.btn-clear), #adminLoginBtn, #dashboardLoginBtn, #savePasswordBtn, .dev-hero-link, #homeBtn):hover {
+  background: var(--b-wine-2) !important;
+  border-color: var(--b-wine-2) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 32px rgba(166, 75, 67, 0.3) !important;
+}
+
+/* Secondary buttons: outline */
+.mcp-brand :is(.private-passkey-btn, .private-cancel-btn, .btn.btn-soft, .btn.btn-clear, .dev-back) {
+  min-height: 44px;
+  border-radius: 999px !important;
+  border: 1px solid var(--b-line-strong) !important;
+  background: #fff !important;
+  background-image: none !important;
+  color: var(--b-ink) !important;
+  -webkit-text-fill-color: var(--b-ink) !important;
+  font-family: var(--b-sans) !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  transition: border-color 0.3s var(--b-ease), background 0.3s var(--b-ease) !important;
+}
+.mcp-brand :is(.private-passkey-btn, .private-cancel-btn, .btn.btn-soft, .btn.btn-clear, .dev-back):hover {
+  border-color: var(--b-wine) !important;
+  background: var(--b-sand) !important;
+}
+.mcp-brand .private-link-btn { color: var(--b-wine) !important; font-weight: 600 !important; }
+
+/* ---------- Inputs ---------- */
+.mcp-brand :is(input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="url"], input[type="number"], input[type="search"], input[type="date"], input:not([type]), select, textarea) {
+  border-radius: 14px !important;
+  border: 1px solid var(--b-line-strong) !important;
+  background-color: #fff !important;
+  color: var(--b-text) !important;
+  font-family: var(--b-sans) !important;
+  font-size: 0.97rem !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  transition: border-color 0.25s var(--b-ease), box-shadow 0.25s var(--b-ease) !important;
+}
+.mcp-brand :is(input, select, textarea)::placeholder { color: rgba(109, 82, 80, 0.6) !important; font-weight: 400 !important; }
+.mcp-brand :is(input, select, textarea):focus {
+  outline: none !important;
+  border-color: var(--b-wine) !important;
+  box-shadow: 0 0 0 4px rgba(166, 75, 67, 0.12) !important;
+}
+.mcp-brand :is(a, button):focus-visible { outline: 2px solid var(--b-wine) !important; outline-offset: 2px !important; }
+.mcp-brand :is(input, select, textarea):focus-visible { outline: none !important; }
+
+/* ---------- Login / access cards (admin, dashboard, reset) ---------- */
+.mcp-brand :is(.private-access-card, .admin-login-card) {
+  border-radius: 28px !important;
+  border: 1px solid var(--b-line) !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: var(--b-shadow) !important;
+}
+.mcp-brand :is(.private-access-card, .admin-login-card) h3 {
+  font-size: clamp(2.4rem, 6vw, 3.2rem) !important;
+  color: var(--b-ink) !important;
+}
+.mcp-brand :is(.private-access-card, .admin-login-card) p { color: var(--b-muted) !important; font-weight: 500 !important; }
+.mcp-brand .private-access-actions .btn,
+.mcp-brand #adminLoginBtn,
+.mcp-brand #dashboardLoginBtn { width: 100% !important; max-width: none !important; }
+.mcp-brand .private-field::before { color: var(--b-wine) !important; }
+
+/* ---------- Cards / panels ---------- */
+.mcp-brand :is(.admin-card, .admin-stat-tile, .admin-content-item, .stat-card, .panel, .dev-card) {
+  border-radius: 20px !important;
+  border: 1px solid var(--b-line) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  box-shadow: var(--b-shadow-sm) !important;
+}
+.mcp-brand :is(.admin-stat-icon, .stat-icon) {
+  background: var(--b-blush) !important;
+  color: var(--b-wine) !important;
+  box-shadow: none !important;
+}
+.mcp-brand .stat-icon.rose { background: var(--b-wine) !important; color: #fff !important; }
+.mcp-brand .stat-icon.gold { background: #f3e2c6 !important; color: #8a6430 !important; }
+.mcp-brand :is(.admin-stat-label, .stat-label) { color: var(--b-muted) !important; font-weight: 600 !important; }
+.mcp-brand .admin-stat-link { background: var(--b-blush) !important; color: var(--b-wine) !important; }
+
+/* Tabs (admin) */
+.mcp-brand .admin-tab {
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  color: var(--b-muted) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.mcp-brand .admin-tab.active { background: var(--b-wine) !important; color: #fff !important; }
+.mcp-brand .admin-tab.active i { color: #fff !important; }
+
+/* ---------- Admin header: same pill as the home page ---------- */
+.mcp-brand .admin-site-header {
+  border-radius: 999px !important;
+  background: rgba(255, 250, 249, 0.86) !important;
+  border: 1px solid var(--b-line) !important;
+  box-shadow: 0 10px 34px rgba(166, 75, 67, 0.1) !important;
+}
+.mcp-brand .admin-site-header h1 { font-size: 1.5rem !important; color: var(--b-ink) !important; }
+.mcp-brand .admin-site-header h1::after { display: none !important; }
+.mcp-brand .admin-site-header #nav-menu a {
+  min-height: 42px;
+  display: inline-flex !important;
+  align-items: center;
+  padding: 0 20px !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  background-image: none !important;
+  border: 1px solid var(--b-line-strong) !important;
+  box-shadow: none !important;
+  color: var(--b-ink) !important;
+  -webkit-text-fill-color: var(--b-ink) !important;
+  font-weight: 600 !important;
+}
+.mcp-brand .admin-site-header #nav-menu a:hover { border-color: var(--b-wine) !important; color: var(--b-wine) !important; -webkit-text-fill-color: var(--b-wine) !important; }
+.mcp-brand .admin-hero-premium h2 { font-size: clamp(2.6rem, 5vw, 4rem) !important; }
+.mcp-brand .admin-hero-premium p { color: var(--b-muted) !important; }
+
+/* ---------- Dashboard ---------- */
+.mcp-brand aside.sidebar { background: rgba(255, 250, 249, 0.92) !important; border-color: var(--b-line) !important; }
+.mcp-brand .page-title h1,
+.mcp-brand .page-title h2 { font-size: clamp(2.2rem, 4vw, 3.2rem) !important; line-height: 1.05 !important; }
+
+/* ---------- Devocionales ---------- */
+.mcp-brand .dev-hero h1 {
+  font-size: clamp(3rem, 7vw, 5.6rem) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em !important;
+}
+.mcp-brand .dev-hero h1 em { color: var(--b-wine) !important; font-style: italic !important; }
+
+.mcp-brand .dev-hero-quote p { font-family: var(--b-serif) !important; font-style: italic !important; font-weight: 500 !important; color: var(--b-muted) !important; }
+.mcp-brand .dev-hero-quote cite { color: var(--b-wine) !important; letter-spacing: 0.18em !important; }
+.mcp-brand .dev-hero-mark { background: var(--b-wine) !important; background-image: none !important; }
+.mcp-brand .sidebar .nav-item { font-weight: 600 !important; color: var(--b-text) !important; border-radius: 14px !important; }
+.mcp-brand .sidebar .nav-item.active { background: var(--b-blush) !important; color: var(--b-wine) !important; }
+.mcp-brand .sidebar-brand strong,
+.mcp-brand .sidebar-brand span { font-family: var(--b-serif) !important; font-weight: 500 !important; }
+.mcp-brand .panel-head h2,
+.mcp-brand .panel-head h3 { font-size: 1.6rem !important; }
+
+/* Decorative blobs left by legacy page styles */
+body.mcp-brand::before, body.mcp-brand::after { opacity: 0 !important; }
+
+/* Higher-specificity heading rule: legacy admin/dashboard rules use body[data-*] selectors */
+body.mcp-brand[class] :is(h1, h2, h3),
+body.mcp-brand[class] .admin-card h3,
+body.mcp-brand[class] .admin-devotional-page-head h3,
+body.mcp-brand[class] .admin-devotional-editor h3 {
+  font-family: var(--b-serif) !important;
+  font-weight: 500 !important;
+  color: var(--b-ink) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+/* Role-based hiding (hidden attribute) must always win over brand display rules */
+.mcp-brand [hidden] { display: none !important; }
+
+/* Admin tabs: never stretch a lone tab (editor/reviewer roles see only one) */
+.mcp-brand .admin-tabs .admin-tab { flex: 0 1 auto !important; }
+
+/* Eyebrow sits flush above its heading */
+.mcp-brand .admin-devotional-page-head .admin-dashboard-kicker,
+.mcp-brand .admin-dashboard-kicker { display: flex !important; margin: 0 0 6px !important; padding: 0 !important; text-indent: 0 !important; }
+.mcp-brand .admin-dashboard-kicker::before,
+.mcp-brand .admin-dashboard-kicker::after { content: none !important; }
+
+/* Dashboard: community bars all start at the same x */
+.mcp-brand .community-breakdown { display: grid !important; grid-template-columns: max-content 1fr auto; column-gap: 14px; row-gap: 12px; align-items: center; }
+.mcp-brand .community-breakdown > .community-row { display: contents !important; }
+.mcp-brand .community-row > strong { font-weight: 600 !important; white-space: nowrap; }
+.mcp-brand .community-row > span { font-variant-numeric: tabular-nums; color: var(--b-muted) !important; font-weight: 600; text-align: right; }
+.mcp-brand .community-bar { width: 100% !important; margin: 0 !important; }
+
+/* Login / reset cards: brand lockup readable (new logo, 2026-11-15). */
+.mcp-brand .private-access-brand,
+.mcp-brand .private-access-card > img:first-child,
+.mcp-brand .reset-card img:first-child { width: 160px !important; max-width: 70% !important; height: auto !important; margin: 0 auto 6px !important; display: block !important; }
+
+/* Login polish: single Face ID option, discreet back link. */
+.mcp-brand .private-passkey-actions[hidden], .mcp-brand .private-passkey-btn[hidden] { display: none !important; }
+.mcp-brand .private-passkey-actions.is-single { grid-template-columns: 1fr !important; display: grid !important; }
+.mcp-brand .private-passkey-btn.private-link-like { background: transparent !important; border: 0 !important; box-shadow: none !important; color: var(--b-wine) !important; font-weight: 600 !important; text-decoration: none !important; min-height: 36px !important; }
+body.mcp-brand .private-access-card .private-cancel-btn.private-back-link, .mcp-brand .private-cancel-btn.private-back-link { background: transparent !important; background-color: transparent !important; border: 0 !important; box-shadow: none !important; color: var(--b-muted) !important; font-weight: 600 !important; min-height: 36px !important; padding: 6px !important; }
+.mcp-brand .private-cancel-btn.private-back-link:hover { color: var(--b-wine) !important; }

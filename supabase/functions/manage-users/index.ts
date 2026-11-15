@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
 
-const ASSIGNABLE_PERMISSIONS = new Set(["editor", "read_export", "reviewer"]);
+const ASSIGNABLE_PERMISSIONS = new Set(["editor", "read_export", "reviewer", "birthday_calendar"]);
 
 function normalizeEmail(value: unknown) {
   return String(value || "").trim().toLowerCase();
@@ -38,10 +38,10 @@ Deno.serve(async (req) => {
 
     const { data: requesterRole } = await admin
       .from("user_roles")
-      .select("is_super_admin")
+      .select("is_super_admin,is_revoked")
       .eq("user_id", requester.id)
       .maybeSingle();
-    if (requesterRole?.is_super_admin !== true) {
+    if (requesterRole?.is_super_admin !== true || requesterRole.is_revoked === true) {
       return jsonResponse({ ok: false, error: "Solo el Super Admin puede gestionar usuarios." }, 403);
     }
 
@@ -117,6 +117,24 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, message: "Correo del Super Admin actualizado." });
     }
 
+    // Super Admins can't edit their own role, but may opt in/out of the
+    // birthday reminder on their own account (it grants no extra access).
+    if (action === "set_my_birthday_calendar") {
+      const enabled = Boolean(body.enabled);
+      const { data: ownRole, error: ownError } = await admin.from("user_roles").select("permissions").eq("user_id", requester.id).single();
+      if (ownError) throw ownError;
+      const current: string[] = Array.isArray(ownRole?.permissions) ? ownRole.permissions : ["read_only"];
+      const next = enabled
+        ? Array.from(new Set([...current, "birthday_calendar"]))
+        : current.filter((p) => p !== "birthday_calendar");
+      const { error } = await admin.from("user_roles").update({
+        permissions: next,
+        updated_at: new Date().toISOString()
+      }).eq("user_id", requester.id);
+      if (error) throw error;
+      return jsonResponse({ ok: true, message: enabled ? "Recibirás el aviso de cumpleaños." : "Ya no recibirás el aviso de cumpleaños." });
+    }
+
     const userId = String(body.userId || "");
     if (!userId) return jsonResponse({ ok: false, error: "Usuario requerido." }, 400);
 
@@ -149,6 +167,14 @@ Deno.serve(async (req) => {
       const isSuperAdmin = Boolean(body.isSuperAdmin);
       const permissions = parsePermissions(body.permissions);
       if (!permissions) return jsonResponse({ ok: false, error: "Permisos inválidos." }, 400);
+      const { data: targetRole, error: targetRoleError } = await admin
+        .from("user_roles")
+        .select("is_revoked")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (targetRoleError) throw targetRoleError;
+      if (!targetRole) return jsonResponse({ ok: false, error: "No se encontró el rol de esta cuenta." }, 404);
+      if (targetRole.is_revoked) return jsonResponse({ ok: false, error: "Restaura el acceso antes de cambiar los permisos." }, 409);
       const { error: authError } = await admin.auth.admin.updateUserById(userId, { ban_duration: "none" });
       if (authError) throw authError;
       const { error } = await admin.from("user_roles").update({

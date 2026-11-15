@@ -1,24 +1,12 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
+import { addDaysISO, birthdayMatches, luxembourgTodayISO } from "../_shared/birthdays.ts";
 
 type Member = {
   nombre: string | null;
   apellido: string | null;
   fecha_nacimiento: string | null;
 };
-
-function getLuxembourgTodayMonthDay() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Luxembourg",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-
-  const month = parts.find((part) => part.type === "month")?.value || "";
-  const day = parts.find((part) => part.type === "day")?.value || "";
-
-  return `${month}-${day}`;
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -33,7 +21,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = requiredEnv("SUPABASE_URL");
     const serviceRoleKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
     const supabase = createClient(supabaseUrl, serviceRoleKey);
-    const todayMonthDay = getLuxembourgTodayMonthDay();
+    const todayISO = luxembourgTodayISO();
 
     const { data, error } = await supabase
       .from("unirse")
@@ -42,13 +30,29 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
 
-    const cumpleanerasHoy = (data || [])
-      .filter((member: Member) => member.fecha_nacimiento?.slice(5, 10) === todayMonthDay)
+    const members = (data || []) as Member[];
+    const nombreCompleto = (member: Member) =>
+      [member.nombre, member.apellido].filter(Boolean).join(" ").trim() || "Cumpleañera";
+
+    const cumpleanerasHoy = members
+      .filter((member) => member.fecha_nacimiento && birthdayMatches(member.fecha_nacimiento, todayISO))
       .map((member: Member) => ({
-        nombreCompleto: [member.nombre, member.apellido].filter(Boolean).join(" ").trim() || "Cumpleañera",
+        nombreCompleto: nombreCompleto(member),
       }));
 
-    return jsonResponse({ ok: true, cumpleanerasHoy });
+    // Public endpoint: upcoming birthdays expose only the first name and the
+    // day (no surname, no year) for the next 7 days. The full list goes to
+    // the birthday-calendar team by email (send-birthday-reminders).
+    const nombrePila = (member: Member) => String(member.nombre || "").trim().split(/\s+/)[0] || "Integrante";
+    const proximosCumpleanos = Array.from({ length: 7 }, (_, index) => index + 1)
+      .flatMap((days) => {
+        const fecha = addDaysISO(todayISO, days);
+        return members
+          .filter((member) => member.fecha_nacimiento && birthdayMatches(member.fecha_nacimiento, fecha))
+          .map((member) => ({ nombreCompleto: nombrePila(member), fecha: fecha.slice(5), dias: days }));
+      });
+
+    return jsonResponse({ ok: true, cumpleanerasHoy, proximosCumpleanos });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
     console.error(error);

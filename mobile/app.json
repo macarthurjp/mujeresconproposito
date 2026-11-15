@@ -1,0 +1,83 @@
+{
+  "expo": {
+    "name": "Mujeres con Propósito",
+    "slug": "mujeres-con-proposito",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "mcp930",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "org.mcp930.app",
+      "supportsTablet": true,
+      "icon": "./assets/images/icon.png",
+      "entitlements": {
+        "com.apple.developer.usernotifications.time-sensitive": true
+      }
+    },
+    "android": {
+      "package": "org.mcp930.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FCEAE5",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Usa Face ID para entrar al panel privado de Mujeres con Propósito sin escribir tu contraseña."
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": "Usa Face ID para entrar al panel privado de Mujeres con Propósito sin escribir tu contraseña."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFF7F6",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 240
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#7A2E42",
+          "defaultChannel": "reuniones",
+          "enableRemoteNotifications": true,
+          "sounds": [
+            "./assets/sounds/reunion.wav"
+          ]
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      "expo-widgets",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La app usa tus fotos para subirlas a la galería de Mujeres con Propósito."
+        }
+      ],
+      "expo-sharing"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}

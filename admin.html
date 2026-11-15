@@ -4,20 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Mujeres con Propósito</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg?v=2" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32.png?v=2" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&family=Caveat:wght@600;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
-  <link rel="stylesheet" href="assets/css/admin.css?v=20260905-review-highlight-1" />
+  <link rel="stylesheet" href="assets/css/admin.css?v=20261115-meeting-icons-1" />
+  <link rel="stylesheet" href="assets/css/brand.css?v=20261115-3" />
+  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261115-6" />
+  <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-meeting-icons-1" />
 </head>
-<body class="admin-locked" data-admin-page="true">
+<body class="mcp-brand admin-locked" data-admin-page="true">
   <header class="admin-site-header">
     <div class="header-left">
       <a href="index.html" class="logo">
-        <img src="assets/images/logo.webp" alt="Mujeres con Propósito" />
+        <img src="assets/images/logo.webp?v=2" alt="Mujeres con Propósito" />
       </a>
       <h1>Admin</h1>
     </div>
@@ -34,14 +38,14 @@
     <section id="admin" class="admin-panel">
       <div class="admin-hero-premium">
         <div>
-          <div class="admin-hero-badge">✦ Panel privado</div>
+          <div class="admin-hero-badge">Panel privado</div>
           <h2>Administración MCP</h2>
         </div>
         <p>Gestiona eventos, destacadas y galería desde Supabase.</p>
       </div>
 
       <div class="admin-login-card private-access-card" id="adminLoginCard">
-        <img class="private-access-brand" src="assets/images/logo.webp" alt="Mujeres con Propósito" />
+        <img class="private-access-brand" src="assets/images/logo.webp?v=2" alt="Mujeres con Propósito" />
         <span class="private-access-eyebrow">Panel privado</span>
         <h3>Bienvenida</h3>
         <p>Accede con tu cuenta autorizada.</p>
@@ -54,6 +58,11 @@
         <div class="private-access-actions private-access-actions-single">
           <button type="button" class="btn" id="adminLoginBtn">Entrar</button>
         </div>
+        <div class="social-login-divider"><span>o continúa con</span></div>
+        <div class="social-login-actions">
+          <button type="button" class="social-login-btn social-login-apple" id="adminLoginApple"><span class="social-login-apple-mark" aria-hidden="true">&#63743;</span>Apple</button>
+          <button type="button" class="social-login-btn social-login-google" id="adminLoginGoogle"><span class="social-login-google-mark" aria-hidden="true">G</span>Google</button>
+        </div>
         <div class="private-passkey-actions">
           <button type="button" class="private-passkey-btn" id="adminUsePasskeyBtn">Usar Face ID / huella</button>
           <button type="button" class="private-passkey-btn private-passkey-secondary" id="adminEnrollPasskeyBtn">Activar Face ID / huella</button>
@@ -64,26 +73,46 @@
       </div>
 
       <div class="admin-dashboard" id="adminDashboard" style="display:none;">
-        <div class="admin-dashboard-head">
-          <div class="admin-dashboard-flourish" aria-hidden="true">
-            <span>Juntas<br />creamos<br />más impacto</span>
-            <i class="fa-regular fa-heart"></i>
-          </div>
-          <div>
-            <span class="admin-dashboard-kicker">Contenido público</span>
-            <h3>Centro de gestión</h3>
-            <p class="admin-dashboard-subtitle">Administra y organiza todo el contenido de la comunidad desde un solo lugar.</p>
-          </div>
-          <div class="admin-dashboard-actions">
-            <button type="button" class="admin-logout-btn admin-share-btn" id="adminShareJoinLink"><i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir formulario</button>
-            <button type="button" class="admin-logout-btn" id="adminLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</button>
-          </div>
+        <aside class="admin-sidebar" id="adminSidebar" aria-label="Menú del administrador">
+          <a href="index.html" class="admin-sidebar-brand">
+            <span class="admin-sidebar-mark"><img src="assets/images/apple-touch-icon.png?v=2" alt="" /></span>
+            <span><strong>Mujeres con Propósito</strong><small>Administración</small></span>
+          </a>
+          <span class="admin-sidebar-label">Contenido</span>
+          <div class="admin-tabs" role="tablist" aria-orientation="vertical">
+          <button type="button" class="admin-tab active" data-admin-tab="eventos"><i class="fa-regular fa-calendar" aria-hidden="true"></i> <span>Eventos</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="destacadas"><i class="fa-regular fa-heart" aria-hidden="true"></i> <span>Destacadas</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="galeria"><i class="fa-regular fa-image" aria-hidden="true"></i> <span>Galería</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="youtube"><i class="fa-regular fa-circle-play" aria-hidden="true"></i> <span>YouTube</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-regular fa-file-lines" aria-hidden="true"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="banner"><i class="fa-regular fa-flag" aria-hidden="true"></i> <span>Banner</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-regular fa-address-card" aria-hidden="true"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="correos"><i class="fa-regular fa-envelope" aria-hidden="true"></i> <span>Destinatarios de correo</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
         </div>
+          <div class="admin-sidebar-footer">
+            <span class="admin-sidebar-label">Accesos</span>
+            <a class="admin-side-link" href="index.html"><i class="fa-solid fa-house" aria-hidden="true"></i> <span>Página principal</span></a>
+            <a class="admin-side-link" href="dashboard.html"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> <span>Dashboard</span></a>
+            <button type="button" class="admin-side-link admin-share-btn" id="adminShareJoinLink"><i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir formulario</button>
+            <button type="button" class="admin-side-link admin-side-logout" id="adminLogoutBtn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Cerrar sesión</button>
+          </div>
+        </aside>
+        <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop" hidden></div>
+
+        <div class="admin-main">
+          <div class="admin-topbar" role="banner">
+            <button type="button" class="admin-menu-toggle" id="adminMenuToggle" aria-label="Abrir menú" aria-controls="adminSidebar" aria-expanded="false"><i class="fa-solid fa-bars" aria-hidden="true"></i></button>
+            <div class="admin-topbar-title">
+              <span class="admin-topbar-kicker">Centro de gestión</span>
+              <h2 id="adminSectionTitle">Eventos</h2>
+            </div>
+          </div>
+
 
         <div class="admin-stats-grid" id="adminStatsGrid">
           <div class="admin-stat-tile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon"><i class="fa-solid fa-calendar-days"></i></div>
+              <div class="admin-stat-icon"><i class="fa-regular fa-calendar" aria-hidden="true"></i></div>
             </div>
             <div class="admin-stat-value" id="statEventos">0</div>
             <div class="admin-stat-label">Eventos activos</div>
@@ -91,7 +120,7 @@
           </div>
           <div class="admin-stat-tile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon"><i class="fa-solid fa-heart"></i></div>
+              <div class="admin-stat-icon"><i class="fa-regular fa-heart" aria-hidden="true"></i></div>
             </div>
             <div class="admin-stat-value" id="statDestacadas">0</div>
             <div class="admin-stat-label">Destacadas</div>
@@ -99,7 +128,7 @@
           </div>
           <div class="admin-stat-tile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon"><i class="fa-solid fa-image"></i></div>
+              <div class="admin-stat-icon"><i class="fa-regular fa-image" aria-hidden="true"></i></div>
             </div>
             <div class="admin-stat-value" id="statFotos">0</div>
             <div class="admin-stat-label">Fotos en galería</div>
@@ -107,7 +136,7 @@
           </div>
           <div class="admin-stat-tile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon"><i class="fa-solid fa-play"></i></div>
+              <div class="admin-stat-icon"><i class="fa-regular fa-circle-play" aria-hidden="true"></i></div>
             </div>
             <div class="admin-stat-value" id="statYoutube">0</div>
             <div class="admin-stat-label">Videos de YouTube</div>
@@ -115,7 +144,7 @@
           </div>
           <div class="admin-stat-tile" id="statPortadaTile">
             <div class="admin-stat-top">
-              <div class="admin-stat-icon"><i class="fa-solid fa-folder"></i></div>
+              <div class="admin-stat-icon"><i class="fa-regular fa-folder" aria-hidden="true"></i></div>
               <span class="admin-stat-pill" id="statPortadaPill" style="display:none;"></span>
             </div>
             <div class="admin-stat-value" id="statPortadaFaltante">0</div>
@@ -124,15 +153,6 @@
           </div>
         </div>
 
-        <div class="admin-tabs">
-          <button type="button" class="admin-tab active" data-admin-tab="eventos"><i class="fa-solid fa-calendar-days"></i> <span>Eventos</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="destacadas"><i class="fa-solid fa-heart"></i> <span>Destacadas</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="galeria"><i class="fa-solid fa-image"></i> <span>Galería</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="youtube"><i class="fa-solid fa-play"></i> <span>YouTube</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-solid fa-file-lines"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="banner"><i class="fa-solid fa-bullhorn"></i> <span>Banner</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-          <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-solid fa-users"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
-        </div>
 
         <div class="admin-tab-panel active" id="admin-eventos">
           <div class="admin-edit-modal" id="adminEventoOverlay" hidden>
@@ -145,9 +165,39 @@
             </div>
             <form id="adminEventForm" class="admin-form admin-evt-form">
               <div class="admin-evt-row">
+                <div>
                 <label><span><i class="fa-regular fa-face-smile" aria-hidden="true"></i> Icono</span>
                   <input type="text" id="adminEventoIcono" placeholder="Emoji o URL de imagen" />
                 </label>
+                <div class="admin-event-icon-presets" aria-label="Iconos predeterminados">
+                  <span>Iconos predeterminados</span>
+                  <div class="admin-event-icon-options">
+                    <button type="button" data-event-icon="ion:calendar-outline" aria-label="Calendario"><i class="fa-solid fa-calendar-days"></i></button>
+                    <button type="button" data-event-icon="ion:people-outline" aria-label="Comunidad"><i class="fa-solid fa-people-group"></i></button>
+                    <button type="button" data-event-icon="ion:book-outline" aria-label="Estudio bíblico"><i class="fa-solid fa-book-open"></i></button>
+                    <button type="button" data-event-icon="ion:heart-outline" aria-label="Corazón"><i class="fa-solid fa-heart"></i></button>
+                    <button type="button" data-event-icon="ion:hand-left-outline" aria-label="Oración"><i class="fa-solid fa-hands-praying"></i></button>
+                    <button type="button" data-event-icon="ion:business-outline" aria-label="Iglesia"><i class="fa-solid fa-church"></i></button>
+                    <button type="button" data-event-icon="ion:chatbubble-ellipses-outline" aria-label="Conversación"><i class="fa-solid fa-comments"></i></button>
+                    <button type="button" data-event-icon="ion:musical-notes-outline" aria-label="Música"><i class="fa-solid fa-music"></i></button>
+                    <button type="button" data-event-icon="ion:mic-outline" aria-label="Micrófono"><i class="fa-solid fa-microphone"></i></button>
+                    <button type="button" data-event-icon="ion:headset-outline" aria-label="Audífonos"><i class="fa-solid fa-headphones"></i></button>
+                    <button type="button" data-event-icon="ion:sparkles-outline" aria-label="Inspiración"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                    <button type="button" data-event-icon="ion:leaf-outline" aria-label="Naturaleza"><i class="fa-solid fa-leaf"></i></button>
+                    <button type="button" data-event-icon="ion:flower-outline" aria-label="Flor"><i class="fa-solid fa-spa"></i></button>
+                    <button type="button" data-event-icon="ion:sunny-outline" aria-label="Día"><i class="fa-solid fa-sun"></i></button>
+                    <button type="button" data-event-icon="ion:moon-outline" aria-label="Noche"><i class="fa-solid fa-moon"></i></button>
+                    <button type="button" data-event-icon="ion:star-outline" aria-label="Estrella"><i class="fa-solid fa-star"></i></button>
+                    <button type="button" data-event-icon="ion:flame-outline" aria-label="Fuego"><i class="fa-solid fa-fire"></i></button>
+                    <button type="button" data-event-icon="ion:home-outline" aria-label="Hogar"><i class="fa-solid fa-house"></i></button>
+                    <button type="button" data-event-icon="ion:globe-outline" aria-label="Mundo"><i class="fa-solid fa-globe"></i></button>
+                    <button type="button" data-event-icon="ion:notifications-outline" aria-label="Avisos"><i class="fa-solid fa-bell"></i></button>
+                    <button type="button" data-event-icon="ion:camera-outline" aria-label="Cámara"><i class="fa-solid fa-camera"></i></button>
+                    <button type="button" data-event-icon="ion:videocam-outline" aria-label="Video"><i class="fa-solid fa-video"></i></button>
+                    <button type="button" data-event-icon="ion:gift-outline" aria-label="Celebración"><i class="fa-solid fa-gift"></i></button>
+                  </div>
+                </div>
+                </div>
                 <div>
                   <label><span><i class="fa-regular fa-image" aria-hidden="true"></i> Imagen de icono</span> <small class="admin-yt-help">(opcional, reemplaza el emoji)</small></label>
                   <div class="admin-gallery-dropzone admin-gallery-dropzone-compact" id="adminEventoIconoDropzone">
@@ -208,6 +258,23 @@
                 <small class="admin-yt-help">Enlace de la reunión, transmisión o más información.</small>
               </label>
 
+              <div class="admin-evt-row">
+                <label><span><i class="fa-solid fa-earth-americas" aria-hidden="true"></i> Zona horaria</span>
+                  <select id="adminEventoZona">
+                    <option value="Europe/Luxembourg">Europa — Luxemburgo / Bélgica / París / Madrid (CET)</option>
+                    <option value="Europe/London">Europa — Londres / Lisboa</option>
+                    <option value="America/New_York">EE.UU. — Este (Nueva York, Miami)</option>
+                    <option value="America/Chicago">EE.UU. — Centro (Chicago, Houston)</option>
+                    <option value="America/Denver">EE.UU. — Montaña (Denver)</option>
+                    <option value="America/Los_Angeles">EE.UU. — Pacífico (Los Ángeles)</option>
+                    <option value="America/Santo_Domingo">República Dominicana / Puerto Rico</option>
+                  </select>
+                </label>
+                <label class="admin-check-inline"><span><i class="fa-regular fa-bell" aria-hidden="true"></i> Notificación push</span>
+                  <span><input type="checkbox" id="adminEventoNotificar" checked /> Avisar en la app cuando empiece la reunión</span>
+                </label>
+              </div>
+
               <label><span><i class="fa-solid fa-arrow-up-short-wide" aria-hidden="true"></i> Orden</span>
                 <div class="admin-yt-stepper">
                   <button type="button" class="admin-yt-stepper-btn" data-evt-step="-1" aria-label="Disminuir orden">−</button>
@@ -236,7 +303,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Eventos publicados</h3>
-            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
+            <p class="admin-reorder-hint">Mantén pulsado y arrastra para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="eventos">Importar eventos actuales</button>
             <div id="adminEventosList" class="admin-content-list"></div>
           </div>
@@ -290,7 +357,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Destacadas publicadas</h3>
-            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
+            <p class="admin-reorder-hint">Mantén pulsado y arrastra para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="destacadas">Importar destacadas actuales</button>
             <div id="adminDestacadasList" class="admin-content-list"></div>
           </div>
@@ -364,7 +431,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Fotos publicadas</h3>
-            <p class="admin-reorder-hint">Arrastra ⠿ para reordenar las categorías, o las fotos dentro de cada una.</p>
+            <p class="admin-reorder-hint">Mantén pulsado y arrastra para reordenar las galerías o las fotos de cada una.</p>
             <button type="button" class="admin-import-btn" data-admin-import="galeria">Importar galería actual</button>
             <div id="adminGaleriaList" class="admin-content-list"></div>
           </div>
@@ -451,7 +518,7 @@
           </div>
           <div class="admin-card admin-list-card">
             <h3>Videos publicados</h3>
-            <p class="admin-reorder-hint">Arrastra ⠿ para cambiar el orden.</p>
+            <p class="admin-reorder-hint">Mantén pulsado y arrastra para cambiar el orden.</p>
             <button type="button" class="admin-import-btn" data-admin-import="youtube">Importar videos actuales</button>
             <div id="adminYoutubeList" class="admin-content-list"></div>
           </div>
@@ -653,6 +720,7 @@
                 <label class="admin-permission-check"><input type="checkbox" data-permission="editor"> Editor de devocionales</label>
                 <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer"> Revisor de devocionales</label>
                 <label class="admin-permission-check"><input type="checkbox" data-permission="read_export"> Manager (exportar)</label>
+                <label class="admin-permission-check"><input type="checkbox" data-permission="birthday_calendar"> Calendario de cumpleaños (aviso 2 días antes)</label>
                 <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin"> Super Admin</label>
               </div>
               <button type="submit" class="btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> Crear usuario</button>
@@ -681,15 +749,64 @@
 
           <div class="admin-roles-security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Solo el Super Admin puede asignar o revocar roles de administración.</div>
         </div>
+
+        <div class="admin-tab-panel" id="admin-correos">
+          <div class="admin-gallery-modal-head admin-roles-page-head">
+            <div class="admin-gallery-modal-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+            <span class="admin-dashboard-kicker">Notificaciones</span>
+            <h3>¿Quién recibe los formularios?</h3>
+            <p class="admin-card-subtitle">Define los correos que reciben los mensajes de contacto y los registros de Únete. En Únete puedes elegir una comunidad: Europa, Estados Unidos o República Dominicana.</p>
+          </div>
+
+          <div class="admin-card admin-roles-card">
+            <h3 class="admin-roles-card-title"><i class="fa-solid fa-plus" aria-hidden="true"></i> Añadir destinatario</h3>
+            <form id="adminRecipientForm" class="admin-recipient-form">
+              <div class="admin-field">
+                <label for="adminRecipientEmail">Correo</label>
+                <input type="email" id="adminRecipientEmail" placeholder="nombre@correo.com" autocomplete="off" required />
+              </div>
+              <div class="admin-field">
+                <label for="adminRecipientNombre">Nombre (opcional)</label>
+                <input type="text" id="adminRecipientNombre" placeholder="Ej: Ana Pérez" autocomplete="off" maxlength="120" />
+              </div>
+              <div class="admin-field">
+                <label for="adminRecipientFormType">Formulario</label>
+                <select id="adminRecipientFormType">
+                  <option value="contact">Contacto y oración</option>
+                  <option value="join">Únete</option>
+                </select>
+              </div>
+              <div class="admin-field" id="adminRecipientComunidadField" hidden>
+                <label for="adminRecipientComunidad">Comunidad</label>
+                <select id="adminRecipientComunidad">
+                  <option value="">Todas las comunidades</option>
+                  <option>Europa</option>
+                  <option>Estados Unidos</option>
+                  <option>República Dominicana</option>
+                </select>
+              </div>
+              <button type="submit" class="btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> Añadir</button>
+            </form>
+          </div>
+
+          <div id="adminRecipientsList" class="admin-recipients-list"><div class="admin-empty">Cargando destinatarios…</div></div>
+
+          <div class="admin-roles-security-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Si un grupo está vacío, los correos se envían al correo principal de la organización.</div>
+        </div>
+        </div>
       </div>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/passkey-auth.js?v=20260624-passkey-1"></script>
+  <script src="assets/js/login-polish.js?v=20261115-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
-  <script src="assets/js/main.js?v=20260905-role-nombre-2"></script>
+  <script src="assets/js/social-auth.js?v=20261115-2"></script>
+  <script src="assets/js/main.js?v=20261115-meeting-icons-1"></script>
   <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
   <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
+  <script src="assets/js/recipients-admin.js?v=20261115-3"></script>
+  <script src="assets/js/admin-shell.js?v=20261114-1"></script>
 </body>
 </html>

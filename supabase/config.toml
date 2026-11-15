@@ -42,3 +42,18 @@ entrypoint = "./functions/manage-users/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/send-devotional-review-notification/index.ts"
+
+[functions.notify-meeting-start]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/notify-meeting-start/index.ts"
+
+[functions.send-birthday-reminders]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-birthday-reminders/index.ts"
+
+[functions.send-birthday-push]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-birthday-push/index.ts"

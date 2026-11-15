@@ -16,7 +16,7 @@ async function mockSupabase(page) {
             insert() { return Promise.resolve({ data: [], error: null }); },
             update() { return this; },
             delete() { return this; },
-            maybeSingle() { return Promise.resolve({ data: null, error: null }); }
+            maybeSingle() { return Promise.resolve({ data: { is_super_admin: false, permissions: ["read_only"], is_revoked: false, nombre: "" }, error: null }); }
           };
           return {
             from() { return Object.create(query); },
@@ -80,7 +80,7 @@ test("join and donation modals open and close", async ({ page }) => {
       };
     `
   }));
-  await page.locator("#openDonateModal").click();
+  await page.locator("#openDonateFromMenu").click();
   await expect(page.locator("#donateModal")).toHaveClass(/open/);
   await expect(page.locator("#donate-button")).toContainText("PayPal listo");
 });
@@ -121,7 +121,7 @@ test("devotional library page loads directly by link", async ({ page }) => {
   // (lanzamiento por etapas) — esta prueba cubre la página en sí, accedida
   // por su link directo, como la usan los editores mientras se prepara.
   await page.goto("/devocionales.html");
-  await expect(page.getByRole("heading", { name: /Un momento/ , level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Devocional", level: 1 })).toBeVisible();
 });
 
 test("private login and password reset keep only the intended controls", async ({ page }) => {
@@ -272,6 +272,8 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
   await page.evaluate(() => {
     document.getElementById("dashboardAccessScreen").style.display = "none";
     document.getElementById("pdfArea").style.display = "block";
+    // Contact details are only rendered for roles that may export data.
+    applyDashboardRole({ is_super_admin: false, permissions: ["read_only", "read_export"], is_revoked: false });
     renderTable([{
       nombreCompleto: "Xiomery Mercedes de Jean Pierre",
       email: "xiomerymjeanpierre@icloud.com",
@@ -459,4 +461,64 @@ test("dashboard PDF exports a clean data table instead of the full page", async 
   expect(table.firstRow).toHaveLength(11);
   expect(table.firstRow).toContain("Ana Pérez");
   expect(table.firstRow).toContain("ana@example.com");
+});
+
+test("dashboard hides contact details from simple-view accounts", async ({ page }) => {
+  await page.goto("/dashboard.html");
+  await page.evaluate(() => {
+    document.getElementById("dashboardAccessScreen").style.display = "none";
+    document.getElementById("pdfArea").style.display = "block";
+    applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], is_revoked: false });
+    renderTable([{ nombreCompleto: "Ana Prueba", email: "ana@example.com", telefono: "621 000", paisResidencia: "Luxemburgo", comunidad: "Europa", cristiana: "Sí", timestamp: "2026-07-29" }]);
+  });
+  await expect(page.locator(".user-row-name")).toContainText("Ana Prueba");
+  await expect(page.locator(".user-row")).not.toContainText("ana@example.com");
+  await expect(page.locator(".user-row")).not.toContainText("621");
+});
+
+test("super admin manages contact and join e-mail recipients by community", async ({ page }) => {
+  await page.goto("/admin.html");
+  await page.evaluate(() => {
+    const rows = [
+      { id: "1", form: "contact", comunidad: null, email: "contacto@example.org", nombre: "Oficina", active: true },
+      { id: "2", form: "join", comunidad: "Europa", email: "europa@example.org", nombre: null, active: true },
+      { id: "3", form: "join", comunidad: "República Dominicana", email: "rd@example.org", nombre: "Equipo RD", active: false },
+    ];
+    window.__recipientWrites = [];
+    const builder = () => {
+      const q = {
+        select: () => q, order: () => Promise.resolve({ data: rows.map((r) => ({ ...r })), error: null }),
+        insert: (value) => { window.__recipientWrites.push(["insert", value]); rows.push({ id: String(rows.length + 1), active: true, ...value }); return Promise.resolve({ error: null }); },
+        update: (value) => ({ eq: (_c, id) => { window.__recipientWrites.push(["update", id, value]); Object.assign(rows.find((r) => r.id === id), value); return Promise.resolve({ error: null }); } }),
+        delete: () => ({ eq: () => Promise.resolve({ error: null }) }),
+      };
+      return q;
+    };
+    window.McpSupabase.getSupabaseBrowserClient = () => ({ from: builder });
+    document.getElementById("adminLoginCard").style.display = "none";
+    document.getElementById("adminDashboard").style.display = "block";
+    document.body.classList.remove("admin-locked");
+    document.body.classList.add("admin-unlocked");
+    document.querySelector('[data-admin-tab="correos"]').click();
+    return window.initRecipientsAdmin({ is_super_admin: true, permissions: [] });
+  });
+
+  const groups = page.locator(".admin-recipient-group");
+  await expect(groups).toHaveCount(5);
+  await expect(groups.nth(0)).toContainText("contacto@example.org");
+  await expect(groups.filter({ hasText: "Únete · Europa" })).toContainText("europa@example.org");
+  await expect(groups.filter({ hasText: "Únete · Estados Unidos" })).toContainText("se usa el correo principal");
+
+  // "Añadir" on the Europa group preselects Únete + Europa.
+  await groups.filter({ hasText: "Únete · Europa" }).getByRole("button", { name: "Añadir" }).click();
+  await expect(page.locator("#adminRecipientComunidadField")).toBeVisible();
+  await expect(page.locator("#adminRecipientComunidad")).toHaveValue("Europa");
+  await page.fill("#adminRecipientEmail", "Lider.EU@Example.org");
+  await page.locator("#adminRecipientForm button[type=submit]").click();
+  await expect(groups.filter({ hasText: "Únete · Europa" })).toContainText("lider.eu@example.org");
+
+  await page.getByRole("switch", { name: "Activo rd@example.org" }).click();
+  const writes = await page.evaluate(() => window.__recipientWrites);
+  expect(writes[0]).toEqual(["insert", { form: "join", comunidad: "Europa", email: "lider.eu@example.org", nombre: null }]);
+  expect(writes[1]).toEqual(["update", "3", { active: true }]);
 });

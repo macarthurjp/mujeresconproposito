@@ -250,7 +250,7 @@
 </head>
 <body>
 <header class="dev-header">
-  <span class="dev-brand"><img src="assets/images/logo.webp" alt="" /><span>Mujeres con Propósito</span></span>
+  <span class="dev-brand"><img src="assets/images/logo.webp?v=2" alt="" /><span>Mujeres con Propósito</span></span>
 </header>
 <main>
   <span class="admin-preview-flag"><i class="fa-regular fa-eye"></i> Vista previa — sin publicar</span>

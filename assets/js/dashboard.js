@@ -9,10 +9,10 @@ function hasSupabaseConfig() {
 
 async function fetchDashboardDataFromSupabase() {
   const client = getDashboardSupabaseClient();
-  const { data, error } = await client
-    .from(SUPABASE_TABLE)
-    .select("*")
-    .order("created_at", { ascending: false });
+  const result = canDashboardExport()
+    ? await client.from(SUPABASE_TABLE).select("*").order("created_at", { ascending: false })
+    : await client.rpc("admin_dashboard_members");
+  const { data, error } = result;
 
   if (error) throw error;
   return Array.isArray(data) ? data : [];
@@ -63,6 +63,8 @@ const dashboardAccessScreen = document.getElementById("dashboardAccessScreen");
 const dashboardAccessEmail = document.getElementById("dashboardAccessEmail");
 const dashboardAccessCode = document.getElementById("dashboardAccessCode");
 const dashboardLoginBtn = document.getElementById("dashboardLoginBtn");
+const dashboardLoginAppleBtn = document.getElementById("dashboardLoginApple");
+const dashboardLoginGoogleBtn = document.getElementById("dashboardLoginGoogle");
 const dashboardCancelBtn = document.getElementById("dashboardCancelBtn");
 const dashboardForgotPasswordBtn = document.getElementById("dashboardForgotPasswordBtn");
 const dashboardLoginMsg = document.getElementById("dashboardLoginMsg");
@@ -143,6 +145,7 @@ function composeDashboardRoleLabel(access) {
   if (access.permissions.includes("editor")) labels.push("Editor de devocionales");
   if (access.permissions.includes("reviewer")) labels.push("Revisor de devocionales");
   if (access.permissions.includes("read_export")) labels.push("Manager");
+  if (access.permissions.includes("birthday_calendar")) labels.push("Calendario de cumpleaños");
   return labels.length ? labels.join(" + ") : "Vista simple";
 }
 
@@ -184,6 +187,10 @@ function applyDashboardRole(access) {
   });
   if (dashboardRoleBadge) dashboardRoleBadge.textContent = composeDashboardRoleLabel(dashboardAccess);
   document.body.dataset.userRole = dashboardAccess.is_super_admin ? "super_admin" : dashboardAccess.permissions.join(",");
+  const canReadPrivate = canDashboardExport();
+  document.querySelector(".export-summary-row .stat-card:last-child")?.toggleAttribute("hidden", !canReadPrivate);
+  document.querySelector(".dashboard-insights .insight-card:nth-child(2)")?.toggleAttribute("hidden", !canReadPrivate);
+  if (searchInput) searchInput.placeholder = canReadPrivate ? "Buscar por nombre, correo o país" : "Buscar por nombre, comunidad o país";
   if (filteredUsers.length) renderCurrentPage();
 }
 
@@ -197,15 +204,20 @@ async function loadDashboardRole() {
     .eq("user_id", user?.id || "")
     .maybeSingle();
   if (error) throw new Error("No se pudo verificar el rol de acceso.");
+  if (!data) {
+    await client.auth.signOut();
+    throw new Error("Esta cuenta no tiene un rol autorizado para el panel.");
+  }
   const access = {
     is_super_admin: Boolean(data?.is_super_admin),
-    permissions: Array.isArray(data?.permissions) ? data.permissions : ["read_only"],
+    permissions: Array.isArray(data?.permissions) ? data.permissions : [],
     is_revoked: Boolean(data?.is_revoked),
     nombre: String(data?.nombre || "").trim()
   };
-  if (access.is_revoked) {
+  await window.McpSocialAuth?.authorizeReturnedUser(client, access);
+  if (access.is_revoked || (!access.is_super_admin && access.permissions.length === 0)) {
     await client.auth.signOut();
-    throw new Error("El acceso de esta cuenta fue revocado.");
+    throw new Error(access.is_revoked ? "El acceso de esta cuenta fue revocado." : "Esta cuenta no tiene permisos para el dashboard.");
   }
   const metadata = user?.user_metadata || {};
   const displayName = access.nombre || metadata.full_name || metadata.name || metadata.display_name || user?.email || "Usuario";
@@ -477,14 +489,11 @@ function renderTable(users) {
         <div class="user-row-main">
           <span class="user-row-date">${escapeHtml(formatDate(user.timestamp))}</span>
           <strong class="user-row-name">${escapeHtml(user.nombreCompleto)}</strong>
-          <span class="user-row-sub">${escapeHtml(user.email)}</span>
+          ${canDashboardExport() ? `<span class="user-row-sub">${escapeHtml(user.email)}</span>` : ""}
         </div>
       </div>
       <div class="user-row-fields">
-        <div class="field-block">
-          <span class="field-label">Teléfono</span>
-          <strong>${escapeHtml(displayPhone) || "—"}</strong>
-        </div>
+        ${canDashboardExport() ? `<div class="field-block"><span class="field-label">Teléfono</span><strong>${escapeHtml(displayPhone) || "—"}</strong></div>` : ""}
         <div class="field-block">
           <span class="field-label">País residencia</span>
           <strong>${escapeHtml(user.paisResidencia)}</strong>
@@ -508,7 +517,7 @@ function renderTable(users) {
           ${phoneDigits(displayPhone) ? `<a href="https://wa.me/${phoneDigits(displayPhone)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ""}
           ${canDashboardManageRecords() ? `<button type="button" data-edit-user="${escapeHtml(user.id)}">Editar</button><button type="button" class="danger" data-delete-user="${escapeHtml(user.id)}">Eliminar</button>` : ""}
         </div>
-        <div class="field-block">
+        ${canDashboardExport() ? `<div class="field-block">
           <span class="field-label">Fecha de nacimiento</span>
           <strong>${escapeHtml(formatDate(user.fechaNacimiento))}</strong>
         </div>
@@ -531,7 +540,7 @@ function renderTable(users) {
         <div class="field-block field-block-wide">
           <span class="field-label">Comentarios</span>
           <strong>${escapeHtml(user.comentarios) || "—"}</strong>
-        </div>
+        </div>` : ""}
       </div>
     </div>
   `;
@@ -1175,6 +1184,12 @@ dashboardLoginBtn?.addEventListener("click", async function () {
   await unlockDashboard();
 });
 
+const startDashboardSocialLogin = (provider, button) => {
+  window.McpSocialAuth?.signIn(getDashboardSupabaseClient(), provider, button, showDashboardLoginMsg);
+};
+dashboardLoginAppleBtn?.addEventListener("click", () => startDashboardSocialLogin("apple", dashboardLoginAppleBtn));
+dashboardLoginGoogleBtn?.addEventListener("click", () => startDashboardSocialLogin("google", dashboardLoginGoogleBtn));
+
 dashboardCancelBtn?.addEventListener("click", function () {
   window.location.href = "index.html";
 });
@@ -1249,6 +1264,7 @@ hasPrivateAccessGranted().then(async (hasSession) => {
     return;
   }
 
+  window.McpSocialAuth?.clearPending();
   dashboardAccessEmail?.focus();
 });
 

@@ -38,6 +38,19 @@ document.addEventListener("DOMContentLoaded", function () {
     return minutes === "00" ? `${hour24}h` : `${hour24}h${minutes}`;
   }
 
+  function platformEventIconClass(value) {
+    const names = {
+      "calendar-outline": "fa-calendar-days", "people-outline": "fa-people-group", "book-outline": "fa-book-open",
+      "heart-outline": "fa-heart", "hand-left-outline": "fa-hands-praying", "business-outline": "fa-church",
+      "chatbubble-ellipses-outline": "fa-comments", "musical-notes-outline": "fa-music", "mic-outline": "fa-microphone",
+      "headset-outline": "fa-headphones", "sparkles-outline": "fa-wand-magic-sparkles", "leaf-outline": "fa-leaf",
+      "flower-outline": "fa-spa", "sunny-outline": "fa-sun", "moon-outline": "fa-moon", "star-outline": "fa-star",
+      "flame-outline": "fa-fire", "home-outline": "fa-house", "globe-outline": "fa-globe", "notifications-outline": "fa-bell",
+      "camera-outline": "fa-camera", "videocam-outline": "fa-video", "gift-outline": "fa-gift"
+    };
+    return names[String(value || "").slice(4)] || "fa-calendar-days";
+  }
+
   function getTimeInputValue(scheduleText) {
     const value = String(scheduleText || "").trim();
     if (!value) return "";
@@ -463,6 +476,10 @@ function isImageUrl(value) {
   }
 
   function renderEvents(events) {
+    if (window.MCPMeetings) {
+      window.MCPMeetings.render(Array.isArray(events) ? events : []);
+      return;
+    }
     const eventsGrid = document.getElementById("eventsGrid") || document.querySelector("#events .card-grid");
     if (!eventsGrid) {
       console.warn("No se encontró el contenedor de eventos (#eventsGrid o #events .card-grid)");
@@ -471,12 +488,19 @@ function isImageUrl(value) {
 
     const rawItems = Array.isArray(events) ? events : [];
 
-    const items = rawItems.map(item => ({
-      icon: getField(item, ["icon", "Icon"], "✨"),
-      title: getField(item, ["title", "titulo", "Titulo", "nombre", "Nombre"], "Actividad"),
-      schedule: getField(item, ["schedule", "horario", "Horario", "fecha", "Fecha"], "Próximamente"),
-      link: getField(item, ["link", "Link", "url", "URL"], "#")
-    }));
+    const items = rawItems.map(item => {
+      const schedule = getField(item, ["schedule", "horario", "Horario", "fecha", "Fecha"], "Próximamente");
+      const title = getField(item, ["title", "titulo", "Titulo", "nombre", "Nombre"], "Actividad");
+      const localSchedule = window.MCPSchedule
+        ? window.MCPSchedule.localScheduleLabel({ titulo: title, horario: schedule, zona_horaria: item.zona_horaria })
+        : null;
+      return {
+        icon: getField(item, ["icon", "Icon", "icono"], "✨"),
+        title,
+        schedule: localSchedule || schedule,
+        link: getField(item, ["link", "Link", "url", "URL"], "#")
+      };
+    });
 
     function renderEventIcon(icon, title) {
       const safeIcon = String(icon || "✦").trim();
@@ -487,6 +511,10 @@ function isImageUrl(value) {
             <img src="${escapeHtml(safeIcon)}" alt="${escapeHtml(title || "Icono del evento")}" loading="lazy">
           </div>
         `;
+      }
+
+      if (safeIcon.startsWith("ion:")) {
+        return `<div class="card-icon premium-icon"><i class="fa-solid ${platformEventIconClass(safeIcon)}" aria-hidden="true"></i></div>`;
       }
 
       return `<div class="card-icon premium-icon">${escapeHtml(safeIcon || "✦")}</div>`;
@@ -2215,7 +2243,7 @@ function renderGaleria(galeria) {
             .order("orden", { ascending: true }),
           supabaseBrowserClient
             .from("eventos")
-            .select("icon:icono,title:titulo,schedule:horario,link,activa,orden")
+            .select("*")
             .eq("activa", true)
             .order("orden", { ascending: true }),
           supabaseBrowserClient
@@ -2349,12 +2377,12 @@ function renderContactCalendar(apiData = {}) {
   const now = new Date();
   const dayOfWeek = now.getDay();
 
-  todayText.textContent = now.toLocaleDateString("es-ES", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
+  const monthYear = now.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+  todayText.textContent = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
+  const calWeekday = document.getElementById("calWeekday");
+  const calDay = document.getElementById("calDay");
+  if (calWeekday) calWeekday.textContent = now.toLocaleDateString("es-ES", { weekday: "long" }).toUpperCase();
+  if (calDay) calDay.textContent = String(now.getDate());
 
   const rawEventos = Array.isArray(apiData.eventos)
     ? apiData.eventos
@@ -2365,8 +2393,65 @@ function renderContactCalendar(apiData = {}) {
   const sourceActivities = rawEventos.map(item => ({
         title: getField(item, ["title", "titulo", "Titulo", "nombre", "Nombre"], "Actividad"),
         schedule: getField(item, ["schedule", "horario", "Horario", "fecha", "Fecha"], "Próximamente"),
-        description: getField(item, ["description", "descripcion", "Descripcion", "detalle", "Detalle"], "Actividad de Mujeres con Propósito.")
+        zona_horaria: item.zona_horaria || "",
+        description: getField(item, ["description", "descripcion", "Descripcion", "detalle", "Detalle"], "")
       }));
+
+  // Converts each schedule (written in its own time zone) to the visitor's
+  // local time, so summer/winter time changes are always correct.
+  if (window.MCPSchedule) {
+    const S = window.MCPSchedule;
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfTomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+
+    const planned = sourceActivities.map(item => {
+      const event = { titulo: item.title, horario: item.schedule, zona_horaria: item.zona_horaria };
+      const occurrences = S.occurrences(event, startOfToday, 8);
+      const localLabel = S.localScheduleLabel(event, now);
+      return {
+        title: item.title,
+        description: [String(localLabel || item.schedule).split("·")[0].trim(), item.description].filter(Boolean).join(" · "),
+        occurrences
+      };
+    });
+
+    const calendarItem = (label, item) => `
+        <div class="calendar-item">
+          <span class="calendar-item-time">${escapeHtml(label)}</span>
+          <div class="calendar-item-copy">
+            <div class="calendar-item-title">${escapeHtml(item.title)}</div>
+            <div class="calendar-item-desc">${escapeHtml(item.description)}</div>
+          </div>
+        </div>`;
+
+    const today = planned
+      .map(item => ({ item, at: item.occurrences.find(d => d >= startOfToday && d < startOfTomorrow) }))
+      .filter(x => x.at)
+      .sort((a, b) => a.at - b.at);
+
+    const upcoming = planned
+      .map(item => ({ item, at: item.occurrences.find(d => d >= startOfTomorrow) }))
+      .filter(x => x.at)
+      .sort((a, b) => a.at - b.at);
+
+    if (today.length) {
+      activitiesList.innerHTML = today.map(x => calendarItem(S.formatTime(x.at), x.item)).join("");
+    } else if (upcoming.length) {
+      activitiesList.innerHTML = '<div class="calendar-empty">Hoy no hay reuniones programadas.</div>';
+    } else {
+      activitiesList.innerHTML = '<div class="calendar-empty">No hay actividades programadas para hoy.</div>';
+    }
+
+    if (nextActivityList) {
+      const next = upcoming[0];
+      nextActivityList.innerHTML = next
+        ? calendarItem(`${S.dayName(next.at).slice(0, 3)}\n${S.formatTime(next.at)}`, next.item)
+        : '<div class="calendar-empty">No hay próximas actividades programadas.</div>';
+    }
+
+    renderTodayBirthdays();
+    return;
+  }
 
   const dayMap = {
     domingo: 0,
@@ -2534,18 +2619,25 @@ function renderContactCalendar(apiData = {}) {
       : '<div class="calendar-empty">No hay próximas actividades programadas.</div>';
   }
 
+  renderTodayBirthdays();
+
+  function renderTodayBirthdays() {
   const todayBirthdays = Array.isArray(apiData.cumpleanerasHoy)
     ? apiData.cumpleanerasHoy
     : [];
 
   birthdaysList.innerHTML = todayBirthdays.length
     ? todayBirthdays.map(person => `
-        <div class="calendar-item">
+        <div class="calendar-item calendar-item-birthday">
+          <span class="calendar-item-time" aria-hidden="true">🎂</span>
+          <div class="calendar-item-copy">
           <div class="calendar-item-title">${escapeHtml(person.nombreCompleto || "Cumpleañera")}</div>
           <div class="calendar-item-desc">¡Hoy está de cumpleaños!</div>
+          </div>
         </div>
       `).join("")
     : '<div class="calendar-empty">No hay cumpleaños registrados para hoy.</div>';
+  }
 }
 
   /* -----------------------------------------
@@ -2614,7 +2706,19 @@ function renderContactCalendar(apiData = {}) {
     return fotoUrl;
   };
 
-  window.mcpSaveEvento = async function ({ icono, titulo, horario, link, orden, activa }) {
+  // Time zones offered for events; the push-notification function uses them to
+  // know when a recurring meeting actually starts.
+  const MCP_EVENT_TIMEZONES = window.MCP_EVENT_TIMEZONES = [
+    ["Europe/Luxembourg", "Europa — Luxemburgo / Bélgica / París / Madrid (CET)"],
+    ["Europe/London", "Europa — Londres / Lisboa"],
+    ["America/New_York", "EE.UU. — Este (Nueva York, Miami)"],
+    ["America/Chicago", "EE.UU. — Centro (Chicago, Houston)"],
+    ["America/Denver", "EE.UU. — Montaña (Denver)"],
+    ["America/Los_Angeles", "EE.UU. — Pacífico (Los Ángeles)"],
+    ["America/Santo_Domingo", "República Dominicana / Puerto Rico"]
+  ];
+
+  window.mcpSaveEvento = async function ({ icono, titulo, horario, link, orden, activa, zona_horaria, notificar }) {
     const client = getAdminSupabaseClient();
     const { error } = await client.from("eventos").insert({
       icono: icono || "✦",
@@ -2622,7 +2726,9 @@ function renderContactCalendar(apiData = {}) {
       horario,
       link,
       orden: Number(orden || 1),
-      activa: activa !== false
+      activa: activa !== false,
+      zona_horaria: zona_horaria || "Europe/Luxembourg",
+      notificar: notificar !== false
     });
     if (error) throw error;
     return true;
@@ -2680,6 +2786,8 @@ function renderContactCalendar(apiData = {}) {
 	  const adminForgotPasswordBtn = document.getElementById("adminForgotPasswordBtn");
 	  const adminUsePasskeyBtn = document.getElementById("adminUsePasskeyBtn");
 	  const adminEnrollPasskeyBtn = document.getElementById("adminEnrollPasskeyBtn");
+	  const adminLoginAppleBtn = document.getElementById("adminLoginApple");
+	  const adminLoginGoogleBtn = document.getElementById("adminLoginGoogle");
 	  const adminRolesList = document.getElementById("adminRolesList");
 	  const adminRefreshRoles = document.getElementById("adminRefreshRoles");
 	  const adminInviteUserForm = document.getElementById("adminInviteUserForm");
@@ -2763,22 +2871,23 @@ function renderContactCalendar(apiData = {}) {
 	        ? `<img src="https://img.youtube.com/vi/${escapeHtml(row.video_id)}/hqdefault.jpg" alt="${escapeHtml(title)}" loading="lazy">`
 	        : row.foto_url
 	          ? `<img src="${escapeHtml(row.foto_url)}" alt="${escapeHtml(title)}" loading="lazy">`
-	          : isImageUrl(row.icono)
+	            : isImageUrl(row.icono)
             ? `<img src="${escapeHtml(row.icono)}" alt="${escapeHtml(title)}" loading="lazy">`
+	            : String(row.icono || "").startsWith("ion:")
+	              ? `<span class="admin-item-icon"><i class="fa-solid ${platformEventIconClass(row.icono)}" aria-hidden="true"></i></span>`
             : `<span class="admin-item-icon">${escapeHtml(row.icono || "✦")}</span>`;
 
 	      return `
 	        <div class="admin-content-item" data-admin-type="${type}" data-admin-id="${escapeHtml(row.id)}">
 	          <span class="admin-drag-handle" aria-hidden="true">⠿</span>
-	          <div class="admin-item-media">${image}</div>
+	          <div class="admin-item-media${row.activa !== false ? "" : " is-hidden"}">${image}<button type="button" class="admin-eye${row.activa !== false ? "" : " is-off"}" data-admin-action="toggle" aria-pressed="${row.activa !== false ? "true" : "false"}" aria-label="${row.activa !== false ? "Visible en la web y la app. Toca para ocultar" : "Oculto. Toca para mostrar"}" title="${row.activa !== false ? "Visible en la web y la app" : "Oculto"}">${row.activa !== false ? ADMIN_ICON_EYE : ADMIN_ICON_EYE_OFF}</button></div>
 	          <div class="admin-item-body">
 	            <strong>${escapeHtml(title)}</strong>
 	            <span>${escapeHtml(subtitle)}</span>
-	            <small>Orden ${escapeHtml(row.orden || 1)} · ${row.activa === false ? "Oculto" : "Visible"}</small>
+	            <small>Orden ${escapeHtml(row.orden || 1)}</small>
 	          </div>
 	          <div class="admin-item-actions">
 	            <button type="button" data-admin-action="edit">Editar</button>
-	            <button type="button" data-admin-action="toggle">${row.activa === false ? "Mostrar" : "Ocultar"}</button>
 	            <button type="button" data-admin-action="delete" class="danger">Borrar</button>
 	          </div>
 	        </div>
@@ -2810,8 +2919,9 @@ function renderContactCalendar(apiData = {}) {
 	        <div class="admin-content-item" data-admin-type="youtube" data-admin-id="${escapeHtml(row.id)}">
 	          <span class="admin-drag-handle" aria-hidden="true">⠿</span>
 	          <span class="admin-item-order-badge">#${escapeHtml(row.orden || 1)}</span>
-	          <div class="admin-item-media">
+	          <div class="admin-item-media${isVisible ? "" : " is-hidden"}">
 	            <img src="https://img.youtube.com/vi/${escapeHtml(row.video_id)}/hqdefault.jpg" alt="${escapeHtml(title)}" loading="lazy">
+	            <button type="button" class="admin-eye${isVisible ? "" : " is-off"}" data-admin-action="toggle" aria-pressed="${isVisible ? "true" : "false"}" aria-label="${isVisible ? "Visible en la web y la app. Toca para ocultar" : "Oculto. Toca para mostrar"}" title="${isVisible ? "Visible en la web y la app" : "Oculto"}">${isVisible ? ADMIN_ICON_EYE : ADMIN_ICON_EYE_OFF}</button>
 	          </div>
 	          <div class="admin-item-body">
 	            <div class="admin-item-tagrow">
@@ -2824,7 +2934,6 @@ function renderContactCalendar(apiData = {}) {
 	          </div>
 	          <div class="admin-item-actions">
 	            <button type="button" data-admin-action="edit" title="Editar" aria-label="Editar">${ADMIN_ICON_EDIT}</button>
-	            <button type="button" data-admin-action="toggle" title="${isVisible ? "Ocultar" : "Mostrar"}" aria-label="${isVisible ? "Ocultar" : "Mostrar"}">${isVisible ? ADMIN_ICON_EYE_OFF : ADMIN_ICON_EYE}</button>
 	            <button type="button" data-admin-action="delete" class="danger" title="Borrar" aria-label="Borrar">${ADMIN_ICON_TRASH}</button>
 	          </div>
 	        </div>
@@ -2902,16 +3011,15 @@ function renderContactCalendar(apiData = {}) {
             return `
 	              <div class="admin-content-item" data-admin-type="galeria" data-admin-id="${escapeHtml(row.id)}">
 	                <span class="admin-drag-handle" aria-hidden="true">⠿</span>
-	                <div class="admin-item-media">${image}</div>
+	                <div class="admin-item-media${row.activa !== false ? "" : " is-hidden"}">${image}<button type="button" class="admin-eye${row.activa !== false ? "" : " is-off"}" data-admin-action="toggle" aria-pressed="${row.activa !== false ? "true" : "false"}" aria-label="${row.activa !== false ? "Visible en la web y la app. Toca para ocultar" : "Oculto. Toca para mostrar"}" title="${row.activa !== false ? "Visible en la web y la app" : "Oculto"}">${row.activa !== false ? ADMIN_ICON_EYE : ADMIN_ICON_EYE_OFF}</button></div>
 	                <div class="admin-item-body">
 	                  <strong>${escapeHtml(title)}</strong>
 	                  <span>${escapeHtml(community.label)}</span>
-	                  <small>Orden ${escapeHtml(row.orden || 1)} · ${row.activa === false ? "Oculto" : "Visible"}${row.portada ? ' · <span class="admin-portada-badge">★ Portada</span>' : ""}</small>
+	                  <small>Orden ${escapeHtml(row.orden || 1)}${row.portada ? ' · <span class="admin-portada-badge">★ Portada</span>' : ""}</small>
 	                </div>
 	                <div class="admin-item-actions">
 	                  <button type="button" data-admin-action="edit">Editar</button>
 	                  <button type="button" data-admin-action="portada" class="${row.portada ? "is-portada" : ""}">${row.portada ? "★ Portada" : "Marcar portada"}</button>
-	                  <button type="button" data-admin-action="toggle">${row.activa === false ? "Mostrar" : "Ocultar"}</button>
 	                  <button type="button" data-admin-action="delete" class="danger">Borrar</button>
 	                </div>
 	              </div>
@@ -3110,6 +3218,7 @@ function renderContactCalendar(apiData = {}) {
 	    toast.querySelector(".admin-toast-close")?.addEventListener("click", remove);
 	    window.setTimeout(remove, kind === "error" ? 7000 : 4500);
 	  }
+	  window.showAdminToast = showAdminToast;
 
 	  function renderAdminError(containerId, error) {
 	    const container = document.getElementById(containerId);
@@ -3295,16 +3404,31 @@ function renderContactCalendar(apiData = {}) {
 		    });
 		  }
 
-	  function getAdminEditFields(type, row) {
+  const ADMIN_EVENT_ICON_PRESETS = [
+    ["ion:calendar-outline", "Calendario", "fa-calendar-days"], ["ion:people-outline", "Comunidad", "fa-people-group"],
+    ["ion:book-outline", "Estudio bíblico", "fa-book-open"], ["ion:heart-outline", "Corazón", "fa-heart"],
+    ["ion:hand-left-outline", "Oración", "fa-hands-praying"], ["ion:business-outline", "Iglesia", "fa-church"],
+    ["ion:chatbubble-ellipses-outline", "Conversación", "fa-comments"], ["ion:musical-notes-outline", "Música", "fa-music"],
+    ["ion:mic-outline", "Micrófono", "fa-microphone"], ["ion:headset-outline", "Audífonos", "fa-headphones"],
+    ["ion:sparkles-outline", "Inspiración", "fa-wand-magic-sparkles"], ["ion:leaf-outline", "Naturaleza", "fa-leaf"],
+    ["ion:flower-outline", "Flor", "fa-spa"], ["ion:sunny-outline", "Día", "fa-sun"], ["ion:moon-outline", "Noche", "fa-moon"],
+    ["ion:star-outline", "Estrella", "fa-star"], ["ion:flame-outline", "Fuego", "fa-fire"], ["ion:home-outline", "Hogar", "fa-house"],
+    ["ion:globe-outline", "Mundo", "fa-globe"], ["ion:notifications-outline", "Avisos", "fa-bell"],
+    ["ion:camera-outline", "Cámara", "fa-camera"], ["ion:videocam-outline", "Video", "fa-video"], ["ion:gift-outline", "Celebración", "fa-gift"]
+  ];
+
+  function getAdminEditFields(type, row) {
 	    if (type === "eventos") {
 	      return [
-	        { name: "icono", label: "Icono actual o emoji", value: row.icono || "✦" },
+	        { name: "icono", label: "Icono, emoji o imagen URL", type: "event-icon", value: row.icono || "✦" },
 	        { name: "icono_file", label: "Cambiar icono con imagen (opcional)", type: "file" },
 	        { name: "titulo", label: "Título", value: row.titulo || "" },
 	        { name: "horario", label: "Horario", type: "schedule", value: row.horario || "" },
 	        { name: "link", label: "Link", value: row.link || "" },
+	        { name: "zona_horaria", label: "Zona horaria", type: "select-options", options: window.MCP_EVENT_TIMEZONES || [["Europe/Luxembourg", "Europa (CET)"]], value: row.zona_horaria || "Europe/Luxembourg" },
+	        { name: "notificar", label: "Notificación push al empezar", type: "switch", onLabel: "Avisar en la app cuando empiece", offLabel: "Sin aviso", value: row.notificar === false ? "false" : "true" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
+	        { name: "activa", label: "Publicado", type: "select", value: row.activa === false ? "false" : "true" }
 	      ];
 	    }
 
@@ -3315,7 +3439,7 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "nombre", label: "Nombre", value: row.nombre || "" },
 	        { name: "titulo", label: "Título", value: row.titulo || "" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
+	        { name: "activa", label: "Publicado", type: "select", value: row.activa === false ? "false" : "true" }
 	      ];
 	    }
 
@@ -3326,7 +3450,7 @@ function renderContactCalendar(apiData = {}) {
 	        { name: "subtitulo", label: "Subtítulo", value: row.subtitulo || "" },
 	        { name: "etiqueta", label: "Etiqueta", value: row.etiqueta || "Conferencia" },
 	        { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	        { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" }
+	        { name: "activa", label: "Publicado", type: "select", value: row.activa === false ? "false" : "true" }
 	      ];
 	    }
 
@@ -3336,7 +3460,7 @@ function renderContactCalendar(apiData = {}) {
 	      { name: "categoria", label: "Comunidad", type: "select-category", value: row.categoria || "usa" },
 	      { name: "texto", label: "Categoría / evento", value: row.texto || "" },
 	      { name: "orden", label: "Orden", type: "number", value: row.orden || 1 },
-	      { name: "activa", label: "Estado", type: "select", value: row.activa === false ? "false" : "true" },
+	      { name: "activa", label: "Publicado", type: "select", value: row.activa === false ? "false" : "true" },
 	      { name: "portada", label: "Usar como foto de portada de esta categoría", type: "checkbox", value: row.portada ? "true" : "false" }
 	    ];
 	  }
@@ -3352,14 +3476,40 @@ function renderContactCalendar(apiData = {}) {
 	          <h3>Editar ${escapeHtml(typeLabel)}</h3>
 	          <form class="admin-edit-form">
 	            ${fields.map((field) => {
-	              if (field.type === "select") {
+	              if (field.type === "event-icon") {
+	                return `
+	                  <label><span>${escapeHtml(field.label)}</span><input type="text" name="${escapeHtml(field.name)}" value="${escapeHtml(field.value)}" placeholder="Elige un icono o escribe emoji/URL" /></label>
+	                  <div class="admin-event-icon-presets" aria-label="Iconos predeterminados"><span>Iconos predeterminados</span><div class="admin-event-icon-options" data-event-icon-picker="${escapeHtml(field.name)}">
+	                    ${ADMIN_EVENT_ICON_PRESETS.map(([value, label, iconClass]) => `<button type="button" data-event-icon="${escapeHtml(value)}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" class="${field.value === value ? "is-active" : ""}"><i class="fa-solid ${escapeHtml(iconClass)}"></i></button>`).join("")}
+	                  </div></div>
+	                `;
+	              }
+
+	              if (field.type === "select-options") {
 	                return `
 	                  <label>
 	                    <span>${escapeHtml(field.label)}</span>
 	                    <select name="${escapeHtml(field.name)}">
-	                      <option value="true" ${field.value === "true" ? "selected" : ""}>Visible</option>
-	                      <option value="false" ${field.value === "false" ? "selected" : ""}>Oculto</option>
+	                      ${(field.options || []).map(([value, label]) => `<option value="${escapeHtml(value)}" ${String(field.value) === String(value) ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}
 	                    </select>
+	                  </label>
+	                `;
+	              }
+
+	              // On/off fields render as a switch; a hidden input keeps the
+	              // "true"/"false" value the save code already expects.
+	              if (field.type === "select" || field.type === "switch") {
+	                const isOn = String(field.value) !== "false";
+	                const onLabel = field.onLabel || "Visible en la web";
+	                const offLabel = field.offLabel || "Oculto";
+	                return `
+	                  <label class="admin-switch-field">
+	                    <span class="admin-switch-field-copy">
+	                      <strong>${escapeHtml(field.label)}</strong>
+	                      <small data-switch-state data-on="${escapeHtml(onLabel)}" data-off="${escapeHtml(offLabel)}">${escapeHtml(isOn ? onLabel : offLabel)}</small>
+	                    </span>
+	                    <input type="checkbox" class="admin-switch-input" data-switch-for="${escapeHtml(field.name)}" ${isOn ? "checked" : ""} />
+	                    <input type="hidden" name="${escapeHtml(field.name)}" value="${isOn ? "true" : "false"}" />
 	                  </label>
 	                `;
 	              }
@@ -3458,6 +3608,13 @@ function renderContactCalendar(apiData = {}) {
 
 	      document.body.appendChild(modal);
 	      document.body.style.overflow = "hidden";
+	      modal.querySelectorAll("[data-event-icon]").forEach((button) => button.addEventListener("click", () => {
+	        const picker = button.closest("[data-event-icon-picker]") || button.closest(".admin-event-icon-presets");
+	        const fieldName = picker?.getAttribute("data-event-icon-picker") || "icono";
+	        const input = modal.querySelector(`input[name="${fieldName}"]`);
+	        if (input) { input.value = button.getAttribute("data-event-icon") || ""; input.dispatchEvent(new Event("input", { bubbles: true })); }
+	        picker?.querySelectorAll("[data-event-icon]").forEach((item) => item.classList.toggle("is-active", item === button));
+	      }));
 	      modal.querySelectorAll("[data-schedule-group]").forEach((group) => {
 	        const frequencySelect = group.querySelector("[data-schedule-frequency]");
 	        const daysContainer = group.querySelector("[data-schedule-days]");
@@ -3537,6 +3694,8 @@ function renderContactCalendar(apiData = {}) {
 	        titulo: values.titulo || "",
 	        horario: formatTimeForDisplay(values.horario),
 	        link: values.link || "",
+	        zona_horaria: values.zona_horaria || row.zona_horaria || "Europe/Luxembourg",
+	        notificar: values.notificar !== "false",
 	        orden: Number(values.orden || 1),
 	        activa: values.activa !== "false"
 	      });
@@ -3997,7 +4156,7 @@ function renderContactCalendar(apiData = {}) {
 	    };
 	  }
 
-	  function adminPermissionCheckboxes(access, { forceDisabled } = {}) {
+	  function adminPermissionCheckboxes(access, { forceDisabled, birthdayEditable } = {}) {
 	    const isSuperAdmin = Boolean(access?.is_super_admin);
 	    const permissions = Array.isArray(access?.permissions) ? access.permissions : [];
 	    const otherDisabled = forceDisabled || isSuperAdmin ? "disabled" : "";
@@ -4006,6 +4165,7 @@ function renderContactCalendar(apiData = {}) {
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="editor" ${permissions.includes("editor") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Editor de devocionales</label>
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer" ${permissions.includes("reviewer") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Revisor de devocionales</label>
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="read_export" ${permissions.includes("read_export") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Manager (exportar)</label>
+	      <label class="admin-permission-check"><input type="checkbox" data-permission="birthday_calendar" ${permissions.includes("birthday_calendar") ? "checked" : ""} ${birthdayEditable ? "" : superDisabled} /> Calendario de cumpleaños (aviso 2 días antes)</label>
 	      <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin" ${isSuperAdmin ? "checked" : ""} ${superDisabled} /> Super Admin</label>
 	    `;
 	  }
@@ -4016,6 +4176,8 @@ function renderContactCalendar(apiData = {}) {
 	    if (container.querySelector('[data-permission="editor"]')?.checked) permissions.push("editor");
 	    if (container.querySelector('[data-permission="reviewer"]')?.checked) permissions.push("reviewer");
 	    if (container.querySelector('[data-permission="read_export"]')?.checked) permissions.push("read_export");
+	    // Independent of Super Admin: decides who receives the 2-day birthday reminder.
+	    if (container.querySelector('[data-permission="birthday_calendar"]')?.checked) permissions.push("birthday_calendar");
 	    return { isSuperAdmin, permissions };
 	  }
 
@@ -4080,8 +4242,8 @@ function renderContactCalendar(apiData = {}) {
             <strong>${escapeHtml(entry.email || "Cuenta sin email")}</strong>
 	            <small>${isCurrentUser ? "Tu cuenta · Super Admin" : isRevoked ? "Acceso revocado" : "Cuenta autorizada"}</small>
 	          </div>
-	          <div class="admin-permission-group" data-role-user-id="${escapeHtml(entry.userId)}" aria-label="Permisos de ${escapeHtml(entry.email || "usuario")}">
-	            ${adminPermissionCheckboxes(access, { forceDisabled: isCurrentUser || isRevoked })}
+	          <div class="admin-permission-group" data-role-user-id="${escapeHtml(entry.userId)}" ${isCurrentUser ? 'data-self="true"' : ""} aria-label="Permisos de ${escapeHtml(entry.email || "usuario")}">
+	            ${adminPermissionCheckboxes(access, { forceDisabled: isCurrentUser || isRevoked, birthdayEditable: isCurrentUser && !isRevoked })}
 	          </div>
 	          <div class="admin-role-actions">
 	            <button type="button" class="admin-role-access-btn password-reset" data-password-reset data-role-user-id="${escapeHtml(entry.userId)}" data-role-user-email="${escapeHtml(entry.email || "")}">Cambiar contraseña</button>
@@ -4113,6 +4275,21 @@ function renderContactCalendar(apiData = {}) {
 	    const group = event.target.closest(".admin-permission-group");
 	    if (!group) return;
 	    const userId = group.dataset.roleUserId;
+	    if (group.dataset.self === "true") {
+	      if (checkbox.dataset.permission !== "birthday_calendar") return;
+	      const enabled = checkbox.checked;
+	      checkbox.disabled = true;
+	      try {
+	        await invokeManageUsers({ action: "set_my_birthday_calendar", enabled });
+	        showAdminToast("success", "Aviso de cumpleaños", enabled ? "Recibirás el aviso 2 días antes de cada cumpleaños." : "Ya no recibirás el aviso de cumpleaños.");
+	        await loadAdminRoles();
+	      } catch (error) {
+	        checkbox.checked = !enabled;
+	        checkbox.disabled = false;
+	        showAdminToast("error", "No se pudo actualizar", error?.message || "Intenta nuevamente.");
+	      }
+	      return;
+	    }
 	    const inputs = Array.from(group.querySelectorAll("[data-permission]"));
 	    const previousState = inputs.map((input) => ({ input, checked: input.checked, disabled: input.disabled }));
 	    inputs.forEach((input) => { input.disabled = true; });
@@ -4232,6 +4409,7 @@ function renderContactCalendar(apiData = {}) {
 	    let access;
 	    try {
 	      access = await getCurrentAdminRole();
+	      await window.McpSocialAuth?.authorizeReturnedUser(getAdminSupabaseClient(), access);
 	      const canEnterAdmin = access.is_super_admin || access.permissions.includes("editor") || access.permissions.includes("reviewer");
 	      if (!canEnterAdmin) {
 	        window.location.href = "dashboard.html";
@@ -4259,7 +4437,7 @@ function renderContactCalendar(apiData = {}) {
 	      window.initDevocionalesAdmin?.(access);
 	      return true;
 	    }
-	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access), window.initPromoBannerAdmin?.(access)]).catch((error) => {
+	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access), window.initPromoBannerAdmin?.(access), window.initRecipientsAdmin?.(access)]).catch((error) => {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
 	    });
@@ -4322,6 +4500,12 @@ function renderContactCalendar(apiData = {}) {
 	    if (!await validateAdminPassword()) return;
 	    await unlockAdminPanel();
 	  });
+
+	  const startAdminSocialLogin = (provider, button) => {
+	    window.McpSocialAuth?.signIn(getAdminSupabaseClient(), provider, button, (message) => showAdminMsg(adminLoginMsg, message, false));
+	  };
+	  adminLoginAppleBtn?.addEventListener("click", () => startAdminSocialLogin("apple", adminLoginAppleBtn));
+	  adminLoginGoogleBtn?.addEventListener("click", () => startAdminSocialLogin("google", adminLoginGoogleBtn));
 
 	  adminCancelBtn?.addEventListener("click", function () {
 	    window.location.href = "index.html";
@@ -4414,6 +4598,7 @@ function renderContactCalendar(apiData = {}) {
   if (adminLoginCard && adminDashboard) {
 	    hasPrivateAccessGranted().then(async (hasSession) => {
       if (!hasSession) {
+	        window.McpSocialAuth?.clearPending();
         adminAccessEmail?.focus();
         return;
       }
@@ -4536,6 +4721,14 @@ function renderContactCalendar(apiData = {}) {
   );
   function updateEventoIconoFileName() { eventoIconoPreview.clear(); }
 
+  document.querySelectorAll("#adminEventForm .admin-event-icon-options [data-event-icon]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const input = document.getElementById("adminEventoIcono");
+      if (input) input.value = button.getAttribute("data-event-icon") || "";
+      document.querySelectorAll("#adminEventForm .admin-event-icon-options [data-event-icon]").forEach((item) => item.classList.toggle("is-active", item === button));
+    });
+  });
+
   document.querySelectorAll("[data-evt-step]").forEach((button) => {
     button.addEventListener("click", () => {
       const ordenInput = document.getElementById("adminEventoOrden");
@@ -4569,7 +4762,9 @@ function renderContactCalendar(apiData = {}) {
         horario: getAdminEventScheduleFromForm(),
         link: document.getElementById("adminEventoLink")?.value || "",
         activa: document.getElementById("adminEventoActiva")?.checked !== false,
-        orden: document.getElementById("adminEventoOrden")?.value || 1
+        orden: document.getElementById("adminEventoOrden")?.value || 1,
+        zona_horaria: document.getElementById("adminEventoZona")?.value || "Europe/Luxembourg",
+        notificar: document.getElementById("adminEventoNotificar")?.checked !== false
 	      });
 
 	      this.reset();
