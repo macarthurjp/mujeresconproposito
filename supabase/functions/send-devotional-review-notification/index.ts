@@ -1,3 +1,4 @@
+import { infoTable, renderEmail } from "../_shared/email-layout.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
 import { escapeHtml, sendEmail } from "../_shared/email.ts";
@@ -89,45 +90,19 @@ Deno.serve(async (req) => {
             "",
             `Revísalo aquí: ${adminUrl}`,
           ].join("\n"),
-          html: `
-            <!doctype html>
-            <html lang="es">
-              <body style="margin:0;padding:0;background-color:#f8f4f3;color:#354052;font-family:Arial,Helvetica,sans-serif;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f8f4f3;">
-                  <tr>
-                    <td align="center" style="padding:38px 16px;">
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:640px;background:#ffffff;border:1px solid #ecd8d4;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(105,65,60,0.08);">
-                        <tr>
-                          <td align="center" style="padding:40px 32px 34px;background:linear-gradient(135deg,#fffaf8 0%,#fff4f2 100%);border-bottom:1px solid #f0ddda;">
-                            <div style="margin:0 0 14px;color:#ad7671;font-size:13px;font-weight:800;letter-spacing:3px;text-transform:uppercase;">Mujeres con Propósito</div>
-                            <h1 style="margin:0;color:#b55d5e;font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:1.2;">Nuevo devocional en revisión</h1>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding:32px 32px 36px;">
-                            <p style="margin:0 0 10px;color:#354052;font-size:16px;line-height:1.6;"><strong>${safeAutora}</strong> envió un devocional para tu revisión:</p>
-                            <p style="margin:0 0 26px;padding:16px 18px;background:#fff8f6;border:1px solid #efdcda;border-left:4px solid #e7a39a;border-radius:12px;color:#293241;font-size:17px;font-weight:800;">${safeTitulo}</p>
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
-                              <tr>
-                                <td align="center" bgcolor="#8f4547" style="border-radius:999px;">
-                                  <a href="${adminUrl}" target="_blank" style="display:inline-block;padding:15px 28px;color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;border-radius:999px;">Ir a revisarlo</a>
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td align="center" style="padding:20px 30px;background:#8f4547;color:#ffffff;">
-                            <p style="margin:0;font-size:13px;">Mujeres con Propósito · Flujo editorial</p>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
-              </body>
-            </html>
-          `,
+          html: renderEmail({
+            preheader: `${autora || "Una editora"} envió “${titulo}” a revisión.`,
+            eyebrow: "Flujo editorial",
+            title: "Nuevo devocional en revisión",
+            intro: `${autora || "Una editora"} envió un devocional para tu revisión.`,
+            body: infoTable([
+              { label: "Título", value: titulo, accent: true },
+              { label: "Autora", value: autora },
+            ]),
+            actions: [{ label: "Revisar devocional", url: adminUrl }],
+            footnote: "Ábrelo en el panel de administración, pestaña Devocionales.",
+            footer: "Aviso interno para revisoras",
+          }),
         })
       )
     );

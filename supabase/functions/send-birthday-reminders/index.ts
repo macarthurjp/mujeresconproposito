@@ -10,6 +10,7 @@
 // Body: {"scheduled": true}                     normal cron run
 //       {"dryRun": true, "today": "2026-11-14"} report only, sends nothing
 
+import { esc, infoTable, renderEmail, weekdayDateEs } from "../_shared/email-layout.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { addDaysISO, birthdayMatches, luxembourgHour, luxembourgTodayISO } from "../_shared/birthdays.ts";
 
@@ -54,8 +55,8 @@ function timingSafeEqual(a: string, b: string) {
 
 function formatLongDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
-  return new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" })
-    .format(new Date(Date.UTC(y, m - 1, d)));
+  void y; void m; void d;
+  return weekdayDateEs(iso);
 }
 
 function turningAge(birthISO: string, targetISO: string) {
@@ -88,37 +89,23 @@ function buildEmail(members: Member[], targetISO: string) {
     "Mujeres con Propósito",
   ].join("\n");
 
-  const htmlRows = rows.map(({ m, age, details, contact }) => `
-    <tr>
-      <td style="padding:16px 0;border-bottom:1px solid #f0ddda;">
-        <div style="font-size:17px;font-weight:700;color:#3f2623;">${escapeHtml(fullName(m))}${age ? ` <span style="font-weight:500;color:#a64b43;">· cumple ${age}</span>` : ""}</div>
-        ${details ? `<div style="margin-top:4px;font-size:14px;color:#6d5250;">${escapeHtml(details)}</div>` : ""}
-        ${contact ? `<div style="margin-top:4px;font-size:14px;color:#6d5250;">${escapeHtml(contact)}</div>` : ""}
-      </td>
-    </tr>`).join("");
+  const people = rows.map(({ m, age, details, contact }) => infoTable([
+    { label: "Nombre", value: `${esc(fullName(m))}${age ? ` <span style="color:#a64b43;">· cumple ${age}</span>` : ""}`, html: true },
+    { label: "Comunidad", value: details },
+    { label: "Contacto", value: contact },
+  ])).join("");
 
-  const html = `<!doctype html>
-<html lang="es">
-  <body style="margin:0;padding:0;background:#fff7f6;font-family:Arial,Helvetica,sans-serif;color:#3f2623;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#fff7f6;">
-      <tr><td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border:1px solid #f0ddda;border-radius:24px;">
-          <tr><td style="padding:32px 32px 8px;">
-            <div style="font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#a64b43;">Calendario de cumpleaños</div>
-            <h1 style="margin:10px 0 6px;font-family:Georgia,'Times New Roman',serif;font-weight:500;font-size:30px;line-height:1.15;color:#3f2623;">Cumpleaños en ${DAYS_AHEAD} días</h1>
-            <p style="margin:0;font-size:16px;color:#6d5250;text-transform:capitalize;">${escapeHtml(dateLabel)}</p>
-          </td></tr>
-          <tr><td style="padding:8px 32px 24px;">
-            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">${htmlRows}</table>
-          </td></tr>
-          <tr><td style="padding:18px 32px;background:#f9edea;border-radius:0 0 24px 24px;font-size:13px;color:#6d5250;">
-            Recibes este aviso porque tienes el permiso «Calendario de cumpleaños» en el panel de administración.
-          </td></tr>
-        </table>
-      </td></tr>
-    </table>
-  </body>
-</html>`;
+  const html = renderEmail({
+    preheader: members.length === 1
+      ? `${fullName(members[0])} cumple años el ${dateLabel}.`
+      : `${members.length} cumpleaños el ${dateLabel}.`,
+    eyebrow: "Calendario de cumpleaños",
+    title: `Cumpleaños en ${DAYS_AHEAD} días`,
+    intro: `El ${dateLabel}. Tienes tiempo para preparar una felicitación.`,
+    body: people,
+    footnote: "Recibes este aviso porque tienes el permiso «Calendario de cumpleaños» en el panel de administración.",
+    footer: "Aviso interno para el equipo",
+  });
 
   const subject = members.length === 1
     ? `🎂 En ${DAYS_AHEAD} días: cumpleaños de ${fullName(members[0])}`
