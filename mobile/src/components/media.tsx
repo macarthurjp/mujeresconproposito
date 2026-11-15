@@ -99,9 +99,9 @@ const m = StyleSheet.create({
   },
   poster: { borderRadius: 24, overflow: 'hidden', backgroundColor: C.card, boxShadow: cardShadow },
   posterMedia: { width: '100%', aspectRatio: 4 / 5, backgroundColor: C.sand },
-  posterBody: { paddingHorizontal: 16, paddingTop: 13, paddingBottom: 15, gap: 3 },
-  posterName: { fontFamily: sans, fontSize: 17, lineHeight: 22, fontWeight: '600', letterSpacing: -0.3, color: C.ink },
-  posterRole: { fontFamily: sans, fontSize: 13, lineHeight: 18, color: C.muted },
+  posterBody: { paddingHorizontal: 16, paddingTop: 13, paddingBottom: 15, gap: 3, alignItems: 'center' },
+  posterName: { fontFamily: sans, fontSize: 17, lineHeight: 22, fontWeight: '600', letterSpacing: -0.3, color: C.ink, textAlign: 'center' },
+  posterRole: { fontFamily: sans, fontSize: 13, lineHeight: 18, color: C.muted, textAlign: 'center' },
 });
 
 /**

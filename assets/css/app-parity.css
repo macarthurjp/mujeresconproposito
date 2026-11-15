@@ -328,3 +328,5 @@ html body.theme-premium[class] #invitees #inviteesTrack .card .invitee-title {
   font-size: 0.85rem !important; font-weight: 400 !important; color: var(--app-muted) !important; line-height: 1.35 !important;
 }
 html body.theme-premium[class] #invitees #inviteesTrack > .card { display: flex !important; flex-direction: column !important; align-items: stretch !important; }
+/* Poster captions centered (web + app PosterCard) */
+html body.theme-premium[class] #invitees #inviteesTrack .card :is(h3, .invitee-title) { text-align: center !important; }
