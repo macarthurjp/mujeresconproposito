@@ -8,7 +8,8 @@ const DYNAMIC_ISLAND_ENABLED_KEY = 'mcp930:dynamic-island-enabled';
 const ADMIN_REMEMBERED_EMAIL_KEY = 'mcp930:admin-remembered-email';
 export const ADMIN_REMEMBER_SESSION_KEY = 'mcp930:admin-remember-session';
 const ADMIN_BIOMETRIC_ENABLED_KEY = 'mcp930:admin-biometric-enabled';
-const ADMIN_BIOMETRIC_CREDENTIALS_KEY = 'mcp930:admin-biometric-credentials';
+// SecureStore keys may only contain letters, digits, '.', '-' and '_' (no ':').
+const ADMIN_BIOMETRIC_CREDENTIALS_KEY = 'mcp930.admin-biometric-credentials';
 
 // Credentials live in the iOS Keychain / Android Keystore, only on this device
 // and only while unlocked. Reading them is gated by a Face ID / fingerprint
