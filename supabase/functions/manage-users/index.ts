@@ -1,7 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
 
-const ASSIGNABLE_PERMISSIONS = new Set(["editor", "read_export", "reviewer", "birthday_calendar"]);
+// Module access now comes from roles (Roles y permisos). Only personal preferences remain here.
+const ASSIGNABLE_PERMISSIONS = new Set(["birthday_calendar"]);
+const RETIRED_PERMISSIONS = new Set(["editor", "read_export", "reviewer", "crud"]);
 
 function normalizeEmail(value: unknown) {
   return String(value || "").trim().toLowerCase();
@@ -12,7 +14,8 @@ function normalizeNombre(value: unknown) {
 }
 
 function parsePermissions(value: unknown): string[] | null {
-  const requested = Array.isArray(value) ? value : [];
+  // Older app/web versions may still send retired toggles: ignore them instead of failing.
+  const requested = (Array.isArray(value) ? value : []).filter((p) => !(typeof p === "string" && RETIRED_PERMISSIONS.has(p)));
   if (!requested.every((p) => typeof p === "string" && ASSIGNABLE_PERMISSIONS.has(p))) return null;
   return Array.from(new Set<string>(["read_only", ...requested]));
 }

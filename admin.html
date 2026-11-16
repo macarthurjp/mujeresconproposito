@@ -720,13 +720,11 @@
                 <input type="email" id="adminInviteEmail" placeholder="nombre@correo.com" autocomplete="off" required />
               </div>
               <div class="admin-field admin-permission-group">
-                <label>Permisos iniciales</label>
-                <label class="admin-permission-check"><input type="checkbox" data-permission="editor"> Editor de devocionales</label>
-                <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer"> Revisor de devocionales</label>
-                <label class="admin-permission-check"><input type="checkbox" data-permission="read_export"> Manager (exportar)</label>
+                <label>Opciones</label>
                 <label class="admin-permission-check"><input type="checkbox" data-permission="birthday_calendar"> Calendario de cumpleaños (aviso 2 días antes)</label>
                 <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin"> Super Admin</label>
               </div>
+              <p class="admin-help" style="margin:4px 0 12px;font-size:13px;color:var(--a-muted,#6d5250);">El acceso a los módulos se asigna con un rol en la app (Administración → Roles y permisos).</p>
               <button type="submit" class="btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> Crear usuario</button>
             </form>
           </div>
@@ -741,10 +739,6 @@
               <select id="adminRolesFilter">
                 <option value="all">Todos los roles</option>
                 <option value="super_admin">Super Admin</option>
-                <option value="editor">Editor de devocionales</option>
-                <option value="reviewer">Revisor de devocionales</option>
-                <option value="read_export">Manager</option>
-                <option value="read_only">Vista simple</option>
                 <option value="revoked">Acceso revocado</option>
               </select>
             </div>
@@ -860,7 +854,7 @@
   <script src="assets/js/login-polish.js?v=20261115-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
-  <script src="assets/js/main.js?v=20261116-ci-1"></script>
+  <script src="assets/js/main.js?v=20261117-roles-1"></script>
   <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
   <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
   <script src="assets/js/community-admin.js?v=20261116-1"></script>

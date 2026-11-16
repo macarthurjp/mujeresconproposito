@@ -77,12 +77,7 @@ export default function AdminHome() {
   if (!access) return <AdminLogin />;
 
   const name = access.nombre || access.email;
-  const roleLabel = access.isRevoked ? 'Acceso revocado' : access.isSuperAdmin ? 'Super Admin' : access.roleName ? access.roleName : [
-    access.permissions.includes('editor') ? 'Editora' : null,
-    access.permissions.includes('reviewer') ? 'Revisor editorial' : null,
-    access.permissions.includes('read_export') ? 'Manager' : null,
-    access.permissions.includes('birthday_calendar') ? 'Calendario de cumpleaños' : null,
-  ].filter(Boolean).join(' · ') || 'Sin rol asignado';
+  const roleLabel = access.isRevoked ? 'Acceso revocado' : access.isSuperAdmin ? 'Super Admin' : access.roleName || 'Sin rol asignado';
   const canEvents = canAdmin(access,'events','view');
   const canGallery = canAdmin(access,'gallery','view');
   const canContent = canAdmin(access,'content','view');
@@ -122,10 +117,10 @@ export default function AdminHome() {
             {canNotices ? <Row icon="paper-plane" tint="#d64545" label="Enviar aviso" sub={canAdmin(access,'notices','send') ? 'Enviar notificaciones' : 'Solo acceso de lectura'} onPress={() => router.push('/admin/avisos')} /> : null}
             {access.isSuperAdmin ? <Row icon="share-outline" label="Compartir formulario para unirse" onPress={shareJoin} /> : null}
           </Group> : null}
-          {canReadDashboard ? <Group header="Dashboard" footer={access.isSuperAdmin || access.permissions.includes('read_export') ? 'Filtros, exportación y métricas de registros.' : 'Resumen de registros en modo lectura.'}>
+          {canReadDashboard ? <Group header="Dashboard" footer={canAdmin(access,'dashboard','contacts') ? 'Filtros, exportación y métricas de registros.' : 'Resumen de registros en modo lectura.'}>
             <Row icon="stats-chart" tint="#8e8187" label="Registros y métricas" onPress={() => router.push('/admin/dashboard')} />
-            {access.isSuperAdmin || access.permissions.includes('read_export') ? <Row icon="people-circle" tint="#2f7d4f" label="Seguimiento de nuevas" sub="Nuevas, contactadas e integradas" onPress={() => router.push('/admin/seguimiento')} /> : null}
-            {access.isSuperAdmin || access.permissions.includes('read_export') ? <Row icon="analytics" tint="#2f6db5" label="Estadísticas" sub="Registros, lecturas, reuniones e inscripciones" onPress={() => router.push('/admin/estadisticas')} /> : null}
+            {canAdmin(access,'dashboard','followup') ? <Row icon="people-circle" tint="#2f7d4f" label="Seguimiento de nuevas" sub="Nuevas, contactadas e integradas" onPress={() => router.push('/admin/seguimiento')} /> : null}
+            {canAdmin(access,'dashboard','followup') ? <Row icon="analytics" tint="#2f6db5" label="Estadísticas" sub="Registros, lecturas, reuniones e inscripciones" onPress={() => router.push('/admin/estadisticas')} /> : null}
           </Group> : !canDevotionals && !canEvents && !canGallery && !canContent && !canNotices && !canReadDashboard ? <Group footer="Pide al Super Admin que te asigne un rol para acceder a los módulos."><Row icon="lock-closed" label="Todavía no tienes un rol asignado" chevron={false} /></Group> : null}
           {bioSupported ? <Group header="Seguridad" footer={bioOn ? `Entrarás al panel con ${bioLabel}, sin escribir tu contraseña. Solo en este iPhone.` : `Actívalo para entrar al panel con ${bioLabel} en este dispositivo.`}>
             <SwitchRow icon="finger-print" tint="#34a853" label={`Entrar con ${bioLabel}`} value={bioOn} disabled={busy} onValueChange={toggleBiometrics} />

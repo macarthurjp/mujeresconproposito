@@ -6,6 +6,7 @@ import { Group, Row } from '@/components/form';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { canAdmin } from '@/lib/admin';
 import { useAdmin } from '@/lib/use-admin';
 
 type Estado = 'nueva' | 'contactada' | 'integrada' | 'sin_respuesta';
@@ -95,7 +96,7 @@ export default function Seguimiento() {
   const [tab, setTab] = useState<Estado>('nueva');
   const [open, setOpen] = useState<Persona | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const allowed = !!access && !access.isRevoked && (access.isSuperAdmin || access.permissions.includes('read_export'));
+  const allowed = canAdmin(access, 'dashboard', 'followup');
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('unirse')

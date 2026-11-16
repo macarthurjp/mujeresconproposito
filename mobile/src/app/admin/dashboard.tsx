@@ -113,7 +113,7 @@ export default function AdminDashboard() {
     if (!canAdmin(access,'dashboard','view')) return;
     setLoading(true);
     try {
-      const canReadPrivate = access?.isSuperAdmin || access?.permissions.includes('read_export');
+      const canReadPrivate = canAdmin(access,'dashboard','contacts');
       const result = canReadPrivate
         ? await supabase.from('unirse').select('*').order('created_at', { ascending: false }).range(0, 9999)
         : await supabase.rpc('admin_dashboard_members');
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
   if (access.isRevoked) return <View style={s.page}><Group footer="Contacta a la administración si crees que es un error."><Row icon="ban" label="Acceso revocado" chevron={false} /></Group></View>;
   if (!canAdmin(access,'dashboard','view')) return <View style={s.page}><Group><Row icon="lock-closed" label="Tu cuenta no tiene acceso al dashboard." chevron={false} /></Group></View>;
 
-  const canExport = access.isSuperAdmin || access.permissions.includes('read_export');
+  const canExport = canAdmin(access,'dashboard','contacts');
   const canReadPrivate = canExport;
   const canManageRecords = access.isSuperAdmin;
   const openMember = (member: Member) => {

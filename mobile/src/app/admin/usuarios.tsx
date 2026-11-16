@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack } from 'expo-router';
+import { router, Stack, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -9,37 +9,34 @@ import { C, sans } from '@/constants/theme';
 import { AdminLogin } from '@/components/admin-login';
 import { useAdmin } from '@/lib/use-admin';
 import {
-  changeMyAdminEmail, inviteUser, listUsers, PERMISSIONS, resetUserPassword, restoreUser, revokeUser,
+  changeMyAdminEmail, inviteUser, listAdminRoleAssignments, listUsers, PERMISSIONS, resetUserPassword, restoreUser, revokeUser,
   setMyBirthdayCalendar, setUserRole, type ManagedUser,
 } from '@/lib/admin';
 
-type GroupKey = 'super' | 'editorial' | 'dashboard' | 'none' | 'revoked';
+type GroupKey = 'super' | 'team' | 'none' | 'revoked';
 const GROUPS: { key: GroupKey; label: string; hint: string; color: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'super', label: 'Super Admin', hint: 'Acceso total', color: C.wine, icon: 'shield-checkmark' },
-  { key: 'editorial', label: 'Equipo editorial', hint: 'Devocionales', color: '#6b5b95', icon: 'book' },
-  { key: 'dashboard', label: 'Dashboard', hint: 'Registros', color: '#2f6db5', icon: 'stats-chart' },
-  { key: 'none', label: 'Sin permisos', hint: 'Solo avisos', color: '#8e8187', icon: 'person' },
+  { key: 'team', label: 'Con rol', hint: 'Acceso según su rol', color: '#2f6db5', icon: 'people' },
+  { key: 'none', label: 'Sin rol', hint: 'Pendiente de asignar', color: '#8e8187', icon: 'person' },
   { key: 'revoked', label: 'Acceso revocado', hint: 'No pueden entrar', color: '#b5523b', icon: 'ban' },
 ];
 function groupOf(u: ManagedUser): GroupKey {
   if (u.isRevoked) return 'revoked';
   if (u.isSuperAdmin) return 'super';
-  if (u.permissions.includes('editor') || u.permissions.includes('reviewer')) return 'editorial';
-  if (u.permissions.includes('read_export') || u.permissions.includes('read_only')) return 'dashboard';
-  return 'none';
+  return u.roleName ? 'team' : 'none';
 }
-const CHIP_LABEL: Record<string, string> = { editor: 'Editora', reviewer: 'Revisora', read_export: 'Manager', read_only: 'Vista simple', birthday_calendar: '🎂 Cumpleaños' };
 function chipsOf(u: ManagedUser) {
   if (u.isRevoked) return ['Revocado'];
-  const list = u.isSuperAdmin ? ['Super Admin'] : [];
-  const order = ['editor', 'reviewer', 'read_export', 'read_only', 'birthday_calendar'];
-  for (const key of order) {
-    if (!u.permissions.includes(key)) continue;
-    if (u.isSuperAdmin && key !== 'birthday_calendar') continue;
-    if (key === 'read_only' && u.permissions.includes('read_export')) continue;
-    list.push(CHIP_LABEL[key]);
-  }
-  return list.length ? list : ['Sin permisos'];
+  const list = [u.isSuperAdmin ? 'Super Admin' : u.roleName ? `Rol: ${u.roleName}` : 'Sin rol'];
+  if (u.permissions.includes('birthday_calendar')) list.push('🎂 Cumpleaños');
+  return list;
+}
+/** Users enriched with the name of their assigned role. */
+async function loadUsersWithRoles() {
+  const [list, assignments] = await Promise.all([listUsers(), listAdminRoleAssignments().catch(() => [])]);
+  const names = new Map((assignments as { user_id: string; admin_roles?: { name?: string } | { name?: string }[] | null }[])
+    .map((a) => [a.user_id, (Array.isArray(a.admin_roles) ? a.admin_roles[0]?.name : a.admin_roles?.name) ?? null]));
+  return list.map((u) => ({ ...u, roleName: names.get(u.userId) ?? null }));
 }
 const initialsOf = (u: ManagedUser) => (u.nombre || u.email).split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 
@@ -105,7 +102,10 @@ function UserSheet({ user, onClose, onChanged }: { user: ManagedUser; onClose: (
             <Text style={s.userMail}>{user.email}{self ? ' · Tu cuenta' : ''}</Text>
           </View>
 
-          <Group header="Permisos" footer={self ? 'Tu rol está protegido para que no pierdas el acceso. Solo puedes activar el aviso de cumpleaños.' : 'Los cambios se aplican al instante.'}>
+          {!self && !superAdmin ? <Group header="Acceso a módulos" footer="Qué puede ver y hacer en el panel se define con su rol.">
+            <Row icon="shield-checkmark" tint="#6b5b95" label={user.roleName ? `Rol: ${user.roleName}` : 'Sin rol asignado'} sub="Asignar o cambiar en Roles y permisos" onPress={() => router.push('/admin/roles' as Href)} />
+          </Group> : null}
+          <Group header="Preferencias" footer={self ? 'Tu cuenta está protegida para que no pierdas el acceso.' : 'Los cambios se aplican al instante.'}>
             {PERMISSIONS.map((p) => (
               <SwitchRow
                 key={p.key}
@@ -200,7 +200,7 @@ function InviteSheet({ onClose, onDone }: { onClose: () => void; onDone: () => v
             <InputRow label="Nombre" value={nombre} onChangeText={setNombre} placeholder="Nombre y apellido" />
             <InputRow label="Correo" value={email} onChangeText={setEmail} placeholder="nombre@correo.com" keyboardType="email-address" autoCapitalize="none" />
           </Group>
-          <Group header="Permisos iniciales" footer="Recibirá un correo para crear su contraseña.">
+          <Group header="Opciones" footer="Recibirá un correo para crear su contraseña. Después, asígnale un rol en Roles y permisos para darle acceso a los módulos.">
             {PERMISSIONS.map((p) => (
               <SwitchRow key={p.key} label={p.label} sub={p.hint} value={perms.includes(p.key)} disabled={superAdmin && p.key !== 'birthday_calendar'}
                 onValueChange={(v) => setPerms((cur) => (v ? [...cur, p.key] : cur.filter((x) => x !== p.key)))} />
@@ -224,14 +224,14 @@ export default function AdminUsuarios() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setUsers(await listUsers()); }
+    try { setUsers(await loadUsersWithRoles()); }
     catch (e) { Alert.alert('No se pudieron cargar', e instanceof Error ? e.message : ''); setUsers([]); }
     finally { setLoading(false); }
   }, []);
   useEffect(() => {
     if (!ready || !access || access.isRevoked || !access.isSuperAdmin) return;
     let alive = true;
-    listUsers()
+    loadUsersWithRoles()
       .then((list) => { if (alive) setUsers(list); })
       .catch((e) => { if (alive) { setUsers([]); Alert.alert('No se pudieron cargar', e instanceof Error ? e.message : ''); } });
     return () => { alive = false; };

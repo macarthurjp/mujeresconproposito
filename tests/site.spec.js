@@ -145,8 +145,11 @@ test("admin includes the devotional editorial workspace", async ({ page }) => {
   await expect(page.locator('[data-dev-save="draft"]')).toHaveCount(1);
   await expect(page.locator('[data-dev-save="submit"]')).toHaveCount(1);
   await expect(page.locator('[data-dev-save="publish"]')).toHaveCount(1);
-  await expect(page.locator('.admin-invite-form label:has(input[data-permission="editor"])')).toContainText("Editor de devocionales");
-  await expect(page.locator('.admin-invite-form label:has(input[data-permission="reviewer"])')).toContainText("Revisor de devocionales");
+  // Module access comes from roles now: the retired per-user toggles must be gone.
+  await expect(page.locator('.admin-invite-form input[data-permission="editor"]')).toHaveCount(0);
+  await expect(page.locator('.admin-invite-form input[data-permission="reviewer"]')).toHaveCount(0);
+  await expect(page.locator('.admin-invite-form input[data-permission="read_export"]')).toHaveCount(0);
+  await expect(page.locator('.admin-invite-form')).toContainText("Roles y permisos");
   await expect(page.locator("#adminDevocionalVersiculo")).toHaveCount(1);
   await expect(page.locator(".admin-rich-editor")).toHaveCount(2);
   await expect(page.locator('input[name="devCategoria"]')).toHaveCount(7);

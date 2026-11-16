@@ -4204,12 +4204,8 @@ function renderContactCalendar(apiData = {}) {
 	  function adminPermissionCheckboxes(access, { forceDisabled, birthdayEditable } = {}) {
 	    const isSuperAdmin = Boolean(access?.is_super_admin);
 	    const permissions = Array.isArray(access?.permissions) ? access.permissions : [];
-	    const otherDisabled = forceDisabled || isSuperAdmin ? "disabled" : "";
 	    const superDisabled = forceDisabled ? "disabled" : "";
 	    return `
-	      <label class="admin-permission-check"><input type="checkbox" data-permission="editor" ${permissions.includes("editor") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Editor de devocionales</label>
-	      <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer" ${permissions.includes("reviewer") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Revisor de devocionales</label>
-	      <label class="admin-permission-check"><input type="checkbox" data-permission="read_export" ${permissions.includes("read_export") && !isSuperAdmin ? "checked" : ""} ${otherDisabled} /> Manager (exportar)</label>
 	      <label class="admin-permission-check"><input type="checkbox" data-permission="birthday_calendar" ${permissions.includes("birthday_calendar") ? "checked" : ""} ${birthdayEditable ? "" : superDisabled} /> Calendario de cumpleaños (aviso 2 días antes)</label>
 	      <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin" ${isSuperAdmin ? "checked" : ""} ${superDisabled} /> Super Admin</label>
 	    `;
@@ -4218,9 +4214,6 @@ function renderContactCalendar(apiData = {}) {
 	  function readPermissionCheckboxes(container) {
 	    const isSuperAdmin = Boolean(container.querySelector('[data-permission="super_admin"]')?.checked);
 	    const permissions = [];
-	    if (container.querySelector('[data-permission="editor"]')?.checked) permissions.push("editor");
-	    if (container.querySelector('[data-permission="reviewer"]')?.checked) permissions.push("reviewer");
-	    if (container.querySelector('[data-permission="read_export"]')?.checked) permissions.push("read_export");
 	    // Independent of Super Admin: decides who receives the 2-day birthday reminder.
 	    if (container.querySelector('[data-permission="birthday_calendar"]')?.checked) permissions.push("birthday_calendar");
 	    return { isSuperAdmin, permissions };

@@ -60,6 +60,7 @@ def setup():
     users = ",".join(f"('{v}','{k.lower()}@test.local')" for k, v in U.items() if k not in ("NOAUTH",))
     seed = subprocess.run(PSQL + ["-q", "-v", "ON_ERROR_STOP=1"], input=f"""
       set session_replication_role = replica;  -- seed only: skip triggers
+      create table if not exists public.push_tokens (token text primary key, activo boolean not null default true, comunidad text);  -- not in the mirror
       insert into auth.users(id,email) values {users};
       insert into public.user_roles(user_id,email,nombre,is_super_admin,permissions,is_revoked) values
         ('{U['SA']}','sa@test.local','SA',true,'{{read_only}}',false),
@@ -67,7 +68,7 @@ def setup():
         ('{U['MGR_B']}','mgr_b@test.local','B',false,'{{read_only}}',false),
         ('{U['EDT']}','edt@test.local','E',false,'{{read_only}}',false),
         ('{U['VWR']}','vwr@test.local','V',false,'{{read_only}}',false),
-        ('{U['LEG']}','leg@test.local','L',false,'{{read_only}}',false),
+        ('{U['LEG']}','leg@test.local','L',false,'{{read_only,editor}}',false),
         ('{U['RX']}','rx@test.local','X',false,'{{read_only,read_export}}',false),
         ('{U['REV']}','rev@test.local','R',false,'{{read_only}}',false),
         ('{U['EDT_EVENTS']}','edt_events@test.local','EE',false,'{{read_only}}',false),
@@ -244,6 +245,37 @@ def main():
           f"select public.admin_user_has_permission('{U['VWR']}','notices','send');", None, "service_role", must_contain="f")
     check("viewer", "Manager no se ve afectado (sigue creando)", True,
           "select public.has_admin_module_permission('events','create');", "MGR_A", must_contain="t")
+
+    # --- Permisos unificados (sin interruptores antiguos) ----------------------------------
+    sa_claims = '{"sub":"%s","role":"authenticated"}' % U['SA']
+    mgr_claims = '{"sub":"%s","role":"authenticated"}' % U['MGR_A']
+    check("unificado", "Manager con solo 'ver dashboard' no ve correos (RPC)", True,
+          "select count(email) from public.admin_dashboard_members();", "MGR_A", must_contain="0")
+    check("unificado", "Manager con solo 'ver dashboard' no lee la tabla de registros", True,
+          "select count(*) from public.unirse;", "MGR_A", must_contain="0")
+    check("unificado", "Con 'Ver contactos y exportar' sí ve correos", True, f"""
+      select set_config('request.jwt.claims', '{sa_claims}', true);
+      select public.admin_save_user_overrides('{U['MGR_A']}', '{{"dashboard.contacts":true}}'::jsonb);
+      select set_config('request.jwt.claims', '{mgr_claims}', true);
+      select 'correos=' || count(email) from public.admin_dashboard_members();""", "MGR_A", must_contain="correos=1")
+    check("unificado", "Sin 'Seguimiento' no actualiza el seguimiento", False,
+          "select public.set_member_followup('22222222-2222-2222-2222-222222222222','contactada','x','');", "MGR_A")
+    check("unificado", "Con 'Seguimiento y estadísticas' sí actualiza y ve estadísticas", True, f"""
+      select set_config('request.jwt.claims', '{sa_claims}', true);
+      select public.admin_save_user_overrides('{U['MGR_A']}', '{{"dashboard.followup":true}}'::jsonb);
+      select set_config('request.jwt.claims', '{mgr_claims}', true);
+      select public.set_member_followup('22222222-2222-2222-2222-222222222222','contactada','x','');
+      select 'stats=' || (public.estadisticas_panel()->>'miembros_total');""", "MGR_A", must_contain="stats=1")
+    check("unificado", "El Viewer no puede tener 'Ver contactos'", False,
+          f"select public.admin_save_role_permissions('{R['Viewer']}', array['dashboard.view','dashboard.contacts']::text[]);", "SA")
+    check("unificado", "Interruptor antiguo 'editor' sin rol ya no da acceso", True,
+          "select public.has_admin_module_permission('devotionals','create');", "LEG", must_contain="f")
+    check("unificado", "Avisos de revisión: destinatarios = Super Admin + quien puede publicar", True, f"""
+      select set_config('request.jwt.claims', '{sa_claims}', true);
+      select public.admin_save_user_overrides('{U['EDT']}', '{{"devotionals.publish":true}}'::jsonb);
+      select set_config('request.jwt.claims', '{{"role":"service_role"}}', true);
+      select string_agg(email, ',' order by email) from public.admin_users_with_permission('devotionals','publish');""",
+          None, "service_role", must_contain="edt@test.local,sa@test.local")
 
     # --- Hardening ------------------------------------------------------------------------
     check("hardening", "No se asigna rol a cuenta no autorizada (sin invitación)", False,

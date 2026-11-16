@@ -16,7 +16,7 @@ import { useAdmin } from '@/lib/use-admin';
 type Assignment = { user_id: string; role_id: string; assigned_at: string };
 
 const actionOf = (key: string) => key.split('.')[1];
-const SENSITIVE = new Set(['delete', 'publish', 'send']);
+const SENSITIVE = new Set(['delete', 'publish', 'send', 'contacts', 'followup']);
 const PRESETS: { key: string; label: string; actions: string[] | null; viewOnlyOk: boolean }[] = [
   { key: 'none', label: 'Nada', actions: [], viewOnlyOk: true },
   { key: 'read', label: 'Solo lectura', actions: ['view'], viewOnlyOk: true },
