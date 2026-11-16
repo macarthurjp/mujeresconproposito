@@ -74,13 +74,15 @@ export default function Avisos() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
-        <Text style={s.intro}>Envía una notificación al teléfono de la comunidad. Úsalo para avisos importantes: cambios de horario, eventos especiales o mensajes urgentes.</Text>
+        {canSend ? <Text style={s.intro}>Envía una notificación al teléfono de la comunidad. Úsalo para avisos importantes: cambios de horario, eventos especiales o mensajes urgentes.</Text>
+          : <Group footer="Puedes consultar los avisos enviados. Para enviar avisos necesitas el permiso «Enviar avisos»."><Row icon="eye-outline" label="Acceso de solo lectura" chevron={false} /></Group>}
 
-        {!canSend ? <Group footer="El permiso de envío es independiente del acceso de lectura."><Row icon="eye-outline" label="Acceso de lectura" chevron={false} /></Group> : null}
+        {canSend ? <>
+
         <Text style={s.label}>Para</Text>
         <View style={s.targets}>
           {TARGETS.map((t) => (
-            <Pressable key={t.value} disabled={!canSend} onPress={() => { tapFeedback(); setTarget(t.value); }} style={[s.target, target === t.value && s.targetOn, !canSend && { opacity: 0.65 }]}>
+            <Pressable key={t.value} onPress={() => { tapFeedback(); setTarget(t.value); }} style={[s.target, target === t.value && s.targetOn]}>
               <Text style={[s.targetText, target === t.value && { color: '#fff' }]}>{t.label}</Text>
             </Pressable>
           ))}
@@ -88,9 +90,9 @@ export default function Avisos() {
         <Text style={s.reach}>{reach === null ? 'Calculando destinatarios…' : `${reach} ${reach === 1 ? 'dispositivo recibirá' : 'dispositivos recibirán'} el aviso`}{target ? ' (personas que eligieron esta comunidad en la app)' : ''}</Text>
 
         <Text style={s.label}>Título</Text>
-        <TextInput value={titulo} onChangeText={setTitulo} editable={canSend} maxLength={80} placeholder="Ej. Cambio de horario hoy" placeholderTextColor="#a58e88" style={s.input} />
+        <TextInput value={titulo} onChangeText={setTitulo} maxLength={80} placeholder="Ej. Cambio de horario hoy" placeholderTextColor="#a58e88" style={s.input} />
         <Text style={s.label}>Mensaje</Text>
-        <TextInput value={mensaje} onChangeText={setMensaje} editable={canSend} maxLength={240} multiline placeholder="Ej. La oración de esta noche empieza a las 20:30." placeholderTextColor="#a58e88" style={[s.input, { minHeight: 100 }]} textAlignVertical="top" />
+        <TextInput value={mensaje} onChangeText={setMensaje} maxLength={240} multiline placeholder="Ej. La oración de esta noche empieza a las 20:30." placeholderTextColor="#a58e88" style={[s.input, { minHeight: 100 }]} textAlignVertical="top" />
         <Text style={s.counter}>{mensaje.length}/240</Text>
 
         <View style={s.preview}>
@@ -102,9 +104,10 @@ export default function Avisos() {
           </View>
         </View>
 
-        {canSend ? <Pressable accessibilityRole="button" disabled={busy} onPress={send} style={({ pressed }) => [s.send, (busy || pressed) && { opacity: 0.85 }]}>
+        <Pressable accessibilityRole="button" disabled={busy} onPress={send} style={({ pressed }) => [s.send, (busy || pressed) && { opacity: 0.85 }]}>
           {busy ? <ActivityIndicator color="#fff" /> : <><Ionicons name="paper-plane" size={18} color="#fff" /><Text style={s.sendText}>Enviar aviso</Text></>}
-        </Pressable> : null}
+        </Pressable>
+        </> : null}
 
         {history.length ? (
           <Group header="Enviados recientemente">
@@ -113,7 +116,7 @@ export default function Avisos() {
                 sub={`${new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(h.created_at)).replace('.', '')} · ${h.comunidad || 'Todas'} · ${h.enviados} entregados`} chevron={false} />
             ))}
           </Group>
-        ) : null}
+        ) : !canSend ? <Text style={s.reach}>Todavía no se han enviado avisos.</Text> : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );

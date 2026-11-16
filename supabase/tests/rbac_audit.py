@@ -133,9 +133,13 @@ def main():
         check("superadmin", f"{u} INSERT directo en role_permissions bloqueado", False,
               f"insert into public.admin_role_permissions(role_id,permission_key) values ('{R['Viewer']}','events.delete');", u)
         check("superadmin", f"{u} no ve asignaciones ajenas", True,
-              "select count(*) from public.admin_role_assignments;", u, must_contain="0")
+              "select count(*) from public.admin_role_assignments where user_id <> auth.uid();", u, must_contain="0")
+        check("superadmin", f"{u} no ve roles ajenos", True,
+              "select count(*) from public.admin_roles r where not exists (select 1 from public.admin_role_assignments a where a.role_id=r.id and a.user_id=auth.uid());", u, must_contain="0")
         check("superadmin", f"{u} no puede hacerse super admin (0 filas)", True,
               f"with x as (update public.user_roles set is_super_admin=true where user_id='{U[u]}' returning 1) select count(*) from x;", u, must_contain="0")
+    check("superadmin", "Manager lee el nombre de su propio rol", True,
+          "select r.name from public.admin_role_assignments a join public.admin_roles r on r.id=a.role_id where a.user_id=auth.uid();", "MGR_A", must_contain="Manager")
     check("superadmin", "SA crea rol personalizado", True, "select public.admin_save_role('Coordinadora','Prueba');", "SA")
     check("superadmin", "SA no puede editar sus propias excepciones", False,
           f"""select public.admin_save_user_overrides('{U['SA']}','{{}}'::jsonb);""", "SA")

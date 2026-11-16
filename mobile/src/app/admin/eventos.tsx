@@ -183,7 +183,9 @@ export default function AdminEventos() {
             </View>
           );
         })}
-        {items?.length ? <Text style={s.hint}>Toca una reunión para editarla. Desliza para editar o eliminar y mantén pulsado para ordenar. El interruptor la muestra u oculta en la web y la app.</Text> : null}
+        {items?.length ? <Text style={s.hint}>{canAdmin(access,'events','edit')
+          ? 'Toca una reunión para editarla. Desliza para editar o eliminar y mantén pulsado para ordenar. El interruptor la muestra u oculta en la web y la app.'
+          : 'Tienes acceso de solo lectura a las reuniones.'}</Text> : null}
       </ScrollView>
     </>
   );

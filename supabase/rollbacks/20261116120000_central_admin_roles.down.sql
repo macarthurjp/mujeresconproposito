@@ -242,6 +242,7 @@ drop function if exists public.admin_save_role(text,text,uuid);
 drop function if exists public.admin_current_module_permissions();
 drop function if exists public.admin_user_has_permission(uuid,text,text);
 drop function if exists public.has_admin_module_permission(text,text);
+drop policy if exists "users read own role" on public.admin_roles;
 drop table if exists public.admin_user_permission_overrides;
 drop table if exists public.admin_role_assignments;
 drop table if exists public.admin_role_permissions;

@@ -76,6 +76,13 @@ create policy "super admins manage admin role permissions" on public.admin_role_
 drop policy if exists "super admins manage admin role assignments" on public.admin_role_assignments;
 create policy "super admins manage admin role assignments" on public.admin_role_assignments for all to authenticated
   using (public.is_super_admin()) with check (public.is_super_admin());
+-- A person can read their own assignment and the name of their own role (to show it in their panel).
+drop policy if exists "users read own role assignment" on public.admin_role_assignments;
+create policy "users read own role assignment" on public.admin_role_assignments for select to authenticated
+  using (user_id = auth.uid());
+drop policy if exists "users read own role" on public.admin_roles;
+create policy "users read own role" on public.admin_roles for select to authenticated
+  using (exists (select 1 from public.admin_role_assignments a where a.role_id = admin_roles.id and a.user_id = auth.uid()));
 drop policy if exists "super admins manage admin permission overrides" on public.admin_user_permission_overrides;
 create policy "super admins manage admin permission overrides" on public.admin_user_permission_overrides for all to authenticated
   using (public.is_super_admin()) with check (public.is_super_admin());

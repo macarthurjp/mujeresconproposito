@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
 
 // ---------- Access ----------
-export type Access = { isSuperAdmin: boolean; permissions: string[]; modulePermissions: string[]; isRevoked: boolean; nombre: string; email: string };
+export type Access = { isSuperAdmin: boolean; permissions: string[]; modulePermissions: string[]; roleName: string | null; isRevoked: boolean; nombre: string; email: string };
 
 export async function getAccess(): Promise<Access | null> {
   const { data: userData } = await supabase.auth.getUser();
@@ -29,10 +29,17 @@ export async function getAccess(): Promise<Access | null> {
     if (legacyPermissions.includes('reviewer')) modulePermissions.push('devotionals.view','devotionals.edit','devotionals.publish');
     if (legacyPermissions.includes('read_only') || legacyPermissions.includes('read_export')) modulePermissions.push('dashboard.view');
   }
+  let roleName: string | null = null;
+  if (!isSuperAdmin) {
+    const { data: assignment } = await supabase.from('admin_role_assignments').select('admin_roles(name)').eq('user_id', user.id).maybeSingle();
+    const role = (assignment as { admin_roles?: { name?: string } | { name?: string }[] } | null)?.admin_roles;
+    roleName = (Array.isArray(role) ? role[0]?.name : role?.name) ?? null;
+  }
   return {
     isSuperAdmin,
     permissions: legacyPermissions,
     modulePermissions,
+    roleName,
     isRevoked: Boolean(data?.is_revoked),
     nombre: String(data?.nombre || '').trim(),
     email: user.email ?? '',

@@ -77,7 +77,7 @@ export default function AdminHome() {
   if (!access) return <AdminLogin />;
 
   const name = access.nombre || access.email;
-  const roleLabel = access.isRevoked ? 'Acceso revocado' : access.isSuperAdmin ? 'Super Admin' : [
+  const roleLabel = access.isRevoked ? 'Acceso revocado' : access.isSuperAdmin ? 'Super Admin' : access.roleName ? access.roleName : [
     access.permissions.includes('editor') ? 'Editora' : null,
     access.permissions.includes('reviewer') ? 'Revisor editorial' : null,
     access.permissions.includes('read_export') ? 'Manager' : null,
