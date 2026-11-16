@@ -257,7 +257,7 @@ html body.theme-premium[class] :is(#donate, #oracion, #donateModal) .give-quote 
 html body.theme-premium[class] :is(#donate, #oracion, #donateModal) .give-quote p { margin: 0 !important; font-family: var(--app-serif) !important; font-style: italic !important; font-size: 1.25rem !important; line-height: 1.3 !important; color: var(--app-ink) !important; }
 :is(#donate, #oracion, #donateModal) .give-quote cite { display: block; margin-top: 6px; font-style: normal; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--app-wine); }
 :is(#donate, #oracion, #donateModal) .give-ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-:is(#donate, #oracion, #donateModal) .give-way { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.75); color: var(--app-ink); font: 600 0.78rem var(--app-sans); cursor: pointer; }
+:is(#donate, #oracion, #donateModal) .give-way { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; line-height: 1.25; min-width: 0; gap: 6px; padding: 12px 8px; border: 0; border-radius: 14px; background: rgba(255, 255, 255, 0.75); color: var(--app-ink); font: 600 0.78rem var(--app-sans); cursor: pointer; }
 :is(#donate, #oracion, #donateModal) .give-way i { font-size: 20px; color: var(--app-wine); }
 :is(#donate, #oracion, #donateModal) .give-way:hover { background: #fff; }
 html body.theme-premium[class] :is(#donate, #oracion) .give-cta { width: 100%; min-height: 52px; justify-content: center; gap: 8px; }
