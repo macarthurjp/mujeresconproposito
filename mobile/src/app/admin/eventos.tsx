@@ -6,7 +6,7 @@ import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleS
 import { tapFeedback } from '@/components/ui';
 import { AdminLogin } from '@/components/admin-login';
 import { C, sans } from '@/constants/theme';
-import { deleteEvento, listEventos, setEventoActiva, setEventoOrden, type AdminEvento } from '@/lib/admin';
+import { canAdmin, deleteEvento, listEventos, setEventoActiva, setEventoOrden, type AdminEvento } from '@/lib/admin';
 import { meetingPlatform , EventArtwork } from '@/components/meeting-card';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
 import { useAdmin } from '@/lib/use-admin';
@@ -45,7 +45,7 @@ export default function AdminEventos() {
 
   // Reload whenever we come back from the editor.
   useFocusEffect(useCallback(() => {
-    if (access?.isSuperAdmin && !access.isRevoked) void load();
+    if (canAdmin(access,'events','view')) void load();
   }, [access, load]));
 
   const toggle = async (item: AdminEvento, activa: boolean) => {
@@ -83,17 +83,17 @@ export default function AdminEventos() {
 
   if (!ready) return <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} />;
   if (!access) return <AdminLogin />;
-  if (access.isRevoked || !access.isSuperAdmin) return <View style={s.page}><Text style={s.hint}>Solo Super Admin puede administrar reuniones.</Text></View>;
+  if (!canAdmin(access,'events','view')) return <View style={s.page}><Text style={s.hint}>Tu cuenta no tiene acceso a eventos y reuniones.</Text></View>;
 
   return (
     <>
       <Stack.Screen
         options={{
-          headerRight: () => (
+          headerRight: () => canAdmin(access,'events','create') ? (
             <Pressable accessibilityLabel="Nuevo evento" hitSlop={10} onPress={() => { tapFeedback(); router.push('/admin/evento'); }}>
               <Ionicons name="add-circle" size={28} color={C.wine} style={{ marginHorizontal: 8 }} />
             </Pressable>
-          ),
+          ) : null,
         }}
       />
       <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={loading && !!items} onRefresh={load} tintColor={C.wine} />}>
@@ -138,8 +138,8 @@ export default function AdminEventos() {
                     <View key={item.id}>
                       <View style={s.rowWrap}>
                         <View style={s.rowSwipe}>
-                        <AdminGestureRow onEdit={open} onDelete={() => remove(item)} onReorder={(steps) => void move(item, steps)} stepHeight={ROW_HEIGHT}>
-                          <Pressable onPress={open} style={({ pressed }) => [s.row, pressed && s.rowPressed]}>
+                        <AdminGestureRow onEdit={canAdmin(access,'events','edit') ? open : undefined} onDelete={canAdmin(access,'events','delete') ? () => remove(item) : undefined} onReorder={canAdmin(access,'events','edit') ? (steps) => void move(item, steps) : undefined} stepHeight={ROW_HEIGHT}>
+                          <Pressable onPress={canAdmin(access,'events','edit') ? open : undefined} style={({ pressed }) => [s.row, pressed && s.rowPressed]}>
                             <View style={[s.rowInner, !item.activa && s.dimmed]}>
                               <View style={s.icon}><EventArtwork icon={item.icono} size={26} tint={C.wine} emojiSize={18} /></View>
                               <View style={s.rowText}>
@@ -167,6 +167,7 @@ export default function AdminEventos() {
                             <Switch
                               accessibilityLabel={item.activa ? `${item.titulo.trim()}: visible en la web y la app` : `${item.titulo.trim()}: oculta`}
                               value={item.activa}
+                              disabled={!canAdmin(access,'events','edit')}
                               onValueChange={(value) => { tapFeedback(); void toggle(item, value); }}
                               trackColor={{ true: C.wine, false: '#e5dcda' }}
                               thumbColor="#fff"

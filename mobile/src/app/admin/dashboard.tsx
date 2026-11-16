@@ -11,6 +11,7 @@ import { AdminLogin } from '@/components/admin-login';
 import { FieldRow, Group, InputRow, Row } from '@/components/form';
 import { C, sans } from '@/constants/theme';
 import { formOptions } from '@/lib/form-options';
+import { canAdmin } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 import { WheelPicker, type WheelOption } from '@/components/wheel-picker';
@@ -109,7 +110,7 @@ export default function AdminDashboard() {
   const [showBirthDatePicker, setShowBirthDatePicker] = useState(false);
 
   const load = useCallback(async () => {
-    if (!access || access.isRevoked || (!access.isSuperAdmin && !access.permissions.includes('read_export') && !access.permissions.includes('read_only'))) return;
+    if (!canAdmin(access,'dashboard','view')) return;
     setLoading(true);
     try {
       const canReadPrivate = access?.isSuperAdmin || access?.permissions.includes('read_export');
@@ -125,7 +126,7 @@ export default function AdminDashboard() {
   }, [access]);
 
   useFocusEffect(useCallback(() => {
-    if (access && !access.isRevoked && (access.isSuperAdmin || access.permissions.includes('read_export') || access.permissions.includes('read_only'))) void load();
+    if (access && canAdmin(access,'dashboard','view')) void load();
   }, [access, load]));
 
   const filtered = useMemo(() => {
@@ -188,7 +189,7 @@ export default function AdminDashboard() {
   if (!ready) return <View style={s.center}><ActivityIndicator color={C.wine} /></View>;
   if (!access) return <AdminLogin />;
   if (access.isRevoked) return <View style={s.page}><Group footer="Contacta a la administración si crees que es un error."><Row icon="ban" label="Acceso revocado" chevron={false} /></Group></View>;
-  if (!access.isSuperAdmin && !access.permissions.includes('read_export') && !access.permissions.includes('read_only')) return <View style={s.page}><Group><Row icon="lock-closed" label="Tu cuenta no tiene acceso al dashboard." chevron={false} /></Group></View>;
+  if (!canAdmin(access,'dashboard','view')) return <View style={s.page}><Group><Row icon="lock-closed" label="Tu cuenta no tiene acceso al dashboard." chevron={false} /></Group></View>;
 
   const canExport = access.isSuperAdmin || access.permissions.includes('read_export');
   const canReadPrivate = canExport;

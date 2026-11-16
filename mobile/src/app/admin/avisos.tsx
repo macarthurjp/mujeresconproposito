@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, Sc
 import { Group, Row } from '@/components/form';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
+import { canAdmin } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 
@@ -25,7 +26,8 @@ export default function Avisos() {
   const [reach, setReach] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<Sent[]>([]);
-  const allowed = !!access?.isSuperAdmin && !access.isRevoked;
+  const allowed = canAdmin(access,'notices','view');
+  const canSend = canAdmin(access,'notices','send');
 
   const loadHistory = useCallback(async () => {
     const { data } = await supabase.from('push_broadcasts').select('id,titulo,mensaje,comunidad,enviados,created_at').order('created_at', { ascending: false }).limit(10);
@@ -33,6 +35,7 @@ export default function Avisos() {
   }, []);
 
   useEffect(() => {
+    // The reach preview only needs module access (the server checks notices.view for dryRun).
     if (!allowed) return;
     let alive = true;
     void supabase.functions.invoke('send-broadcast', { body: { titulo: 'x', mensaje: 'x', comunidad: target || null, dryRun: true } })
@@ -48,7 +51,7 @@ export default function Avisos() {
     return () => { alive = false; };
   }, [allowed]);
 
-  if (!allowed) return <ScrollView contentContainerStyle={s.page}><Group footer="Solo el Super Admin puede enviar avisos."><Row icon="lock-closed" label="Sin acceso" chevron={false} /></Group></ScrollView>;
+  if (!allowed) return <ScrollView contentContainerStyle={s.page}><Group footer="Tu cuenta no tiene acceso a este módulo."><Row icon="lock-closed" label="Sin acceso" chevron={false} /></Group></ScrollView>;
 
   const send = () => {
     if (titulo.trim().length < 3 || mensaje.trim().length < 3) return Alert.alert('Completa el aviso', 'Escribe un título y un mensaje.');
@@ -73,10 +76,11 @@ export default function Avisos() {
       <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
         <Text style={s.intro}>Envía una notificación al teléfono de la comunidad. Úsalo para avisos importantes: cambios de horario, eventos especiales o mensajes urgentes.</Text>
 
+        {!canSend ? <Group footer="El permiso de envío es independiente del acceso de lectura."><Row icon="eye-outline" label="Acceso de lectura" chevron={false} /></Group> : null}
         <Text style={s.label}>Para</Text>
         <View style={s.targets}>
           {TARGETS.map((t) => (
-            <Pressable key={t.value} onPress={() => { tapFeedback(); setTarget(t.value); }} style={[s.target, target === t.value && s.targetOn]}>
+            <Pressable key={t.value} disabled={!canSend} onPress={() => { tapFeedback(); setTarget(t.value); }} style={[s.target, target === t.value && s.targetOn, !canSend && { opacity: 0.65 }]}>
               <Text style={[s.targetText, target === t.value && { color: '#fff' }]}>{t.label}</Text>
             </Pressable>
           ))}
@@ -84,9 +88,9 @@ export default function Avisos() {
         <Text style={s.reach}>{reach === null ? 'Calculando destinatarios…' : `${reach} ${reach === 1 ? 'dispositivo recibirá' : 'dispositivos recibirán'} el aviso`}{target ? ' (personas que eligieron esta comunidad en la app)' : ''}</Text>
 
         <Text style={s.label}>Título</Text>
-        <TextInput value={titulo} onChangeText={setTitulo} maxLength={80} placeholder="Ej. Cambio de horario hoy" placeholderTextColor="#a58e88" style={s.input} />
+        <TextInput value={titulo} onChangeText={setTitulo} editable={canSend} maxLength={80} placeholder="Ej. Cambio de horario hoy" placeholderTextColor="#a58e88" style={s.input} />
         <Text style={s.label}>Mensaje</Text>
-        <TextInput value={mensaje} onChangeText={setMensaje} maxLength={240} multiline placeholder="Ej. La oración de esta noche empieza a las 20:30." placeholderTextColor="#a58e88" style={[s.input, { minHeight: 100 }]} textAlignVertical="top" />
+        <TextInput value={mensaje} onChangeText={setMensaje} editable={canSend} maxLength={240} multiline placeholder="Ej. La oración de esta noche empieza a las 20:30." placeholderTextColor="#a58e88" style={[s.input, { minHeight: 100 }]} textAlignVertical="top" />
         <Text style={s.counter}>{mensaje.length}/240</Text>
 
         <View style={s.preview}>
@@ -98,9 +102,9 @@ export default function Avisos() {
           </View>
         </View>
 
-        <Pressable accessibilityRole="button" disabled={busy} onPress={send} style={({ pressed }) => [s.send, (busy || pressed) && { opacity: 0.85 }]}>
+        {canSend ? <Pressable accessibilityRole="button" disabled={busy} onPress={send} style={({ pressed }) => [s.send, (busy || pressed) && { opacity: 0.85 }]}>
           {busy ? <ActivityIndicator color="#fff" /> : <><Ionicons name="paper-plane" size={18} color="#fff" /><Text style={s.sendText}>Enviar aviso</Text></>}
-        </Pressable>
+        </Pressable> : null}
 
         {history.length ? (
           <Group header="Enviados recientemente">

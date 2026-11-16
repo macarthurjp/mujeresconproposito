@@ -1,11 +1,11 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AdminLogin } from '@/components/admin-login';
 import { Group, Row, SwitchRow } from '@/components/form';
 import { C, sans } from '@/constants/theme';
-import { setMyBirthdayCalendar, signIn, signOut } from '@/lib/admin';
+import { canAdmin, setMyBirthdayCalendar, signIn, signOut } from '@/lib/admin';
 import {
   biometricLabel, clearBiometricAdminCredentials, confirmWithBiometrics, deviceSupportsBiometrics,
   getBiometricLoginAvailable, getSessionPassword, rememberSessionPassword, saveBiometricAdminCredentials,
@@ -83,8 +83,12 @@ export default function AdminHome() {
     access.permissions.includes('read_export') ? 'Manager' : null,
     access.permissions.includes('birthday_calendar') ? 'Calendario de cumpleaños' : null,
   ].filter(Boolean).join(' · ') || (access.permissions.includes('read_only') ? 'Vista simple' : 'Acceso limitado');
-  const canWriteEditorial = access.isSuperAdmin || access.permissions.includes('editor') || access.permissions.includes('reviewer');
-  const canReadDashboard = access.isSuperAdmin || access.permissions.includes('read_export') || access.permissions.includes('read_only');
+  const canEvents = canAdmin(access,'events','view');
+  const canGallery = canAdmin(access,'gallery','view');
+  const canContent = canAdmin(access,'content','view');
+  const canNotices = canAdmin(access,'notices','view');
+  const canDevotionals = canAdmin(access,'devotionals','view');
+  const canReadDashboard = canAdmin(access,'dashboard','view');
 
   return (
     <ScrollView contentContainerStyle={a.page}>
@@ -100,28 +104,29 @@ export default function AdminHome() {
         <Group footer="Tu acceso fue revocado. Contacta a la administración si crees que es un error."><Row label="Sin acceso" chevron={false} /></Group>
       ) : (
         <>
-          {access.isSuperAdmin ? <Group header="Contenido">
-            <Row icon="calendar" label="Eventos y reuniones" sub="Crear, editar, horarios y enlaces" onPress={() => router.push('/admin/eventos')} />
-            <Row icon="images" tint="#c08a3e" label="Galería de fotos" sub="Subir y administrar fotos y categorías" onPress={() => router.push('/admin/galeria')} />
+          {canEvents || canGallery ? <Group header="Contenido">
+            {canEvents ? <Row icon="calendar" label="Eventos y reuniones" sub="Administrar reuniones" onPress={() => router.push('/admin/eventos')} /> : null}
+            {canGallery ? <Row icon="images" tint="#c08a3e" label="Galería de fotos" sub="Administrar imágenes permitidas" onPress={() => router.push('/admin/galeria')} /> : null}
           </Group> : null}
           {access.isSuperAdmin ? <Group header="Equipo">
+            <Row icon="shield-checkmark" tint="#6b5b95" label="Roles y permisos" sub="Configurar acceso por módulo y usuario" onPress={() => router.push('/admin/roles' as Href)} />
             <Row icon="people" tint="#6b5b95" label="Usuarios y roles" sub="Permisos, invitaciones y accesos" onPress={() => router.push('/admin/usuarios')} />
             <Row icon="mail-unread" tint="#2f6db5" label="Destinatarios de correo" sub="Contacto y Únete por comunidad" onPress={() => router.push('/admin/correos')} />
           </Group> : null}
-          {canWriteEditorial ? <Group header="Devocionales" footer="Gestiona los artículos y el flujo de revisión desde la app.">
+          {canDevotionals ? <Group header="Devocionales" footer="Gestiona los artículos y el flujo de revisión desde la app.">
             <Row icon="book" label="Devocionales" sub="Escribir, revisar y publicar" onPress={() => router.push('/admin/devocionales')} />
             {!access.isSuperAdmin ? <Row icon="share-outline" label="Compartir formulario para unirse" onPress={shareJoin} /> : null}
           </Group> : null}
-          {access.isSuperAdmin ? <Group header="Publicaciones">
-            <Row icon="layers" tint="#8e8187" label="Contenido y publicaciones" sub="Destacadas, YouTube y banner" onPress={() => router.push('/admin/contenido')} />
-            <Row icon="paper-plane" tint="#d64545" label="Enviar aviso" sub="Notificación a todas o por comunidad" onPress={() => router.push('/admin/avisos')} />
-            <Row icon="share-outline" label="Compartir formulario para unirse" onPress={shareJoin} />
+          {canContent || canNotices ? <Group header="Publicaciones">
+            {canContent ? <Row icon="layers" tint="#8e8187" label="Contenido y publicaciones" sub="Destacadas, YouTube y banner" onPress={() => router.push('/admin/contenido')} /> : null}
+            {canNotices ? <Row icon="paper-plane" tint="#d64545" label="Enviar aviso" sub={canAdmin(access,'notices','send') ? 'Enviar notificaciones' : 'Solo acceso de lectura'} onPress={() => router.push('/admin/avisos')} /> : null}
+            {access.isSuperAdmin ? <Row icon="share-outline" label="Compartir formulario para unirse" onPress={shareJoin} /> : null}
           </Group> : null}
           {canReadDashboard ? <Group header="Dashboard" footer="Filtros, exportación y métricas de registros.">
             <Row icon="stats-chart" tint="#8e8187" label="Registros y métricas" onPress={() => router.push('/admin/dashboard')} />
             {access.isSuperAdmin || access.permissions.includes('read_export') ? <Row icon="people-circle" tint="#2f7d4f" label="Seguimiento de nuevas" sub="Nuevas, contactadas e integradas" onPress={() => router.push('/admin/seguimiento')} /> : null}
             {access.isSuperAdmin || access.permissions.includes('read_export') ? <Row icon="analytics" tint="#2f6db5" label="Estadísticas" sub="Registros, lecturas, reuniones e inscripciones" onPress={() => router.push('/admin/estadisticas')} /> : null}
-          </Group> : !canWriteEditorial ? <Group><Row icon="lock-closed" label="Tu cuenta no tiene herramientas administrativas disponibles." chevron={false} /></Group> : null}
+          </Group> : !canDevotionals && !canEvents && !canGallery && !canContent && !canNotices && !canReadDashboard ? <Group><Row icon="lock-closed" label="Tu cuenta no tiene herramientas administrativas disponibles." chevron={false} /></Group> : null}
           {bioSupported ? <Group header="Seguridad" footer={bioOn ? `Entrarás al panel con ${bioLabel}, sin escribir tu contraseña. Solo en este iPhone.` : `Actívalo para entrar al panel con ${bioLabel} en este dispositivo.`}>
             <SwitchRow icon="finger-print" tint="#34a853" label={`Entrar con ${bioLabel}`} value={bioOn} disabled={busy} onValueChange={toggleBiometrics} />
           </Group> : null}

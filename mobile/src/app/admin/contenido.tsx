@@ -10,7 +10,7 @@ import { FieldRow, Group, InputRow, Row } from '@/components/form';
 import { DateField } from '@/components/date-field';
 import { C, sans } from '@/constants/theme';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
-import { uploadImage } from '@/lib/admin';
+import { canAdmin, uploadImage } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 
@@ -97,14 +97,14 @@ export default function AdminContenido() {
     finally { setLoading(false); }
   }, [kind]);
 
-  useFocusEffect(useCallback(() => { if (access?.isSuperAdmin && !access.isRevoked) void load(); }, [access, load]));
+  useFocusEffect(useCallback(() => { if (canAdmin(access,'content','view')) void load(); }, [access, load]));
 
   const beginEdit = (item?: Item) => {
     setModalVisible(true);
     setEditing(item ?? null);
     setTitle(item?.titulo ?? ''); setSubtitle(item?.subtitulo ?? ''); setImageUrl(item?.foto_url ?? '');
     setVideo(item?.video_id ?? ''); setTag(item?.etiqueta ?? 'Conferencia'); setOrder(String(item?.orden ?? items.length + 1));
-    setActive(item?.activa ?? true); setPicked(null);
+    setActive(item?.activa ?? canAdmin(access,'content','publish')); setPicked(null);
     setSignups(Boolean(item?.inscripcion_abierta)); setCapacity(item?.cupo ? String(item.cupo) : ''); setPlace(item?.lugar ?? '');
     const when = item?.fecha_evento ? new Date(item.fecha_evento) : null;
     setEventDate(when ? `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}-${String(when.getDate()).padStart(2, '0')}` : '');
@@ -126,6 +126,9 @@ export default function AdminContenido() {
   };
 
   const save = async () => {
+    if (kind === 'banner' && !canAdmin(access,'content','edit')) return Alert.alert('Sin permiso', 'Necesitas permiso para editar el banner.');
+    if (kind !== 'banner' && !canAdmin(access,'content',editing ? 'edit' : 'create')) return Alert.alert('Sin permiso', 'No tienes permiso para guardar esta publicación.');
+    if (kind !== 'banner' && active && !editing?.activa && !canAdmin(access,'content','publish')) return Alert.alert('Sin permiso', 'Necesitas permiso para publicar. Puedes guardar la publicación como oculta.');
     if (kind === 'banner') {
       setBusy(true);
       try {
@@ -204,13 +207,13 @@ export default function AdminContenido() {
 
   if (!ready) return <View style={s.center}><ActivityIndicator color={C.wine} /></View>;
   if (!access) return <View style={s.page}><Row icon="lock-closed" label="Inicia sesión para administrar contenido" chevron={false} /></View>;
-  if (access.isRevoked || !access.isSuperAdmin) return <View style={s.page}><Row icon="lock-closed" label="Solo Super Admin puede administrar este contenido." chevron={false} /></View>;
+  if (access.isRevoked || !canAdmin(access,'content','view')) return <View style={s.page}><Row icon="lock-closed" label="Tu cuenta no tiene acceso al contenido y publicaciones." chevron={false} /></View>;
 
   const types: { key: Kind; label: string }[] = [{ key: 'destacadas', label: 'Destacadas' }, { key: 'youtube', label: 'YouTube' }, { key: 'banner', label: 'Banner' }];
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Contenido', headerRight: () => kind !== 'banner' ? (
+      <Stack.Screen options={{ title: 'Contenido', headerRight: () => kind !== 'banner' && (canAdmin(access,'content','create') || canAdmin(access,'content','edit')) ? (
         <Pressable accessibilityLabel="Nueva publicación" onPress={() => beginEdit()} hitSlop={12} style={{ paddingHorizontal: 8 }}><Ionicons name="add-circle" size={27} color={C.wine} /></Pressable>
       ) : null }} />
       <ScrollView contentContainerStyle={s.page} refreshControl={undefined}>
@@ -218,22 +221,22 @@ export default function AdminContenido() {
         <Text style={s.title}>Contenido</Text>
         <Text style={s.subtitle}>Publica y organiza las historias que aparecen en la comunidad.</Text>
         <View style={s.segment}>
-          {types.map((type) => <Pressable key={type.key} onPress={() => setKind(type.key)} style={[s.segmentOption, kind === type.key && s.segmentActive]}><Text style={[s.segmentText, kind === type.key && s.segmentTextActive]}>{type.label}</Text></Pressable>)}
+          {types.filter((type) => type.key !== 'banner' || canAdmin(access,'content','edit')).map((type) => <Pressable key={type.key} onPress={() => setKind(type.key)} style={[s.segmentOption, kind === type.key && s.segmentActive]}><Text style={[s.segmentText, kind === type.key && s.segmentTextActive]}>{type.label}</Text></Pressable>)}
         </View>
         <View style={s.devotionLink}><Row icon="book-outline" label="Devocionales" sub="Escribir, revisar y publicar" onPress={() => router.push('/admin/devocionales')} /></View>
         {kind === 'banner' ? (
           <Group header="Aviso de bienvenida" footer="El banner aparece en la página de inicio mientras esté activado.">
-            <InputRow label="Título" value={bannerTitle} onChangeText={setBannerTitle} placeholder="Título del aviso" />
-            <View style={s.messageField}><Text style={s.fieldLabel}>Mensaje</Text><TextInput multiline value={bannerMessage} onChangeText={setBannerMessage} placeholder="Escribe el aviso para la comunidad" placeholderTextColor="#a28f8c" style={s.messageInput} /></View>
-            <View style={s.toggle}><Text style={s.toggleLabel}>Mostrar banner</Text><Switch value={bannerActive} onValueChange={setBannerActive} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View>
-            <Pressable onPress={() => void save()} disabled={busy} style={s.saveButton}><Text style={s.saveText}>{busy ? 'Guardando…' : 'Guardar banner'}</Text></Pressable>
+            <InputRow label="Título" value={bannerTitle} onChangeText={setBannerTitle} placeholder="Título del aviso" editable={canAdmin(access,'content','edit')} />
+            <View style={s.messageField}><Text style={s.fieldLabel}>Mensaje</Text><TextInput multiline value={bannerMessage} onChangeText={setBannerMessage} editable={canAdmin(access,'content','edit')} placeholder="Escribe el aviso para la comunidad" placeholderTextColor="#a28f8c" style={s.messageInput} /></View>
+            <View style={s.toggle}><Text style={s.toggleLabel}>Mostrar banner</Text><Switch value={bannerActive} disabled={!canAdmin(access,'content','publish')} onValueChange={setBannerActive} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View>
+            {canAdmin(access,'content','edit') ? <Pressable onPress={() => void save()} disabled={busy} style={s.saveButton}><Text style={s.saveText}>{busy ? 'Guardando…' : 'Guardar banner'}</Text></Pressable> : null}
           </Group>
         ) : loading ? <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} /> : (
           <Group header={`${items.length} ${kind === 'destacadas' ? 'destacadas' : 'videos'}`} footer="Desliza a la derecha para editar, a la izquierda para eliminar o mantén pulsado y arrastra para ordenar.">
             {items.map((item) => (
-              <AdminGestureRow key={item.id} onEdit={() => beginEdit(item)} onDelete={() => remove(item)} onReorder={(steps) => void moveItem(item, steps)} stepHeight={82}>
+              <AdminGestureRow key={item.id} onEdit={canAdmin(access,'content','edit') ? () => beginEdit(item) : undefined} onDelete={canAdmin(access,'content','delete') ? () => remove(item) : undefined} onReorder={canAdmin(access,'content','edit') ? (steps) => void moveItem(item, steps) : undefined} stepHeight={82}>
               <View style={s.item}>
-                <Pressable onPress={() => beginEdit(item)} style={s.itemMain}>
+                <Pressable onPress={canAdmin(access,'content','edit') ? () => beginEdit(item) : undefined} style={s.itemMain}>
                   <View>
                     {kind === 'destacadas' && item.foto_url ? <Image source={{ uri: item.foto_url }} style={[s.thumb, !item.activa && { opacity: 0.35 }]} contentFit="cover" /> : <View style={[s.thumbIcon, !item.activa && { opacity: 0.45 }]}><Ionicons name="logo-youtube" size={21} color={C.wine} /></View>}
                     <Pressable
@@ -241,6 +244,7 @@ export default function AdminContenido() {
                       accessibilityState={{ checked: item.activa }}
                       accessibilityLabel={item.activa ? 'Visible. Toca para ocultar' : 'Oculto. Toca para mostrar'}
                       hitSlop={8}
+                      disabled={!canAdmin(access,'content','publish')}
                       onPress={() => void toggleVisible(item)}
                       style={[s.eye, !item.activa && s.eyeOff]}>
                       <Ionicons name={item.activa ? 'eye' : 'eye-off'} size={13} color={item.activa ? C.wine : '#fff'} />
@@ -282,9 +286,9 @@ export default function AdminContenido() {
                 </Group>
               ) : null}
             </> : <Group header="Video"><InputRow label="Enlace o ID de YouTube" value={video} onChangeText={setVideo} placeholder="https://youtu.be/…" autoCapitalize="none" keyboardType="url" /><InputRow label="Título" value={title} onChangeText={setTitle} placeholder="Título del video" /><InputRow label="Subtítulo" value={subtitle} onChangeText={setSubtitle} placeholder="Descripción breve" /><InputRow label="Etiqueta" value={tag} onChangeText={setTag} placeholder="Conferencia" /></Group>}
-            <Group header="Publicación"><InputRow label="Orden" value={order} onChangeText={(value) => setOrder(value.replace(/\D/g, ''))} keyboardType="number-pad" /><View style={s.toggle}><Text style={s.toggleLabel}>Visible en la web y la app</Text><Switch value={active} onValueChange={setActive} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View></Group>
+            <Group header="Publicación"><InputRow label="Orden" value={order} onChangeText={(value) => setOrder(value.replace(/\D/g, ''))} editable={canAdmin(access,'content','edit') || canAdmin(access,'content','create')} keyboardType="number-pad" /><View style={s.toggle}><Text style={s.toggleLabel}>Visible en la web y la app</Text><Switch value={active} disabled={!canAdmin(access,'content','publish')} onValueChange={setActive} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View></Group>
             {editing ? <AuditCard item={editing} /> : null}
-            {editing ? <Group><Row label="Eliminar" destructive chevron={false} onPress={() => { const row = editing; setEditing(null); setModalVisible(false); remove(row); }} /></Group> : null}
+            {editing && canAdmin(access,'content','delete') ? <Group><Row label="Eliminar" destructive chevron={false} onPress={() => { const row = editing; setEditing(null); setModalVisible(false); remove(row); }} /></Group> : null}
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>

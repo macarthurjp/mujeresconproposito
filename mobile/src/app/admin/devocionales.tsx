@@ -11,7 +11,7 @@ import { AdminLogin } from '@/components/admin-login';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
 import { Group, InputRow, Row } from '@/components/form';
 import { C, sans } from '@/constants/theme';
-import { uploadImage } from '@/lib/admin';
+import { canAdmin, uploadImage } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 
@@ -104,14 +104,15 @@ export default function AdminDevocionales() {
       const id = identity.user?.id ?? '';
       setUserId(id);
       const base = () => supabase.from('devocionales').select('*').order('updated_at', { ascending: false });
-      if (access?.isSuperAdmin) {
+      if (access?.isSuperAdmin || canAdmin(access,'devotionals','publish')) {
         const { data, error } = await base();
         if (error) throw error;
         setArticles((data ?? []) as Article[]);
       } else {
         const requests = [];
-        if (access?.permissions.includes('editor')) requests.push(base().eq('created_by', id));
-        if (access?.permissions.includes('reviewer')) requests.push(base().eq('estado', 'en_revision').neq('created_by', id));
+        if (canAdmin(access,'devotionals','create')) requests.push(base().eq('created_by', id));
+        if (canAdmin(access,'devotionals','publish')) requests.push(base().eq('estado', 'en_revision').neq('created_by', id));
+        if (!requests.length && canAdmin(access,'devotionals','view')) requests.push(base().eq('publicado', true));
         const results = await Promise.all(requests);
         const failed = results.find((result) => result.error);
         if (failed?.error) throw failed.error;
@@ -124,7 +125,7 @@ export default function AdminDevocionales() {
   }, [access]);
 
   useFocusEffect(useCallback(() => {
-    if (access && !access.isRevoked && (access.isSuperAdmin || access.permissions.includes('editor') || access.permissions.includes('reviewer'))) void load();
+    if (access && !access.isRevoked && (access.isSuperAdmin || canAdmin(access,'devotionals','view'))) void load();
   }, [access, load]));
 
   const open = (article?: Article) => {
@@ -300,9 +301,9 @@ export default function AdminDevocionales() {
 
   if (!ready) return <View style={s.center}><ActivityIndicator color={C.wine} /></View>;
   if (!access) return <AdminLogin />;
-  if (access.isRevoked || (!access.isSuperAdmin && !access.permissions.includes('editor') && !access.permissions.includes('reviewer'))) return <View style={s.page}><Row icon="lock-closed" label="Tu cuenta no tiene acceso a devocionales." chevron={false} /></View>;
-  const editor = !access.isSuperAdmin && access.permissions.includes('editor');
-  const reviewer = !access.isSuperAdmin && access.permissions.includes('reviewer');
+  if (access.isRevoked || !canAdmin(access,'devotionals','view')) return <View style={s.page}><Row icon="lock-closed" label="Tu cuenta no tiene acceso a devocionales." chevron={false} /></View>;
+  const editor = !access.isSuperAdmin && canAdmin(access,'devotionals','create');
+  const reviewer = !access.isSuperAdmin && canAdmin(access,'devotionals','publish');
   const visibleArticles = articles.filter((article) => {
     const stateMatches = articleFilter === 'all' || (articleFilter === 'published' ? article.publicado : !article.publicado);
     const query = articleQuery.trim().toLocaleLowerCase('es');
@@ -336,18 +337,19 @@ export default function AdminDevocionales() {
             const reviewItem = article.estado === 'en_revision' && !article.publicado;
             const isOwnArticle = article.created_by === userId;
             const reviewerQueueItem = reviewer && reviewItem && !isOwnArticle;
-            const canDelete = access.isSuperAdmin || (editor && isOwnArticle && !article.publicado);
-            return <AdminGestureRow key={article.id} onEdit={() => open(article)} onDelete={canDelete ? () => articleAction(article, 'delete') : undefined} stepHeight={112}>
+            const canEditArticle = access.isSuperAdmin || (canAdmin(access,'devotionals','edit') && isOwnArticle);
+            const canDelete = access.isSuperAdmin || (canAdmin(access,'devotionals','delete') && isOwnArticle && !article.publicado);
+            return <AdminGestureRow key={article.id} onEdit={canEditArticle ? () => open(article) : undefined} onDelete={canDelete ? () => articleAction(article, 'delete') : undefined} stepHeight={112}>
               <View style={s.articleCard}>
-              <Row icon={reviewerQueueItem ? 'eye' : 'book'} tint={reviewerQueueItem ? C.gold2 : C.wine} label={articleTitle} sub={`${article.estado || (article.publicado ? 'Publicado' : 'Borrador')} · ${article.autora || 'Sin autora'}${article.categorias?.length ? ` · ${article.categorias.join(', ')}` : ''}`} onPress={() => reviewerQueueItem ? previewArticleContent(article) : open(article)} />
+              <Row icon={reviewerQueueItem ? 'eye' : 'book'} tint={reviewerQueueItem ? C.gold2 : C.wine} label={articleTitle} sub={`${article.estado || (article.publicado ? 'Publicado' : 'Borrador')} · ${article.autora || 'Sin autora'}${article.categorias?.length ? ` · ${article.categorias.join(', ')}` : ''}`} onPress={() => reviewerQueueItem ? previewArticleContent(article) : canEditArticle ? open(article) : previewArticleContent(article)} />
               <View style={s.articleActions}>
                 <Pressable onPress={() => showHistory(article)} style={s.articleAction}><Ionicons name="time-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Historial</Text></Pressable>
-                {reviewerQueueItem ? <>
-                  <Pressable onPress={() => { setChangeRequest(article); setChangeNote(''); }} style={s.articleAction}><Ionicons name="chatbox-ellipses-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Solicitar cambios</Text></Pressable>
+                  {reviewerQueueItem ? <>
+                  {canAdmin(access,'devotionals','edit') ? <Pressable onPress={() => { setChangeRequest(article); setChangeNote(''); }} style={s.articleAction}><Ionicons name="chatbox-ellipses-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Solicitar cambios</Text></Pressable> : null}
                   <Pressable onPress={() => approve(article)} style={s.articleAction}><Ionicons name="checkmark-circle-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Aprobar</Text></Pressable>
                 </> : <>
-                  {article.estado === 'en_revision' && !article.publicado ? <Pressable onPress={() => articleAction(article, 'withdraw')} style={s.articleAction}><Ionicons name="return-down-back-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Retirar</Text></Pressable> : null}
-                  {access.isSuperAdmin ? article.publicado ? <Pressable onPress={() => articleAction(article, 'unpublish')} style={s.articleAction}><Ionicons name="eye-off-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Despublicar</Text></Pressable> : reviewItem ? <Pressable onPress={() => approve(article)} style={s.articleAction}><Ionicons name="checkmark-circle-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Revisar y publicar</Text></Pressable> : <Pressable onPress={() => articleAction(article, 'publish')} style={s.articleAction}><Ionicons name="globe-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Publicar</Text></Pressable> : null}
+                  {article.estado === 'en_revision' && !article.publicado && (isOwnArticle || access.isSuperAdmin) && canAdmin(access,'devotionals','edit') ? <Pressable onPress={() => articleAction(article, 'withdraw')} style={s.articleAction}><Ionicons name="return-down-back-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Retirar</Text></Pressable> : null}
+                  {article.publicado && access.isSuperAdmin ? <Pressable onPress={() => articleAction(article, 'unpublish')} style={s.articleAction}><Ionicons name="eye-off-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Despublicar</Text></Pressable> : canAdmin(access,'devotionals','publish') && reviewItem && !isOwnArticle ? <Pressable onPress={() => approve(article)} style={s.articleAction}><Ionicons name="checkmark-circle-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Revisar y publicar</Text></Pressable> : access.isSuperAdmin && !article.publicado && !reviewItem ? <Pressable onPress={() => articleAction(article, 'publish')} style={s.articleAction}><Ionicons name="globe-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Publicar</Text></Pressable> : null}
                 </>}
               </View>
               </View>

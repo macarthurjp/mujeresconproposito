@@ -13,7 +13,7 @@ import { C, sans } from '@/constants/theme';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
-import { addGalleryPhoto, listGalleryAlbums, listGalleryPhotos, removeGalleryPhoto, reorderGalleryAlbum, saveGalleryPhoto, setGalleryCover, uploadImage, type GalleryPhoto, type GalleryRegion } from '@/lib/admin';
+import { addGalleryPhoto, canAdmin, listGalleryAlbums, listGalleryPhotos, removeGalleryPhoto, reorderGalleryAlbum, saveGalleryPhoto, setGalleryCover, uploadImage, type GalleryPhoto, type GalleryRegion } from '@/lib/admin';
 
 const REGIONS = [
   { value: 'usa', label: 'Estados Unidos' },
@@ -54,7 +54,7 @@ export default function AdminGaleria() {
   };
 
   useEffect(() => {
-    if (!access?.isSuperAdmin || access.isRevoked) return;
+    if (!canAdmin(access,'gallery','view')) return;
     Promise.all([listGalleryAlbums(region), listGalleryPhotos(region)])
       .then(([list, galleryPhotos]) => { setAlbums(list); setAlbum(list[0]?.title ?? NEW_ALBUM); setManaged(galleryPhotos); })
       .catch(() => setAlbums([]));
@@ -143,14 +143,14 @@ export default function AdminGaleria() {
 
   if (!ready) return <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} />;
   if (!access) return <AdminLogin />;
-  if (access.isRevoked || !access.isSuperAdmin) return <View style={s.page}><Row icon="lock-closed" label="Solo Super Admin puede administrar la galería." chevron={false} /></View>;
+  if (!canAdmin(access,'gallery','view') && !canAdmin(access,'gallery','add') && !canAdmin(access,'gallery','edit') && !canAdmin(access,'gallery','delete')) return <View style={s.page}><Row icon="lock-closed" label="Tu cuenta no tiene acceso a la galería." chevron={false} /></View>;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <Stack.Screen
         options={{
           headerLeft: () => <Pressable hitSlop={10} disabled={busy} onPress={() => router.back()}><Text style={s.cancel}>Cancelar</Text></Pressable>,
-          headerRight: () => mode === 'upload' ? (
+          headerRight: () => mode === 'upload' && canAdmin(access,'gallery','add') ? (
             <Pressable hitSlop={10} disabled={busy} onPress={() => { void upload(); }}>
               <Text style={[s.done, (busy || !photos.length) && { opacity: 0.45 }]}>{busy ? `${progress!.done}/${progress!.total}` : 'Subir'}</Text>
             </Pressable>
@@ -159,8 +159,8 @@ export default function AdminGaleria() {
       />
       <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
         <View style={s.modeSwitch}>
-          <Pressable onPress={() => { setMode('manage'); void loadManaged(); }} style={[s.modeOption, mode === 'manage' && s.modeSelected]}><Text style={[s.modeText, mode === 'manage' && s.modeTextSelected]}>Administrar galería</Text></Pressable>
-          <Pressable onPress={() => setMode('upload')} style={[s.modeOption, mode === 'upload' && s.modeSelected]}><Text style={[s.modeText, mode === 'upload' && s.modeTextSelected]}>Subir fotos</Text></Pressable>
+          {canAdmin(access,'gallery','view') || canAdmin(access,'gallery','edit') ? <Pressable onPress={() => { setMode('manage'); void loadManaged(); }} style={[s.modeOption, mode === 'manage' && s.modeSelected]}><Text style={[s.modeText, mode === 'manage' && s.modeTextSelected]}>Administrar galería</Text></Pressable> : null}
+          {canAdmin(access,'gallery','add') ? <Pressable onPress={() => setMode('upload')} style={[s.modeOption, mode === 'upload' && s.modeSelected]}><Text style={[s.modeText, mode === 'upload' && s.modeTextSelected]}>Subir fotos</Text></Pressable> : null}
         </View>
         {mode === 'upload' ? <>
         <View style={s.grid}>
@@ -217,7 +217,7 @@ export default function AdminGaleria() {
               </View>
               <View style={s.photoGrid}>
                 {group.photos.map((photo) => (
-                  <Pressable key={photo.id} onPress={() => editManagedPhoto(photo)} accessibilityLabel={`Editar foto ${photo.orden}`} style={[s.tile, { width: tile, height: tile }]}>
+                  <Pressable key={photo.id} onPress={canAdmin(access,'gallery','edit') || canAdmin(access,'gallery','delete') ? () => editManagedPhoto(photo) : undefined} accessibilityLabel={`Foto ${photo.orden}`} style={[s.tile, { width: tile, height: tile }]}>
                     <Image source={{ uri: photo.foto_url }} style={[s.tileImage, !photo.activa && { opacity: 0.35 }]} contentFit="cover" />
                     {photo.portada ? <View style={s.tileStar}><Ionicons name="star" size={11} color="#fff" /></View> : null}
                     <Pressable
@@ -225,6 +225,7 @@ export default function AdminGaleria() {
                       accessibilityState={{ checked: photo.activa }}
                       accessibilityLabel={photo.activa ? 'Visible. Toca para ocultar' : 'Oculta. Toca para mostrar'}
                       hitSlop={6}
+                      disabled={!canAdmin(access,'gallery','edit')}
                       onPress={() => void toggleVisible(photo)}
                       style={[s.eye, !photo.activa && s.eyeOff]}>
                       <Ionicons name={photo.activa ? 'eye' : 'eye-off'} size={16} color={photo.activa ? C.wine : '#fff'} />
@@ -232,7 +233,7 @@ export default function AdminGaleria() {
                   </Pressable>
                 ))}
               </View>
-              <Text style={s.hint}>Toca el ojo para mostrar u ocultar. Toca la foto para editarla, cambiar el orden, elegirla como portada o eliminarla.</Text>
+              <Text style={s.hint}>Toca el ojo para mostrar u ocultar. Las opciones disponibles dependen de tus permisos.</Text>
             </>;
           })() : <>
           <Group header="Comunidad"><FieldRow label="País"><WheelPicker title="Comunidad de la galería" value={region} options={REGIONS} onChange={(value) => { setOpenAlbum(null); setRegion(value as GalleryRegion); }} /></FieldRow></Group>
@@ -243,7 +244,7 @@ export default function AdminGaleria() {
                 const coverPhoto = group.photos.find((p) => p.portada) ?? group.photos[0];
                 const hidden = group.photos.filter((p) => !p.activa).length;
                 return (
-                  <AdminGestureRow key={group.title} onReorder={(steps) => void manage(async () => { for (let i = 0; i < Math.abs(steps); i += 1) await reorderGalleryAlbum(region, group.title, steps < 0 ? -1 : 1); })} stepHeight={96}>
+                  <AdminGestureRow key={group.title} onReorder={canAdmin(access,'gallery','edit') ? (steps) => void manage(async () => { for (let i = 0; i < Math.abs(steps); i += 1) await reorderGalleryAlbum(region, group.title, steps < 0 ? -1 : 1); }) : undefined} stepHeight={96}>
                     <Pressable accessibilityRole="button" onPress={() => { tapFeedback(); setOpenAlbum(group.title); }} style={({ pressed }) => [s.albumCard, pressed && { opacity: 0.85 }]}>
                       <Image source={{ uri: coverPhoto?.foto_url }} style={s.albumCover} contentFit="cover" />
                       <View style={{ flex: 1, minWidth: 0 }}>
@@ -263,16 +264,16 @@ export default function AdminGaleria() {
       </ScrollView>
       <Modal visible={!!editingPhoto} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setEditingPhoto(null)}>
         <View style={{ flex: 1, backgroundColor: C.bg }}>
-          <View style={s.modalBar}><Pressable onPress={() => setEditingPhoto(null)}><Text style={s.cancel}>Cancelar</Text></Pressable><Text style={s.modalTitle}>Editar foto</Text><Pressable disabled={savingEdit} onPress={() => void saveManagedPhoto()}><Text style={s.done}>{savingEdit ? 'Guardando…' : 'Guardar'}</Text></Pressable></View>
+          <View style={s.modalBar}><Pressable onPress={() => setEditingPhoto(null)}><Text style={s.cancel}>Cancelar</Text></Pressable><Text style={s.modalTitle}>Gestionar foto</Text>{canAdmin(access,'gallery','edit') ? <Pressable disabled={savingEdit} onPress={() => void saveManagedPhoto()}><Text style={s.done}>{savingEdit ? 'Guardando…' : 'Guardar'}</Text></Pressable> : <View />}</View>
           <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
             <Image source={{ uri: replacePhoto?.uri ?? editingPhoto?.foto_url }} style={s.editPreview} contentFit="cover" />
-            <Pressable onPress={() => void pickReplacement()} style={s.replaceButton}><Text style={s.replaceText}>Cambiar imagen</Text></Pressable>
+            {canAdmin(access,'gallery','edit') ? <Pressable onPress={() => void pickReplacement()} style={s.replaceButton}><Text style={s.replaceText}>Cambiar imagen</Text></Pressable> : null}
             <FieldRow label="Comunidad"><WheelPicker title="Comunidad" value={editRegion} options={REGIONS} onChange={(value) => setEditRegion(value as GalleryRegion)} /></FieldRow>
-            <InputRow label="Categoría" value={editTitle} onChangeText={setEditTitle} />
-            <InputRow label="Orden" value={editOrder} onChangeText={(value) => setEditOrder(value.replace(/\D/g, ''))} keyboardType="number-pad" />
+            <InputRow label="Categoría" value={editTitle} onChangeText={setEditTitle} editable={canAdmin(access,'gallery','edit')} />
+            <InputRow label="Orden" value={editOrder} onChangeText={(value) => setEditOrder(value.replace(/\D/g, ''))} editable={canAdmin(access,'gallery','edit')} keyboardType="number-pad" />
             {editingPhoto ? <Group>
-              <Row icon={editingPhoto.portada ? 'star' : 'star-outline'} tint="#c08a3e" label={editingPhoto.portada ? 'Es la portada de la galería' : 'Usar como portada'} chevron={false} onPress={editingPhoto.portada ? undefined : () => { const photo = editingPhoto; setEditingPhoto(null); void manage(() => setGalleryCover(photo), 'Portada actualizada'); }} />
-              <Row icon="trash-outline" tint={C.live} label="Eliminar foto" destructive chevron={false} onPress={() => { const photo = editingPhoto; setEditingPhoto(null); deletePhoto(photo); }} />
+              {canAdmin(access,'gallery','edit') ? <Row icon={editingPhoto.portada ? 'star' : 'star-outline'} tint="#c08a3e" label={editingPhoto.portada ? 'Es la portada de la galería' : 'Usar como portada'} chevron={false} onPress={editingPhoto.portada ? undefined : () => { const photo = editingPhoto; setEditingPhoto(null); void manage(() => setGalleryCover(photo), 'Portada actualizada'); }} /> : null}
+              {canAdmin(access,'gallery','delete') ? <Row icon="trash-outline" tint={C.live} label="Eliminar foto" destructive chevron={false} onPress={() => { const photo = editingPhoto; setEditingPhoto(null); deletePhoto(photo); }} /> : null}
             </Group> : null}
           </ScrollView>
         </View>

@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
 
 // ---------- Access ----------
-export type Access = { isSuperAdmin: boolean; permissions: string[]; isRevoked: boolean; nombre: string; email: string };
+export type Access = { isSuperAdmin: boolean; permissions: string[]; modulePermissions: string[]; isRevoked: boolean; nombre: string; email: string };
 
 export async function getAccess(): Promise<Access | null> {
   const { data: userData } = await supabase.auth.getUser();
@@ -18,13 +18,66 @@ export async function getAccess(): Promise<Access | null> {
     .maybeSingle();
   if (error) throw new Error('No se pudo verificar tu acceso.');
   if (!data) return null;
+  const isSuperAdmin = Boolean(data?.is_super_admin);
+  const legacyPermissions = Array.isArray(data?.permissions) ? data.permissions : [];
+  let modulePermissions: string[] = [];
+  const { data: moduleData } = await supabase.rpc('admin_current_module_permissions');
+  if (Array.isArray(moduleData)) modulePermissions = moduleData.filter((entry: { allowed?: boolean }) => entry.allowed).map((entry: { permission_key: string }) => entry.permission_key);
+  else if (isSuperAdmin) modulePermissions = ADMIN_PERMISSION_CATALOG.map((permission) => permission.key);
+  else {
+    if (legacyPermissions.includes('editor')) modulePermissions.push('devotionals.view','devotionals.create','devotionals.edit','devotionals.delete');
+    if (legacyPermissions.includes('reviewer')) modulePermissions.push('devotionals.view','devotionals.edit','devotionals.publish');
+    if (legacyPermissions.includes('read_only') || legacyPermissions.includes('read_export')) modulePermissions.push('dashboard.view');
+  }
   return {
-    isSuperAdmin: Boolean(data?.is_super_admin),
-    permissions: Array.isArray(data?.permissions) ? data.permissions : [],
+    isSuperAdmin,
+    permissions: legacyPermissions,
+    modulePermissions,
     isRevoked: Boolean(data?.is_revoked),
     nombre: String(data?.nombre || '').trim(),
     email: user.email ?? '',
   };
+}
+
+export type AdminModule = 'events' | 'devotionals' | 'gallery' | 'content' | 'notices' | 'dashboard';
+export const ADMIN_MODULES: { key: AdminModule; label: string; permissions: { key: string; label: string }[] }[] = [
+  { key: 'events', label: 'Eventos y reuniones', permissions: [{key:'view',label:'Visualizar'},{key:'create',label:'Crear'},{key:'edit',label:'Editar'},{key:'delete',label:'Eliminar'}] },
+  { key: 'devotionals', label: 'Devocionales', permissions: [{key:'view',label:'Visualizar'},{key:'create',label:'Crear'},{key:'edit',label:'Editar'},{key:'delete',label:'Eliminar'},{key:'publish',label:'Publicar'}] },
+  { key: 'gallery', label: 'Galería de fotos', permissions: [{key:'view',label:'Visualizar imágenes'},{key:'add',label:'Agregar imágenes'},{key:'edit',label:'Modificar imágenes'},{key:'delete',label:'Eliminar imágenes'}] },
+  { key: 'content', label: 'Contenidos y publicaciones', permissions: [{key:'view',label:'Visualizar'},{key:'create',label:'Crear'},{key:'edit',label:'Editar'},{key:'delete',label:'Eliminar'},{key:'publish',label:'Publicar'}] },
+  { key: 'notices', label: 'Enviar aviso', permissions: [{key:'view',label:'Acceder al módulo'},{key:'send',label:'Enviar avisos'}] },
+  { key: 'dashboard', label: 'Dashboard', permissions: [{key:'view',label:'Visualizar'}] },
+];
+export const ADMIN_PERMISSION_CATALOG = ADMIN_MODULES.flatMap((module) => module.permissions.map((permission) => ({...permission,module:module.key,key:`${module.key}.${permission.key}`})));
+export const canAdmin = (access: Access | null, module: AdminModule, action: string) => Boolean(access && !access.isRevoked && (access.isSuperAdmin || access.modulePermissions.includes(`${module}.${action}`)));
+
+export type AdminRole = { id: string; name: string; description: string };
+export async function listAdminRoles() {
+  const {data,error}=await supabase.from('admin_roles').select('id,name,description').order('name'); if(error) throw error; return (data??[]) as AdminRole[];
+}
+export async function saveAdminRole(name:string,description:string,id?:string) {
+  const {data,error}=await supabase.rpc('admin_save_role',{p_name:name,p_description:description,p_role_id:id??null}); if(error) throw error; return String(data);
+}
+export async function saveAdminRolePermissions(roleId:string,permissions:string[]) {
+  const {error}=await supabase.rpc('admin_save_role_permissions',{p_role_id:roleId,p_permissions:permissions}); if(error) throw error;
+}
+export async function listAdminRolePermissions(roleId:string) {
+  const {data,error}=await supabase.from('admin_role_permissions').select('permission_key').eq('role_id',roleId); if(error) throw error; return (data??[]).map((row)=>row.permission_key as string);
+}
+export async function assignAdminRole(email:string,roleId:string) {
+  const {data,error}=await supabase.rpc('admin_assign_role',{p_email:email,p_role_id:roleId}); if(error) throw error; return String(data);
+}
+export async function listAdminRoleAssignments() {
+  const {data,error}=await supabase.from('admin_role_assignments').select('user_id,role_id,assigned_at,admin_roles(name)'); if(error) throw error; return data??[];
+}
+export async function removeAdminRoleAssignment(userId:string) {
+  const {error}=await supabase.rpc('admin_remove_role_assignment',{p_user_id:userId}); if(error) throw error;
+}
+export async function listAdminUserOverrides(userId:string) {
+  const {data,error}=await supabase.from('admin_user_permission_overrides').select('permission_key,allowed').eq('user_id',userId); if(error) throw error; return Object.fromEntries((data??[]).map((row)=>[row.permission_key,row.allowed as boolean]));
+}
+export async function saveAdminUserOverrides(userId:string,overrides:Record<string,boolean>) {
+  const {error}=await supabase.rpc('admin_save_user_overrides',{p_user_id:userId,p_overrides:overrides}); if(error) throw error;
 }
 
 export async function signIn(email: string, password: string) {
@@ -43,7 +96,7 @@ export async function signIn(email: string, password: string) {
 
 /** One shared rule keeps password and provider sign-in consistent with role screens. */
 export function canAccessAdminPanel(access: Access | null): access is Access {
-  return Boolean(access && !access.isRevoked && (access.isSuperAdmin || access.permissions.length > 0));
+  return Boolean(access && !access.isRevoked && (access.isSuperAdmin || access.permissions.length > 0 || access.modulePermissions.length > 0));
 }
 
 /** Starts a provider sign-in in the OS authentication session and returns to the app scheme. */
