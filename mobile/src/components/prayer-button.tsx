@@ -47,8 +47,9 @@ export function PrayerButton({ raised }: { raised: boolean }) {
     opacity: open.value,
   }));
 
-  // Not on the join form, where it would compete with the main action.
-  if (pathname === '/unirse') return null;
+  // Not on the join form (it would compete with the main action) nor on the
+  // settings screen, where it sits on top of switches and rows.
+  if (pathname === '/unirse' || pathname === '/mas') return null;
 
   return (
     <Animated.View
