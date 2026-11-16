@@ -2,12 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import type { ReactNode } from 'react';
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Button, ErrorNote, Loading, Screen, useAsync } from '@/components/ui';
+import { Button, ErrorNote, Loading, Screen, useAsync , tapFeedback } from '@/components/ui';
 import { C, sans, serif, SITE_URL } from '@/constants/theme';
 import { api, formatDate, htmlToParagraphs } from '@/lib/api';
+import { getFavorites, getNote, saveNote, toggleFavorite } from '@/lib/devotional-library';
 
 function formattedText(value: string, style: object): ReactNode {
   const tokens = value.split(/(\*\*.+?\*\*|\*.+?\*|__.+?__|~~.+?~~)/g);
@@ -28,6 +29,24 @@ export default function DevocionalDetalle() {
     ? [...htmlToParagraphs(data.introduccion_html), ...htmlToParagraphs(data.contenido_html)]
     : [];
   const body = paragraphs.length ? paragraphs : (data?.contenido ?? '').split(/\n{2,}/).filter(Boolean);
+  const [favorite, setFavorite] = useState(false);
+  const [note, setNote] = useState('');
+  const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const key = String(slug);
+
+  useEffect(() => {
+    let alive = true;
+    void getFavorites().then((list) => { if (alive) setFavorite(list.includes(key)); });
+    void getNote(key).then((text) => { if (alive) setNote(text); });
+    api.metrica('lectura_devocional', key);
+    return () => { alive = false; if (noteTimer.current) clearTimeout(noteTimer.current); };
+  }, [key]);
+
+  const onNote = (text: string) => {
+    setNote(text);
+    if (noteTimer.current) clearTimeout(noteTimer.current);
+    noteTimer.current = setTimeout(() => { void saveNote(key, text); }, 400);
+  };
 
   return (
     <Screen topInset={false}>
@@ -72,6 +91,20 @@ export default function DevocionalDetalle() {
                   </View>)}
             </View>
             <View style={s.endMark}><View style={s.endRule} /><Ionicons name="heart" size={15} color={C.rose} /><View style={s.endRule} /></View>
+            <View style={s.notesCard}>
+              <View style={s.notesHead}>
+                <Ionicons name="create-outline" size={18} color={C.wine} />
+                <Text style={s.notesTitle}>Mis notas</Text>
+                <Pressable accessibilityRole="button" accessibilityLabel={favorite ? 'Quitar de favoritos' : 'Guardar en favoritos'} hitSlop={8}
+                  onPress={() => { tapFeedback(); void toggleFavorite(key).then(setFavorite); }}
+                  style={[s.favButton, favorite && s.favButtonOn]}>
+                  <Ionicons name={favorite ? 'bookmark' : 'bookmark-outline'} size={15} color={favorite ? '#fff' : C.wine} />
+                  <Text style={[s.favText, favorite && { color: '#fff' }]}>{favorite ? 'Guardado' : 'Guardar'}</Text>
+                </Pressable>
+              </View>
+              <TextInput value={note} onChangeText={onNote} multiline placeholder="¿Qué te habló Dios hoy?" placeholderTextColor="#a58e88" style={s.notesInput} textAlignVertical="top" />
+              <Text style={s.notesHint}>Se guardan solo en este teléfono.</Text>
+            </View>
             <View style={s.shareCard}>
               <View style={s.shareIcon}><Ionicons name="paper-plane-outline" size={20} color={C.wine} /></View>
               <View style={s.shareCopy}><Text style={s.shareTitle}>Comparte esta reflexión</Text><Text style={s.shareSubtitle}>Envía esta palabra a alguien especial.</Text></View>
@@ -85,6 +118,14 @@ export default function DevocionalDetalle() {
 }
 
 const s = StyleSheet.create({
+  notesCard: { marginTop: 22, padding: 16, borderRadius: 20, backgroundColor: '#fff', boxShadow: '0 6px 18px rgba(63,38,35,0.05)', gap: 10 },
+  notesHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  notesTitle: { flex: 1, fontFamily: sans, fontSize: 16, fontWeight: '700', color: C.ink },
+  favButton: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, backgroundColor: C.fill },
+  favButtonOn: { backgroundColor: C.wine },
+  favText: { fontFamily: sans, fontSize: 13, fontWeight: '700', color: C.wine },
+  notesInput: { minHeight: 96, borderRadius: 14, backgroundColor: C.bg, padding: 12, fontFamily: sans, fontSize: 15, lineHeight: 21, color: C.ink },
+  notesHint: { fontFamily: sans, fontSize: 12, color: C.muted },
   page: { paddingHorizontal: 17, paddingTop: 8 },
   hero: { minHeight: 405, borderRadius: 29, overflow: 'hidden', justifyContent: 'flex-end', backgroundColor: '#98564f', borderWidth: 1, borderColor: 'rgba(255,255,255,0.86)', boxShadow: '0 14px 30px rgba(82,42,39,0.16)' },
   heroArt: { position: 'absolute', top: 68, right: 28 },

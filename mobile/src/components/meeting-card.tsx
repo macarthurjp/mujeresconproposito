@@ -7,7 +7,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ComponentProps } from 'react';
 
 import { C, sans, serif } from '@/constants/theme';
-import type { Evento } from '@/lib/api';
+import { api, type Evento } from '@/lib/api';
 import { followMeeting, isFollowing, LIVE_ACTIVITY_WINDOW_MS, liveActivitiesSupported, loadLiveActivitiesPreference, unfollowMeeting } from '@/lib/live-activity';
 
 import { tapFeedback } from './ui';
@@ -111,7 +111,7 @@ export function MeetingCard({ evento, next, live, now }: { evento: Evento; next:
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Unirme por ${platform.name} a ${evento.titulo}`}
-          onPress={() => { tapFeedback(); void Linking.openURL(link); }}
+          onPress={() => { tapFeedback(); api.metrica('unirme_reunion', String(evento.id)); void Linking.openURL(link); }}
           style={({ pressed }) => [m.cta, live ? m.ctaLive : m.ctaIdle, pressed && { transform: [{ scale: 0.98 }], opacity: 0.92 }]}>
           <Ionicons name={platform.icon} size={18} color={live ? '#fff' : C.wine} />
           <Text style={[m.ctaText, { color: live ? '#fff' : C.wine }]}>
@@ -202,7 +202,7 @@ export function MeetingHero({ evento, next, live, now }: { evento: Evento; next:
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Unirme por ${platform.name} a ${evento.titulo}`}
-          onPress={() => { tapFeedback(); void Linking.openURL(link); }}
+          onPress={() => { tapFeedback(); api.metrica('unirme_reunion', String(evento.id)); void Linking.openURL(link); }}
           style={({ pressed }) => [h.join, pressed && { transform: [{ scale: 0.98 }], opacity: 0.94 }]}>
           <Ionicons name={platform.icon} size={18} color={C.wine} />
           <Text style={h.joinText}>{live ? `Unirme ahora por ${platform.name}` : `Unirme por ${platform.name}`}</Text>
@@ -243,7 +243,7 @@ export function AgendaRow({ evento, start, live, now }: { evento: Evento; start:
           accessibilityRole="button"
           accessibilityLabel={`Unirme por ${platform.name} a ${evento.titulo}`}
           hitSlop={6}
-          onPress={() => { tapFeedback(); void Linking.openURL(link); }}
+          onPress={() => { tapFeedback(); api.metrica('unirme_reunion', String(evento.id)); void Linking.openURL(link); }}
           style={({ pressed }) => [a.join, live && a.joinLive, pressed && { transform: [{ scale: 0.94 }] }]}>
           <Ionicons name={platform.icon} size={17} color={live ? '#fff' : C.wine} />
         </Pressable>

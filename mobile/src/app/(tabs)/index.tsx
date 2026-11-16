@@ -86,7 +86,10 @@ export default function Home() {
         <Section eyebrow="Voces que inspiran" title="Destacadas">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={posterWidth + 14} decelerationRate="fast" contentContainerStyle={s.bleedTrack} style={s.bleed}>
             {destacadas.data.slice(0, 8).map((d) => (
-              <PosterCard key={d.id} uri={d.foto_url} name={d.nombre} role={d.titulo} onPress={() => router.push('/destacadas')} style={{ width: posterWidth }} />
+              <View key={d.id} style={{ width: posterWidth }}>
+                <PosterCard uri={d.foto_url} name={d.nombre} role={d.titulo} onPress={() => router.push('/destacadas')} />
+                {d.inscripcion_abierta ? <View style={s.signupBadge}><Ionicons name="person-add" size={11} color="#fff" /><Text style={s.signupBadgeText}>Inscripción abierta</Text></View> : null}
+              </View>
             ))}
           </ScrollView>
         </Section>
@@ -303,6 +306,8 @@ const s = StyleSheet.create({
   videoTitle: { color: C.text, fontSize: 14, fontWeight: '600', marginTop: 8, lineHeight: 19 },
   moreLink: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, alignSelf: 'flex-start' },
   moreLinkText: { color: C.wine, fontWeight: '700', fontSize: 13 },
+  signupBadge: { position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999, backgroundColor: C.wine },
+  signupBadgeText: { fontFamily: sans, fontSize: 11, fontWeight: '700', color: '#fff' },
   aboutCards: { gap: 12, marginTop: 18 },
   aboutCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)' },
   aboutCardIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },

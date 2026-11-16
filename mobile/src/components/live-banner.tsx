@@ -87,7 +87,7 @@ export function LiveBanner({ onVisibleChange }: { onVisibleChange?: (visible: bo
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Unirme a ${live.evento.titulo}`}
-          onPress={() => { tapFeedback(); void Linking.openURL(live.link); }}
+          onPress={() => { tapFeedback(); api.metrica('unirme_reunion', String(live.evento.id)); void Linking.openURL(live.link); }}
           style={({ pressed }) => [b.join, pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] }]}>
           <Ionicons name="videocam" size={16} color="#fff" />
           <Text style={b.joinText}>Unirme</Text>

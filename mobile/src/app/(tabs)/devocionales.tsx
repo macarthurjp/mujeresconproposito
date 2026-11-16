@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ErrorNote, Eyebrow, Loading, Screen, tapFeedback, Title, useAsync } from '@/components/ui';
 import { C, sans, serif } from '@/constants/theme';
 import { api, formatDate, type Devocional } from '@/lib/api';
+import { getFavorites } from '@/lib/devotional-library';
 
 const PAGE = 8;
 
@@ -47,14 +48,18 @@ export default function Devocionales() {
   const { data, error, loading, reload } = useAsync(api.devocionales);
   const [query, setQuery] = useState('');
   const [shown, setShown] = useState(PAGE);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [onlyFav, setOnlyFav] = useState(false);
+  useFocusEffect(useCallback(() => { void getFavorites().then(setFavorites); }, []));
 
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('es');
-    if (!q) return data ?? [];
-    return (data ?? []).filter((d) => [d.titulo, d.resumen, d.autora].join(' ').toLocaleLowerCase('es').includes(q));
-  }, [data, query]);
+    const base = onlyFav ? (data ?? []).filter((d) => favorites.includes(d.slug)) : (data ?? []);
+    if (!q) return base;
+    return base.filter((d) => [d.titulo, d.resumen, d.autora].join(' ').toLocaleLowerCase('es').includes(q));
+  }, [data, query, onlyFav, favorites]);
 
-  const searching = query.trim().length > 0;
+  const searching = query.trim().length > 0 || onlyFav;
   const featured = !searching ? filtered[0] : undefined;
   const list = searching ? filtered : filtered.slice(1);
 
@@ -84,6 +89,17 @@ export default function Devocionales() {
           />
         </View>
 
+        {favorites.length ? (
+          <View style={s.filterRow}>
+            {[{ v: false, label: 'Todas' }, { v: true, label: `Mis favoritos · ${favorites.length}` }].map((o) => (
+              <Pressable key={o.label} onPress={() => { tapFeedback(); setOnlyFav(o.v); setShown(PAGE); }} style={[s.filterChip, onlyFav === o.v && s.filterChipOn]}>
+                {o.v ? <Ionicons name="bookmark" size={12} color={onlyFav ? '#fff' : C.wine} /> : null}
+                <Text style={[s.filterText, onlyFav === o.v && { color: '#fff' }]}>{o.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+
         {loading && !data ? <Loading /> : null}
         {error ? <ErrorNote message={error} onRetry={reload} /> : null}
 
@@ -112,7 +128,7 @@ export default function Devocionales() {
         {list.length ? (
           <View style={s.archive}>
             <View style={s.archiveHeader}>
-              <View><Eyebrow>{searching ? 'Resultados' : 'Sigue explorando'}</Eyebrow><Text style={s.archiveTitle}>{searching ? `${list.length} ${list.length === 1 ? 'reflexión' : 'reflexiones'}` : 'Más reflexiones'}</Text></View>
+              <View><Eyebrow>{onlyFav ? 'Guardadas' : searching ? 'Resultados' : 'Sigue explorando'}</Eyebrow><Text style={s.archiveTitle}>{searching ? `${list.length} ${list.length === 1 ? 'reflexión' : 'reflexiones'}` : 'Más reflexiones'}</Text></View>
             </View>
             <View style={s.archiveList}>
               {list.slice(0, shown).map((d) => (
@@ -143,7 +159,7 @@ export default function Devocionales() {
         {!loading && !error && !filtered.length ? (
           <View style={s.empty}>
             <View style={s.emptyIcon}><Ionicons name={searching ? 'search' : 'book-outline'} size={24} color={C.wine} /></View>
-            <Text style={s.emptyTitle}>{searching ? 'No encontramos coincidencias' : 'Pronto habrá nuevas reflexiones'}</Text>
+            <Text style={s.emptyTitle}>{onlyFav ? 'Aún no tienes favoritos' : searching ? 'No encontramos coincidencias' : 'Pronto habrá nuevas reflexiones'}</Text>
             <Text style={s.emptyCopy}>{searching ? 'Prueba con otra palabra o autora.' : 'Vuelve a visitarnos para encontrar una palabra que te acompañe.'}</Text>
           </View>
         ) : null}
@@ -160,6 +176,10 @@ const s = StyleSheet.create({
   verseRef: { fontFamily: sans, fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: C.wine, marginTop: 6 },
   search: { marginTop: 18, height: 46, borderRadius: 14, backgroundColor: 'rgba(118,90,86,0.08)', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14 },
   searchInput: { flex: 1, fontFamily: sans, fontSize: 16, color: C.ink, paddingVertical: 0, outlineStyle: 'none' } as object,
+  filterRow: { flexDirection: 'row', gap: 8, marginTop: 14 },
+  filterChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 13, paddingVertical: 8, borderRadius: 999, backgroundColor: C.fill },
+  filterChipOn: { backgroundColor: C.wine },
+  filterText: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.wine },
   pressed: { transform: [{ scale: 0.985 }], opacity: 0.94 },
   cover: { overflow: 'hidden', backgroundColor: C.sand },
   coverFallback: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', gap: 6 },
