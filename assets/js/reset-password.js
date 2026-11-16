@@ -21,6 +21,32 @@ function getLinkErrorDescription() {
   return description ? description.replace(/\+/g, " ") : "";
 }
 
+const HOME_URL = "index.html";
+const REDIRECT_SECONDS = 4;
+
+/** Replaces the form with a success state and takes the user to the home page. */
+function showResetSuccess() {
+  const card = document.querySelector(".private-access-card");
+  if (!card) { window.location.replace(HOME_URL); return; }
+  card.classList.add("reset-done");
+  card.innerHTML = `
+    <img class="private-access-brand" src="assets/images/logo.webp?v=2" alt="Mujeres con Propósito" />
+    <div class="reset-check" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <span class="private-access-eyebrow">Listo</span>
+    <h3>Contraseña creada</h3>
+    <p role="status">Ya puedes iniciar sesión con tu nueva contraseña. Te llevamos a la página principal en <strong id="resetCountdown">${REDIRECT_SECONDS}</strong> s.</p>
+    <a class="btn reset-home-btn" href="${HOME_URL}">Ir a la página principal</a>
+    <a class="reset-panel-link" href="admin.html">Entrar al panel</a>
+    <div class="reset-bar"><span></span></div>`;
+  let left = REDIRECT_SECONDS;
+  const counter = document.getElementById("resetCountdown");
+  const tick = setInterval(() => {
+    left -= 1;
+    if (counter) counter.textContent = String(Math.max(left, 0));
+    if (left <= 0) { clearInterval(tick); window.location.replace(HOME_URL); }
+  }, 1000);
+}
+
 async function ensureRecoverySession() {
   const { data } = await resetClient.auth.getSession();
   if (data?.session) return true;
@@ -70,9 +96,11 @@ savePasswordBtn?.addEventListener("click", async function () {
     const { error } = await resetClient.auth.updateUser({ password });
     if (error) throw error;
 
-    showResetMessage("Contraseña actualizada correctamente. Ya puedes cerrar esta página e iniciar sesión.", true);
     newPasswordInput.value = "";
     confirmPasswordInput.value = "";
+    await resetClient.auth.signOut({ scope: "local" }).catch(() => {});
+    showResetSuccess();
+    return;
   } catch (error) {
     console.error(error);
     showResetMessage("No se pudo cambiar la contraseña. Abre de nuevo el enlace del correo.");
