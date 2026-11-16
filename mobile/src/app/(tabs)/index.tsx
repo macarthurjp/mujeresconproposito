@@ -101,10 +101,21 @@ export default function Home() {
 
       {/* About */}
       <Section eyebrow="Nosotras" title="¿Quiénes somos?" band>
-        <Text style={[ui.body, { fontWeight: '700', color: C.ink }]}>Nuestra misión, visión y propósito</Text>
-        <Text style={[ui.body, { marginTop: 12 }]}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
-        <Pressable onPress={() => setAboutVisible(true)} onPressIn={tapFeedback} accessibilityRole="button" accessibilityLabel="Ver misión, visión y valores" style={({ pressed }) => [s.moreLink, pressed && { opacity: 0.72 }]}>
-          <Text style={s.moreLinkText}>Ver más</Text><Ionicons name="arrow-forward" size={16} color={C.wine} />
+        <Text style={ui.body}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
+        <View style={s.aboutCards}>
+          {[
+            { icon: 'leaf-outline' as const, title: 'Misión', copy: 'Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades.' },
+            { icon: 'eye-outline' as const, title: 'Visión', copy: 'Ser una comunidad internacional de mujeres transformadas por Dios que generan un impacto que transforma vidas, familias y comunidades.' },
+          ].map((card) => (
+            <View key={card.title} style={s.aboutCard}>
+              <View style={s.aboutCardIcon}><Ionicons name={card.icon} size={18} color={C.wine} /></View>
+              <Text style={s.aboutCardTitle}>{card.title}</Text>
+              <Text style={s.aboutCardText}>{card.copy}</Text>
+            </View>
+          ))}
+        </View>
+        <Pressable onPress={() => setAboutVisible(true)} onPressIn={tapFeedback} accessibilityRole="button" accessibilityLabel="Ver nuestros valores" style={({ pressed }) => [s.moreLink, pressed && { opacity: 0.72 }]}>
+          <Text style={s.moreLinkText}>Nuestros valores</Text><Ionicons name="arrow-forward" size={16} color={C.wine} />
         </Pressable>
       </Section>
 
@@ -292,6 +303,11 @@ const s = StyleSheet.create({
   videoTitle: { color: C.text, fontSize: 14, fontWeight: '600', marginTop: 8, lineHeight: 19 },
   moreLink: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, alignSelf: 'flex-start' },
   moreLinkText: { color: C.wine, fontWeight: '700', fontSize: 13 },
+  aboutCards: { gap: 12, marginTop: 18 },
+  aboutCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)' },
+  aboutCardIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  aboutCardTitle: { fontFamily: serif, fontSize: 22, color: C.ink, marginBottom: 6 },
+  aboutCardText: { fontFamily: sans, fontSize: 15, lineHeight: 22, color: C.muted, textAlign: 'left' },
   aboutModal: { flex: 1, backgroundColor: C.bg, paddingTop: 12 },
   aboutModalHeader: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 22, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: C.separator },
   aboutModalEyebrow: { color: C.wine, fontSize: 11, fontWeight: '800', letterSpacing: 2 },
@@ -300,7 +316,7 @@ const s = StyleSheet.create({
   aboutModalContent: { padding: 20, paddingBottom: 36, gap: 14 },
   aboutDetailCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, borderWidth: 1, borderColor: C.line, gap: 8 },
   aboutDetailTitle: { color: C.ink, fontFamily: serif, fontSize: 21 },
-  aboutParagraphText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'justify' },
+  aboutParagraphText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'left' },
   aboutDetailText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'left' },
   aboutValuesList: { gap: 8 },
   aboutValue: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },

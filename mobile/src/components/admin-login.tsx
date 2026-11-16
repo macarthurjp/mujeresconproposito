@@ -8,8 +8,8 @@ import { Button } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { enabledProviders, sendPasswordReset, signIn, signInWithProvider } from '@/lib/admin';
 import {
-  clearBiometricAdminCredentials, deviceSupportsBiometrics, getBiometricAdminCredentials,
-  getBiometricLoginAvailable, getRememberedAdminEmail, saveBiometricAdminCredentials,
+  biometricLabel, clearBiometricAdminCredentials, getBiometricAdminCredentials,
+  getBiometricLoginAvailable, getRememberedAdminEmail, rememberSessionPassword,
   setRememberAdminSession, setRememberedAdminEmail,
 } from '@/lib/app-preferences';
 import { supabase } from '@/lib/supabase';
@@ -27,8 +27,7 @@ export function AdminLogin() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
-  const [useBiometrics, setUseBiometrics] = useState(false);
-  const [biometricsSupported, setBiometricsSupported] = useState(false);
+  const [bioLabel, setBioLabel] = useState('Face ID');
   const [biometricLoginAvailable, setBiometricLoginAvailable] = useState(false);
   const [busy, setBusy] = useState(false);
   // Only show Apple/Google when enabled in Supabase Auth (public settings endpoint).
@@ -36,11 +35,11 @@ export function AdminLogin() {
 
   useEffect(() => {
     let alive = true;
-    void Promise.all([getRememberedAdminEmail(), deviceSupportsBiometrics(), getBiometricLoginAvailable()]).then(([savedEmail, supported, available]) => {
+    void Promise.all([getRememberedAdminEmail(), getBiometricLoginAvailable(), biometricLabel()]).then(([savedEmail, available, label]) => {
       if (!alive) return;
       if (savedEmail) { setEmail(savedEmail); setRemember(true); }
-      setBiometricsSupported(supported);
-      setBiometricLoginAvailable(available && supported);
+      setBiometricLoginAvailable(available);
+      setBioLabel(label);
     }).catch(() => {});
     void enabledProviders().then((p) => { if (alive) setProviders(p); }).catch(() => {});
     return () => { alive = false; };
@@ -59,36 +58,33 @@ export function AdminLogin() {
     void run(async () => {
       await setRememberAdminSession(remember);
       await signIn(email, password);
-      try {
-        await setRememberedAdminEmail(remember ? email : null);
-        if (useBiometrics) {
-          await saveBiometricAdminCredentials(email, password);
-          setBiometricLoginAvailable(true);
-        } else if (!remember) {
-          await clearBiometricAdminCredentials();
-          setBiometricLoginAvailable(false);
-        }
-      } catch {
-        Alert.alert('Sesión iniciada', 'No se pudieron guardar las preferencias de acceso en este dispositivo.');
-      }
+      rememberSessionPassword(email, password);
+      await setRememberedAdminEmail(remember ? email : null).catch(() => {});
     });
   };
 
   const biometricSignIn = () => void run(async () => {
-    const credentials = await getBiometricAdminCredentials();
+    let credentials;
+    try {
+      credentials = await getBiometricAdminCredentials();
+    } catch (error) {
+      if (error instanceof Error && error.message === 'cancelled') return;
+      throw error;
+    }
     if (!credentials) {
+      await clearBiometricAdminCredentials();
       setBiometricLoginAvailable(false);
-      throw new Error('No se encontraron credenciales protegidas. Inicia sesión con tu correo para configurarlo de nuevo.');
+      throw new Error(`Vuelve a entrar con tu correo y activa ${bioLabel} en Administración → Preferencias.`);
     }
     try {
       await signIn(credentials.email, credentials.password);
+      rememberSessionPassword(credentials.email, credentials.password);
     } catch (error) {
-      // Saved password is outdated (e.g. it was reset): forget it so the user signs in manually.
       if (error instanceof Error && error.message === 'Correo o contraseña incorrectos.') {
         await clearBiometricAdminCredentials();
         setBiometricLoginAvailable(false);
         setEmail(credentials.email);
-        throw new Error('Tu contraseña cambió. Escríbela de nuevo para entrar y vuelve a activar Face ID o huella.');
+        throw new Error(`Tu contraseña cambió. Escríbela de nuevo y vuelve a activar ${bioLabel} en Administración → Preferencias.`);
       }
       throw error;
     }
@@ -148,12 +144,11 @@ export function AdminLogin() {
         </Group>
         <Group>
           <SwitchRow icon="person-circle" label="Recordarme en este dispositivo" value={remember} onValueChange={setRemember} />
-          {biometricsSupported ? <SwitchRow icon="finger-print" tint="#34a853" label="Usar Face ID o huella" sub="La próxima vez entrarás sin contraseña" value={useBiometrics} onValueChange={setUseBiometrics} /> : null}
         </Group>
         <Button label={busy ? 'Entrando…' : 'Entrar con correo'} icon="log-in-outline" onPress={submit} style={{ marginTop: 20 }} />
         {biometricLoginAvailable ? <Pressable accessibilityRole="button" disabled={busy} onPress={biometricSignIn} style={({ pressed }) => [s.biometric, pressed && { opacity: 0.78 }]}>
           <Ionicons name="finger-print-outline" size={22} color={C.wine} />
-          <Text style={s.biometricText}>Entrar con Face ID o huella</Text>
+          <Text style={s.biometricText}>Entrar con {bioLabel}</Text>
         </Pressable> : null}
         {providers.apple || providers.google ? <View style={s.divider}><View style={s.rule} /><Text style={s.or}>o continúa con</Text><View style={s.rule} /></View> : null}
         {providers.apple ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => providerSignIn('apple')} style={({ pressed }) => [s.social, s.apple, pressed && { opacity: 0.82 }]}>

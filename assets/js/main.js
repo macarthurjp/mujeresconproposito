@@ -1417,7 +1417,7 @@ lightbox?.addEventListener("touchcancel", function () {
     const params = new URLSearchParams(window.location.search);
     const formParam = (params.get("form") || "").toLowerCase();
     const hash = (window.location.hash || "").toLowerCase();
-    return formParam === "unirse" || formParam === "join" || hash === "#formulario" || hash === "#unirse";
+    return formParam === "unirse" || formParam === "join" || hash === "#formulario" || hash === "#unirse" || hash === "#join";
   }
 
   if (shouldAutoOpenJoinModal()) {

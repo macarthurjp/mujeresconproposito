@@ -35,7 +35,7 @@ export default function AdminGaleria() {
   const [newAlbum, setNewAlbum] = useState('');
   const [cover, setCover] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
-  const [mode, setMode] = useState<'upload' | 'manage'>('upload');
+  const [mode, setMode] = useState<'upload' | 'manage'>('manage');
   const [managed, setManaged] = useState<GalleryPhoto[]>([]);
   const [managedLoading, setManagedLoading] = useState(false);
   const [editingPhoto, setEditingPhoto] = useState<GalleryPhoto | null>(null);
@@ -159,8 +159,8 @@ export default function AdminGaleria() {
       />
       <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
         <View style={s.modeSwitch}>
-          <Pressable onPress={() => setMode('upload')} style={[s.modeOption, mode === 'upload' && s.modeSelected]}><Text style={[s.modeText, mode === 'upload' && s.modeTextSelected]}>Subir fotos</Text></Pressable>
           <Pressable onPress={() => { setMode('manage'); void loadManaged(); }} style={[s.modeOption, mode === 'manage' && s.modeSelected]}><Text style={[s.modeText, mode === 'manage' && s.modeTextSelected]}>Administrar galería</Text></Pressable>
+          <Pressable onPress={() => setMode('upload')} style={[s.modeOption, mode === 'upload' && s.modeSelected]}><Text style={[s.modeText, mode === 'upload' && s.modeTextSelected]}>Subir fotos</Text></Pressable>
         </View>
         {mode === 'upload' ? <>
         <View style={s.grid}>

@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LiveBanner } from '@/components/live-banner';
 import { PrayerButton } from '@/components/prayer-button';
+import { TabSwipe } from '@/components/tab-swipe';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 
@@ -38,6 +39,7 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1 }}>
+    <TabSwipe>
     <Tabs
       screenListeners={{ tabPress: () => tapFeedback() }}
       screenOptions={{
@@ -79,6 +81,7 @@ export default function TabsLayout() {
       />
       <Tabs.Screen name="mas" options={tab('Más', 'grid-outline', 'grid')} />
     </Tabs>
+    </TabSwipe>
     <LiveBanner onVisibleChange={setLiveVisible} />
     <PrayerButton raised={liveVisible} />
     </View>
