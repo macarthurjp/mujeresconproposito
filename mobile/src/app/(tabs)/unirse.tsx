@@ -146,7 +146,7 @@ export default function Unirse() {
           onCancel={() => setChecking(false)}
           onError={() => { setChecking(false); Alert.alert('No se pudo verificar', 'Revisa tu conexión e inténtalo de nuevo.'); }}
         />
-        <Text style={s.footnote}>Al enviar, aceptas que el equipo de Mujeres con Propósito se comunique contigo sobre tu registro.</Text>
+        <Text style={s.footnote}>Al enviar, aceptas que el equipo de Mujeres con Propósito se comunique contigo sobre tu registro. <Text style={s.footnoteLink} accessibilityRole="link" onPress={() => { void Linking.openURL(`${SITE_URL}/privacidad.html`); }}>Política de privacidad</Text></Text>
       </View>
     </KeyboardAvoidingView>
   </Screen>;
@@ -175,4 +175,5 @@ const s = StyleSheet.create({
   input: { minHeight: 50, borderRadius: 13, borderWidth: 1, borderColor: 'rgba(28,17,23,0.13)', backgroundColor: '#fffaf9', paddingHorizontal: 14, color: C.ink, fontSize: 15 },
   textarea: { minHeight: 100, paddingTop: 13, textAlignVertical: 'top' },
   footnote: { color: C.muted, fontSize: 12, lineHeight: 18, textAlign: 'center', marginTop: -4, marginBottom: 20 },
+  footnoteLink: { color: C.wine, fontWeight: '600', textDecorationLine: 'underline' },
 });

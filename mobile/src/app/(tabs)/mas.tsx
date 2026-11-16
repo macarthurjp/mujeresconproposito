@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Eyebrow, Screen, tapFeedback, Title } from '@/components/ui';
-import { C, FACEBOOK_URL, INSTAGRAM_URL, sans } from '@/constants/theme';
+import { C, FACEBOOK_URL, INSTAGRAM_URL, SITE_URL, sans } from '@/constants/theme';
 import { getShowHomeActivities, setShowHomeActivities } from '@/lib/app-preferences';
 import { liveActivitiesSupported, loadLiveActivitiesPreference, setLiveActivitiesEnabled as saveLiveActivitiesEnabled } from '@/lib/live-activity';
 import { COMMUNITIES, disableMeetingAlerts, enableMeetingAlerts, getDevicePrefs, getMeetingAlertsEnabled, getPushStatus, saveDevicePrefs, type DevicePrefs, type PushStatus } from '@/lib/notifications';
@@ -219,6 +219,7 @@ export default function Mas() {
         <Group title="Participa" items={[
           { icon: 'heart-outline', label: 'Donar', hint: 'PayPal, código QR o transferencia', onPress: go('/aportar') },
           { icon: 'mail-outline', label: 'Contacto', hint: 'Formulario dentro de la app', onPress: go('/contacto') },
+          { icon: 'shield-checkmark-outline', label: 'Política de privacidad', hint: 'Cómo cuidamos tus datos', onPress: open(`${SITE_URL}/privacidad.html`) },
         ]} />
 
         <Group title="Síguenos" items={[

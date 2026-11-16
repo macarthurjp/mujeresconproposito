@@ -86,7 +86,7 @@
       '<div class="es-stepper"><span>Acompañantes</span><div><button type="button" data-step="-1" aria-label="Menos">−</button><output>0</output><button type="button" data-step="1" aria-label="Más">+</button></div></div>' +
       '<p class="es-error" role="alert" hidden></p>' +
       '<button type="submit" class="es-btn"><i class="fa-solid fa-ticket" aria-hidden="true"></i> Confirmar inscripción</button>' +
-      '<small class="es-note">Usaremos tus datos solo para este evento.</small></form>';
+      '<small class="es-note">Usaremos tus datos solo para este evento. <a href="privacidad.html">Privacidad</a></small></form>';
     var form = body.querySelector("form");
     var out = form.querySelector("output");
     var guests = 0;
