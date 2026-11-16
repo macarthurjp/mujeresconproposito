@@ -71,6 +71,13 @@ export async function saveAdminRolePermissions(roleId:string,permissions:string[
 export async function listAdminRolePermissions(roleId:string) {
   const {data,error}=await supabase.from('admin_role_permissions').select('permission_key').eq('role_id',roleId); if(error) throw error; return (data??[]).map((row)=>row.permission_key as string);
 }
+/** All role → permission keys (Super Admin only), for counts and summaries. */
+export async function listAllAdminRolePermissions() {
+  const {data,error}=await supabase.from('admin_role_permissions').select('role_id,permission_key'); if(error) throw error;
+  const map: Record<string,string[]> = {};
+  (data??[]).forEach((row)=>{ (map[row.role_id as string] ??= []).push(row.permission_key as string); });
+  return map;
+}
 export async function assignAdminRole(email:string,roleId:string) {
   const {data,error}=await supabase.rpc('admin_assign_role',{p_email:email,p_role_id:roleId}); if(error) throw error; return String(data);
 }
