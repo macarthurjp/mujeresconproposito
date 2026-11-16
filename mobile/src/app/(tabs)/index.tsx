@@ -13,7 +13,7 @@ import { reportScroll } from '@/lib/scroll-activity';
 import { AlbumCard, PosterCard } from '@/components/media';
 import { PhotoViewer } from '@/components/photo-viewer';
 import { PorcionPlayer } from '@/components/porcion-player';
-import { Button, Card, Eyebrow, tapFeedback, ErrorNote, Section, styles as ui, Title, useAsync } from '@/components/ui';
+import { Button, Card, Eyebrow, tapFeedback, ErrorNote, Reveal, Section, styles as ui, Title, useAsync } from '@/components/ui';
 import { C, TAB_BAR_SPACE, serif, sans } from '@/constants/theme';
 import { api, type Foto } from '@/lib/api';
 import { getShowHomeActivities } from '@/lib/app-preferences';
@@ -57,7 +57,7 @@ export default function Home() {
       }>
       {/* Hero */}
       <View style={[s.hero, { paddingTop: insets.top + 20 }]}>
-        <View style={s.brandRow}>
+        <Reveal index={0}><View style={s.brandRow}>
           <View style={s.mark}>
             <LinearGradient colors={['#cb685e', '#a64b43', '#863a36']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
             <View pointerEvents="none" style={s.markGlow} />
@@ -68,39 +68,39 @@ export default function Home() {
             <Text style={s.brand}>Mujeres con Propósito</Text>
             <Text style={s.brandSub}>930 A.S.B.L.</Text>
           </View>
-        </View>
-        <Eyebrow>Comunidad cristiana internacional</Eyebrow>
-        <Title size={34} editorial>
+        </View></Reveal>
+        <Reveal index={1}><Eyebrow>Comunidad cristiana internacional</Eyebrow></Reveal>
+        <Reveal index={2}><Title size={34} editorial>
           Bienvenida a <Text style={{ fontStyle: 'italic', color: C.wine }}>Mujeres</Text> con Propósito
-        </Title>
-        <Text style={s.heroCopy}>
+        </Title></Reveal>
+        <Reveal index={3}><Text style={s.heroCopy}>
           Un espacio donde la <Text style={s.heroAccent}>fe</Text>, la <Text style={s.heroAccent}>hermandad</Text> y el <Text style={s.heroAccent}>propósito</Text> se unen para transformar vidas.
-        </Text>
-        <View style={{ flexDirection: 'row', marginTop: 20 }}>
+        </Text></Reveal>
+        <Reveal index={4} style={{ flexDirection: 'row', marginTop: 20 }}>
           <Button label="Únete a la comunidad" icon="person-add-outline" variant="primary" onPress={() => router.push('/(tabs)/unirse')} />
-        </View>
+        </Reveal>
       </View>
 
       {/* Destacadas — first content section, matching the website */}
       {destacadas.data?.length ? (
-        <Section eyebrow="Voces que inspiran" title="Destacadas">
+        <Reveal index={5}><Section eyebrow="Voces que inspiran" title="Destacadas">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={posterWidth + 14} decelerationRate="fast" contentContainerStyle={s.bleedTrack} style={s.bleed}>
-            {destacadas.data.slice(0, 8).map((d) => (
-              <View key={d.id} style={{ width: posterWidth }}>
+            {destacadas.data.slice(0, 8).map((d, i) => (
+              <Reveal key={d.id} index={5 + i} style={{ width: posterWidth }}>
                 <PosterCard uri={d.foto_url} name={d.nombre} role={d.titulo} onPress={() => router.push('/destacadas')} />
                 {d.inscripcion_abierta ? <View style={s.signupBadge}><Ionicons name="person-add" size={11} color="#fff" /><Text style={s.signupBadgeText}>Inscripción abierta</Text></View> : null}
-              </View>
+              </Reveal>
             ))}
           </ScrollView>
-        </Section>
+        </Section></Reveal>
       ) : null}
 
       {/* Scripture */}
-      <View style={s.verse}>
+      <Reveal index={6}><View style={s.verse}>
         <Text style={s.quote}>“</Text>
         <Text style={s.verseText}>El Señor cumplirá en mí su propósito. Tu gran amor, Señor, perdura para siempre; ¡no abandones la obra de tus manos!</Text>
         <Text style={[ui.eyebrow, { textAlign: 'center', marginTop: 14 }]}>Salmo 138:8</Text>
-      </View>
+      </View></Reveal>
 
       {/* About */}
       <Section eyebrow="Nosotras" title="¿Quiénes somos?" band>
@@ -177,7 +177,7 @@ export default function Home() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.videoTrack}>
             {videos.data.map((v) => (
               <Pressable key={v.id} style={s.video} onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${v.video_id}`)}>
-                <Image source={{ uri: `https://i.ytimg.com/vi/${v.video_id}/hqdefault.jpg` }} style={s.videoImg} contentFit="cover" />
+                <Image source={{ uri: `https://i.ytimg.com/vi/${v.video_id}/hqdefault.jpg` }} style={s.videoImg} contentFit="cover" transition={{ duration: 450, effect: 'cross-dissolve' }} />
                 <View style={s.play}><Ionicons name="play" size={18} color="#fff" /></View>
                 <Text style={s.videoTitle} numberOfLines={2}>{v.titulo}</Text>
               </Pressable>

@@ -7,6 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { C } from '@/constants/theme';
+import { markLaunchRevealed } from '@/lib/launch';
 
 // The native splash image split in two layers (same pixels, same place), so the
 // hand-off is invisible and only the flower moves.
@@ -32,6 +33,7 @@ export function LaunchScreen() {
 
   useEffect(() => {
     let cancelled = false;
+    let revealTimer: ReturnType<typeof setTimeout> | undefined;
     void AccessibilityInfo.isReduceMotionEnabled().then((reduce) => {
       if (cancelled) return;
       const hold = reduce ? 300 : MIN_VISIBLE_MS;
@@ -49,11 +51,13 @@ export function LaunchScreen() {
         ), -1, true));
       }
       progress.value = withTiming(1, { duration: hold, easing: Easing.out(Easing.cubic) });
+      // The app content starts its cascade exactly as this layer opens.
+      revealTimer = setTimeout(markLaunchRevealed, hold);
       exit.value = withDelay(hold, withTiming(1, { duration: reduce ? 200 : 560, easing: Easing.out(Easing.cubic) }, (finished) => {
         if (finished) runOnJS(setDone)(true);
       }));
     });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; if (revealTimer) clearTimeout(revealTimer); markLaunchRevealed(); };
   }, [grow, sway, soil, progress, exit]);
 
   const layer = useAnimatedStyle(() => ({ opacity: 1 - exit.value }));

@@ -5,7 +5,7 @@ import { Link, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { ErrorNote, Eyebrow, Loading, Screen, tapFeedback, Title, useAsync } from '@/components/ui';
+import { ErrorNote, Eyebrow, Loading, Reveal, Screen, tapFeedback, Title, useAsync } from '@/components/ui';
 import { C, sans, serif } from '@/constants/theme';
 import { api, formatDate, type Devocional } from '@/lib/api';
 import { getFavorites } from '@/lib/devotional-library';
@@ -23,7 +23,7 @@ function Cover({ uri, style }: { uri?: string | null; style: object }) {
         <Image source={require('@/assets/images/flower.png')} style={s.coverFlower} contentFit="contain" />
         <Text style={s.coverLabel}>Devocional</Text>
       </View>
-      {showPhoto ? <Image source={{ uri: uri! }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} onError={() => setFailed(true)} /> : null}
+      {showPhoto ? <Image source={{ uri: uri! }} style={StyleSheet.absoluteFill} contentFit="cover" transition={{ duration: 500, effect: 'cross-dissolve' }} onError={() => setFailed(true)} /> : null}
     </View>
   );
 }
@@ -131,8 +131,8 @@ export default function Devocionales() {
               <View><Eyebrow>{onlyFav ? 'Guardadas' : searching ? 'Resultados' : 'Sigue explorando'}</Eyebrow><Text style={s.archiveTitle}>{searching ? `${list.length} ${list.length === 1 ? 'reflexión' : 'reflexiones'}` : 'Más reflexiones'}</Text></View>
             </View>
             <View style={s.archiveList}>
-              {list.slice(0, shown).map((d) => (
-                <Link key={d.id} href={{ pathname: '/devocional/[slug]', params: { slug: d.slug } }} asChild>
+              {list.slice(0, shown).map((d, i) => (
+                <Reveal key={d.id} index={i}><Link href={{ pathname: '/devocional/[slug]', params: { slug: d.slug } }} asChild>
                   <Pressable accessibilityLabel={`Leer devocional: ${d.titulo ?? 'Reflexión'}`} onPressIn={tapFeedback}>
                     {({ pressed }) => (
                       <View style={[s.row, pressed && s.pressed]}>
@@ -145,7 +145,7 @@ export default function Devocionales() {
                       </View>
                     )}
                   </Pressable>
-                </Link>
+                </Link></Reveal>
               ))}
             </View>
             {list.length > shown ? (

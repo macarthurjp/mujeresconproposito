@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } fr
 
 import { AlbumCard } from '@/components/media';
 import { PhotoViewer } from '@/components/photo-viewer';
-import { ErrorNote, Eyebrow, Loading, Screen, tapFeedback, Title, useAsync } from '@/components/ui';
+import { ErrorNote, Eyebrow, Loading, Reveal, Screen, tapFeedback, Title, useAsync } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { api, type Foto } from '@/lib/api';
 import { albumsFor, GALLERY_REGIONS as REGIONS, type Album, type RegionKey } from '@/lib/gallery';
@@ -48,15 +48,14 @@ export default function Galeria() {
           {error ? <ErrorNote message={error} onRetry={reload} /> : null}
 
           <View style={s.grid}>
-            {albums.map((album) => (
-              <AlbumCard
-                key={album.key}
+            {albums.map((album, i) => (
+              <Reveal key={album.key} index={i}><AlbumCard
                 title={album.title}
                 coverUri={album.cover.foto_url}
                 count={album.photos.length}
                 width={cardWidth}
                 onPress={() => setOpen(album)}
-              />
+              /></Reveal>
             ))}
           </View>
           {!loading && !albums.length && !error ? <Text style={s.empty}>Aún no hay galerías en esta región.</Text> : null}

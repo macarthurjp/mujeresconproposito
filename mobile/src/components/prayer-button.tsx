@@ -8,6 +8,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, sans, TAB_BAR_SPACE } from '@/constants/theme';
+import { useLaunchRevealed } from '@/lib/launch';
 import { onScrollActivity } from '@/lib/scroll-activity';
 
 import { tapFeedback } from './ui';
@@ -24,6 +25,7 @@ const COLLAPSE_AFTER_MS = 1400;
 export function PrayerButton({ raised }: { raised: boolean }) {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const launched = useLaunchRevealed();
   const open = useSharedValue(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -49,11 +51,11 @@ export function PrayerButton({ raised }: { raised: boolean }) {
 
   // Not on the join form (it would compete with the main action) nor on the
   // settings screen, where it sits on top of switches and rows.
-  if (pathname === '/unirse' || pathname === '/mas') return null;
+  if (!launched || pathname === '/unirse' || pathname === '/mas') return null;
 
   return (
     <Animated.View
-      entering={FadeIn.duration(250)}
+      entering={FadeIn.delay(700).duration(500)}
       exiting={FadeOut.duration(150)}
       layout={LinearTransition.springify().damping(18)}
       style={[p.wrap, { bottom: insets.bottom + TAB_BAR_SPACE - 10 + (raised ? 78 : 0) }]}

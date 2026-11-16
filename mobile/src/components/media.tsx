@@ -31,7 +31,7 @@ export function PhotoTile({
       accessibilityLabel={caption || 'Ver foto'}
       onPress={() => { tapFeedback(); onPress?.(); }}
       style={({ pressed }) => [m.tile, style, pressed && { transform: [{ scale: 0.98 }] }]}>
-      <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={250} />
+      <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={{ duration: 500, effect: 'cross-dissolve' }} />
       {caption ? (
         <LinearGradient
           colors={['rgba(20,12,14,0)', 'rgba(20,12,14,0.18)', 'rgba(20,12,14,0.72)']}
@@ -76,7 +76,7 @@ export function PosterCard({
       <View style={m.posterMedia}>
         <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" blurRadius={30} />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,247,246,0.35)' }]} />
-        <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="contain" transition={200} />
+        <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="contain" transition={{ duration: 500, effect: 'cross-dissolve' }} />
       </View>
       <View style={m.posterBody}>
         <Text style={m.posterName} numberOfLines={2}>{name}</Text>
@@ -132,7 +132,7 @@ export function AlbumCard({
         {count > 2 ? <View style={[a.stack, { top: 0, left: 16, right: 16, height }]} /> : null}
         {count > 1 ? <View style={[a.stack, a.stack2, { top: 5, left: 8, right: 8, height }]} /> : null}
         <View style={[a.cover, { top: 10, height }]}>
-          <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
+          <Image source={{ uri: coverUri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={{ duration: 500, effect: 'cross-dissolve' }} />
           <View style={a.countPill}>
             <Ionicons name="images" size={12} color="#fff" />
             <Text style={a.countText}>{count}</Text>
