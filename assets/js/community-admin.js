@@ -42,10 +42,10 @@
           <span class="ci-pill ${e.inscripcion_abierta ? "is-on" : ""}">${e.inscripcion_abierta ? `${total}${e.cupo ? ` / ${e.cupo}` : ""} inscritas` : "Sin inscripción"}</span>
         </div>
         <form class="ci-event-form">
-          <label class="ci-check"><input type="checkbox" name="abierta" ${e.inscripcion_abierta ? "checked" : ""}/> Abrir inscripciones</label>
-          <label>Fecha y hora <input type="datetime-local" name="fecha" value="${dateVal}" /></label>
-          <label>Lugar <input type="text" name="lugar" value="${esc(e.lugar || "")}" placeholder="Dirección o “En línea”" /></label>
-          <label>Plazas <input type="number" name="cupo" min="1" value="${e.cupo || ""}" placeholder="Sin límite" /></label>
+          <label class="ci-check ci-wide"><input type="checkbox" name="abierta" ${e.inscripcion_abierta ? "checked" : ""}/> Requiere inscripción <small>${e.inscripcion_abierta ? "Se muestra el botón “Inscribirme”." : "Solo anuncio, sin botón."}</small></label>
+          <label class="ci-when-on">Fecha y hora <input type="datetime-local" name="fecha" value="${dateVal}" /></label>
+          <label class="ci-when-on">Lugar <input type="text" name="lugar" value="${esc(e.lugar || "")}" placeholder="Dirección o “En línea”" /></label>
+          <label class="ci-when-on">Plazas <input type="number" name="cupo" min="1" value="${e.cupo || ""}" placeholder="Sin límite" /></label>
           <button type="submit" class="btn">Guardar</button>
         </form>
         ${list.length ? `<details class="ci-people"><summary>Ver ${list.length} ${list.length === 1 ? "inscripción" : "inscripciones"} (${total} personas)</summary>
@@ -56,6 +56,12 @@
       </section>`;
     }).join("") || '<div class="admin-empty">No hay destacadas todavía.</div>';
 
+    box.querySelectorAll(".ci-event-form").forEach((form) => {
+      const sync = () => form.classList.toggle("is-off", !form.elements.abierta.checked);
+      form.elements.abierta.addEventListener("change", sync);
+      sync();
+    });
+    box.querySelectorAll(".ci-event").forEach((card) => card.classList.toggle("is-signup", card.querySelector('[name="abierta"]').checked));
     box.querySelectorAll(".ci-event-form").forEach((form) => form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const id = form.closest(".ci-event").dataset.id;

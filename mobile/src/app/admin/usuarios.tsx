@@ -268,7 +268,7 @@ export default function AdminUsuarios() {
               <Pressable key={g.key} onPress={() => { tapFeedback(); setRoleFilter(roleFilter === g.key ? 'all' : g.key); }} style={[s.tile, roleFilter === g.key && { borderColor: g.color }]}>
                 <View style={[s.tileIcon, { backgroundColor: `${g.color}1A` }]}><Ionicons name={g.icon} size={15} color={g.color} /></View>
                 <Text style={s.tileValue}>{counts[g.key]}</Text>
-                <Text style={s.tileLabel} numberOfLines={1}>{g.label}</Text>
+                <Text style={s.tileLabel} numberOfLines={2}>{g.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -306,10 +306,10 @@ export default function AdminUsuarios() {
 const s = StyleSheet.create({
   page: { padding: 16, paddingBottom: 60 },
   summary: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
-  tile: { flexGrow: 1, flexBasis: '30%', backgroundColor: C.card, borderRadius: 16, padding: 12, borderWidth: 1.5, borderColor: 'transparent' },
+  tile: { flexGrow: 1, flexBasis: '30%', backgroundColor: C.card, borderRadius: 16, padding: 10, borderWidth: 1.5, borderColor: 'transparent' },
   tileIcon: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   tileValue: { fontFamily: sans, fontSize: 22, fontWeight: '700', color: C.ink, fontVariant: ['tabular-nums'] },
-  tileLabel: { fontFamily: sans, fontSize: 12, color: C.muted, marginTop: 1 },
+  tileLabel: { fontFamily: sans, fontSize: 12, lineHeight: 15, color: C.muted, marginTop: 1 },
   clearFilter: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', marginTop: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: C.fill },
   clearFilterText: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.wine },
   emptyText: { fontFamily: sans, fontSize: 14, color: C.muted, textAlign: 'center', marginTop: 30 },

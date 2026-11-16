@@ -57,7 +57,7 @@ export function AdminGestureRow({ children, onEdit, onDelete, onReorder, stepHei
       overshootLeft={false}
       overshootRight={false}
       dragOffsetFromLeft={12}
-      dragOffsetFromRight={12}
+      dragOffsetFromRight={-12}
       simultaneousWith={drag}
       renderLeftActions={onEdit ? () => (
         <Pressable accessibilityRole="button" accessibilityLabel="Editar" onPress={() => run(onEdit)} style={[styles.action, styles.edit]}>

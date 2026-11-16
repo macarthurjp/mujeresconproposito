@@ -703,3 +703,8 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgb
   .ci-tabs, .ci-tiles { grid-template-columns: repeat(2, 1fr); }
   .ci-event-head { flex-wrap: wrap; }
 }
+
+.ci-event-form.is-off .ci-when-on { display: none; }
+.ci-check small { flex-basis: 100%; margin-left: 26px; font-weight: 400; color: var(--a-muted); }
+.ci-check { flex-wrap: wrap; }
+.ci-event:not(.is-signup) .ci-event-head img { width: 44px; height: 54px; }

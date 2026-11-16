@@ -129,7 +129,7 @@ export default function Seguimiento() {
           {ESTADOS.map((e) => (
             <Pressable key={e.key} onPress={() => { tapFeedback(); setTab(e.key); }} style={[s.tab, tab === e.key && { borderColor: e.color, backgroundColor: '#fff' }]}>
               <Text style={[s.tabCount, { color: e.color }]}>{counts[e.key]}</Text>
-              <Text style={s.tabLabel} numberOfLines={1}>{e.label}</Text>
+              <Text style={s.tabLabel} numberOfLines={2}>{e.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -159,9 +159,9 @@ const s = StyleSheet.create({
   page: { padding: 16, paddingBottom: 60 },
   intro: { fontFamily: sans, fontSize: 14, lineHeight: 20, color: C.muted },
   tabs: { flexDirection: 'row', gap: 8, marginTop: 14 },
-  tab: { flex: 1, paddingVertical: 10, borderRadius: 14, alignItems: 'center', backgroundColor: C.card, borderWidth: 1.5, borderColor: 'transparent' },
+  tab: { flex: 1, paddingVertical: 10, paddingHorizontal: 2, borderRadius: 14, alignItems: 'center', backgroundColor: C.card, borderWidth: 1.5, borderColor: 'transparent' },
   tabCount: { fontFamily: sans, fontSize: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
-  tabLabel: { fontFamily: sans, fontSize: 11, fontWeight: '600', color: C.muted, marginTop: 1 },
+  tabLabel: { fontFamily: sans, fontSize: 11, lineHeight: 13, fontWeight: '600', color: C.muted, marginTop: 1, textAlign: 'center' },
   empty: { fontFamily: sans, fontSize: 14, color: C.muted, textAlign: 'center', marginTop: 30 },
   card: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: C.card },
   dot: { width: 10, height: 10, borderRadius: 5 },
