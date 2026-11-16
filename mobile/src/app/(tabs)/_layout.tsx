@@ -44,6 +44,7 @@ export default function TabsLayout() {
       screenListeners={{ tabPress: () => tapFeedback() }}
       screenOptions={{
         headerShown: false,
+        animation: 'fade',
         tabBarActiveTintColor: C.wine,
         tabBarInactiveTintColor: '#8e8187',
         tabBarBackground: () => <TabBarBackground />,

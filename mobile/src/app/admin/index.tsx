@@ -41,8 +41,8 @@ export default function AdminHome() {
       await saveBiometricAdminCredentials(email, password);
       setBioOn(true);
       Alert.alert(`${bioLabel} activado`, `La próxima vez podrás entrar con ${bioLabel}.`);
-    } catch {
-      Alert.alert('No se pudo activar', 'Inténtalo de nuevo.');
+    } catch (error) {
+      Alert.alert('No se pudo activar', error instanceof Error && error.message ? error.message : 'Inténtalo de nuevo.');
     } finally {
       setBusy(false);
     }

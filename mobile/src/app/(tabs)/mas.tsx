@@ -9,6 +9,7 @@ import { getShowHomeActivities, setShowHomeActivities } from '@/lib/app-preferen
 import { liveActivitiesSupported, loadLiveActivitiesPreference, setLiveActivitiesEnabled as saveLiveActivitiesEnabled } from '@/lib/live-activity';
 import { COMMUNITIES, disableMeetingAlerts, enableMeetingAlerts, getDevicePrefs, getMeetingAlertsEnabled, getPushStatus, saveDevicePrefs, type DevicePrefs, type PushStatus } from '@/lib/notifications';
 import { WheelPicker } from '@/components/wheel-picker';
+import { useAdmin } from '@/lib/use-admin';
 
 type Item = { icon: keyof typeof Ionicons.glyphMap; label: string; hint?: string; onPress: () => void };
 
@@ -66,6 +67,10 @@ export default function Mas() {
   const [dynamicIsland, setDynamicIsland] = useState(false);
   const [islandBusy, setIslandBusy] = useState(false);
   const [showTeam, setShowTeam] = useState(false);
+  const { access } = useAdmin();
+  // The Dashboard shortcut is only for roles that can read the records.
+  const canSeeDashboard = !!access && !access.isRevoked
+    && (access.isSuperAdmin || access.permissions.includes('read_export') || access.permissions.includes('read_only'));
   const [device, setDevice] = useState<DevicePrefs>({ avisosContenido: true, comunidad: null });
   const taps = useRef({ count: 0, at: 0 });
 
@@ -229,7 +234,7 @@ export default function Mas() {
 
         {showTeam ? <Group title="Equipo" items={[
           { icon: 'shield-checkmark-outline', label: 'Administración', hint: 'Eventos, fotos, usuarios y roles', onPress: go('/admin') },
-          { icon: 'stats-chart-outline', label: 'Dashboard', hint: 'Registros de la comunidad', onPress: go('/admin/dashboard') },
+          ...(canSeeDashboard ? [{ icon: 'stats-chart-outline' as const, label: 'Dashboard', hint: 'Registros de la comunidad', onPress: go('/admin/dashboard') }] : []),
         ]} /> : null}
 
         <Pressable onPress={onFooterTap} onLongPress={() => { tapFeedback(); setShowTeam(true); }} delayLongPress={800} accessible={false}>

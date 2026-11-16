@@ -39,7 +39,7 @@ export function PrayerCard() {
         ].map((point) => (
           <View key={point.label} style={s.point}>
             <Ionicons name={point.icon as keyof typeof Ionicons.glyphMap} size={20} color={C.wine} />
-            <Text style={s.pointText}>{point.label}</Text>
+            <Text style={s.pointText} numberOfLines={2} maxFontSizeMultiplier={1.25}>{point.label}</Text>
           </View>
         ))}
       </View>
@@ -84,8 +84,8 @@ const s = StyleSheet.create({
   quoteText: { fontFamily: serif, fontStyle: 'italic', fontSize: 19, lineHeight: 26, color: C.ink },
   quoteRef: { fontFamily: sans, fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', color: C.wine, marginTop: 6 },
   points: { flexDirection: 'row', gap: 8 },
-  point: { flex: 1, alignItems: 'center', gap: 6, paddingVertical: 12, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.75)' },
-  pointText: { fontFamily: sans, fontSize: 12, fontWeight: '600', color: C.ink, textAlign: 'center' },
+  point: { flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.75)' },
+  pointText: { fontFamily: sans, fontSize: 12, lineHeight: 15, fontWeight: '600', color: C.ink, textAlign: 'center' },
   cta: { minHeight: 52, borderRadius: 14, backgroundColor: C.wine, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 10px 24px rgba(166,75,67,0.3)' },
   ctaText: { fontFamily: sans, fontSize: 16, fontWeight: '700', color: '#fff', letterSpacing: -0.2 },
 });

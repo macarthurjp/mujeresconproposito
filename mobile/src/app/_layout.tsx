@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
+import { LaunchScreen } from '@/components/launch-screen';
 import { C } from '@/constants/theme';
 import { loadLiveActivitiesPreference } from '@/lib/live-activity';
 import { configureNotificationChannels, handleNotificationResponse, refreshNotificationRegistration } from '@/lib/notifications';
@@ -39,8 +40,11 @@ function NotificationResponder() {
 }
 
 export default function RootLayout() {
+  // The native splash is hidden by <LaunchScreen /> as soon as it is on screen,
+  // so the hand-off is seamless; this is only a safety net.
   useEffect(() => {
-    SplashScreen.hideAsync();
+    const timer = setTimeout(() => { void SplashScreen.hideAsync().catch(() => {}); }, 2500);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -54,6 +58,8 @@ export default function RootLayout() {
           headerTitleStyle: { color: C.ink },
           contentStyle: { backgroundColor: C.bg },
           headerBackTitle: 'Atrás',
+          // Native iOS push everywhere; the same feel on Android.
+          animation: Platform.OS === 'android' ? 'ios_from_right' : 'default',
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="devocional/[slug]" options={{ title: 'Devocional' }} />
@@ -65,6 +71,7 @@ export default function RootLayout() {
         <Stack.Screen name="join" options={{ headerShown: false }} />
         <Stack.Screen name="admin" options={{ headerShown: false }} />
       </Stack>
+      <LaunchScreen />
     </GestureHandlerRootView>
   );
 }

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { tapFeedback } from '@/components/ui';
 import { AdminLogin } from '@/components/admin-login';
@@ -12,8 +12,22 @@ import { AdminGestureRow } from '@/components/admin-gesture-row';
 import { useAdmin } from '@/lib/use-admin';
 import { parseSchedule } from '@/lib/schedule';
 
-const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-const DAY_INDEX = [1, 2, 3, 4, 5, 6, 0];
+const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAY_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const ROW_HEIGHT = 84;
+
+/** "Martes", "Lunes a viernes", "Todos los días", "Lun, Mié y Vie"… */
+function daysLabel(days: number[] | undefined) {
+  if (!days?.length) return 'Sin día';
+  const set = [...new Set(days)].sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7));
+  const key = set.join(',');
+  if (set.length === 7) return 'Todos los días';
+  if (key === '1,2,3,4,5') return 'Lunes a viernes';
+  if (key === '6,0') return 'Fines de semana';
+  if (set.length === 1) return DAY_NAMES[set[0]];
+  const names = set.map((d) => DAY_SHORT[d]);
+  return `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`;
+}
 const region = (e: AdminEvento) => (/^europe\//i.test(e.zona_horaria || '') || /europ/i.test(e.titulo) ? 'Europa' : 'América');
 const hhmm = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 
@@ -93,96 +107,116 @@ export default function AdminEventos() {
         ) : null}
         {items?.length ? (
           <View style={s.summary}>
-            <View style={s.stat}><Text style={s.statValue}>{items.length}</Text><Text style={s.statLabel}>reuniones</Text></View>
-            <View style={s.stat}><Text style={s.statValue}>{items.filter((e) => e.activa).length}</Text><Text style={s.statLabel}>visibles</Text></View>
-            <View style={s.stat}><Text style={s.statValue}>{items.filter((e) => e.notificar !== false).length}</Text><Text style={s.statLabel}>con aviso push</Text></View>
+            {[
+              { value: items.length, label: items.length === 1 ? 'reunión' : 'reuniones', icon: 'calendar' as const },
+              { value: items.filter((e) => e.activa).length, label: 'visibles', icon: 'eye' as const },
+              { value: items.filter((e) => e.notificar !== false).length, label: 'con aviso', icon: 'notifications' as const },
+            ].map((stat, i) => (
+              <View key={stat.label} style={[s.stat, i > 0 && s.statSep]}>
+                <Ionicons name={stat.icon} size={13} color={C.wine} />
+                <Text style={s.statValue}>{stat.value}</Text>
+                <Text style={s.statLabel}>{stat.label}</Text>
+              </View>
+            ))}
           </View>
         ) : null}
         {(['Europa', 'América'] as const).map((group) => {
           const list = (items ?? []).filter((e) => region(e) === group);
           if (!list.length) return null;
           return (
-            <View key={group} style={{ marginTop: 22 }}>
-              <Text style={s.groupTitle}>{group}<Text style={s.groupSub}>  ·  hora de {group === 'Europa' ? 'Luxemburgo' : 'Santo Domingo'}</Text></Text>
-              <View style={{ gap: 10 }}>
-                {list.map((item) => {
+            <View key={group}>
+              <View style={s.sectionHead}>
+                <Text style={s.sectionTitle}>{group}</Text>
+                <Text style={s.sectionZone}><Ionicons name="time-outline" size={12} color={C.muted} /> Hora de {group === 'Europa' ? 'Luxemburgo' : 'Santo Domingo'}</Text>
+              </View>
+              <View style={s.group}>
+                {list.map((item, index) => {
                   const platform = meetingPlatform(item.link);
                   const schedule = parseSchedule(item.horario);
                   const open = () => { tapFeedback(); router.push({ pathname: '/admin/evento', params: { id: item.id } }); };
                   return (
-                    <AdminGestureRow key={item.id} onEdit={open} onDelete={() => remove(item)} onReorder={(steps) => void move(item, steps)} stepHeight={112}>
-                      <Pressable onPress={open} style={[s.card, !item.activa && s.cardHidden]}>
-                        <View style={s.cardTop}>
-                          <View style={s.icon}><EventArtwork icon={item.icono} size={30} tint={C.wine} emojiSize={20} /></View>
-                          <View style={{ flex: 1, minWidth: 0 }}>
-                            <Text style={s.title} numberOfLines={1}>{item.titulo.trim()}</Text>
-                            <View style={s.badges}>
-                              <View style={[s.badge, !platform && s.badgeWarn]}>
-                                <Ionicons name={platform ? platform.icon : 'alert-circle-outline'} size={11} color={platform ? C.wine : '#b5523b'} />
-                                <Text style={[s.badgeText, !platform && { color: '#b5523b' }]}>{platform ? platform.name : 'Sin enlace'}</Text>
+                    <View key={item.id}>
+                      <View style={s.rowWrap}>
+                        <View style={s.rowSwipe}>
+                        <AdminGestureRow onEdit={open} onDelete={() => remove(item)} onReorder={(steps) => void move(item, steps)} stepHeight={ROW_HEIGHT}>
+                          <Pressable onPress={open} style={({ pressed }) => [s.row, pressed && s.rowPressed]}>
+                            <View style={[s.rowInner, !item.activa && s.dimmed]}>
+                              <View style={s.icon}><EventArtwork icon={item.icono} size={26} tint={C.wine} emojiSize={18} /></View>
+                              <View style={s.rowText}>
+                                <Text style={s.title} numberOfLines={1}>{item.titulo.trim()}</Text>
+                                <Text style={s.when} numberOfLines={1}>
+                                  <Text style={s.time}>{schedule ? hhmm(schedule.minutes) : '--:--'}</Text>
+                                  {'  ·  '}{daysLabel(schedule?.days)}
+                                </Text>
+                                <View style={s.meta}>
+                                  {platform ? (
+                                    <><Ionicons name={platform.icon} size={12} color={C.muted} /><Text style={s.metaText}>{platform.name}</Text></>
+                                  ) : (
+                                    <><Ionicons name="alert-circle" size={12} color="#c0612b" /><Text style={[s.metaText, { color: '#c0612b' }]}>Sin enlace</Text></>
+                                  )}
+                                  {item.notificar !== false ? <><Text style={s.metaDot}>·</Text><Ionicons name="notifications" size={11} color={C.muted} /><Text style={s.metaText}>Aviso</Text></> : null}
+                                  {!item.activa ? <><Text style={s.metaDot}>·</Text><Text style={[s.metaText, s.hiddenText]}>Oculta</Text></> : null}
+                                </View>
                               </View>
-                              {item.notificar !== false ? <View style={s.badge}><Ionicons name="notifications" size={11} color={C.wine} /><Text style={s.badgeText}>Aviso</Text></View> : null}
                             </View>
-                          </View>
-                          <Text style={s.time}>{schedule ? hhmm(schedule.minutes) : '—'}</Text>
-                          <Pressable
-                            accessibilityRole="switch"
-                            accessibilityState={{ checked: item.activa }}
-                            accessibilityLabel={item.activa ? 'Visible. Toca para ocultar' : 'Oculto. Toca para mostrar'}
-                            hitSlop={8}
-                            onPress={() => { tapFeedback(); void toggle(item, !item.activa); }}
-                            style={[s.eye, !item.activa && s.eyeOff]}>
-                            <Ionicons name={item.activa ? 'eye' : 'eye-off'} size={17} color={item.activa ? C.wine : '#fff'} />
                           </Pressable>
+                        </AdminGestureRow>
                         </View>
-                        <View style={s.days}>
-                          {DAY_LETTERS.map((letter, i) => {
-                            const on = !!schedule?.days.includes(DAY_INDEX[i]);
-                            return <View key={letter} style={[s.day, on && s.dayOn]}><Text style={[s.dayText, on && s.dayTextOn]}>{letter}</Text></View>;
-                          })}
+                        {/* Outside the swipe/press area so it never competes with those gestures. */}
+                        <View style={s.switchBox}>
+                            <Switch
+                              accessibilityLabel={item.activa ? `${item.titulo.trim()}: visible en la web y la app` : `${item.titulo.trim()}: oculta`}
+                              value={item.activa}
+                              onValueChange={(value) => { tapFeedback(); void toggle(item, value); }}
+                              trackColor={{ true: C.wine, false: '#e5dcda' }}
+                              thumbColor="#fff"
+                              ios_backgroundColor="#e5dcda"
+                            />
                         </View>
-                      </Pressable>
-                    </AdminGestureRow>
+                      </View>
+                      {index < list.length - 1 ? <View style={s.separator} /> : null}
+                    </View>
                   );
                 })}
               </View>
             </View>
           );
         })}
-        {items?.length ? <Text style={s.hint}>Desliza a la derecha para editar o a la izquierda para eliminar. Mantén pulsado y arrastra para ordenar. El ojo muestra u oculta la reunión en la web y la app.</Text> : null}
+        {items?.length ? <Text style={s.hint}>Toca una reunión para editarla. Desliza para editar o eliminar y mantén pulsado para ordenar. El interruptor la muestra u oculta en la web y la app.</Text> : null}
       </ScrollView>
     </>
   );
 }
 
 const s = StyleSheet.create({
-  page: { padding: 16, paddingBottom: 60 },
-  summary: { flexDirection: 'row', gap: 10 },
-  stat: { flex: 1, backgroundColor: C.card, borderRadius: 16, paddingVertical: 12, alignItems: 'center' },
-  statValue: { fontFamily: sans, fontSize: 22, fontWeight: '700', color: C.ink, fontVariant: ['tabular-nums'] },
-  statLabel: { fontFamily: sans, fontSize: 12, color: C.muted, marginTop: 1 },
-  groupTitle: { fontFamily: sans, fontSize: 20, fontWeight: '700', letterSpacing: -0.4, color: C.ink, marginBottom: 10, marginLeft: 4 },
-  groupSub: { fontSize: 13, fontWeight: '500', color: C.muted, letterSpacing: 0 },
-  card: { padding: 14, borderRadius: 18, backgroundColor: C.card, gap: 12 },
-  cardHidden: { opacity: 0.55 },
-  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  time: { fontFamily: sans, fontSize: 20, fontWeight: '700', letterSpacing: -0.5, color: C.ink, fontVariant: ['tabular-nums'] },
-  badges: { flexDirection: 'row', gap: 6, marginTop: 4 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 999, backgroundColor: C.fill },
-  badgeWarn: { backgroundColor: 'rgba(181,82,59,0.12)' },
-  badgeText: { fontFamily: sans, fontSize: 11, fontWeight: '600', color: C.wine },
-  eye: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: C.fill },
-  eyeOff: { backgroundColor: 'rgba(40,24,22,0.85)' },
-  days: { flexDirection: 'row', gap: 6 },
-  day: { flex: 1, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
-  dayOn: { backgroundColor: C.wine },
-  dayText: { fontFamily: sans, fontSize: 12, fontWeight: '700', color: '#c4b3b0' },
-  dayTextOn: { color: '#fff' },
-  icon: { width: 46, height: 46, borderRadius: 12, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
+  page: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 60 },
+  summary: { flexDirection: 'row', backgroundColor: C.card, borderRadius: 16, paddingVertical: 12 },
+  stat: { flex: 1, alignItems: 'center', gap: 2 },
+  statSep: { borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: C.separator },
+  statValue: { fontFamily: sans, fontSize: 20, fontWeight: '700', color: C.ink, fontVariant: ['tabular-nums'], marginTop: 2 },
+  statLabel: { fontFamily: sans, fontSize: 12, color: C.muted },
+  sectionHead: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 26, marginBottom: 8, paddingHorizontal: 4 },
+  sectionTitle: { fontFamily: sans, fontSize: 13, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', color: C.wine },
+  sectionZone: { fontFamily: sans, fontSize: 12, color: C.muted },
+  group: { backgroundColor: C.card, borderRadius: 18, overflow: 'hidden' },
+  rowWrap: { flexDirection: 'row', alignItems: 'stretch', backgroundColor: C.card },
+  rowSwipe: { flex: 1, minWidth: 0 },
+  switchBox: { justifyContent: 'center', paddingLeft: 6, paddingRight: 14, backgroundColor: C.card },
+  row: { minHeight: ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 14, paddingRight: 8, backgroundColor: C.card },
+  rowPressed: { backgroundColor: '#f6efed' },
+  rowInner: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dimmed: { opacity: 0.45 },
+  icon: { width: 42, height: 42, borderRadius: 11, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
+  rowText: { flex: 1, minWidth: 0 },
   title: { fontFamily: sans, fontSize: 16, fontWeight: '600', letterSpacing: -0.2, color: C.ink },
-  meta: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 1 },
-  platform: { fontFamily: sans, fontSize: 12, fontWeight: '600', color: C.wine, marginTop: 2 },
-  hint: { fontFamily: sans, fontSize: 13, color: C.muted, textAlign: 'center', marginTop: 16 },
+  when: { fontFamily: sans, fontSize: 14, color: C.muted, marginTop: 2 },
+  time: { fontWeight: '700', color: C.ink, fontVariant: ['tabular-nums'] },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  metaText: { fontFamily: sans, fontSize: 12, color: C.muted },
+  metaDot: { fontFamily: sans, fontSize: 12, color: C.muted, marginHorizontal: 2 },
+  hiddenText: { fontWeight: '600', color: C.ink },
+  separator: { height: StyleSheet.hairlineWidth, backgroundColor: C.separator, marginLeft: 68 },
+  hint: { fontFamily: sans, fontSize: 12, lineHeight: 17, color: C.muted, textAlign: 'center', marginTop: 18, paddingHorizontal: 12 },
   empty: { alignItems: 'center', paddingVertical: 48, gap: 6 },
   emptyTitle: { fontFamily: sans, fontSize: 18, fontWeight: '600', color: C.ink },
   emptyText: { fontFamily: sans, fontSize: 14, color: C.muted },
