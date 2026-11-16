@@ -800,3 +800,25 @@ body.rp-sheet-open { overflow: hidden; }
 #admin-permisos, .rp-sheet-card, .rp-sheet-card :is(p, h4, label, .rp-person-text, .rp-summary) { text-align: left; }
 .rp-sheet-bar h3 { text-align: center; flex: 1; }
 .rp-radio .rp-person-text { align-items: flex-start; }
+
+/* ---------- Seguimiento / Inscripciones: consistent form fields ---------- */
+body.mcp-brand .admin-main .ci-person { text-align: left; }
+body.mcp-brand .admin-main .ci-person-head > div:first-of-type { text-align: left; }
+body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: start; gap: 14px; }
+body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) label { display: flex; flex-direction: column; align-items: stretch; gap: 6px; margin: 0; text-align: left; font-size: 13px; font-weight: 600; color: var(--a-muted); }
+body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) :is(select, input:not([type="checkbox"]), textarea) {
+  box-sizing: border-box; width: 100%; height: 48px; min-height: 48px; margin: 0; padding: 0 14px;
+  border: 1px solid var(--a-line-strong) !important; border-radius: 12px !important; background-color: #fff !important;
+  box-shadow: none !important; font: 400 15px/1.2 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; color: var(--a-ink);
+}
+body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) select {
+  appearance: none; -webkit-appearance: none; padding-right: 40px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a64b43' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important; background-position: right 14px center !important;
+}
+body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) textarea { height: auto; min-height: 96px; padding: 12px 14px; line-height: 1.45; resize: vertical; }
+body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) :is(select, input, textarea):focus { outline: 2px solid rgba(166, 75, 67, .35); outline-offset: 0; border-color: var(--a-wine) !important; }
+body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) .ci-wide { grid-column: 1 / -1; }
+body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) .btn { justify-self: start; min-height: 46px; }
+body.mcp-brand .admin-main .ci-person-head :is(h4, p) { text-align: left !important; margin-left: 0 !important; margin-right: 0 !important; }
+body.mcp-brand .admin-main .ci-person-head p { margin-top: 2px !important; }
