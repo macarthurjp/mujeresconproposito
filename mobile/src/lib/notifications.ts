@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 import { Linking, Platform } from 'react-native';
 
 import { api } from './api';
@@ -119,14 +120,39 @@ export async function saveBirthdayPushPrefs(prefs: BirthdayPushPrefs): Promise<P
 }
 
 /** Re-registers the current token and restores each independent notification preference. */
+// ---------- Device preferences: new-content alerts and community ----------
+export type DevicePrefs = { avisosContenido: boolean; comunidad: string | null };
+const DEVICE_PREFS_KEY = 'mcp930:device-prefs';
+export const COMMUNITIES = ['Europa', 'Estados Unidos', 'República Dominicana'] as const;
+
+export async function getDevicePrefs(): Promise<DevicePrefs> {
+  try {
+    const raw = await AsyncStorage.getItem(DEVICE_PREFS_KEY);
+    return { avisosContenido: true, comunidad: null, ...(raw ? JSON.parse(raw) : {}) };
+  } catch {
+    return { avisosContenido: true, comunidad: null };
+  }
+}
+
+export async function saveDevicePrefs(prefs: DevicePrefs): Promise<PushStatus> {
+  await AsyncStorage.setItem(DEVICE_PREFS_KEY, JSON.stringify(prefs));
+  if (Platform.OS === 'web' || !Device.isDevice) return 'unsupported';
+  const status = prefs.avisosContenido ? await registerForMeetingAlerts(true) : await getPushStatus();
+  if (status !== 'granted') return status;
+  const token = await deviceToken().catch(() => null);
+  if (token) await api.setDevicePrefs(token, prefs.avisosContenido, prefs.comunidad);
+  return 'granted';
+}
+
 export async function refreshNotificationRegistration() {
-  const [meetingsEnabled, birthdays] = await Promise.all([getMeetingAlertsEnabled(), getBirthdayPushPrefs()]);
-  if (!meetingsEnabled && !birthdays.avisos.length) return;
+  const [meetingsEnabled, birthdays, device] = await Promise.all([getMeetingAlertsEnabled(), getBirthdayPushPrefs(), getDevicePrefs()]);
+  if (!meetingsEnabled && !birthdays.avisos.length && !device.avisosContenido) return;
   const status = await registerForMeetingAlerts(false);
   if (status !== 'granted') return;
   const token = await deviceToken();
   if (!token) return;
   await api.setMeetingAlerts(token, meetingsEnabled);
+  await api.setDevicePrefs(token, device.avisosContenido, device.comunidad).catch(() => {});
   if (birthdays.avisos.length) {
     await api.setBirthdayPush(token, birthdays.avisos, birthdays.hora, birthdays.minuto, Intl.DateTimeFormat().resolvedOptions().timeZone);
   }
@@ -160,7 +186,11 @@ export async function registerForMeetingAlerts(ask: boolean): Promise<PushStatus
 
 /** Opens the meeting link carried by a "meeting_start" notification. */
 export async function handleNotificationResponse(response: Notifications.NotificationResponse) {
-  const data = response.notification.request.content.data as { type?: string; link?: string | null } | undefined;
+  const data = response.notification.request.content.data as { type?: string; link?: string | null; ruta?: string | null } | undefined;
+  if (data?.type === 'content' && data.ruta && data.ruta.startsWith('/')) {
+    router.push(data.ruta as never);
+    return true;
+  }
   if (data?.type !== 'meeting_start' || !data.link) return false;
   if (!/^https?:\/\//i.test(data.link)) return false;
   // Zoom, Meet, Teams, YouTube... all register universal links, so the native

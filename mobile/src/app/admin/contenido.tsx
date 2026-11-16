@@ -3,10 +3,11 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { tapFeedback } from '@/components/ui';
-import { Group, InputRow, Row } from '@/components/form';
+import { FieldRow, Group, InputRow, Row } from '@/components/form';
+import { DateField } from '@/components/date-field';
 import { C, sans } from '@/constants/theme';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
 import { uploadImage } from '@/lib/admin';
@@ -14,7 +15,33 @@ import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 
 type Kind = 'destacadas' | 'youtube' | 'banner';
-type Item = { id: string; titulo: string; subtitulo?: string; nombre?: string; foto_url?: string; video_id?: string; etiqueta?: string; orden: number; activa: boolean };
+type Item = {
+  id: string; titulo: string; subtitulo?: string; nombre?: string; foto_url?: string; video_id?: string; etiqueta?: string; orden: number; activa: boolean;
+  inscripcion_abierta?: boolean | null; cupo?: number | null; fecha_evento?: string | null; lugar?: string | null;
+  creado_at?: string | null; creado_por_nombre?: string | null; modificado_at?: string | null; modificado_por_nombre?: string | null;
+};
+type Inscrita = { id: string; nombre: string; email: string; telefono: string | null; acompanantes: number; created_at: string };
+
+const fmtDateTime = (iso?: string | null) => iso
+  ? new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)).replace('.', '')
+  : null;
+
+function AuditCard({ item }: { item: Item }) {
+  const created = fmtDateTime(item.creado_at);
+  const modified = fmtDateTime(item.modificado_at);
+  return (
+    <View style={s.audit}>
+      <View style={s.auditRow}>
+        <Ionicons name="add-circle-outline" size={16} color={C.muted} />
+        <Text style={s.auditText}><Text style={s.auditLabel}>Agregado: </Text>{created ? `${created}${item.creado_por_nombre ? ` · ${item.creado_por_nombre}` : ''}` : 'Sin registro (anterior al control de cambios)'}</Text>
+      </View>
+      <View style={s.auditRow}>
+        <Ionicons name="create-outline" size={16} color={C.muted} />
+        <Text style={s.auditText}><Text style={s.auditLabel}>Modificado: </Text>{modified ? `${modified}${item.modificado_por_nombre ? ` · ${item.modificado_por_nombre}` : ''}` : 'Sin cambios registrados'}</Text>
+      </View>
+    </View>
+  );
+}
 
 function videoIdFrom(value: string) {
   const raw = value.trim();
@@ -42,6 +69,12 @@ export default function AdminContenido() {
   const [active, setActive] = useState(true);
   const [picked, setPicked] = useState<{ uri: string; width: number; height: number } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [signups, setSignups] = useState(false);
+  const [capacity, setCapacity] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [eventTime, setEventTime] = useState('');
+  const [place, setPlace] = useState('');
+  const [inscritas, setInscritas] = useState<Inscrita[] | null>(null);
   const [bannerTitle, setBannerTitle] = useState('');
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerActive, setBannerActive] = useState(false);
@@ -72,6 +105,15 @@ export default function AdminContenido() {
     setTitle(item?.titulo ?? ''); setSubtitle(item?.subtitulo ?? ''); setImageUrl(item?.foto_url ?? '');
     setVideo(item?.video_id ?? ''); setTag(item?.etiqueta ?? 'Conferencia'); setOrder(String(item?.orden ?? items.length + 1));
     setActive(item?.activa ?? true); setPicked(null);
+    setSignups(Boolean(item?.inscripcion_abierta)); setCapacity(item?.cupo ? String(item.cupo) : ''); setPlace(item?.lugar ?? '');
+    const when = item?.fecha_evento ? new Date(item.fecha_evento) : null;
+    setEventDate(when ? `${when.getFullYear()}-${String(when.getMonth() + 1).padStart(2, '0')}-${String(when.getDate()).padStart(2, '0')}` : '');
+    setEventTime(when ? `${String(when.getHours()).padStart(2, '0')}:${String(when.getMinutes()).padStart(2, '0')}` : '');
+    setInscritas(null);
+    if (item && kind === 'destacadas') {
+      void supabase.from('inscripciones').select('id,nombre,email,telefono,acompanantes,created_at').eq('destacada_id', item.id).order('created_at')
+        .then(({ data }) => setInscritas((data ?? []) as Inscrita[]));
+    }
   };
 
   const pickPhoto = async () => {
@@ -104,7 +146,13 @@ export default function AdminContenido() {
       if (kind === 'destacadas' && picked) photo = await uploadImage(picked.uri, picked, 'destacadas');
       const nextOrder = Math.max(1, Number(order) || 1);
       if (kind === 'destacadas') {
-        const payload = { foto_url: photo, nombre: title.trim(), titulo: subtitle.trim(), orden: nextOrder, activa: active };
+        const timeOk = !eventTime || /^([01]?\d|2[0-3]):[0-5]\d$/.test(eventTime);
+        if (!timeOk) throw new Error('Escribe la hora como 18:30.');
+        const fecha = eventDate ? new Date(`${eventDate}T${eventTime || '00:00'}:00`).toISOString() : null;
+        const payload = {
+          foto_url: photo, nombre: title.trim(), titulo: subtitle.trim(), orden: nextOrder, activa: active,
+          inscripcion_abierta: signups, cupo: capacity ? Math.max(1, Number(capacity)) : null, fecha_evento: fecha, lugar: place.trim() || null,
+        };
         const result = editing ? await supabase.from('destacadas').update(payload).eq('id', editing.id) : await supabase.from('destacadas').insert(payload);
         if (result.error) throw result.error;
       } else {
@@ -198,7 +246,7 @@ export default function AdminContenido() {
                       <Ionicons name={item.activa ? 'eye' : 'eye-off'} size={13} color={item.activa ? C.wine : '#fff'} />
                     </Pressable>
                   </View>
-                  <View style={{ flex: 1 }}><Text numberOfLines={2} style={s.itemTitle}>{item.titulo || item.nombre}</Text><Text numberOfLines={1} style={s.itemMeta}>{item.activa ? 'Visible en la web y la app' : 'Oculto'} · Orden {item.orden}</Text></View>
+                  <View style={{ flex: 1 }}><Text numberOfLines={2} style={s.itemTitle}>{item.titulo || item.nombre}</Text><Text numberOfLines={1} style={s.itemMeta}>{item.activa ? 'Visible' : 'Oculto'}{item.inscripcion_abierta ? ' · Inscripciones abiertas' : ''}</Text>{item.modificado_at || item.creado_at ? <Text numberOfLines={1} style={s.itemAudit}>{item.modificado_at ? 'Modificado' : 'Agregado'} {fmtDateTime(item.modificado_at || item.creado_at)}{(item.modificado_por_nombre || item.creado_por_nombre) ? ` · ${item.modificado_por_nombre || item.creado_por_nombre}` : ''}</Text> : null}</View>
                   <Ionicons name="chevron-forward" size={18} color="#ab9693" />
                 </Pressable>
               </View>
@@ -217,8 +265,25 @@ export default function AdminContenido() {
               <Pressable style={s.pickButton} onPress={() => void pickPhoto()}><Ionicons name="image-outline" size={18} color={C.wine} /><Text style={s.pickText}>{picked || imageUrl ? 'Cambiar póster' : 'Elegir póster del carrete'}</Text></Pressable>
               <Group header="Imagen"><InputRow label="URL de la imagen" value={imageUrl} onChangeText={setImageUrl} placeholder="https://…" autoCapitalize="none" keyboardType="url" /></Group>
               <Group header="Texto"><InputRow label="Nombre" value={title} onChangeText={setTitle} placeholder="Nombre de la invitada" /><InputRow label="Título" value={subtitle} onChangeText={setSubtitle} placeholder="Nombre del encuentro" /></Group>
+              <Group header="Evento e inscripciones" footer={signups ? 'Aparecerá el botón “Inscribirme” en la web y la app. Deja las plazas vacías si no hay límite.' : 'Actívalo si el evento necesita inscripción previa.'}>
+                <View style={s.toggle}><Text style={s.toggleLabel}>Abrir inscripciones</Text><Switch value={signups} onValueChange={setSignups} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View>
+                {signups ? <>
+                  <FieldRow label="Fecha del evento"><DateField title="Fecha del evento" value={eventDate} onChange={setEventDate} minimumDate={new Date(2024, 0, 1)} maximumDate={new Date(2035, 11, 31)} defaultDate={new Date()} placeholder="Elige la fecha" /></FieldRow>
+                  <InputRow label="Hora (opcional)" value={eventTime} onChangeText={setEventTime} placeholder="18:30" keyboardType="numbers-and-punctuation" />
+                  <InputRow label="Lugar (opcional)" value={place} onChangeText={setPlace} placeholder="Dirección o “En línea”" />
+                  <InputRow label="Plazas (opcional)" value={capacity} onChangeText={(v) => setCapacity(v.replace(/\D/g, ''))} placeholder="Sin límite" keyboardType="number-pad" />
+                </> : null}
+              </Group>
+              {editing && inscritas ? (
+                <Group header={`Inscritas · ${inscritas.reduce((n, i) => n + 1 + (i.acompanantes || 0), 0)} personas${editing.cupo ? ` de ${editing.cupo}` : ''}`} footer={inscritas.length ? 'Toca una persona para escribirle.' : undefined}>
+                  {inscritas.length ? inscritas.map((i) => (
+                    <Row key={i.id} icon="person" tint="#6b5b95" label={i.nombre} sub={`${i.email}${i.telefono ? ` · ${i.telefono}` : ''}${i.acompanantes ? ` · +${i.acompanantes}` : ''}`} onPress={() => { void Linking.openURL(`mailto:${i.email}`); }} />
+                  )) : <Row label="Todavía no hay inscripciones" chevron={false} />}
+                </Group>
+              ) : null}
             </> : <Group header="Video"><InputRow label="Enlace o ID de YouTube" value={video} onChangeText={setVideo} placeholder="https://youtu.be/…" autoCapitalize="none" keyboardType="url" /><InputRow label="Título" value={title} onChangeText={setTitle} placeholder="Título del video" /><InputRow label="Subtítulo" value={subtitle} onChangeText={setSubtitle} placeholder="Descripción breve" /><InputRow label="Etiqueta" value={tag} onChangeText={setTag} placeholder="Conferencia" /></Group>}
             <Group header="Publicación"><InputRow label="Orden" value={order} onChangeText={(value) => setOrder(value.replace(/\D/g, ''))} keyboardType="number-pad" /><View style={s.toggle}><Text style={s.toggleLabel}>Visible en la web y la app</Text><Switch value={active} onValueChange={setActive} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View></Group>
+            {editing ? <AuditCard item={editing} /> : null}
             {editing ? <Group><Row label="Eliminar" destructive chevron={false} onPress={() => { const row = editing; setEditing(null); setModalVisible(false); remove(row); }} /></Group> : null}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -228,6 +293,11 @@ export default function AdminContenido() {
 }
 
 const s = StyleSheet.create({
+  audit: { marginTop: 22, padding: 14, borderRadius: 14, backgroundColor: C.card, gap: 8 },
+  itemAudit: { fontFamily: sans, fontSize: 11, color: C.muted, marginTop: 2 },
+  auditRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  auditText: { flex: 1, fontFamily: sans, fontSize: 13, lineHeight: 18, color: C.muted },
+  auditLabel: { fontWeight: '700', color: C.ink },
   eye: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.18)' },
   eyeOff: { backgroundColor: 'rgba(40,24,22,0.85)' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg }, page: { padding: 18, paddingBottom: 70 },

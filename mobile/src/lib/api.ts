@@ -25,6 +25,17 @@ async function rpc(name: string, body: Record<string, unknown>) {
   if (!response.ok) throw new Error(`Error ${response.status}: ${await response.text()}`);
 }
 
+async function rpcJson<T>(name: string, body: Record<string, unknown>): Promise<T> {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
+  const text = await response.text();
+  if (!response.ok) {
+    let message = text;
+    try { message = JSON.parse(text).message || text; } catch { /* plain text */ }
+    throw new Error(message);
+  }
+  return (text ? JSON.parse(text) : null) as T;
+}
+
 async function submitJoin(payload: Record<string, unknown>) {
   const response = await fetch(`${SUPABASE_URL}/functions/v1/submit-join`, {
     method: 'POST',
@@ -88,7 +99,7 @@ export type Evento = {
   orden: number;
 };
 
-export type Destacada = { id: string; foto_url: string; nombre: string; titulo: string | null };
+export type Destacada = { id: string; foto_url: string; nombre: string; titulo: string | null; inscripcion_abierta?: boolean | null; cupo?: number | null; fecha_evento?: string | null; lugar?: string | null };
 export type Foto = { id: string; foto_url: string; categoria: string; texto: string | null; orden: number | null; portada: boolean | null };
 export type Video = { id: string; video_id: string; titulo: string; subtitulo: string | null; etiqueta: string };
 export type Devocional = {
@@ -116,7 +127,7 @@ export type CuentaAporte = {
 
 export const api = {
   eventos: () => rest<Evento[]>('eventos?select=*&activa=eq.true&order=orden.asc'),
-  destacadas: () => rest<Destacada[]>('destacadas?select=id,foto_url,nombre,titulo&activa=eq.true&order=orden.asc'),
+  destacadas: () => rest<Destacada[]>('destacadas?select=*&activa=eq.true&order=orden.asc'),
   galeria: () => rest<Foto[]>('galeria?select=id,foto_url,categoria,texto,orden,portada&activa=eq.true&order=orden.asc'),
   videos: () => rest<Video[]>('youtube?select=id,video_id,titulo,subtitulo,etiqueta&activa=eq.true&order=orden.asc'),
   devocionales: () =>
@@ -133,6 +144,13 @@ export const api = {
   registerPushToken: (token: string, plataforma: 'ios' | 'android', zona: string) =>
     rpc('register_push_token', { p_token: token, p_plataforma: plataforma, p_zona_horaria: zona }),
   unregisterPushToken: (token: string) => rpc('unregister_push_token', { p_token: token }),
+  setDevicePrefs: (token: string, avisosContenido: boolean, comunidad: string | null) =>
+    rpc('set_device_preferences', { p_token: token, p_avisos_contenido: avisosContenido, p_comunidad: comunidad }),
+  inscribirse: (destacadaId: string, nombre: string, email: string, telefono: string, acompanantes: number) =>
+    rpcJson<{ ok: boolean; ocupados: number; cupo: number | null }>('inscribirse', { p_destacada: destacadaId, p_nombre: nombre, p_email: email, p_telefono: telefono, p_acompanantes: acompanantes }),
+  plazasEvento: (destacadaId: string) => rpcJson<{ ocupados: number; cupo: number | null }>('plazas_evento', { p_destacada: destacadaId }),
+  /** Anonymous counters for the stats screen; never blocks the UI. */
+  metrica: (tipo: 'lectura_devocional' | 'unirme_reunion', ref: string) => { void rpc('registrar_metrica', { p_tipo: tipo, p_ref: ref }).catch(() => {}); },
   setMeetingAlerts: (token: string, enabled: boolean) => rpc('set_meeting_alerts', { p_token: token, p_enabled: enabled }),
   setBirthdayPush: (token: string, avisos: number[], hora: number, minuto: number, zona: string) =>
     rpc('set_birthday_push_prefs', { p_token: token, p_avisos: avisos, p_hora: hora, p_minuto: minuto, p_zona_horaria: zona }),

@@ -111,6 +111,10 @@ export type AdminEvento = {
   activa: boolean;
   zona_horaria: string | null;
   notificar: boolean | null;
+  creado_at?: string | null;
+  creado_por_nombre?: string | null;
+  modificado_at?: string | null;
+  modificado_por_nombre?: string | null;
 };
 
 export const WEEK_DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'] as const;
@@ -166,7 +170,7 @@ export async function listEventos() {
   return (data ?? []) as AdminEvento[];
 }
 
-export async function saveEvento(values: Omit<AdminEvento, 'id'>, id?: string) {
+export async function saveEvento(values: Omit<AdminEvento, 'id' | 'creado_at' | 'creado_por_nombre' | 'modificado_at' | 'modificado_por_nombre'>, id?: string) {
   const query = id
     ? supabase.from('eventos').update(values).eq('id', id).select('id')
     : supabase.from('eventos').insert(values).select('id');
