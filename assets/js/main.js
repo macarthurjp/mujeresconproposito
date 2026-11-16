@@ -4221,11 +4221,7 @@ function renderContactCalendar(apiData = {}) {
 
 	  function wirePermissionCheckboxGroup(container) {
 	    const superAdminInput = container.querySelector('[data-permission="super_admin"]');
-	    const otherInputs = [
-	      container.querySelector('[data-permission="editor"]'),
-	      container.querySelector('[data-permission="reviewer"]'),
-	      container.querySelector('[data-permission="read_export"]')
-	    ].filter(Boolean);
+	    const otherInputs = [];
 	    superAdminInput?.addEventListener("change", function () {
 	      otherInputs.forEach((input) => {
 	        input.disabled = this.checked;
@@ -4254,6 +4250,8 @@ function renderContactCalendar(apiData = {}) {
 	    if (filter === "all") return true;
 	    if (filter === "revoked") return Boolean(entry.isRevoked);
 	    if (filter === "super_admin") return Boolean(entry.isSuperAdmin);
+	    if (filter === "with_role") return !entry.isRevoked && !entry.isSuperAdmin && Boolean(entry.roleName);
+	    if (filter === "no_role") return !entry.isRevoked && !entry.isSuperAdmin && !entry.roleName;
 	    return !entry.isRevoked && (entry.permissions || []).includes(filter);
 	  }
 
@@ -4278,7 +4276,7 @@ function renderContactCalendar(apiData = {}) {
 	          <div class="admin-role-identity">
 	            <input type="text" class="admin-role-name-input" data-role-user-id="${escapeHtml(entry.userId)}" value="${escapeHtml(entry.nombre || "")}" placeholder="Agregar nombre" maxlength="120" aria-label="Nombre de ${escapeHtml(entry.email || "usuario")}" />
             <strong>${escapeHtml(entry.email || "Cuenta sin email")}</strong>
-	            <small>${isCurrentUser ? "Tu cuenta · Super Admin" : isRevoked ? "Acceso revocado" : "Cuenta autorizada"}</small>
+	            <small>${isCurrentUser ? "Tu cuenta · Super Admin" : isRevoked ? "Acceso revocado" : entry.isSuperAdmin ? "Super Admin" : entry.roleName ? `Rol: ${escapeHtml(entry.roleName)}` : "Sin rol asignado"}</small>
 	          </div>
 	          <div class="admin-permission-group" data-role-user-id="${escapeHtml(entry.userId)}" ${isCurrentUser ? 'data-self="true"' : ""} aria-label="Permisos de ${escapeHtml(entry.email || "usuario")}">
 	            ${adminPermissionCheckboxes(access, { forceDisabled: isCurrentUser || isRevoked, birthdayEditable: isCurrentUser && !isRevoked })}
@@ -4295,8 +4293,12 @@ function renderContactCalendar(apiData = {}) {
 
 	  async function loadAdminRoles() {
 	    if (!adminRolesList) return;
-	    const result = await invokeManageUsers({ action: "list" });
-	    const users = Array.isArray(result?.users) ? result.users : [];
+	    const [result, assignments] = await Promise.all([
+	      invokeManageUsers({ action: "list" }),
+	      getAdminSupabaseClient().from("admin_role_assignments").select("user_id,admin_roles(name)").then((r) => r.data || [], () => []),
+	    ]);
+	    const roleNames = new Map(assignments.map((a) => [a.user_id, (Array.isArray(a.admin_roles) ? a.admin_roles[0]?.name : a.admin_roles?.name) || null]));
+	    const users = (Array.isArray(result?.users) ? result.users : []).map((u) => ({ ...u, roleName: roleNames.get(u.userId) || null }));
 	    users.sort((a, b) => String(a.email || "").localeCompare(String(b.email || ""), "es"));
 	    const currentUser = users.find((entry) => entry.isCurrentUser);
 	    if (adminCurrentEmail && currentUser?.email) adminCurrentEmail.value = currentUser.email;
@@ -4448,11 +4450,20 @@ function renderContactCalendar(apiData = {}) {
 	    try {
 	      access = await getCurrentAdminRole();
 	      await window.McpSocialAuth?.authorizeReturnedUser(getAdminSupabaseClient(), access);
-	      const canEnterAdmin = access.is_super_admin || access.permissions.includes("editor") || access.permissions.includes("reviewer");
-	      if (!canEnterAdmin) {
+	      // Role-based access (Roles y permisos): same permissions as the app.
+	      const perms = await window.McpAdminPerms.load(getAdminSupabaseClient(), access);
+	      access.roleName = perms.roleName;
+	      if (!window.McpAdminPerms.hasAdminModule()) {
 	        window.location.href = "dashboard.html";
 	        return false;
 	      }
+	      // The devotional workspace still reads these two flags: derive them from the role.
+	      const can = window.McpAdminPerms.can;
+	      access.permissions = Array.from(new Set([
+	        ...access.permissions.filter((p) => p !== "editor" && p !== "reviewer"),
+	        ...(can("devotionals", "create") || can("devotionals", "edit") ? ["editor"] : []),
+	        ...(can("devotionals", "publish") ? ["reviewer"] : []),
+	      ]));
 	    } catch (error) {
 	      showAdminMsg(adminLoginMsg, error.message, false);
 	      return false;
@@ -4463,19 +4474,17 @@ function renderContactCalendar(apiData = {}) {
 	    document.body.classList.remove("admin-locked");
 	    document.body.classList.add("admin-unlocked");
 	    document.body.dataset.adminRole = access.is_super_admin ? "super_admin" : access.permissions.join(",");
-	    const isDevocionalesOnly = (access.permissions.includes("editor") || access.permissions.includes("reviewer")) && !access.is_super_admin;
-	    if (isDevocionalesOnly) {
-	      document.querySelectorAll(".admin-tab").forEach((tab) => { tab.hidden = tab.dataset.adminTab !== "devocionales"; });
-	      document.querySelectorAll(".admin-tab-panel").forEach((panel) => panel.classList.remove("active"));
-	      const devotionalTab = document.querySelector('[data-admin-tab="devocionales"]');
-	      devotionalTab?.classList.add("active");
-	      document.getElementById("admin-devocionales")?.classList.add("active");
-	      document.getElementById("adminStatsGrid")?.setAttribute("hidden", "");
-	      document.getElementById("adminShareJoinLink")?.setAttribute("hidden", "");
-	      window.initDevocionalesAdmin?.(access);
-	      return true;
-	    }
-	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access), window.initPromoBannerAdmin?.(access), window.initRecipientsAdmin?.(access), window.initCommunityAdmin?.(access)]).catch((error) => {
+	    window.McpAdminPerms.applyTabs();
+	    const can = window.McpAdminPerms.can;
+	    Promise.all([
+	      loadAdminContent(),
+	      access.is_super_admin ? loadAdminRoles() : null,
+	      can("devotionals", "view") ? window.initDevocionalesAdmin?.(access) : null,
+	      window.initPromoBannerAdmin?.(access),
+	      window.initRecipientsAdmin?.(access),
+	      window.initCommunityAdmin?.(access),
+	      access.is_super_admin ? window.initRolesAdmin?.(access) : null,
+	    ]).catch((error) => {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
 	    });

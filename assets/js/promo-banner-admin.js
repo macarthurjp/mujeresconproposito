@@ -57,7 +57,7 @@
   }
 
   window.initPromoBannerAdmin = async function initPromoBannerAdmin(access) {
-    if (!access?.is_super_admin) return;
+    if (!access?.is_super_admin && !window.McpAdminPerms?.can("content", "edit")) return;
     if (!initialized) {
       initialized = true;
       $("adminBannerForm")?.addEventListener("submit", save);

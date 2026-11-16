@@ -141,16 +141,16 @@ const dashboardRecordPhoneInput = dashboardRecordPhoneField && typeof window.int
 
 function composeDashboardRoleLabel(access) {
   if (access.is_super_admin) return "Super Admin";
-  const labels = [];
-  if (access.permissions.includes("editor")) labels.push("Editor de devocionales");
-  if (access.permissions.includes("reviewer")) labels.push("Revisor de devocionales");
-  if (access.permissions.includes("read_export")) labels.push("Manager");
-  if (access.permissions.includes("birthday_calendar")) labels.push("Calendario de cumpleaños");
-  return labels.length ? labels.join(" + ") : "Vista simple";
+  return access.roleName || "Sin rol asignado";
+}
+
+// Role permissions (Roles y permisos) — same rules as the app; the database enforces them.
+function dashboardCan(module, action) {
+  return dashboardAccess.is_super_admin || (dashboardAccess.modulePermissions || []).includes(`${module}.${action}`);
 }
 
 function canDashboardExport() {
-  return dashboardAccess.is_super_admin || dashboardAccess.permissions.includes("read_export");
+  return dashboardCan("dashboard", "contacts");
 }
 
 function canDashboardManageRecords() {
@@ -158,11 +158,7 @@ function canDashboardManageRecords() {
 }
 
 function canDashboardEnterAdmin() {
-  return (
-    dashboardAccess.is_super_admin ||
-    dashboardAccess.permissions.includes("editor") ||
-    dashboardAccess.permissions.includes("reviewer")
-  );
+  return ["events", "gallery", "content", "devotionals", "notices"].some((m) => dashboardCan(m, "view")) || dashboardCan("dashboard", "followup");
 }
 
 function applyDashboardRole(access) {
@@ -170,7 +166,9 @@ function applyDashboardRole(access) {
     is_super_admin: Boolean(access?.is_super_admin),
     permissions: Array.isArray(access?.permissions) ? access.permissions : ["read_only"],
     is_revoked: Boolean(access?.is_revoked),
-    nombre: String(access?.nombre || "").trim()
+    nombre: String(access?.nombre || "").trim(),
+    roleName: access?.roleName || null,
+    modulePermissions: Array.isArray(access?.modulePermissions) ? access.modulePermissions : []
   };
   const canExport = canDashboardExport();
   [exportCsvBtn, exportPdfBtn, sidebarCsvBtn, sidebarExportBtn].forEach((element) => {
@@ -180,7 +178,7 @@ function applyDashboardRole(access) {
   [adminPanelBtn, sidebarAdminBtn].forEach((element) => {
     if (element) element.hidden = !canEnterAdmin;
   });
-  const adminBtnLabel = dashboardAccess.is_super_admin ? "Admin" : "Devocionales";
+  const adminBtnLabel = dashboardAccess.is_super_admin ? "Admin" : "Panel";
   ["adminPanelBtnLabel", "sidebarAdminBtnLabel"].forEach((id) => {
     const label = document.getElementById(id);
     if (label) label.textContent = adminBtnLabel;
@@ -215,9 +213,24 @@ async function loadDashboardRole() {
     nombre: String(data?.nombre || "").trim()
   };
   await window.McpSocialAuth?.authorizeReturnedUser(client, access);
-  if (access.is_revoked || (!access.is_super_admin && access.permissions.length === 0)) {
+  if (access.is_revoked) {
     await client.auth.signOut();
-    throw new Error(access.is_revoked ? "El acceso de esta cuenta fue revocado." : "Esta cuenta no tiene permisos para el dashboard.");
+    throw new Error("El acceso de esta cuenta fue revocado.");
+  }
+  if (!access.is_super_admin) {
+    const [perms, assignment] = await Promise.all([
+      client.rpc("admin_current_module_permissions"),
+      client.from("admin_role_assignments").select("admin_roles(name)").eq("user_id", user?.id || "").maybeSingle(),
+    ]);
+    access.modulePermissions = (Array.isArray(perms?.data) ? perms.data : []).filter((row) => row?.allowed).map((row) => row.permission_key);
+    const role = assignment?.data?.admin_roles;
+    access.roleName = (Array.isArray(role) ? role[0]?.name : role?.name) || null;
+    if (!access.modulePermissions.includes("dashboard.view")) {
+      const hasPanel = access.modulePermissions.some((key) => /^(events|gallery|content|devotionals|notices)\.view$/.test(key) || key === "dashboard.followup");
+      if (hasPanel) { window.location.href = "admin.html"; return access; }
+      await client.auth.signOut();
+      throw new Error(access.roleName ? "Tu rol no incluye el Dashboard." : "Todavía no tienes un rol asignado. Pide al Super Admin que te asigne uno.");
+    }
   }
   const metadata = user?.user_metadata || {};
   const displayName = access.nombre || metadata.full_name || metadata.name || metadata.display_name || user?.email || "Usuario";
