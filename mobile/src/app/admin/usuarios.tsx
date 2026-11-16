@@ -8,18 +8,60 @@ import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { AdminLogin } from '@/components/admin-login';
 import { useAdmin } from '@/lib/use-admin';
-import { WheelPicker } from '@/components/wheel-picker';
 import {
   changeMyAdminEmail, inviteUser, listUsers, PERMISSIONS, resetUserPassword, restoreUser, revokeUser,
   setMyBirthdayCalendar, setUserRole, type ManagedUser,
 } from '@/lib/admin';
 
-function roleSummary(u: ManagedUser) {
-  if (u.isRevoked) return 'Acceso revocado';
-  if (u.isSuperAdmin) return 'Super Admin';
-  const labels = PERMISSIONS.filter((p) => u.permissions.includes(p.key)).map((p) => p.label.split(' (')[0]);
-  return labels.length ? labels.join(' · ') : 'Vista simple';
+type GroupKey = 'super' | 'editorial' | 'dashboard' | 'none' | 'revoked';
+const GROUPS: { key: GroupKey; label: string; hint: string; color: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { key: 'super', label: 'Super Admin', hint: 'Acceso total', color: C.wine, icon: 'shield-checkmark' },
+  { key: 'editorial', label: 'Equipo editorial', hint: 'Devocionales', color: '#6b5b95', icon: 'book' },
+  { key: 'dashboard', label: 'Dashboard', hint: 'Registros', color: '#2f6db5', icon: 'stats-chart' },
+  { key: 'none', label: 'Sin permisos', hint: 'Solo avisos', color: '#8e8187', icon: 'person' },
+  { key: 'revoked', label: 'Acceso revocado', hint: 'No pueden entrar', color: '#b5523b', icon: 'ban' },
+];
+function groupOf(u: ManagedUser): GroupKey {
+  if (u.isRevoked) return 'revoked';
+  if (u.isSuperAdmin) return 'super';
+  if (u.permissions.includes('editor') || u.permissions.includes('reviewer')) return 'editorial';
+  if (u.permissions.includes('read_export') || u.permissions.includes('read_only')) return 'dashboard';
+  return 'none';
 }
+const CHIP_LABEL: Record<string, string> = { editor: 'Editora', reviewer: 'Revisora', read_export: 'Manager', read_only: 'Vista simple', birthday_calendar: '🎂 Cumpleaños' };
+function chipsOf(u: ManagedUser) {
+  if (u.isRevoked) return ['Revocado'];
+  const list = u.isSuperAdmin ? ['Super Admin'] : [];
+  const order = ['editor', 'reviewer', 'read_export', 'read_only', 'birthday_calendar'];
+  for (const key of order) {
+    if (!u.permissions.includes(key)) continue;
+    if (u.isSuperAdmin && key !== 'birthday_calendar') continue;
+    if (key === 'read_only' && u.permissions.includes('read_export')) continue;
+    list.push(CHIP_LABEL[key]);
+  }
+  return list.length ? list : ['Sin permisos'];
+}
+const initialsOf = (u: ManagedUser) => (u.nombre || u.email).split(/[\s@.]+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+
+function UserCard({ u, color, onPress }: { u: ManagedUser; color: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={() => { tapFeedback(); onPress(); }} style={({ pressed }) => [s.userRow, pressed && { backgroundColor: C.fill }]}>
+      <View style={[s.userAvatar, { backgroundColor: color }]}><Text style={s.userAvatarText}>{initialsOf(u)}</Text></View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={s.nameLine}>
+          <Text style={s.rowName} numberOfLines={1}>{u.nombre || u.email}</Text>
+          {u.isCurrentUser ? <View style={s.youBadge}><Text style={s.youText}>Tú</Text></View> : null}
+        </View>
+        <Text style={s.rowMail} numberOfLines={1}>{u.email}</Text>
+        <View style={s.chips}>
+          {chipsOf(u).map((c) => <View key={c} style={[s.chip, { backgroundColor: `${color}1A` }]}><Text style={[s.chipText, { color }]}>{c}</Text></View>)}
+        </View>
+      </View>
+      <Ionicons name="chevron-forward" size={17} color="rgba(60,40,38,0.3)" />
+    </Pressable>
+  );
+}
+
 
 function UserSheet({ user, onClose, onChanged }: { user: ManagedUser; onClose: () => void; onChanged: () => void }) {
   const [perms, setPerms] = useState(user.permissions);
@@ -176,7 +218,7 @@ export default function AdminUsuarios() {
   const [users, setUsers] = useState<ManagedUser[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | GroupKey>('all');
   const [open, setOpen] = useState<ManagedUser | null>(null);
   const [inviting, setInviting] = useState(false);
 
@@ -198,13 +240,9 @@ export default function AdminUsuarios() {
   const q = query.trim().toLowerCase();
   const filtered = (users ?? []).filter((u) => {
     const matchesText = !q || u.email.toLowerCase().includes(q) || u.nombre.toLowerCase().includes(q);
-    const matchesRole = roleFilter === 'all'
-      || (roleFilter === 'revoked' && u.isRevoked)
-      || (roleFilter === 'super_admin' && u.isSuperAdmin && !u.isRevoked)
-      || (roleFilter === 'read_only' && !u.isRevoked && !u.isSuperAdmin && !u.permissions.some((p) => p !== 'read_only'))
-      || (roleFilter !== 'all' && !['revoked', 'super_admin', 'read_only'].includes(roleFilter) && !u.isRevoked && !u.isSuperAdmin && u.permissions.includes(roleFilter));
-    return matchesText && matchesRole;
+    return matchesText && (roleFilter === 'all' || groupOf(u) === roleFilter);
   });
+  const counts = Object.fromEntries(GROUPS.map((g) => [g.key, (users ?? []).filter((u) => groupOf(u) === g.key).length])) as Record<GroupKey, number>;
 
   if (!ready) return <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} />;
   if (!access) return <AdminLogin />;
@@ -224,25 +262,40 @@ export default function AdminUsuarios() {
           <Ionicons name="search" size={16} color={C.muted} />
           <TextInput value={query} onChangeText={setQuery} placeholder="Buscar por nombre o correo" placeholderTextColor="#b3a3a0" autoCapitalize="none" style={s.searchInput} />
         </View>
-        <Group header="Filtrar por rol"><WheelPicker title="Filtrar usuarios por rol" value={roleFilter} options={[
-          { value: 'all', label: 'Todos los roles' }, { value: 'super_admin', label: 'Super Admin' },
-          { value: 'editor', label: 'Editor de devocionales' }, { value: 'reviewer', label: 'Revisor de devocionales' },
-          { value: 'read_export', label: 'Manager' }, { value: 'read_only', label: 'Vista simple' }, { value: 'revoked', label: 'Acceso revocado' },
-        ]} onChange={setRoleFilter} /></Group>
-        {!users ? <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} /> : (
-          <Group header={`${filtered.length} ${filtered.length === 1 ? 'cuenta' : 'cuentas'}`}>
-            {filtered.map((u) => (
-              <Row
-                key={u.userId}
-                icon={u.isRevoked ? 'ban' : u.isSuperAdmin ? 'shield-checkmark' : 'person'}
-                tint={u.isRevoked ? '#8e8187' : u.isSuperAdmin ? C.wine : '#6b5b95'}
-                label={u.nombre || u.email}
-                sub={`${u.nombre ? u.email + ' · ' : ''}${roleSummary(u)}`}
-                onPress={() => setOpen(u)}
-              />
+        {users ? (
+          <View style={s.summary}>
+            {GROUPS.filter((g) => g.key !== 'none' || counts.none > 0).map((g) => (
+              <Pressable key={g.key} onPress={() => { tapFeedback(); setRoleFilter(roleFilter === g.key ? 'all' : g.key); }} style={[s.tile, roleFilter === g.key && { borderColor: g.color }]}>
+                <View style={[s.tileIcon, { backgroundColor: `${g.color}1A` }]}><Ionicons name={g.icon} size={15} color={g.color} /></View>
+                <Text style={s.tileValue}>{counts[g.key]}</Text>
+                <Text style={s.tileLabel} numberOfLines={1}>{g.label}</Text>
+              </Pressable>
             ))}
-          </Group>
-        )}
+          </View>
+        ) : null}
+        {roleFilter !== 'all' ? (
+          <Pressable onPress={() => setRoleFilter('all')} style={s.clearFilter}><Ionicons name="close-circle" size={15} color={C.wine} /><Text style={s.clearFilterText}>Mostrar todos</Text></Pressable>
+        ) : null}
+        {!users ? <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} /> : null}
+        {users && !filtered.length ? <Text style={s.emptyText}>No hay cuentas que coincidan.</Text> : null}
+        {GROUPS.map((g) => {
+          const list = filtered.filter((u) => groupOf(u) === g.key);
+          if (!list.length) return null;
+          return (
+            <View key={g.key} style={{ marginTop: 22 }}>
+              <Text style={s.groupHeader}>{g.label} · {list.length}<Text style={s.groupHint}>  {g.hint}</Text></Text>
+              <View style={s.groupCard}>
+                {list.map((u, i) => (
+                  <View key={u.userId}>
+                    {i > 0 ? <View style={s.sep} /> : null}
+                    <UserCard u={u} color={g.color} onPress={() => setOpen(u)} />
+                  </View>
+                ))}
+              </View>
+            </View>
+          );
+        })}
+        <Text style={s.footnote}>Toca una cuenta para cambiar sus permisos, revocar el acceso o enviarle un enlace de contraseña.</Text>
       </ScrollView>
       {open ? <UserSheet user={open} onClose={() => setOpen(null)} onChanged={() => { void load(); }} /> : null}
       {inviting ? <InviteSheet onClose={() => setInviting(false)} onDone={() => { setInviting(false); void load(); }} /> : null}
@@ -252,6 +305,30 @@ export default function AdminUsuarios() {
 
 const s = StyleSheet.create({
   page: { padding: 16, paddingBottom: 60 },
+  summary: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
+  tile: { flexGrow: 1, flexBasis: '30%', backgroundColor: C.card, borderRadius: 16, padding: 12, borderWidth: 1.5, borderColor: 'transparent' },
+  tileIcon: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  tileValue: { fontFamily: sans, fontSize: 22, fontWeight: '700', color: C.ink, fontVariant: ['tabular-nums'] },
+  tileLabel: { fontFamily: sans, fontSize: 12, color: C.muted, marginTop: 1 },
+  clearFilter: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', marginTop: 12, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, backgroundColor: C.fill },
+  clearFilterText: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.wine },
+  emptyText: { fontFamily: sans, fontSize: 14, color: C.muted, textAlign: 'center', marginTop: 30 },
+  groupHeader: { fontFamily: sans, fontSize: 13, fontWeight: '700', color: C.ink, textTransform: 'uppercase', letterSpacing: 0.5, marginLeft: 14, marginBottom: 8 },
+  groupHint: { fontWeight: '500', color: C.muted, textTransform: 'none', letterSpacing: 0 },
+  groupCard: { backgroundColor: C.card, borderRadius: 16, overflow: 'hidden' },
+  sep: { height: StyleSheet.hairlineWidth, backgroundColor: C.separator, marginLeft: 70 },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 14 },
+  userAvatar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  userAvatarText: { fontFamily: sans, fontSize: 16, fontWeight: '700', color: '#fff' },
+  nameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  rowName: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink, letterSpacing: -0.2, flexShrink: 1 },
+  youBadge: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: C.wine },
+  youText: { fontFamily: sans, fontSize: 10, fontWeight: '800', color: '#fff' },
+  rowMail: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 1 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 6 },
+  chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999 },
+  chipText: { fontFamily: sans, fontSize: 11, fontWeight: '700' },
+  footnote: { fontFamily: sans, fontSize: 13, color: C.muted, textAlign: 'center', marginTop: 20, paddingHorizontal: 12 },
   search: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 40, paddingHorizontal: 12, borderRadius: 11, backgroundColor: 'rgba(118,94,90,0.12)' },
   searchInput: { flex: 1, fontFamily: sans, fontSize: 16, color: C.ink },
   sheetBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 10 },
