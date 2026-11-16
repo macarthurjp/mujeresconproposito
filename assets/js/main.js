@@ -2120,7 +2120,11 @@ function renderGaleria(galeria) {
             nombre: getField(item, ["nombre", "Nombre", "name", "Name"], "Invitada"),
             titulo: getField(item, ["titulo", "Titulo", "título", "Título", "title", "Title"], ""),
             activa: !["no", "false", "0", "inactiva", "inactivo"].includes(activaRaw),
-            orden: Number(getField(item, ["orden", "Orden", "order", "Order"], index + 1)) || index + 1
+            orden: Number(getField(item, ["orden", "Orden", "order", "Order"], index + 1)) || index + 1,
+            inscripcionAbierta: item.inscripcion_abierta === true,
+            fechaEvento: item.fecha_evento || null,
+            lugar: item.lugar || "",
+            cupo: item.cupo ?? null
           };
         })
           .filter(item => item.fotoUrl && item.activa)
@@ -2154,6 +2158,7 @@ function renderGaleria(galeria) {
     <img src="${escapeHtml(item.fotoUrl)}" alt="${escapeHtml(item.nombre)}">
     <h3>${escapeHtml(item.nombre)}</h3>
     <p class="invitee-title">${escapeHtml(item.titulo)}</p>
+    ${item.inscripcionAbierta ? `<button type="button" class="invitee-signup" data-signup="${escapeHtml(item.id)}"><i class="fa-solid fa-ticket" aria-hidden="true"></i> Inscribirme</button>` : ""}
   </div>
 `).join("");
 
@@ -2171,7 +2176,15 @@ function renderGaleria(galeria) {
     const inviteeCards = grid.querySelectorAll(".card");
 
     inviteeCards.forEach(card => {
-      card.addEventListener("click", () => {
+      card.addEventListener("click", (event) => {
+        const signup = event.target.closest(".invitee-signup");
+        if (signup) {
+          event.stopPropagation();
+          if (inviteesMoved) { inviteesMoved = false; return; }
+          const item = latestInvitees.find((row) => String(row.id) === signup.dataset.signup);
+          if (item) window.McpEventSignup?.open(item);
+          return;
+        }
         if (inviteesMoved) {
           inviteesMoved = false;
           return;
@@ -2233,7 +2246,7 @@ function renderGaleria(galeria) {
         const [inviteesRequest, galleryRequest, eventsRequest, youtubeRequest, birthdaysRequest] = await Promise.allSettled([
 		          supabaseBrowserClient
 		            .from("destacadas")
-	            .select("id,fotoUrl:foto_url,nombre,titulo,orden,activa")
+	            .select("*")
 	            .eq("activa", true)
 	            .order("orden", { ascending: true }),
           supabaseBrowserClient
@@ -2871,6 +2884,14 @@ function renderContactCalendar(apiData = {}) {
 	    if (error) throw error;
 	  }
 
+	  function adminAuditLine(row) {
+	    const at = row?.modificado_at || row?.creado_at;
+	    if (!at) return "";
+	    const who = row.modificado_at ? row.modificado_por_nombre : row.creado_por_nombre;
+	    const when = new Intl.DateTimeFormat("es", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(at)).replace(".", "");
+	    return `<small class="admin-item-audit">${row.modificado_at ? "Modificado" : "Agregado"} ${escapeHtml(when)}${who ? ` · ${escapeHtml(who)}` : ""}</small>`;
+	  }
+
 	  function renderAdminList(containerId, rows, type) {
 	    const container = document.getElementById(containerId);
 	    if (!container) return;
@@ -2908,7 +2929,7 @@ function renderContactCalendar(apiData = {}) {
 	          <div class="admin-item-body">
 	            <strong>${escapeHtml(title)}</strong>
 	            <span>${escapeHtml(subtitle)}</span>
-	            <small>Orden ${escapeHtml(row.orden || 1)}</small>
+	            <small>Orden ${escapeHtml(row.orden || 1)}</small>${adminAuditLine(row)}
 	          </div>
 	          <div class="admin-item-actions">
 	            <button type="button" data-admin-action="edit">Editar</button>
@@ -2954,7 +2975,7 @@ function renderContactCalendar(apiData = {}) {
 	              <span class="admin-item-status-text">${isVisible ? "Visible" : "Oculto"}</span>
 	            </div>
 	            <strong>${escapeHtml(title)}</strong>
-	            <span>${escapeHtml(subtitle)}</span>
+	            <span>${escapeHtml(subtitle)}</span>${adminAuditLine(row)}
 	          </div>
 	          <div class="admin-item-actions">
 	            <button type="button" data-admin-action="edit" title="Editar" aria-label="Editar">${ADMIN_ICON_EDIT}</button>
@@ -3039,7 +3060,7 @@ function renderContactCalendar(apiData = {}) {
 	                <div class="admin-item-body">
 	                  <strong>${escapeHtml(title)}</strong>
 	                  <span>${escapeHtml(community.label)}</span>
-	                  <small>Orden ${escapeHtml(row.orden || 1)}${row.portada ? ' · <span class="admin-portada-badge">★ Portada</span>' : ""}</small>
+	                  <small>Orden ${escapeHtml(row.orden || 1)}${row.portada ? ' · <span class="admin-portada-badge">★ Portada</span>' : ""}</small>${adminAuditLine(row)}
 	                </div>
 	                <div class="admin-item-actions">
 	                  <button type="button" data-admin-action="edit">Editar</button>
@@ -4461,7 +4482,7 @@ function renderContactCalendar(apiData = {}) {
 	      window.initDevocionalesAdmin?.(access);
 	      return true;
 	    }
-	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access), window.initPromoBannerAdmin?.(access), window.initRecipientsAdmin?.(access)]).catch((error) => {
+	    Promise.all([loadAdminContent(), loadAdminRoles(), window.initDevocionalesAdmin?.(access), window.initPromoBannerAdmin?.(access), window.initRecipientsAdmin?.(access), window.initCommunityAdmin?.(access)]).catch((error) => {
 	      console.error(error);
 	      showAdminMsg(adminLoginMsg, "No se pudo cargar el contenido del admin.", false);
 	    });

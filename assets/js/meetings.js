@@ -94,10 +94,17 @@
     var name = platform(link);
     var label = live ? "Unirme ahora por " + name : "Unirme por " + name;
     if (compact) {
-      return '<a class="mt-join-round' + (live ? " is-live" : "") + '" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(label + " a " + ev.titulo) + '"><i class="fa-solid fa-video" aria-hidden="true"></i></a>';
+      return '<a class="mt-join-round' + (live ? " is-live" : "") + '" data-metric="' + esc(String(ev.id)) + '" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(label + " a " + ev.titulo) + '"><i class="fa-solid fa-video" aria-hidden="true"></i></a>';
     }
-    return '<a class="mt-join" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-video" aria-hidden="true"></i> ' + esc(label) + "</a>";
+    return '<a class="mt-join" data-metric="' + esc(String(ev.id)) + '" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-video" aria-hidden="true"></i> ' + esc(label) + "</a>";
   }
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a[data-metric]");
+    if (!a) return;
+    var c = window.McpSupabase && window.McpSupabase.getSupabaseBrowserClient && window.McpSupabase.getSupabaseBrowserClient();
+    if (c) c.rpc("registrar_metrica", { p_tipo: "unirme_reunion", p_ref: a.getAttribute("data-metric") }).then(function () {}, function () {});
+  });
 
   function render() {
     var root = document.getElementById("meetingsApp");

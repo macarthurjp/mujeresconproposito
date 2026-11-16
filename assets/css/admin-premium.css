@@ -630,3 +630,76 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye {
 }
 body.mcp-brand .admin-main .admin-item-media .admin-eye:hover { transform: scale(1.08); }
 body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgba(40, 24, 22, 0.86) !important; color: #fff !important; }
+
+/* ---------- Community admin: Inscripciones · Seguimiento · Avisos · Estadísticas ---------- */
+#admin-inscripciones .ci-list, #admin-seguimiento .ci-list { display: grid; gap: 14px; margin-top: 14px; }
+.mcp-brand .admin-main .ci-event { padding: 18px !important; }
+.ci-event-head { display: flex; gap: 14px; align-items: flex-start; }
+.ci-event-head img { width: 64px; height: 80px; object-fit: cover; border-radius: 12px; flex: none; background: var(--a-blush); }
+.ci-event-head > div { flex: 1; min-width: 0; }
+.ci-event-head h4, .ci-person-head h4 { margin: 0; font-size: 16px; font-weight: 700; color: var(--a-ink); }
+.ci-event-head p, .ci-person-head p { margin: 2px 0 0; font-size: 13px; color: var(--a-muted); }
+.ci-audit { margin: 8px 0 0 !important; font-size: 12px !important; line-height: 1.6; color: var(--a-muted) !important; }
+.ci-audit i { width: 14px; color: var(--a-wine); }
+.ci-pill { flex: none; padding: 5px 10px; border-radius: 999px; background: #f3ecea; color: var(--a-muted); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.ci-pill.is-on { background: var(--a-wine); color: #fff; }
+.ci-event-form, .ci-follow-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: end; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--a-line); }
+.ci-event-form label, .ci-follow-form label, #ciBroadcastForm label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--a-muted); }
+.ci-event-form :is(input, select), .ci-follow-form :is(input, select, textarea), #ciBroadcastForm :is(input, select, textarea) { width: 100%; box-sizing: border-box; padding: 11px 13px; border: 1px solid var(--a-line-strong); border-radius: 12px; font: inherit; font-size: 15px; color: var(--a-ink); background: #fff; }
+.ci-check { flex-direction: row !important; align-items: center; gap: 8px !important; color: var(--a-ink) !important; }
+.ci-check input { width: 18px !important; height: 18px; accent-color: var(--a-wine); }
+.ci-wide { grid-column: 1 / -1; }
+.ci-event-form .btn, .ci-follow-form .btn { justify-self: start; }
+.ci-people { margin-top: 12px; }
+.ci-people summary { cursor: pointer; font-weight: 600; color: var(--a-wine); }
+.ci-people table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+.ci-people :is(th, td) { text-align: left; padding: 8px; border-bottom: 1px solid var(--a-line); }
+.ci-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
+.ci-tab { border: 1.5px solid transparent; background: #fff; border-radius: 16px; padding: 12px; cursor: pointer; text-align: center; box-shadow: var(--a-shadow); }
+.ci-tab strong { display: block; font-size: 22px; color: var(--c); }
+.ci-tab span { font-size: 12px; color: var(--a-muted); font-weight: 600; }
+.ci-tab.is-on { border-color: var(--c); }
+.mcp-brand .admin-main .ci-person { padding: 16px !important; }
+.ci-person-head { display: flex; align-items: center; gap: 12px; }
+.ci-person-head > div:first-of-type { flex: 1; min-width: 0; }
+.ci-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.ci-actions { display: flex; gap: 6px; }
+.ci-icon { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--a-blush); color: var(--a-wine) !important; text-decoration: none !important; }
+.ci-updated { font-size: 12px; color: var(--a-muted); align-self: center; }
+.mcp-brand .admin-main .ci-broadcast { max-width: 640px; }
+#ciBroadcastForm { display: grid; gap: 14px; }
+.ci-reach { margin: -6px 0 0 !important; font-size: 12px !important; color: var(--a-muted) !important; }
+.ci-preview { display: flex; gap: 12px; padding: 14px; border-radius: 18px; background: #faf5f4; }
+.ci-preview-icon { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--a-blush); color: var(--a-wine); flex: none; }
+.ci-preview div { display: flex; flex-direction: column; }
+.ci-preview small { color: var(--a-muted); font-size: 11px; }
+.ci-preview strong { color: var(--a-ink); font-size: 15px; }
+.ci-preview span { color: var(--a-ink); font-size: 14px; }
+.ci-history-row { display: flex; flex-direction: column; gap: 2px; padding: 12px 0; border-top: 1px solid var(--a-line); }
+.ci-history-row:first-child { border-top: 0; }
+.ci-history-row small { color: var(--a-muted); }
+.ci-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
+.mcp-brand .admin-main .ci-tile { padding: 16px !important; display: flex; flex-direction: column; }
+.ci-tile strong { font-size: 28px; color: var(--a-ink); }
+.ci-tile span { font-size: 12px; color: var(--a-muted); }
+.ci-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; margin-top: 14px; }
+.ci-grid h3 { margin: 0 0 12px !important; font-size: 14px !important; }
+.ci-bars { display: flex; align-items: flex-end; gap: 6px; height: 160px; }
+.ci-bars > div { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+.ci-bars i { width: 70%; background: var(--a-wine); border-radius: 5px; }
+.ci-bars b { font-size: 11px; color: var(--a-ink); }
+.ci-bars small { font-size: 10px; color: var(--a-muted); }
+.ci-ranked { display: grid; gap: 10px; }
+.ci-rank { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+.ci-rank span { font-size: 14px; color: var(--a-ink); }
+.ci-rank b { grid-row: span 2; font-size: 16px; color: var(--a-ink); }
+.ci-rank b small { font-size: 11px; color: var(--a-muted); font-weight: 500; }
+.ci-rank-track { height: 5px; background: #f3ecea; border-radius: 3px; overflow: hidden; }
+.ci-rank-track i { display: block; height: 100%; background: var(--a-wine); }
+.ci-muted { color: var(--a-muted); font-size: 13px; }
+.admin-item-audit { display: block; margin-top: 2px; font-size: 11px; color: var(--a-muted); }
+#adminDashboard:has(#admin-inscripciones.active, #admin-seguimiento.active, #admin-avisos.active, #admin-estadisticas.active) .admin-stats-grid { display: none !important; }
+@media (max-width: 720px) {
+  .ci-tabs, .ci-tiles { grid-template-columns: repeat(2, 1fr); }
+  .ci-event-head { flex-wrap: wrap; }
+}

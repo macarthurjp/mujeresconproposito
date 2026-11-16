@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
   <link rel="stylesheet" href="assets/css/admin.css?v=20261115-meeting-icons-1" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261115-3" />
-  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261115-6" />
+  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261116-ci-1" />
   <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-meeting-icons-1" />
 </head>
 <body class="mcp-brand admin-locked" data-admin-page="true">
@@ -87,6 +87,10 @@
           <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-regular fa-file-lines" aria-hidden="true"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="banner"><i class="fa-regular fa-flag" aria-hidden="true"></i> <span>Banner</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-regular fa-address-card" aria-hidden="true"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="inscripciones"><i class="fa-regular fa-calendar-check"></i> <span>Inscripciones</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="seguimiento"><i class="fa-regular fa-handshake"></i> <span>Seguimiento</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="avisos"><i class="fa-regular fa-paper-plane"></i> <span>Avisos push</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="estadisticas"><i class="fa-solid fa-chart-line"></i> <span>Estadísticas</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="correos"><i class="fa-regular fa-envelope" aria-hidden="true"></i> <span>Destinatarios de correo</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
         </div>
           <div class="admin-sidebar-footer">
@@ -750,6 +754,59 @@
           <div class="admin-roles-security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Solo el Super Admin puede asignar o revocar roles de administración.</div>
         </div>
 
+        <div class="admin-tab-panel" id="admin-inscripciones">
+          <div class="admin-gallery-modal-head admin-roles-page-head">
+            <div class="admin-gallery-modal-icon"><i class="fa-regular fa-calendar-check"></i></div>
+            <span class="admin-dashboard-kicker">Eventos especiales</span>
+            <h3>Inscripciones</h3>
+            <p class="admin-card-subtitle">Abre la inscripción en una destacada para mostrar el botón “Inscribirme” en la web y la app. Aquí ves quién se inscribió.</p>
+          </div>
+          <div id="ciEvents" class="ci-list"><div class="admin-empty">Cargando…</div></div>
+        </div>
+
+        <div class="admin-tab-panel" id="admin-seguimiento">
+          <div class="admin-gallery-modal-head admin-roles-page-head">
+            <div class="admin-gallery-modal-icon"><i class="fa-regular fa-handshake"></i></div>
+            <span class="admin-dashboard-kicker">Nuevas hermanas</span>
+            <h3>Seguimiento</h3>
+            <p class="admin-card-subtitle">Que ninguna nueva hermana se quede sin respuesta. Marca a quién ya contactaste y cómo va.</p>
+          </div>
+          <div id="ciFollowTabs" class="ci-tabs"></div>
+          <div id="ciFollowList" class="ci-list"><div class="admin-empty">Cargando…</div></div>
+        </div>
+
+        <div class="admin-tab-panel" id="admin-avisos">
+          <div class="admin-gallery-modal-head admin-roles-page-head">
+            <div class="admin-gallery-modal-icon"><i class="fa-regular fa-paper-plane"></i></div>
+            <span class="admin-dashboard-kicker">Notificaciones</span>
+            <h3>Avisos push</h3>
+            <p class="admin-card-subtitle">Envía una notificación al teléfono de la comunidad: cambios de horario, eventos especiales o mensajes importantes.</p>
+          </div>
+          <div class="admin-card ci-broadcast">
+            <form id="ciBroadcastForm" class="admin-form">
+              <label>Para
+                <select id="ciTarget"><option value="">Todas las personas con la app</option><option>Europa</option><option>Estados Unidos</option><option>República Dominicana</option></select>
+              </label>
+              <p class="ci-reach" id="ciReach">Calculando destinatarios…</p>
+              <label>Título <input type="text" id="ciTitle" maxlength="80" placeholder="Ej. Cambio de horario hoy" required /></label>
+              <label>Mensaje <textarea id="ciMessage" maxlength="240" rows="3" placeholder="Ej. La oración de esta noche empieza a las 20:30." required></textarea></label>
+              <div class="ci-preview"><span class="ci-preview-icon"><i class="fa-solid fa-seedling" aria-hidden="true"></i></span><div><small>MCP930 · ahora</small><strong id="ciPrevTitle">Título del aviso</strong><span id="ciPrevBody">Así verán el aviso en su teléfono.</span></div></div>
+              <button type="submit" class="btn"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar aviso</button>
+            </form>
+          </div>
+          <div class="admin-card admin-list-card"><h3>Enviados recientemente</h3><div id="ciHistory" class="ci-list"><div class="admin-empty">Cargando…</div></div></div>
+        </div>
+
+        <div class="admin-tab-panel" id="admin-estadisticas">
+          <div class="admin-gallery-modal-head admin-roles-page-head">
+            <div class="admin-gallery-modal-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <span class="admin-dashboard-kicker">Comunidad</span>
+            <h3>Estadísticas</h3>
+            <p class="admin-card-subtitle">Registros, seguimiento, lecturas, reuniones e inscripciones. Las lecturas y los “Unirme” se cuentan de forma anónima.</p>
+          </div>
+          <div id="ciStats"><div class="admin-empty">Cargando…</div></div>
+        </div>
+
         <div class="admin-tab-panel" id="admin-correos">
           <div class="admin-gallery-modal-head admin-roles-page-head">
             <div class="admin-gallery-modal-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
@@ -803,9 +860,10 @@
   <script src="assets/js/login-polish.js?v=20261115-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
-  <script src="assets/js/main.js?v=20261115-meeting-icons-1"></script>
+  <script src="assets/js/main.js?v=20261116-ci-1"></script>
   <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
   <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
+  <script src="assets/js/community-admin.js?v=20261116-1"></script>
   <script src="assets/js/recipients-admin.js?v=20261115-3"></script>
   <script src="assets/js/admin-shell.js?v=20261114-1"></script>
 </body>
