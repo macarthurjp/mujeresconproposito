@@ -27,7 +27,7 @@ export async function getAccess(): Promise<Access | null> {
   else {
     if (legacyPermissions.includes('editor')) modulePermissions.push('devotionals.view','devotionals.create','devotionals.edit','devotionals.delete');
     if (legacyPermissions.includes('reviewer')) modulePermissions.push('devotionals.view','devotionals.edit','devotionals.publish');
-    if (legacyPermissions.includes('read_only') || legacyPermissions.includes('read_export')) modulePermissions.push('dashboard.view');
+    if (legacyPermissions.includes('read_export')) modulePermissions.push('dashboard.view');
   }
   let roleName: string | null = null;
   if (!isSuperAdmin) {

@@ -26,7 +26,8 @@ U = {
     "RX": "00000000-0000-0000-0000-0000000000e2",    # legacy read_export + Viewer role, dashboard denied
     "REV": "00000000-0000-0000-0000-0000000000f1",   # revoked, but has a Manager assignment
     "EDT_EVENTS": "00000000-0000-0000-0000-0000000000c2",  # custom role: events view+edit only
-    "NOAUTH": "00000000-0000-0000-0000-0000000000f9",  # auth account that was never invited (no user_roles row)
+    "NOAUTH": "00000000-0000-0000-0000-0000000000f9",
+    "APPREV": "00000000-0000-0000-0000-0000000000fa",  # appreview@matmaxconsulting.com  # auth account that was never invited (no user_roles row)
 }
 
 
@@ -56,7 +57,7 @@ def sa(sql):
 
 
 def setup():
-    users = ",".join(f"('{v}','{k.lower()}@test.local')" for k, v in U.items() if k != "NOAUTH")
+    users = ",".join(f"('{v}','{k.lower()}@test.local')" for k, v in U.items() if k not in ("NOAUTH",))
     seed = subprocess.run(PSQL + ["-q", "-v", "ON_ERROR_STOP=1"], input=f"""
       set session_replication_role = replica;  -- seed only: skip triggers
       insert into auth.users(id,email) values {users};
@@ -69,7 +70,8 @@ def setup():
         ('{U['LEG']}','leg@test.local','L',false,'{{read_only}}',false),
         ('{U['RX']}','rx@test.local','X',false,'{{read_only,read_export}}',false),
         ('{U['REV']}','rev@test.local','R',false,'{{read_only}}',false),
-        ('{U['EDT_EVENTS']}','edt_events@test.local','EE',false,'{{read_only}}',false);
+        ('{U['EDT_EVENTS']}','edt_events@test.local','EE',false,'{{read_only}}',false),
+        ('{U['APPREV']}','appreview@matmaxconsulting.com','AR',false,'{{read_only}}',false);
       insert into public.eventos(id,titulo,horario,icono,link,activa,orden) values (1,'Oración','Martes 20:00','🙏','https://meet.google.com/x',true,1);
       insert into public.galeria(foto_url,categoria,texto,activa,orden) values ('https://x/1.webp','Europa','Picnic',true,1);
       insert into public.destacadas(id,nombre,foto_url,activa,orden) values ('11111111-1111-1111-1111-111111111111','Retiro','https://x/d.webp',true,1);
@@ -80,6 +82,12 @@ def setup():
     """, capture_output=True, text=True)
     if seed.returncode:
         sys.exit("SEED FAILED: " + seed.stderr)
+    # Migrations that act on existing data (e.g. assigning the review account) are re-run
+    # after seeding, like they would run against production data.
+    for path in filter(None, os.environ.get("POST_SEED_SQL", "").split(":")):
+        r = subprocess.run(PSQL + ["-q", "-v", "ON_ERROR_STOP=1", "-f", path], capture_output=True, text=True)
+        if r.returncode:
+            sys.exit("POST SEED FAILED: " + r.stderr)
     ids = {}
     for name in ("Manager", "Editor", "Viewer"):
         ids[name] = sa(f"select id from public.admin_roles where name='{name}';").splitlines()[-1]
@@ -212,8 +220,13 @@ def main():
     check("dashboard", "Viewer con dashboard.view lee vista reducida", True,
           "select coalesce(email,'(oculto)') from public.admin_dashboard_members();", "VWR", must_contain="(oculto)")
     check("dashboard", "Editor sin dashboard.view es rechazado", False, "select count(*) from public.admin_dashboard_members();", "EDT")
-    check("dashboard", "Legado read_only SIN rol obtiene dashboard (compatibilidad)", True,
-          "select public.has_admin_module_permission('dashboard','view');", "LEG", must_contain="t")
+    check("dashboard", "Sin rol (solo read_only automático) NO ve el dashboard", True,
+          "select public.has_admin_module_permission('dashboard','view');", "LEG", must_contain="f")
+    check("dashboard", "Sin rol: RPC del dashboard rechazado", False, "select count(*) from public.admin_dashboard_members();", "LEG")
+    check("dashboard", "Cuenta de revisión Apple conserva el dashboard", True,
+          "select count(*) from public.admin_dashboard_members();", "APPREV", must_contain="1")
+    check("dashboard", "Cuenta de revisión Apple no puede modificar nada", True,
+          "select public.has_admin_module_permission('events','create');", "APPREV", must_contain="f")
     check("dashboard", "RX con dashboard denegado: RPC rechazado", False, "select count(*) from public.admin_dashboard_members();", "RX")
     check("dashboard", "RX con dashboard denegado NO lee unirse directo", True,
           "select count(*) from public.unirse;", "RX", must_contain="0")
