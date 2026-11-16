@@ -11,7 +11,7 @@ import { tapFeedback } from '@/components/ui';
 import { AdminLogin } from '@/components/admin-login';
 import { WheelPicker } from '@/components/wheel-picker';
 import { C, sans } from '@/constants/theme';
-import { buildSchedule, deleteEvento, type AdminEvento, EVENT_TIMEZONES, listEventos, parseScheduleForEdit, saveEvento, uploadImage, WEEK_DAYS } from '@/lib/admin';
+import { buildSchedule, canAdmin, deleteEvento, type AdminEvento, EVENT_TIMEZONES, listEventos, parseScheduleForEdit, saveEvento, uploadImage, WEEK_DAYS } from '@/lib/admin';
 import { useAdmin } from '@/lib/use-admin';
 
 const LETTERS: Record<string, string> = { Lunes: 'L', Martes: 'M', 'Miércoles': 'X', Jueves: 'J', Viernes: 'V', 'Sábado': 'S', Domingo: 'D' };
@@ -78,7 +78,7 @@ export default function AdminEventoScreen() {
   const [pickedIcon, setPickedIcon] = useState<{ uri: string; width: number; height: number } | null>(null);
 
   useEffect(() => {
-    if (!editing || !access?.isSuperAdmin || access.isRevoked) return;
+    if (!editing || !canAdmin(access,'events','edit')) return;
     listEventos().then((rows) => {
       const e = rows.find((r) => r.id === id);
       if (!e) return;
@@ -139,7 +139,7 @@ export default function AdminEventoScreen() {
 
   if (!ready) return <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} />;
   if (!access) return <AdminLogin />;
-  if (access.isRevoked || !access.isSuperAdmin) return <View style={{ flex: 1, padding: 18 }}><Text style={s.cancel}>Solo Super Admin puede editar reuniones.</Text></View>;
+  if (!canAdmin(access,'events',editing ? 'edit' : 'create')) return <View style={{ flex: 1, padding: 18 }}><Text style={s.cancel}>No tienes permiso para esta acción de eventos y reuniones.</Text></View>;
   if (!loaded) return <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} />;
 
   return (
@@ -223,7 +223,7 @@ export default function AdminEventoScreen() {
         </Group>
 
         <Group header="Publicación">
-          <SwitchRow icon="eye" label="Visible" sub="En la web y la app" value={activa} onValueChange={setActiva} />
+          <SwitchRow icon="eye" label="Visible" sub="En la web y la app" value={activa} disabled={!canAdmin(access,'events','edit')} onValueChange={setActiva} />
           <SwitchRow icon="notifications" tint="#d64545" label="Avisar por notificación" sub="15 min antes y al empezar" value={notificar} onValueChange={setNotificar} />
           <InputRow label="Orden" value={orden} onChangeText={(v) => setOrden(v.replace(/\D/g, ''))} keyboardType="number-pad" />
         </Group>
@@ -237,12 +237,12 @@ export default function AdminEventoScreen() {
 
         {editing ? (
           <Group>
-            <Row label="Eliminar evento" destructive chevron={false} onPress={() => Alert.alert('Eliminar evento', 'Esta acción no se puede deshacer.', [
+            {canAdmin(access,'events','delete') ? <Row label="Eliminar evento" destructive chevron={false} onPress={() => Alert.alert('Eliminar evento', 'Esta acción no se puede deshacer.', [
               { text: 'Cancelar', style: 'cancel' },
               { text: 'Eliminar', style: 'destructive', onPress: async () => {
                 try { await deleteEvento(id!); router.back(); } catch (e) { Alert.alert('No se pudo eliminar', e instanceof Error ? e.message : ''); }
               } },
-            ])} />
+            ])} /> : null}
           </Group>
         ) : null}
       </ScrollView>

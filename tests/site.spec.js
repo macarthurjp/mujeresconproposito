@@ -16,11 +16,11 @@ async function mockSupabase(page) {
             insert() { return Promise.resolve({ data: [], error: null }); },
             update() { return this; },
             delete() { return this; },
-            maybeSingle() { return Promise.resolve({ data: { is_super_admin: false, permissions: ["read_only"], is_revoked: false, nombre: "" }, error: null }); }
+            maybeSingle() { return Promise.resolve({ data: { is_super_admin: false, permissions: ["read_only"], is_revoked: false, nombre: "", admin_roles: { name: "Viewer" } }, error: null }); }
           };
           return {
             from() { return Object.create(query); },
-            rpc() { return Promise.resolve({ data: "read_only", error: null }); },
+            rpc(name) { return Promise.resolve({ data: name === "admin_current_module_permissions" ? [{ permission_key: "dashboard.view", allowed: true }] : "read_only", error: null }); },
             functions: { invoke() { return Promise.resolve({ data: { ok: true, cumpleanerasHoy: [] }, error: null }); } },
             storage: { from() { return { upload() { return Promise.resolve({ error: null }); }, getPublicUrl(path) { return { data: { publicUrl: path } }; } }; } },
             auth: {
@@ -145,8 +145,11 @@ test("admin includes the devotional editorial workspace", async ({ page }) => {
   await expect(page.locator('[data-dev-save="draft"]')).toHaveCount(1);
   await expect(page.locator('[data-dev-save="submit"]')).toHaveCount(1);
   await expect(page.locator('[data-dev-save="publish"]')).toHaveCount(1);
-  await expect(page.locator('.admin-invite-form label:has(input[data-permission="editor"])')).toContainText("Editor de devocionales");
-  await expect(page.locator('.admin-invite-form label:has(input[data-permission="reviewer"])')).toContainText("Revisor de devocionales");
+  // Module access comes from roles now: the retired per-user toggles must be gone.
+  await expect(page.locator('.admin-invite-form input[data-permission="editor"]')).toHaveCount(0);
+  await expect(page.locator('.admin-invite-form input[data-permission="reviewer"]')).toHaveCount(0);
+  await expect(page.locator('.admin-invite-form input[data-permission="read_export"]')).toHaveCount(0);
+  await expect(page.locator('.admin-invite-form')).toContainText("Roles y permisos");
   await expect(page.locator("#adminDevocionalVersiculo")).toHaveCount(1);
   await expect(page.locator(".admin-rich-editor")).toHaveCount(2);
   await expect(page.locator('input[name="devCategoria"]')).toHaveCount(7);
@@ -156,7 +159,7 @@ test("dashboard shows the signed-in user and friendly role name", async ({ page 
   await page.goto("/dashboard.html");
   await page.evaluate(() => loadDashboardRole());
   await expect(page.locator("#dashboardUserName")).toHaveText("Ana Pérez");
-  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Vista simple");
+  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Viewer");
 });
 
 test("contact verification appears immediately before submit", async ({ page }) => {
@@ -273,7 +276,7 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
     document.getElementById("dashboardAccessScreen").style.display = "none";
     document.getElementById("pdfArea").style.display = "block";
     // Contact details are only rendered for roles that may export data.
-    applyDashboardRole({ is_super_admin: false, permissions: ["read_only", "read_export"], is_revoked: false });
+    applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], modulePermissions: ["dashboard.view", "dashboard.contacts"], is_revoked: false });
     renderTable([{
       nombreCompleto: "Xiomery Mercedes de Jean Pierre",
       email: "xiomerymjeanpierre@icloud.com",
@@ -301,11 +304,11 @@ test("dashboard layout is responsive without a live session", async ({ page }) =
   await expect(page.locator('.user-quick-actions a[href="tel:+352621000"]')).toHaveCount(1);
   await expect(page.locator('.user-quick-actions a[href="https://wa.me/352621000"]')).toHaveCount(1);
 
-  await page.evaluate(() => applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], is_revoked: false }));
+  await page.evaluate(() => applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], roleName: "Viewer", modulePermissions: ["dashboard.view"], is_revoked: false }));
   await expect(page.locator("#exportCsvBtn")).toBeHidden();
   await expect(page.locator("#exportPdfBtn")).toBeHidden();
-  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Vista simple");
-  await page.evaluate(() => applyDashboardRole({ is_super_admin: false, permissions: ["read_only", "read_export"], is_revoked: false }));
+  await expect(page.locator("#dashboardRoleBadge")).toHaveText("Viewer");
+  await page.evaluate(() => applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], roleName: "Manager", modulePermissions: ["dashboard.view", "dashboard.contacts"], is_revoked: false }));
   await expect(page.locator("#exportCsvBtn")).toBeVisible();
   await expect(page.locator("#exportPdfBtn")).toBeVisible();
   await expect(page.locator("#dashboardRoleBadge")).toHaveText("Manager");
@@ -436,7 +439,7 @@ test("dashboard PDF exports a clean data table instead of the full page", async 
   await page.route("**/jspdf.plugin.autotable.min.js", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
   await page.goto("/dashboard.html");
   await page.evaluate(() => {
-    applyDashboardRole({ is_super_admin: false, permissions: ["read_only", "read_export"], is_revoked: false });
+    applyDashboardRole({ is_super_admin: false, permissions: ["read_only"], modulePermissions: ["dashboard.view", "dashboard.contacts"], is_revoked: false });
     filteredUsers = [normalizeUser({
       nombre: "Ana",
       apellido: "Pérez",

@@ -24,15 +24,15 @@ Deno.serve(async (req) => {
     const { data: userData } = await admin.auth.getUser(token);
     const user = userData?.user;
     if (!user) return json({ ok: false, error: "Sesión requerida." }, 401);
-    const { data: role } = await admin.from("user_roles").select("is_super_admin,is_revoked").eq("user_id", user.id).maybeSingle();
-    if (role?.is_super_admin !== true || role.is_revoked === true) return json({ ok: false, error: "Solo el Super Admin puede enviar avisos." }, 403);
-
     const body = await req.json().catch(() => ({}));
     const titulo = String(body.titulo || "").trim().slice(0, 80);
     const mensaje = String(body.mensaje || "").trim().slice(0, 240);
     const comunidad = body.comunidad ? String(body.comunidad) : null;
     if (!titulo || !mensaje) return json({ ok: false, error: "Escribe un título y un mensaje." }, 400);
     if (comunidad && !COMMUNITIES.includes(comunidad)) return json({ ok: false, error: "Comunidad inválida." }, 400);
+    const requiredAction = body.dryRun ? "view" : "send";
+    const { data: allowed, error: permissionError } = await admin.rpc("admin_user_has_permission", { p_user_id: user.id, p_module: "notices", p_action: requiredAction });
+    if (permissionError || allowed !== true) return json({ ok: false, error: body.dryRun ? "No tienes acceso a este módulo." : "No tienes permiso para enviar avisos." }, 403);
 
     let query = admin.from("push_tokens").select("token").eq("activo", true);
     if (comunidad) query = query.eq("comunidad", comunidad);

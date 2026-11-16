@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
   <link rel="stylesheet" href="assets/css/admin.css?v=20261115-meeting-icons-1" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261115-3" />
-  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261116-ci-1" />
+  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261117-roles-2" />
   <link rel="stylesheet" href="assets/css/app-parity.css?v=20261115-meeting-icons-1" />
 </head>
 <body class="mcp-brand admin-locked" data-admin-page="true">
@@ -87,6 +87,7 @@
           <button type="button" class="admin-tab" data-admin-tab="devocionales"><i class="fa-regular fa-file-lines" aria-hidden="true"></i> <span>Devocionales</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="banner"><i class="fa-regular fa-flag" aria-hidden="true"></i> <span>Banner</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="roles"><i class="fa-regular fa-address-card" aria-hidden="true"></i> <span>Usuarios y roles</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
+          <button type="button" class="admin-tab" data-admin-tab="permisos"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> <span>Roles y permisos</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="inscripciones"><i class="fa-regular fa-calendar-check"></i> <span>Inscripciones</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="seguimiento"><i class="fa-regular fa-handshake"></i> <span>Seguimiento</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
           <button type="button" class="admin-tab" data-admin-tab="avisos"><i class="fa-regular fa-paper-plane"></i> <span>Avisos push</span> <i class="fa-solid fa-chevron-right admin-tab-chevron" aria-hidden="true"></i></button>
@@ -720,13 +721,11 @@
                 <input type="email" id="adminInviteEmail" placeholder="nombre@correo.com" autocomplete="off" required />
               </div>
               <div class="admin-field admin-permission-group">
-                <label>Permisos iniciales</label>
-                <label class="admin-permission-check"><input type="checkbox" data-permission="editor"> Editor de devocionales</label>
-                <label class="admin-permission-check"><input type="checkbox" data-permission="reviewer"> Revisor de devocionales</label>
-                <label class="admin-permission-check"><input type="checkbox" data-permission="read_export"> Manager (exportar)</label>
+                <label>Opciones</label>
                 <label class="admin-permission-check"><input type="checkbox" data-permission="birthday_calendar"> Calendario de cumpleaños (aviso 2 días antes)</label>
                 <label class="admin-permission-check admin-super-admin-check"><input type="checkbox" data-permission="super_admin"> Super Admin</label>
               </div>
+              <p class="admin-help" style="margin:4px 0 12px;font-size:13px;color:var(--a-muted,#6d5250);">El acceso a los módulos se asigna con un rol en la app (Administración → Roles y permisos).</p>
               <button type="submit" class="btn"><i class="fa-solid fa-plus" aria-hidden="true"></i> Crear usuario</button>
             </form>
           </div>
@@ -741,10 +740,8 @@
               <select id="adminRolesFilter">
                 <option value="all">Todos los roles</option>
                 <option value="super_admin">Super Admin</option>
-                <option value="editor">Editor de devocionales</option>
-                <option value="reviewer">Revisor de devocionales</option>
-                <option value="read_export">Manager</option>
-                <option value="read_only">Vista simple</option>
+                <option value="with_role">Con rol</option>
+                <option value="no_role">Sin rol</option>
                 <option value="revoked">Acceso revocado</option>
               </select>
             </div>
@@ -752,6 +749,32 @@
           </div>
 
           <div class="admin-roles-security-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Solo el Super Admin puede asignar o revocar roles de administración.</div>
+        </div>
+
+        <div class="admin-tab-panel" id="admin-permisos">
+          <div class="admin-devotional-page-head">
+            <p class="admin-card-subtitle rp-intro">Primero invita a la persona en Usuarios y roles. Luego búscala aquí, asígnale un rol y revisa sus permisos.</p>
+            <button type="button" class="btn" id="rpNewRole"><i class="fa-solid fa-plus"></i> Nuevo rol</button>
+          </div>
+          <div id="rpRoot">
+            <div class="admin-card rp-assign-card">
+              <h3>Asignar rol</h3>
+              <label class="rp-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input type="search" id="rpSearch" placeholder="Buscar por nombre o correo" autocomplete="off" /></label>
+              <div id="rpResults" class="rp-results"></div>
+              <div id="rpChips" class="rp-chips"></div>
+              <button type="button" class="btn rp-assign-btn" id="rpAssignBtn" disabled>Selecciona personas para asignar</button>
+            </div>
+            <div class="rp-columns">
+              <div class="admin-card admin-list-card"><h3>Personas con rol · <span id="rpWithRoleCount">0</span></h3><div id="rpWithRole"><div class="admin-empty">Cargando…</div></div></div>
+              <div class="admin-card admin-list-card"><h3>Roles</h3><div id="rpRoles"></div><p class="rp-hint">Los permisos de un rol se aplican a todas las personas con ese rol; para casos puntuales usa Excepciones.</p></div>
+            </div>
+          </div>
+          <div class="rp-sheet" id="rpSheet" hidden>
+            <div class="rp-sheet-card" role="dialog" aria-modal="true" aria-labelledby="rpSheetTitle">
+              <div class="rp-sheet-bar"><button type="button" id="rpSheetCancel">Cancelar</button><h3 id="rpSheetTitle">Asignar rol</h3><button type="button" id="rpSheetSave" class="rp-save">Guardar</button></div>
+              <div class="rp-sheet-body" id="rpSheetBody"></div>
+            </div>
+          </div>
         </div>
 
         <div class="admin-tab-panel" id="admin-inscripciones">
@@ -860,10 +883,12 @@
   <script src="assets/js/login-polish.js?v=20261115-1"></script>
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
-  <script src="assets/js/main.js?v=20261116-ci-1"></script>
+  <script src="assets/js/admin-permissions.js?v=20261117-1"></script>
+  <script src="assets/js/main.js?v=20261117-roles-2"></script>
   <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
-  <script src="assets/js/promo-banner-admin.js?v=20260905-1"></script>
-  <script src="assets/js/community-admin.js?v=20261116-1"></script>
+  <script src="assets/js/promo-banner-admin.js?v=20261117-1"></script>
+  <script src="assets/js/roles-admin.js?v=20261117-1"></script>
+  <script src="assets/js/community-admin.js?v=20261117-1"></script>
   <script src="assets/js/recipients-admin.js?v=20261115-3"></script>
   <script src="assets/js/admin-shell.js?v=20261114-1"></script>
 </body>

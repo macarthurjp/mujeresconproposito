@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, Sc
 import { Group, Row } from '@/components/form';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
+import { canAdmin } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 
@@ -25,7 +26,8 @@ export default function Avisos() {
   const [reach, setReach] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<Sent[]>([]);
-  const allowed = !!access?.isSuperAdmin && !access.isRevoked;
+  const allowed = canAdmin(access,'notices','view');
+  const canSend = canAdmin(access,'notices','send');
 
   const loadHistory = useCallback(async () => {
     const { data } = await supabase.from('push_broadcasts').select('id,titulo,mensaje,comunidad,enviados,created_at').order('created_at', { ascending: false }).limit(10);
@@ -33,6 +35,7 @@ export default function Avisos() {
   }, []);
 
   useEffect(() => {
+    // The reach preview only needs module access (the server checks notices.view for dryRun).
     if (!allowed) return;
     let alive = true;
     void supabase.functions.invoke('send-broadcast', { body: { titulo: 'x', mensaje: 'x', comunidad: target || null, dryRun: true } })
@@ -48,7 +51,7 @@ export default function Avisos() {
     return () => { alive = false; };
   }, [allowed]);
 
-  if (!allowed) return <ScrollView contentContainerStyle={s.page}><Group footer="Solo el Super Admin puede enviar avisos."><Row icon="lock-closed" label="Sin acceso" chevron={false} /></Group></ScrollView>;
+  if (!allowed) return <ScrollView contentContainerStyle={s.page}><Group footer="Tu cuenta no tiene acceso a este módulo."><Row icon="lock-closed" label="Sin acceso" chevron={false} /></Group></ScrollView>;
 
   const send = () => {
     if (titulo.trim().length < 3 || mensaje.trim().length < 3) return Alert.alert('Completa el aviso', 'Escribe un título y un mensaje.');
@@ -71,7 +74,10 @@ export default function Avisos() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
-        <Text style={s.intro}>Envía una notificación al teléfono de la comunidad. Úsalo para avisos importantes: cambios de horario, eventos especiales o mensajes urgentes.</Text>
+        {canSend ? <Text style={s.intro}>Envía una notificación al teléfono de la comunidad. Úsalo para avisos importantes: cambios de horario, eventos especiales o mensajes urgentes.</Text>
+          : <Group footer="Puedes consultar los avisos enviados. Para enviar avisos necesitas el permiso «Enviar avisos»."><Row icon="eye-outline" label="Acceso de solo lectura" chevron={false} /></Group>}
+
+        {canSend ? <>
 
         <Text style={s.label}>Para</Text>
         <View style={s.targets}>
@@ -101,6 +107,7 @@ export default function Avisos() {
         <Pressable accessibilityRole="button" disabled={busy} onPress={send} style={({ pressed }) => [s.send, (busy || pressed) && { opacity: 0.85 }]}>
           {busy ? <ActivityIndicator color="#fff" /> : <><Ionicons name="paper-plane" size={18} color="#fff" /><Text style={s.sendText}>Enviar aviso</Text></>}
         </Pressable>
+        </> : null}
 
         {history.length ? (
           <Group header="Enviados recientemente">
@@ -109,7 +116,7 @@ export default function Avisos() {
                 sub={`${new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(h.created_at)).replace('.', '')} · ${h.comunidad || 'Todas'} · ${h.enviados} entregados`} chevron={false} />
             ))}
           </Group>
-        ) : null}
+        ) : !canSend ? <Text style={s.reach}>Todavía no se han enviado avisos.</Text> : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );

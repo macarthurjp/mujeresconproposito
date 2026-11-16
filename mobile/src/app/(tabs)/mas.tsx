@@ -9,6 +9,7 @@ import { getShowHomeActivities, setShowHomeActivities } from '@/lib/app-preferen
 import { liveActivitiesSupported, loadLiveActivitiesPreference, setLiveActivitiesEnabled as saveLiveActivitiesEnabled } from '@/lib/live-activity';
 import { COMMUNITIES, disableMeetingAlerts, enableMeetingAlerts, getDevicePrefs, getMeetingAlertsEnabled, getPushStatus, saveDevicePrefs, type DevicePrefs, type PushStatus } from '@/lib/notifications';
 import { WheelPicker } from '@/components/wheel-picker';
+import { canAdmin } from '@/lib/admin';
 import { useAdmin } from '@/lib/use-admin';
 
 type Item = { icon: keyof typeof Ionicons.glyphMap; label: string; hint?: string; onPress: () => void };
@@ -70,7 +71,7 @@ export default function Mas() {
   const { access } = useAdmin();
   // The Dashboard shortcut is only for roles that can read the records.
   const canSeeDashboard = !!access && !access.isRevoked
-    && (access.isSuperAdmin || access.permissions.includes('read_export') || access.permissions.includes('read_only'));
+    && canAdmin(access, 'dashboard', 'view');
   const [device, setDevice] = useState<DevicePrefs>({ avisosContenido: true, comunidad: null });
   const taps = useRef({ count: 0, at: 0 });
 

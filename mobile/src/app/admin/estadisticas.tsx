@@ -5,6 +5,7 @@ import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View }
 import { Group, Row } from '@/components/form';
 import { C, sans } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+import { canAdmin } from '@/lib/admin';
 import { useAdmin } from '@/lib/use-admin';
 
 type Stats = {
@@ -57,7 +58,7 @@ export default function Estadisticas() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const allowed = !!access && !access.isRevoked && (access.isSuperAdmin || access.permissions.includes('read_export'));
+  const allowed = canAdmin(access, 'dashboard', 'followup');
 
   const load = useCallback(async () => {
     const { data, error: err } = await supabase.rpc('estadisticas_panel');

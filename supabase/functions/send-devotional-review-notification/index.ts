@@ -46,22 +46,22 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: false, error: "Tu acceso fue revocado." }, 403);
     }
     const isOwner = devocional.created_by === requester.id;
-    const isEditor = Array.isArray(requesterRole?.permissions) && requesterRole.permissions.includes("editor");
+    const { data: canWrite } = await admin.rpc("admin_user_has_permission", { p_user_id: requester.id, p_module: "devotionals", p_action: "create" });
+    const { data: canEdit } = await admin.rpc("admin_user_has_permission", { p_user_id: requester.id, p_module: "devotionals", p_action: "edit" });
+    const isEditor = canWrite === true || canEdit === true;
     const isSuperAdmin = requesterRole?.is_super_admin === true;
     if (!isSuperAdmin && !(isOwner && isEditor)) {
       return jsonResponse({ ok: false, error: "No tienes permiso para notificar sobre este devocional." }, 403);
     }
 
+    // Reviewers = everyone whose role (or exception) allows publishing devotionals, plus Super Admins.
     const { data: reviewers, error: reviewersError } = await admin
-      .from("user_roles")
-      .select("email")
-      .eq("is_revoked", false)
-      .or("is_super_admin.eq.true,permissions.cs.{reviewer}");
+      .rpc("admin_users_with_permission", { p_module: "devotionals", p_action: "publish" });
     if (reviewersError) throw reviewersError;
 
     const requesterEmail = String(requester.email || "").trim().toLowerCase();
     const recipients = Array.from(new Set(
-      (reviewers || [])
+      ((reviewers || []) as { email: string | null }[])
         .map((row) => String(row.email || "").trim().toLowerCase())
         .filter(Boolean)
     )).filter((email) => email !== requesterEmail);

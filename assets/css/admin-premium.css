@@ -698,7 +698,7 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgb
 .ci-rank-track i { display: block; height: 100%; background: var(--a-wine); }
 .ci-muted { color: var(--a-muted); font-size: 13px; }
 .admin-item-audit { display: block; margin-top: 2px; font-size: 11px; color: var(--a-muted); }
-#adminDashboard:has(#admin-inscripciones.active, #admin-seguimiento.active, #admin-avisos.active, #admin-estadisticas.active) .admin-stats-grid { display: none !important; }
+#adminDashboard:has(#admin-inscripciones.active, #admin-seguimiento.active, #admin-avisos.active, #admin-estadisticas.active, #admin-permisos.active) .admin-stats-grid { display: none !important; }
 @media (max-width: 720px) {
   .ci-tabs, .ci-tiles { grid-template-columns: repeat(2, 1fr); }
   .ci-event-head { flex-wrap: wrap; }
@@ -708,3 +708,95 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgb
 .ci-check small { flex-basis: 100%; margin-left: 26px; font-weight: 400; color: var(--a-muted); }
 .ci-check { flex-wrap: wrap; }
 .ci-event:not(.is-signup) .ci-event-head img { width: 44px; height: 54px; }
+
+/* ---------- Role-based visibility (assets/js/admin-permissions.js) ---------- */
+.perm-no-events-create :is(#adminEventoOpen, [data-admin-import="eventos"]),
+.perm-no-events-edit :is(#adminEventosList [data-admin-action="edit"], #adminEventosList .admin-drag-handle, #admin-eventos .admin-reorder-hint),
+.perm-no-events-delete #adminEventosList [data-admin-action="delete"],
+.perm-no-content-create :is(#adminDestacadaOpen, #adminYoutubeOpen, [data-admin-import="destacadas"], [data-admin-import="youtube"]),
+.perm-no-content-edit :is(#adminDestacadasList, #adminYoutubeList) :is([data-admin-action="edit"], .admin-drag-handle),
+.perm-no-content-edit :is(#admin-destacadas, #admin-youtube) .admin-reorder-hint,
+.perm-no-content-delete :is(#adminDestacadasList, #adminYoutubeList) [data-admin-action="delete"],
+.perm-no-gallery-add :is(#adminGaleriaOpen, [data-admin-import="galeria"]),
+.perm-no-gallery-edit :is(#adminGaleriaList [data-admin-action="edit"], #adminGaleriaList [data-admin-action="portada"], #adminGaleriaList .admin-drag-handle, #admin-galeria .admin-reorder-hint),
+.perm-no-gallery-delete #adminGaleriaList [data-admin-action="delete"] { display: none !important; }
+.perm-no-events-edit #adminEventosList .admin-eye,
+.perm-no-content-publish :is(#adminDestacadasList, #adminYoutubeList) .admin-eye,
+.perm-no-gallery-edit #adminGaleriaList .admin-eye { pointer-events: none; opacity: .55; }
+
+/* ---------- Roles y permisos (assets/js/roles-admin.js) ---------- */
+.rp-assign-card h3, #admin-permisos .admin-list-card h3 { margin-bottom: 12px; }
+.rp-search { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; background: var(--a-sand); color: var(--a-muted); }
+.rp-search input { flex: 1; border: 0 !important; background: transparent !important; box-shadow: none !important; font: inherit; font-size: 16px; color: var(--a-ink); padding: 12px 0 !important; outline: none; }
+.rp-results { display: grid; gap: 4px; margin-top: 8px; }
+.rp-hint { margin: 8px 2px; font-size: 13px; line-height: 1.45; color: var(--a-muted); }
+.rp-person, .rp-role-row, .rp-override { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 14px; background: transparent; text-align: left; cursor: pointer; font: inherit; color: var(--a-ink); transition: background .15s var(--a-ease); }
+.rp-person:hover, .rp-role-row:hover, .rp-override:hover { background: var(--a-sand); }
+.rp-person.is-on { background: rgba(166, 75, 67, .08); }
+.rp-avatar { flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--a-blush); color: var(--a-wine); font-weight: 700; }
+.rp-person-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rp-person-text strong { font-size: 15px; }
+.rp-person-text span { font-size: 13px; color: var(--a-muted); overflow-wrap: anywhere; }
+.rp-person-text em { font-style: normal; font-size: 12px; color: var(--a-wine); margin-top: 2px; }
+.rp-check { font-size: 22px; color: #c9b9b6; }
+.rp-person.is-on .rp-check { color: var(--a-wine); }
+.rp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+.rp-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 0; border-radius: 999px; background: rgba(166, 75, 67, .08); color: var(--a-ink); font: 600 13px/1 inherit; cursor: pointer; }
+.rp-chip.is-static { cursor: default; background: #fff; border: 1px solid var(--a-line); }
+.rp-assign-btn { width: 100%; justify-content: center; margin-top: 14px; }
+.rp-assign-btn:disabled { opacity: .5; cursor: not-allowed; }
+.rp-columns { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; margin-top: 16px; }
+.rp-assigned { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding: 12px 4px; border-top: 1px solid var(--a-line); }
+.rp-assigned:first-child { border-top: 0; }
+.rp-role-pill { padding: 5px 11px; border-radius: 999px; background: var(--a-wine); color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.rp-role-pill.is-read { background: #8e8187; }
+.rp-actions { grid-column: 2 / 4; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.rp-actions button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border: 0; border-radius: 999px; background: var(--a-sand); color: var(--a-wine); font: 700 12px/1 inherit; cursor: pointer; }
+.rp-actions button.danger { color: #c62828; }
+.rp-role-icon { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--a-blush); color: var(--a-wine); }
+.rp-chev { color: #c4b3b0; }
+.rp-sheet { position: fixed; inset: 0; z-index: 20000; display: grid; place-items: center; padding: 16px; background: rgba(25, 14, 16, .4); backdrop-filter: blur(6px); }
+.rp-sheet[hidden] { display: none; }
+body.rp-sheet-open { overflow: hidden; }
+.rp-sheet-card { width: min(640px, 100%); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; border-radius: 22px; background: #faf5f4; box-shadow: 0 24px 60px rgba(25, 14, 16, .25); overflow: hidden; }
+.rp-sheet-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; background: #fff; border-bottom: 1px solid var(--a-line); }
+.rp-sheet-bar h3 { margin: 0; font-size: 16px; }
+.rp-sheet-bar button { border: 0; background: none; font: inherit; font-size: 15px; color: var(--a-muted); cursor: pointer; }
+.rp-sheet-bar .rp-save { color: var(--a-wine); font-weight: 700; }
+.rp-sheet-body { padding: 18px; overflow: auto; }
+.rp-mini { margin: 0 0 8px 2px; font-size: 13px; font-weight: 600; color: var(--a-muted); }
+.rp-card { background: #fff; border-radius: 16px; overflow: hidden; }
+.rp-radio { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--a-line); cursor: pointer; }
+.rp-radio:first-child { border-top: 0; }
+.rp-radio input { width: 18px; height: 18px; accent-color: var(--a-wine); }
+.rp-input { width: 100%; box-sizing: border-box; padding: 12px 14px; border: 1px solid var(--a-line-strong); border-radius: 14px; font: inherit; font-size: 15px; color: var(--a-ink); background: #fff; }
+.rp-note { display: flex; gap: 8px; padding: 12px; border-radius: 14px; background: rgba(166, 75, 67, .08); font-size: 13px; line-height: 1.45; margin-bottom: 10px; }
+.rp-note i { color: var(--a-wine); margin-top: 2px; }
+.rp-summary { padding: 14px; border-radius: 14px; background: #fff; display: grid; gap: 6px; }
+.rp-summary-title { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--a-wine); }
+.rp-summary-line { display: flex; gap: 8px; font-size: 14px; line-height: 1.45; }
+.rp-summary-line i { color: #2e7d4f; margin-top: 3px; }
+.rp-presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.rp-presets button { padding: 8px 14px; border: 1px solid var(--a-line-strong); border-radius: 999px; background: #fff; color: var(--a-wine); font: 600 13px/1 inherit; cursor: pointer; }
+.rp-module { margin-top: 14px; background: #fff; border-radius: 16px; overflow: hidden; }
+.rp-module h4 { margin: 0; padding: 12px 14px 4px; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--a-muted); }
+.rp-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--a-line); cursor: pointer; font-size: 15px; }
+.rp-toggle:first-of-type { border-top: 0; }
+.rp-toggle small { display: block; font-size: 12px; color: var(--a-muted); }
+.rp-toggle input { appearance: none; width: 46px; height: 28px; border-radius: 999px; background: #e5dcda; position: relative; cursor: pointer; transition: background .2s; flex: none; }
+.rp-toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s var(--a-ease); }
+.rp-toggle input:checked { background: var(--a-wine); }
+.rp-toggle input:checked::after { transform: translateX(18px); }
+.rp-override { border-radius: 0; border-top: 1px solid var(--a-line); justify-content: space-between; }
+.rp-override > span:first-child { display: flex; flex-direction: column; }
+.rp-ov-label { font-size: 15px; }
+.rp-override small { font-size: 12px; color: var(--a-muted); }
+.rp-state { min-width: 86px; text-align: center; padding: 6px 12px; border-radius: 999px; background: rgba(166, 75, 67, .08); color: var(--a-muted); font-size: 13px; font-weight: 700; }
+.rp-state.is-allow { background: rgba(46, 125, 79, .12); color: #2e7d4f; }
+.rp-state.is-deny { background: rgba(214, 69, 69, .12); color: #c62828; }
+@media (max-width: 860px) { .rp-columns { grid-template-columns: 1fr; } }
+
+.rp-intro { margin: 0; max-width: 620px; text-align: left; }
+#admin-permisos, .rp-sheet-card, .rp-sheet-card :is(p, h4, label, .rp-person-text, .rp-summary) { text-align: left; }
+.rp-sheet-bar h3 { text-align: center; flex: 1; }
+.rp-radio .rp-person-text { align-items: flex-start; }

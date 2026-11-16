@@ -225,9 +225,24 @@
 
   window.initCommunityAdmin = async function initCommunityAdmin(access) {
     const tabs = ["inscripciones", "seguimiento", "avisos", "estadisticas"].map((t) => document.querySelector(`[data-admin-tab="${t}"]`));
-    if (!access?.is_super_admin) { tabs.forEach((t) => { if (t) t.hidden = true; }); return; }
+    const can = (m, a) => Boolean(access?.is_super_admin) || Boolean(window.McpAdminPerms?.can(m, a));
+    const show = { inscripciones: can("content", "edit"), seguimiento: can("dashboard", "followup"), estadisticas: can("dashboard", "followup"), avisos: can("notices", "view") };
+    tabs.forEach((t) => { if (t) t.hidden = !show[t.dataset.adminTab]; });
     myName = access.nombre || access.email || "";
     wire();
-    await Promise.allSettled([loadEvents(), loadFollow(), updateReach(), loadHistory(), loadStats()]);
+    // Notices: access without the send permission is read-only (history only).
+    const canSend = can("notices", "send");
+    const form = $("ciBroadcastForm");
+    if (form) form.closest(".ci-broadcast").hidden = !canSend;
+    if (!canSend && show.avisos && !document.getElementById("ciReadOnlyNote")) {
+      form?.closest(".ci-broadcast")?.insertAdjacentHTML("beforebegin", '<div class="admin-card" id="ciReadOnlyNote"><p class="admin-card-subtitle"><i class="fa-regular fa-eye"></i> Acceso de solo lectura: puedes consultar los avisos enviados. Para enviar avisos necesitas el permiso «Enviar avisos».</p></div>');
+    }
+    await Promise.allSettled([
+      show.inscripciones ? loadEvents() : null,
+      show.seguimiento ? loadFollow() : null,
+      canSend ? updateReach() : null,
+      show.avisos ? loadHistory() : null,
+      show.estadisticas ? loadStats() : null,
+    ]);
   };
 })();
