@@ -6,6 +6,9 @@ Generadas con `scripts/store-screenshots.py` a partir de capturas reales de la a
 - 7 capturas de **1320 × 2868 px** (iPhone 6,9"). Es el único tamaño obligatorio; App Store Connect lo adapta a los iPhone más pequeños.
 - PNG RGB sin transparencia. Súbelas en este orden (01 → 07).
 
+## App Store, tamaño actual (`app-store-6.3/`)
+- Las mismas 7 capturas en **1206 × 2622 px**, el tamaño que App Store Connect pide ahora en la pestaña «iPhone with Dynamic Island (medium display)».
+
 ## Google Play (`google-play/`)
 - 7 capturas de teléfono de **1080 × 1920 px** (9:16). Cumplen el mínimo para destacar la app (1080 px y al menos 4 capturas).
 - `feature-graphic.png`: **1024 × 500 px**. Imagen destacada, obligatoria.
