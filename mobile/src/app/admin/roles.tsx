@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -112,7 +112,10 @@ export default function AdminRoles() {
   };
 
   if (!ready || !access) return <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} />;
-  if (!access.isSuperAdmin || access.isRevoked) return <View style={s.page}><Group><Row icon="lock-closed" label="Solo Super Admin puede administrar roles y permisos." chevron={false} /></Group></View>;
+  if (!access.isSuperAdmin || access.isRevoked) return <View style={s.page}>
+    <Group footer="Solo el Super Admin puede administrar roles y permisos. Si tienes una cuenta de Super Admin, cierra sesión y entra con ella."><Row icon="lock-closed" label="Sin acceso" chevron={false} /></Group>
+    <Group><Row icon="chevron-back" label="Volver a Administración" onPress={() => router.replace('/admin')} /></Group>
+  </View>;
 
   return <>
     <Stack.Screen options={{ title: 'Roles y permisos', headerRight: () => <Pressable onPress={() => openRole()} hitSlop={12}><Text style={s.add}>＋</Text></Pressable> }} />
