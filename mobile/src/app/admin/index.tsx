@@ -114,10 +114,13 @@ export default function AdminHome() {
           </Group> : null}
           {access.isSuperAdmin ? <Group header="Publicaciones">
             <Row icon="layers" tint="#8e8187" label="Contenido y publicaciones" sub="Destacadas, YouTube y banner" onPress={() => router.push('/admin/contenido')} />
+            <Row icon="paper-plane" tint="#d64545" label="Enviar aviso" sub="Notificación a todas o por comunidad" onPress={() => router.push('/admin/avisos')} />
             <Row icon="share-outline" label="Compartir formulario para unirse" onPress={shareJoin} />
           </Group> : null}
           {canReadDashboard ? <Group header="Dashboard" footer="Filtros, exportación y métricas de registros.">
             <Row icon="stats-chart" tint="#8e8187" label="Registros y métricas" onPress={() => router.push('/admin/dashboard')} />
+            {access.isSuperAdmin || access.permissions.includes('read_export') ? <Row icon="people-circle" tint="#2f7d4f" label="Seguimiento de nuevas" sub="Nuevas, contactadas e integradas" onPress={() => router.push('/admin/seguimiento')} /> : null}
+            {access.isSuperAdmin || access.permissions.includes('read_export') ? <Row icon="analytics" tint="#2f6db5" label="Estadísticas" sub="Registros, lecturas, reuniones e inscripciones" onPress={() => router.push('/admin/estadisticas')} /> : null}
           </Group> : !canWriteEditorial ? <Group><Row icon="lock-closed" label="Tu cuenta no tiene herramientas administrativas disponibles." chevron={false} /></Group> : null}
           {bioSupported ? <Group header="Seguridad" footer={bioOn ? `Entrarás al panel con ${bioLabel}, sin escribir tu contraseña. Solo en este iPhone.` : `Actívalo para entrar al panel con ${bioLabel} en este dispositivo.`}>
             <SwitchRow icon="finger-print" tint="#34a853" label={`Entrar con ${bioLabel}`} value={bioOn} disabled={busy} onValueChange={toggleBiometrics} />
