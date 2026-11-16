@@ -57,3 +57,13 @@ entrypoint = "./functions/send-birthday-reminders/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/send-birthday-push/index.ts"
+
+[functions.send-content-push]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-content-push/index.ts"
+
+[functions.send-broadcast]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/send-broadcast/index.ts"

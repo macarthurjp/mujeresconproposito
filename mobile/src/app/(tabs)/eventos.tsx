@@ -149,7 +149,7 @@ export default function Eventos() {
           <View style={s.calendarIcon}><Ionicons name="calendar" size={18} color="#fff" /></View>
           <View style={{ flex: 1 }}>
             <Text style={s.calendarTitle}>Añadir a mi calendario</Text>
-            <Text style={s.calendarSub}>Todas las reuniones en tu iPhone o Google Calendar</Text>
+            <Text style={s.calendarSub}>{Platform.OS === 'ios' ? 'Todas las reuniones en tu iPhone o Google Calendar' : 'Todas las reuniones en el calendario de tu teléfono'}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color="rgba(60,40,38,0.35)" />
         </Pressable>

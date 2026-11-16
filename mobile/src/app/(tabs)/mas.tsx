@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Eyebrow, Screen, tapFeedback, Title } from '@/components/ui';
-import { C, FACEBOOK_URL, INSTAGRAM_URL, sans } from '@/constants/theme';
+import { C, FACEBOOK_URL, INSTAGRAM_URL, SITE_URL, sans } from '@/constants/theme';
 import { getShowHomeActivities, setShowHomeActivities } from '@/lib/app-preferences';
 import { liveActivitiesSupported, loadLiveActivitiesPreference, setLiveActivitiesEnabled as saveLiveActivitiesEnabled } from '@/lib/live-activity';
-import { disableMeetingAlerts, enableMeetingAlerts, getMeetingAlertsEnabled, getPushStatus, type PushStatus } from '@/lib/notifications';
+import { COMMUNITIES, disableMeetingAlerts, enableMeetingAlerts, getDevicePrefs, getMeetingAlertsEnabled, getPushStatus, saveDevicePrefs, type DevicePrefs, type PushStatus } from '@/lib/notifications';
+import { WheelPicker } from '@/components/wheel-picker';
 
 type Item = { icon: keyof typeof Ionicons.glyphMap; label: string; hint?: string; onPress: () => void };
 
@@ -65,6 +66,7 @@ export default function Mas() {
   const [dynamicIsland, setDynamicIsland] = useState(false);
   const [islandBusy, setIslandBusy] = useState(false);
   const [showTeam, setShowTeam] = useState(false);
+  const [device, setDevice] = useState<DevicePrefs>({ avisosContenido: true, comunidad: null });
   const taps = useRef({ count: 0, at: 0 });
 
   const refreshPreferences = useCallback(async () => {
@@ -75,7 +77,25 @@ export default function Mas() {
     setMeetingAlerts(enabled && status === 'granted');
     setShowActivities(homeActivities);
     setDynamicIsland(liveActivitiesSupported && islandEnabled);
+    setDevice(await getDevicePrefs());
   }, []);
+
+  async function updateDevice(next: DevicePrefs) {
+    const previous = device;
+    setDevice(next);
+    try {
+      const status = await saveDevicePrefs(next);
+      if (status === 'denied') {
+        Alert.alert('Activa las notificaciones', 'Permite las notificaciones de la app en Ajustes para recibir estos avisos.', [
+          { text: 'Ahora no', style: 'cancel' },
+          { text: 'Abrir ajustes', onPress: () => { void Linking.openSettings(); } },
+        ]);
+      }
+    } catch {
+      setDevice(previous);
+      Alert.alert('No se pudo guardar', 'Revisa tu conexión e inténtalo de nuevo.');
+    }
+  }
 
   useFocusEffect(useCallback(() => {
     refreshPreferences().catch(() => {});
@@ -156,10 +176,28 @@ export default function Mas() {
           <Eyebrow>Reuniones y llamadas</Eyebrow>
           <View style={s.group}>
             <SwitchRow icon="notifications-outline" label="Avisos de reuniones" hint="Recibe un aviso 15 minutos antes y cuando comience una reunión." value={meetingAlerts} disabled={alertsBusy || push === 'unsupported'} onValueChange={(value) => { void toggleMeetingAlerts(value); }} />
-            <View style={s.sep} />
-            <SwitchRow icon="phone-portrait-outline" label="Dynamic Island" hint={liveActivitiesSupported ? 'Permite seguir una reunión en la Dynamic Island y en la pantalla bloqueada.' : 'Disponible en iPhone con Live Activities.'} value={dynamicIsland} disabled={islandBusy || !liveActivitiesSupported} onValueChange={(value) => { void toggleDynamicIsland(value); }} />
+            {Platform.OS === 'ios' ? <><View style={s.sep} />
+            <SwitchRow icon="phone-portrait-outline" label="Dynamic Island" hint={liveActivitiesSupported ? 'Permite seguir una reunión en la Dynamic Island y en la pantalla bloqueada.' : 'Disponible en iPhone con Live Activities.'} value={dynamicIsland} disabled={islandBusy || !liveActivitiesSupported} onValueChange={(value) => { void toggleDynamicIsland(value); }} /></> : null}
           </View>
           <Text style={s.status}>{alertsBusy ? 'Actualizando preferencia…' : islandBusy ? 'Actualizando Dynamic Island…' : statusHint}</Text>
+        </View>
+
+        <View style={s.section}>
+          <Eyebrow>Novedades y comunidad</Eyebrow>
+          <View style={s.group}>
+            <SwitchRow icon="sparkles-outline" label="Contenido nuevo" hint="Aviso cuando se publica un devocional, un video o un evento." value={device.avisosContenido} disabled={push === 'unsupported'} onValueChange={(value) => { void updateDevice({ ...device, avisosContenido: value }); }} />
+            <View style={s.sep} />
+            <View style={s.communityRow}>
+              <View style={s.communityIcon}><Ionicons name="earth-outline" size={20} color={C.wine} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.communityLabel}>Mi comunidad</Text>
+                <Text style={s.communityHint}>Para recibir los avisos de tu comunidad.</Text>
+                <View style={{ marginTop: 8 }}>
+                  <WheelPicker title="Mi comunidad" value={device.comunidad ?? ''} placeholder="Elige tu comunidad" options={[{ value: '', label: 'Sin indicar' }, ...COMMUNITIES.map((c) => ({ value: c, label: c }))]} onChange={(v) => { void updateDevice({ ...device, comunidad: v || null }); }} />
+                </View>
+              </View>
+            </View>
+          </View>
         </View>
 
         <View style={s.section}>
@@ -181,6 +219,7 @@ export default function Mas() {
         <Group title="Participa" items={[
           { icon: 'heart-outline', label: 'Donar', hint: 'PayPal, código QR o transferencia', onPress: go('/aportar') },
           { icon: 'mail-outline', label: 'Contacto', hint: 'Formulario dentro de la app', onPress: go('/contacto') },
+          { icon: 'shield-checkmark-outline', label: 'Política de privacidad', hint: 'Cómo cuidamos tus datos', onPress: open(`${SITE_URL}/privacidad.html`) },
         ]} />
 
         <Group title="Síguenos" items={[
@@ -203,6 +242,10 @@ export default function Mas() {
 }
 
 const s = StyleSheet.create({
+  communityRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14 },
+  communityIcon: { width: 36, height: 36, borderRadius: 11, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
+  communityLabel: { color: C.ink, fontSize: 15, fontWeight: '600' },
+  communityHint: { color: C.muted, fontSize: 12, marginTop: 2 },
   container: { paddingHorizontal: 20 },
   intro: { fontFamily: sans, color: C.muted, fontSize: 14, lineHeight: 20, marginTop: 7 },
   section: { marginTop: 26 },

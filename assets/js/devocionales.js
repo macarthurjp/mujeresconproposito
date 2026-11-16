@@ -234,7 +234,17 @@
     initReadingProgress();
   }
 
+  function trackRead(slug) {
+    try {
+      const key = `mcp-dv-read-${slug}-${new Date().toISOString().slice(0, 10)}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch (_) {}
+    window.McpSupabase?.getSupabaseBrowserClient()?.rpc("registrar_metrica", { p_tipo: "lectura_devocional", p_ref: slug }).then(() => {}, () => {});
+  }
+
   function renderArticle(article) {
+    trackRead(article.slug);
     document.title = `${article.titulo} — Mujeres con Propósito`;
     document.getElementById("dvIntro").hidden = true;
     const readMinutes = estimateReadMinutes(article.contenido_html || article.contenido);

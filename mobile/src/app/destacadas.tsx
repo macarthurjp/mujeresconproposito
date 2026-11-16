@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { EventSignup } from '@/components/event-signup';
 import { PosterCard } from '@/components/media';
 import { ErrorNote, Loading, Screen, Title, Eyebrow, useAsync } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
@@ -22,7 +23,10 @@ export default function Destacadas() {
         {loading && !data ? <Loading /> : null}
         {error ? <ErrorNote message={error} onRetry={reload} /> : null}
         <View style={s.grid}>{(data ?? []).map((d) => (
-          <PosterCard key={d.id} uri={d.foto_url} name={d.nombre} role={d.titulo} onPress={() => setSelected(d.id)} />
+          <View key={d.id} style={d.inscripcion_abierta ? s.withSignup : undefined}>
+            <PosterCard uri={d.foto_url} name={d.nombre} role={d.titulo} onPress={() => setSelected(d.id)} />
+            {d.inscripcion_abierta ? <EventSignup destacada={d} /> : null}
+          </View>
         ))}</View>
         {!loading && !data?.length && !error ? <Text style={s.intro}>Pronto presentaremos a nuestras conferencistas.</Text> : null}
       </View>
@@ -44,6 +48,7 @@ const s = StyleSheet.create({
   container: { paddingHorizontal: 20 },
   intro: { color: C.muted, fontSize: 15, lineHeight: 23, marginTop: 10, marginBottom: 22 },
   grid: { gap: 20 },
+  withSignup: { backgroundColor: C.card, borderRadius: 24, overflow: 'hidden' },
   modal: { flex: 1, backgroundColor: 'rgba(25,14,16,0.94)', justifyContent: 'center', padding: 20 },
   modalContent: { alignItems: 'center' },
   modalImage: { width: '100%', height: '72%' },
