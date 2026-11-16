@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Alert, Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Eyebrow, Screen, tapFeedback, Title } from '@/components/ui';
 import { C, FACEBOOK_URL, INSTAGRAM_URL, sans } from '@/constants/theme';
@@ -176,8 +176,8 @@ export default function Mas() {
           <Eyebrow>Reuniones y llamadas</Eyebrow>
           <View style={s.group}>
             <SwitchRow icon="notifications-outline" label="Avisos de reuniones" hint="Recibe un aviso 15 minutos antes y cuando comience una reunión." value={meetingAlerts} disabled={alertsBusy || push === 'unsupported'} onValueChange={(value) => { void toggleMeetingAlerts(value); }} />
-            <View style={s.sep} />
-            <SwitchRow icon="phone-portrait-outline" label="Dynamic Island" hint={liveActivitiesSupported ? 'Permite seguir una reunión en la Dynamic Island y en la pantalla bloqueada.' : 'Disponible en iPhone con Live Activities.'} value={dynamicIsland} disabled={islandBusy || !liveActivitiesSupported} onValueChange={(value) => { void toggleDynamicIsland(value); }} />
+            {Platform.OS === 'ios' ? <><View style={s.sep} />
+            <SwitchRow icon="phone-portrait-outline" label="Dynamic Island" hint={liveActivitiesSupported ? 'Permite seguir una reunión en la Dynamic Island y en la pantalla bloqueada.' : 'Disponible en iPhone con Live Activities.'} value={dynamicIsland} disabled={islandBusy || !liveActivitiesSupported} onValueChange={(value) => { void toggleDynamicIsland(value); }} /></> : null}
           </View>
           <Text style={s.status}>{alertsBusy ? 'Actualizando preferencia…' : islandBusy ? 'Actualizando Dynamic Island…' : statusHint}</Text>
         </View>

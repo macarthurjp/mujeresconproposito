@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -34,18 +34,27 @@ export function WheelPicker({
 }) {
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
+  const androidRef = useRef<Picker<string>>(null);
   const [draft, setDraft] = useState(value);
   const selected = options.find((o) => o.value === value);
   const shown = renderValue ? renderValue(selected) : selected?.label;
 
   if (Platform.OS === 'android') {
+    // Same field as iOS (short value + chevron); tapping it opens Android's
+    // native list dialog through a hidden Picker.
     return (
-      <View style={[w.field, style]}>
-        <Picker selectedValue={value} onValueChange={(v) => onChange(String(v))} prompt={title} style={{ color: C.ink }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${title}: ${shown || placeholder}`}
+        onPress={() => { tapFeedback(); androidRef.current?.focus(); }}
+        style={[w.field, w.row, style]}>
+        <Text style={[w.value, !shown && { color: '#a58e88' }]} numberOfLines={1}>{shown || placeholder}</Text>
+        <Ionicons name="chevron-expand" size={16} color={C.wine} />
+        <Picker ref={androidRef} mode="dialog" selectedValue={value} onValueChange={(v) => { if (v !== '') onChange(String(v)); }} prompt={title} style={w.hidden}>
           {!value ? <Picker.Item label={placeholder} value="" color="#a58e88" /> : null}
           {options.map((o) => <Picker.Item key={o.value} label={o.label} value={o.value} />)}
         </Picker>
-      </View>
+      </Pressable>
     );
   }
 
@@ -93,4 +102,5 @@ const w = StyleSheet.create({
   cancel: { fontFamily: sans, fontSize: 16, color: C.muted },
   done: { fontFamily: sans, fontSize: 16, fontWeight: '700', color: C.wine },
   item: { fontFamily: sans, fontSize: 20, color: C.ink },
+  hidden: { position: 'absolute', width: 1, height: 1, opacity: 0 },
 });
