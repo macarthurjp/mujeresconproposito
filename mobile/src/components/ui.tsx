@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Children, useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   AppState,
@@ -14,10 +14,11 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import Animated, { Easing, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, radius, sans, serif, TAB_BAR_SPACE } from '@/constants/theme';
+import { useLaunchRevealed } from '@/lib/launch';
 import { reportScroll } from '@/lib/scroll-activity';
 
 export function tapFeedback() {
@@ -99,9 +100,7 @@ export function Screen({
       onScroll={reportScroll}
       scrollEventThrottle={100}
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.wine} /> : undefined}>
-      <Animated.View entering={FadeInDown.duration(420).easing(Easing.out(Easing.cubic)).withInitialValues({ transform: [{ translateY: 14 }] })}>
-        {children}
-      </Animated.View>
+      {Children.toArray(children).map((child, index) => <Reveal key={index} index={index}>{child}</Reveal>)}
     </ScrollView>
   );
 }
@@ -171,6 +170,25 @@ export function Button({
       <Text style={[styles.buttonText, { color: palette.fg }]}>{label}</Text>
     </Pressable>
   );
+}
+
+/**
+ * Soft entrance used across the app: content fades in, rises a few points and
+ * settles from a hair below full size. Siblings cascade by `index`. On launch
+ * it waits until the launch screen starts to open, so the reveal is seen.
+ */
+export function Reveal({ index = 0, children, style }: { index?: number; children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const revealed = useLaunchRevealed();
+  const progress = useSharedValue(0);
+  useEffect(() => {
+    if (!revealed) return;
+    progress.value = withDelay(Math.min(index, 6) * 85, withTiming(1, { duration: 720, easing: Easing.bezier(0.22, 1, 0.36, 1) }));
+  }, [revealed, index, progress]);
+  const animated = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    transform: [{ translateY: (1 - progress.value) * 22 }, { scale: 0.985 + progress.value * 0.015 }],
+  }));
+  return <Animated.View style={[style, animated]}>{children}</Animated.View>;
 }
 
 /** Branded skeleton: soft placeholder cards that gently pulse while content loads. */

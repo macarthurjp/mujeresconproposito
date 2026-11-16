@@ -4,7 +4,7 @@ import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-nati
 
 import { eventStatus } from '@/components/event-card';
 import { AgendaRow, MeetingHero } from '@/components/meeting-card';
-import { ErrorNote, Eyebrow, Loading, Screen, tapFeedback, Title, useAsync } from '@/components/ui';
+import { ErrorNote, Eyebrow, Loading, Reveal, Screen, tapFeedback, Title, useAsync } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { api, type Evento } from '@/lib/api';
 import { isValidTimeZone, occurrencesBetween, parseSchedule } from '@/lib/schedule';
@@ -131,7 +131,7 @@ export default function Eventos() {
                     </View>
                   </View>
                 ))}
-                {dayItems.map((o) => <AgendaRow key={`${o.e.id}-${o.start.getTime()}`} evento={o.e} start={o.start} live={o.live} now={now} />)}
+                {dayItems.map((o, i) => <Reveal key={`${o.e.id}-${o.start.getTime()}`} index={i}><AgendaRow evento={o.e} start={o.start} live={o.live} now={now} /></Reveal>)}
               </View>
             ) : (
               <View style={s.empty}>
