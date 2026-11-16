@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "org.mcp930.app",
-      "supportsTablet": true,
+      "supportsTablet": false,
       "icon": "./assets/images/icon.png",
       "entitlements": {
         "com.apple.developer.usernotifications.time-sensitive": true,
