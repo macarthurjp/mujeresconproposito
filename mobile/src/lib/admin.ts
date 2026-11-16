@@ -58,9 +58,9 @@ export const ADMIN_MODULES: { key: AdminModule; label: string; permissions: { ke
 export const ADMIN_PERMISSION_CATALOG = ADMIN_MODULES.flatMap((module) => module.permissions.map((permission) => ({...permission,module:module.key,key:`${module.key}.${permission.key}`})));
 export const canAdmin = (access: Access | null, module: AdminModule, action: string) => Boolean(access && !access.isRevoked && (access.isSuperAdmin || access.modulePermissions.includes(`${module}.${action}`)));
 
-export type AdminRole = { id: string; name: string; description: string };
+export type AdminRole = { id: string; name: string; description: string; view_only?: boolean };
 export async function listAdminRoles() {
-  const {data,error}=await supabase.from('admin_roles').select('id,name,description').order('name'); if(error) throw error; return (data??[]) as AdminRole[];
+  const {data,error}=await supabase.from('admin_roles').select('id,name,description,view_only').order('name'); if(error) throw error; return (data??[]) as AdminRole[];
 }
 export async function saveAdminRole(name:string,description:string,id?:string) {
   const {data,error}=await supabase.rpc('admin_save_role',{p_name:name,p_description:description,p_role_id:id??null}); if(error) throw error; return String(data);

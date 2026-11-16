@@ -8,6 +8,23 @@ import { ADMIN_MODULES, ADMIN_PERMISSION_CATALOG, assignAdminRole, listAdminRole
 import { useAdmin } from '@/lib/use-admin';
 
 type Assignment = { user_id: string; role_id: string; assigned_at: string };
+
+const actionOf = (key: string) => key.split('.')[1];
+const SENSITIVE = new Set(['delete', 'publish', 'send']);
+const PRESETS: { key: string; label: string; actions: string[] | null; viewOnlyOk: boolean }[] = [
+  { key: 'none', label: 'Nada', actions: [], viewOnlyOk: true },
+  { key: 'read', label: 'Solo lectura', actions: ['view'], viewOnlyOk: true },
+  { key: 'edit', label: 'Editor', actions: ['view', 'create', 'add', 'edit'], viewOnlyOk: false },
+  { key: 'all', label: 'Todo', actions: null, viewOnlyOk: false },
+];
+/** Short sentence of what a permission set allows, grouped by module. */
+function summarize(keys: string[]) {
+  const parts = ADMIN_MODULES.map((module) => {
+    const labels = module.permissions.filter((p) => keys.includes(`${module.key}.${p.key}`)).map((p) => p.label.toLowerCase());
+    return labels.length ? `${module.label}: ${labels.join(', ')}` : null;
+  }).filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'Este rol todavía no tiene permisos.';
+}
 export default function AdminRoles() {
   const { access, ready } = useAdmin();
   const [roles, setRoles] = useState<AdminRole[]>([]);
@@ -57,7 +74,19 @@ export default function AdminRoles() {
       setRoleModal(false);
     });
   };
-  const savePermissions = () => void run(() => saveAdminRolePermissions(selected!.id, permissions), () => setSavedPermissions(permissions));
+  const doSavePermissions = () => void run(() => saveAdminRolePermissions(selected!.id, permissions), () => setSavedPermissions(permissions));
+  const savePermissions = () => {
+    const risky = ADMIN_PERMISSION_CATALOG.filter((p) => permissions.includes(p.key) && SENSITIVE.has(actionOf(p.key)) && !savedPermissions.includes(p.key));
+    if (!risky.length) return doSavePermissions();
+    const lines = risky.map((p) => `• ${ADMIN_MODULES.find((m) => m.key === p.module)?.label}: ${p.label.toLowerCase()}`).join('\n');
+    Alert.alert('Permisos importantes', `Las personas con el rol «${selected!.name}» podrán:\n${lines}\n\n¿Guardar los permisos?`, [
+      { text: 'Revisar', style: 'cancel' },
+      { text: 'Guardar', onPress: doSavePermissions },
+    ]);
+  };
+  const applyPreset = (actions: string[] | null) => setPermissions(ADMIN_PERMISSION_CATALOG
+    .filter((p) => (actions === null || actions.includes(actionOf(p.key))) && (!selected?.view_only || actionOf(p.key) === 'view'))
+    .map((p) => p.key));
   const addAssignment = () => {
     const value = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return Alert.alert('Correo no válido', 'Escribe el correo de una cuenta existente.');
@@ -97,9 +126,12 @@ export default function AdminRoles() {
       {selected ? <>
         <Group header={`Permisos predeterminados · ${selected.name}`} footer="Los cambios quedan pendientes hasta que pulses Guardar permisos.">
           <Row icon="create-outline" label="Editar nombre y descripción" onPress={() => openRole(selected)} />
-          {ADMIN_MODULES.map((module) => <View key={module.key} style={s.module}><Text style={s.moduleTitle}>{module.label}</Text>{module.permissions.map((permission) => {
+          {selected.view_only ? <View style={s.lockNote}><Text style={s.lockText}>🔒 Rol de solo lectura: solo admite permisos de visualizar. Nadie con este rol puede crear, editar, eliminar, publicar ni enviar avisos.</Text></View> : null}
+          <View style={s.summary}><Text style={s.summaryLabel}>Este rol puede</Text><Text style={s.summaryText}>{summarize(permissions)}</Text></View>
+          <View style={s.presets}>{PRESETS.filter((p) => !selected.view_only || p.viewOnlyOk).map((preset) => <Pressable key={preset.key} onPress={() => applyPreset(preset.actions)} style={({ pressed }) => [s.preset, pressed && { opacity: 0.7 }]}><Text style={s.presetText}>{preset.label}</Text></Pressable>)}</View>
+          {ADMIN_MODULES.map((module) => <View key={module.key} style={s.module}><Text style={s.moduleTitle}>{module.label}</Text>{module.permissions.filter((permission) => !selected.view_only || permission.key === 'view').map((permission) => {
             const key = `${module.key}.${permission.key}`;
-            return <SwitchRow key={key} label={permission.label} value={permissions.includes(key)} onValueChange={(enabled) => setPermissions((current) => enabled ? [...new Set([...current,key])] : current.filter((item) => item !== key))} />;
+            return <SwitchRow key={key} label={permission.label} sub={SENSITIVE.has(permission.key) ? 'Permiso importante' : undefined} value={permissions.includes(key)} onValueChange={(enabled) => setPermissions((current) => enabled ? [...new Set([...current,key])] : current.filter((item) => item !== key))} />;
           })}</View>)}
           <View style={s.actions}><Pressable onPress={() => setPermissions(savedPermissions)} disabled={busy} style={s.secondary}><Text style={s.secondaryText}>Cancelar</Text></Pressable><Pressable onPress={savePermissions} disabled={busy} style={s.primary}><Text style={s.primaryText}>{busy ? 'Guardando…' : 'Guardar permisos'}</Text></Pressable></View>
         </Group>
@@ -121,7 +153,8 @@ export default function AdminRoles() {
     <Modal visible={!!editingUser} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setEditingUser(null)}>
       <ScrollView contentContainerStyle={s.page}>
         <Text style={s.kicker}>EXCEPCIONES INDIVIDUALES</Text><Text style={s.title}>{editingUser?.email}</Text><Text style={s.copy}>Toca cada permiso para alternar: Heredar → Permitir → Denegar.</Text>
-        {ADMIN_MODULES.map((module) => <Group key={module.key} header={module.label}>{module.permissions.map((permission) => {
+        {selected?.view_only ? <Text style={s.copy}>Esta persona tiene un rol de solo lectura: solo puedes ajustar qué módulos puede ver.</Text> : null}
+        {ADMIN_MODULES.map((module) => <Group key={module.key} header={module.label}>{module.permissions.filter((permission) => !selected?.view_only || permission.key === 'view').map((permission) => {
           const key = `${module.key}.${permission.key}`; const value = draftOverrides[key] ?? null;
           const state = value === null ? 'Heredar' : value ? 'Permitir' : 'Denegar';
           return <Pressable key={key} style={s.overrideRow} onPress={() => cycleOverride(key)}><View style={{flex:1}}><Text style={s.userEmail}>{permission.label}</Text><Text style={s.userSub}>Efectivo: {effective(key) ? 'Permitido' : 'Sin acceso'}</Text></View><View style={[s.statePill,value===true&&s.stateAllow,value===false&&s.stateDeny]}><Text style={[s.overrideState,value===true&&{color:'#2e7d4f'},value===false&&{color:C.live}]}>{state}</Text></View></Pressable>;
@@ -132,4 +165,4 @@ export default function AdminRoles() {
   </>;
 }
 
-const s = StyleSheet.create({ page:{padding:18,paddingBottom:48,backgroundColor:C.bg}, kicker:{fontFamily:sans,fontSize:12,fontWeight:'700',letterSpacing:2,color:C.wine,marginTop:12}, title:{fontFamily:sans,fontSize:28,fontWeight:'700',color:C.ink,marginTop:8}, copy:{fontFamily:sans,fontSize:15,lineHeight:22,color:C.muted,marginTop:8,marginBottom:12}, add:{fontSize:30,color:C.wine,paddingHorizontal:8}, module:{paddingHorizontal:14,paddingTop:14}, moduleTitle:{fontFamily:sans,fontSize:16,fontWeight:'700',color:C.ink,marginBottom:4}, actions:{flexDirection:'row',justifyContent:'flex-end',gap:10,padding:12}, primary:{borderRadius:14,backgroundColor:C.wine,paddingHorizontal:18,paddingVertical:13,alignItems:'center',justifyContent:'center'}, primaryText:{fontFamily:sans,fontSize:14,fontWeight:'700',color:'#fff'}, secondary:{borderRadius:14,backgroundColor:C.fill,paddingHorizontal:18,paddingVertical:13,alignItems:'center',justifyContent:'center'}, secondaryText:{fontFamily:sans,fontSize:14,fontWeight:'600',color:C.wine}, assign:{flexDirection:'row',gap:8,padding:12}, input:{flex:1,minWidth:0,borderWidth:1,borderColor:C.line,borderRadius:14,paddingHorizontal:14,fontFamily:sans,fontSize:15,color:C.ink,backgroundColor:'#fff'}, userRow:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:14,paddingVertical:14,borderTopWidth:StyleSheet.hairlineWidth,borderColor:C.line}, userEmail:{fontFamily:sans,fontWeight:'600',fontSize:14,color:C.ink}, userSub:{fontFamily:sans,fontSize:12,color:C.muted,marginTop:3}, inlineAction:{fontFamily:sans,fontSize:12,fontWeight:'700',color:C.wine}, remove:{fontFamily:sans,fontSize:12,fontWeight:'700',color:C.live}, modalInput:{backgroundColor:'#fff',borderWidth:1,borderColor:C.line,borderRadius:16,padding:15,fontFamily:sans,fontSize:16,color:C.ink,marginTop:14}, overrideRow:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:14,paddingVertical:14}, overrideState:{fontFamily:sans,fontSize:13,fontWeight:'700',color:C.muted}, statePill:{minWidth:84,alignItems:'center',paddingHorizontal:12,paddingVertical:6,borderRadius:999,backgroundColor:C.fill}, stateAllow:{backgroundColor:'rgba(46,125,79,0.12)'}, stateDeny:{backgroundColor:'rgba(214,69,69,0.12)'} });
+const s = StyleSheet.create({ page:{padding:18,paddingBottom:48,backgroundColor:C.bg}, kicker:{fontFamily:sans,fontSize:12,fontWeight:'700',letterSpacing:2,color:C.wine,marginTop:12}, title:{fontFamily:sans,fontSize:28,fontWeight:'700',color:C.ink,marginTop:8}, copy:{fontFamily:sans,fontSize:15,lineHeight:22,color:C.muted,marginTop:8,marginBottom:12}, add:{fontSize:30,color:C.wine,paddingHorizontal:8}, module:{paddingHorizontal:14,paddingTop:14}, moduleTitle:{fontFamily:sans,fontSize:16,fontWeight:'700',color:C.ink,marginBottom:4}, actions:{flexDirection:'row',justifyContent:'flex-end',gap:10,padding:12}, primary:{borderRadius:14,backgroundColor:C.wine,paddingHorizontal:18,paddingVertical:13,alignItems:'center',justifyContent:'center'}, primaryText:{fontFamily:sans,fontSize:14,fontWeight:'700',color:'#fff'}, secondary:{borderRadius:14,backgroundColor:C.fill,paddingHorizontal:18,paddingVertical:13,alignItems:'center',justifyContent:'center'}, secondaryText:{fontFamily:sans,fontSize:14,fontWeight:'600',color:C.wine}, assign:{flexDirection:'row',gap:8,padding:12}, input:{flex:1,minWidth:0,borderWidth:1,borderColor:C.line,borderRadius:14,paddingHorizontal:14,fontFamily:sans,fontSize:15,color:C.ink,backgroundColor:'#fff'}, userRow:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:14,paddingVertical:14,borderTopWidth:StyleSheet.hairlineWidth,borderColor:C.line}, userEmail:{fontFamily:sans,fontWeight:'600',fontSize:14,color:C.ink}, userSub:{fontFamily:sans,fontSize:12,color:C.muted,marginTop:3}, inlineAction:{fontFamily:sans,fontSize:12,fontWeight:'700',color:C.wine}, remove:{fontFamily:sans,fontSize:12,fontWeight:'700',color:C.live}, modalInput:{backgroundColor:'#fff',borderWidth:1,borderColor:C.line,borderRadius:16,padding:15,fontFamily:sans,fontSize:16,color:C.ink,marginTop:14}, overrideRow:{flexDirection:'row',alignItems:'center',gap:12,paddingHorizontal:14,paddingVertical:14}, overrideState:{fontFamily:sans,fontSize:13,fontWeight:'700',color:C.muted}, lockNote:{marginHorizontal:14,marginTop:12,padding:12,borderRadius:12,backgroundColor:C.fill}, lockText:{fontFamily:sans,fontSize:13,lineHeight:18,color:C.ink}, summary:{marginHorizontal:14,marginTop:12,padding:12,borderRadius:12,backgroundColor:'#faf5f4'}, summaryLabel:{fontFamily:sans,fontSize:11,fontWeight:'700',letterSpacing:0.6,textTransform:'uppercase',color:C.wine}, summaryText:{fontFamily:sans,fontSize:13,lineHeight:19,color:C.ink,marginTop:4}, presets:{flexDirection:'row',flexWrap:'wrap',gap:8,paddingHorizontal:14,paddingTop:12}, preset:{paddingHorizontal:14,paddingVertical:8,borderRadius:999,borderWidth:1,borderColor:C.line,backgroundColor:'#fff'}, presetText:{fontFamily:sans,fontSize:13,fontWeight:'600',color:C.wine}, statePill:{minWidth:84,alignItems:'center',paddingHorizontal:12,paddingVertical:6,borderRadius:999,backgroundColor:C.fill}, stateAllow:{backgroundColor:'rgba(46,125,79,0.12)'}, stateDeny:{backgroundColor:'rgba(214,69,69,0.12)'} });

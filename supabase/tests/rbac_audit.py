@@ -218,6 +218,20 @@ def main():
     check("dashboard", "RX con dashboard denegado NO lee unirse directo", True,
           "select count(*) from public.unirse;", "RX", must_contain="0")
 
+    # --- Viewer bloqueado a solo lectura (C) ---------------------------------------------
+    check("viewer", "SA no puede dar 'Crear eventos' al rol Viewer", False,
+          f"select public.admin_save_role_permissions('{R['Viewer']}', array['events.view','events.create']::text[]);", "SA")
+    check("viewer", "SA puede dar solo permisos de ver al Viewer", True,
+          f"select public.admin_save_role_permissions('{R['Viewer']}', array['events.view','gallery.view']::text[]);", "SA")
+    check("viewer", "SA no puede permitir 'Enviar avisos' a un Viewer por excepción", False,
+          f"""select public.admin_save_user_overrides('{U['VWR']}', '{{"notices.send":true}}'::jsonb);""", "SA")
+    check("viewer", "SA sí puede denegar a un Viewer por excepción", True,
+          f"""select public.admin_save_user_overrides('{U['VWR']}', '{{"gallery.view":false}}'::jsonb);""", "SA")
+    check("viewer", "Viewer no envía avisos (servidor)", True,
+          f"select public.admin_user_has_permission('{U['VWR']}','notices','send');", None, "service_role", must_contain="f")
+    check("viewer", "Manager no se ve afectado (sigue creando)", True,
+          "select public.has_admin_module_permission('events','create');", "MGR_A", must_contain="t")
+
     # --- Hardening ------------------------------------------------------------------------
     check("hardening", "No se asigna rol a cuenta no autorizada (sin invitación)", False,
           f"select public.admin_assign_role('noauth@test.local','{R['Manager']}');", "SA")
