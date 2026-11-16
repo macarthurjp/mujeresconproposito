@@ -109,8 +109,8 @@ export default function AdminHome() {
             {canGallery ? <Row icon="images" tint="#c08a3e" label="Galería de fotos" sub="Administrar imágenes permitidas" onPress={() => router.push('/admin/galeria')} /> : null}
           </Group> : null}
           {access.isSuperAdmin ? <Group header="Equipo">
-            <Row icon="shield-checkmark" tint="#6b5b95" label="Roles y permisos" sub="Configurar acceso por módulo y usuario" onPress={() => router.push('/admin/roles' as Href)} />
-            <Row icon="people" tint="#6b5b95" label="Usuarios y roles" sub="Permisos, invitaciones y accesos" onPress={() => router.push('/admin/usuarios')} />
+            <Row icon="people" tint="#6b5b95" label="Usuarios y roles" sub="Paso 1 · Invitar y gestionar accesos" onPress={() => router.push('/admin/usuarios')} />
+            <Row icon="shield-checkmark" tint="#6b5b95" label="Roles y permisos" sub="Paso 2 · Asignar rol y permisos" onPress={() => router.push('/admin/roles' as Href)} />
             <Row icon="mail-unread" tint="#2f6db5" label="Destinatarios de correo" sub="Contacto y Únete por comunidad" onPress={() => router.push('/admin/correos')} />
           </Group> : null}
           {canDevotionals ? <Group header="Devocionales" footer="Gestiona los artículos y el flujo de revisión desde la app.">
