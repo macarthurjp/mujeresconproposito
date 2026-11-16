@@ -150,8 +150,8 @@ export function AdminLogin() {
           <Ionicons name="finger-print-outline" size={22} color={C.wine} />
           <Text style={s.biometricText}>Entrar con {bioLabel}</Text>
         </Pressable> : null}
-        {providers.apple || providers.google ? <View style={s.divider}><View style={s.rule} /><Text style={s.or}>o continúa con</Text><View style={s.rule} /></View> : null}
-        {providers.apple ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => providerSignIn('apple')} style={({ pressed }) => [s.social, s.apple, pressed && { opacity: 0.82 }]}>
+        {(providers.apple && Platform.OS === 'ios') || providers.google ? <View style={s.divider}><View style={s.rule} /><Text style={s.or}>o continúa con</Text><View style={s.rule} /></View> : null}
+        {providers.apple && Platform.OS === 'ios' ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => providerSignIn('apple')} style={({ pressed }) => [s.social, s.apple, pressed && { opacity: 0.82 }]}>
           <Ionicons name="logo-apple" size={21} color="#fff" />
           <Text style={[s.socialText, { color: '#fff' }]}>Continuar con Apple</Text>
         </Pressable> : null}
