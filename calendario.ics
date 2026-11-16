@@ -130,19 +130,4 @@ DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: S
 URL:https://meet.google.com/hoi-rdok-sym
 LOCATION:https://meet.google.com/hoi-rdok-sym
 END:VEVENT
-BEGIN:VEVENT
-UID:cumple-20261116-andreina@mcp930.org
-DTSTAMP:20260101T000000Z
-DTSTART;VALUE=DATE:20261116
-DTEND;VALUE=DATE:20261117
-SUMMARY:🎂 Cumpleaños de Andreina
-DESCRIPTION:Hoy celebramos el cumpleaños de Andreina. ¡No olvides felicit
- arla!
-TRANSP:TRANSPARENT
-BEGIN:VALARM
-ACTION:DISPLAY
-DESCRIPTION:Mañana es el cumpleaños de Andreina
-TRIGGER:-PT15H
-END:VALARM
-END:VEVENT
 END:VCALENDAR
