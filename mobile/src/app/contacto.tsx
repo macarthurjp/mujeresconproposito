@@ -132,6 +132,6 @@ const s = StyleSheet.create({
   input: { minHeight: 54, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(63,38,35,0.12)', backgroundColor: C.ivory, paddingHorizontal: 15, paddingVertical: 13, color: C.ink, fontSize: 16 },
   message: { minHeight: 150, lineHeight: 23 },
   submit: { marginTop: 18 },
-  privacy: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'center', gap: 8, marginTop: 15, paddingHorizontal: 6 },
-  privacyText: { flex: 1, color: C.muted, fontSize: 12, lineHeight: 18, textAlign: 'center' },
+  privacy: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15, paddingHorizontal: 4 },
+  privacyText: { flex: 1, color: C.muted, fontSize: 12, lineHeight: 18, textAlign: 'left' },
 });

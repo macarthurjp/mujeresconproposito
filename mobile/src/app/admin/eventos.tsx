@@ -1,16 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { tapFeedback } from '@/components/ui';
 import { AdminLogin } from '@/components/admin-login';
 import { C, sans } from '@/constants/theme';
 import { deleteEvento, listEventos, setEventoActiva, setEventoOrden, type AdminEvento } from '@/lib/admin';
-import { meetingPlatform } from '@/components/meeting-card';
+import { meetingPlatform , EventArtwork } from '@/components/meeting-card';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
-import { EventArtwork } from '@/components/meeting-card';
 import { useAdmin } from '@/lib/use-admin';
+import { parseSchedule } from '@/lib/schedule';
+
+const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const DAY_INDEX = [1, 2, 3, 4, 5, 6, 0];
+const region = (e: AdminEvento) => (/^europe\//i.test(e.zona_horaria || '') || /europ/i.test(e.titulo) ? 'Europa' : 'América');
+const hhmm = (minutes: number) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 
 export default function AdminEventos() {
   const { access, ready } = useAdmin();
@@ -86,25 +91,65 @@ export default function AdminEventos() {
             <Text style={s.emptyText}>Crea la primera reunión con el botón +.</Text>
           </View>
         ) : null}
-        <View style={{ gap: 10 }}>
-          {items?.map((item) => {
-            const platform = meetingPlatform(item.link);
-            return (
-              <AdminGestureRow key={item.id} onEdit={() => { tapFeedback(); router.push({ pathname: '/admin/evento', params: { id: item.id } }); }} onDelete={() => remove(item)} onReorder={(steps) => void move(item, steps)} stepHeight={74}>
-              <View style={[s.card, !item.activa && { opacity: 0.6 }]}>
-                <Pressable onPress={() => { tapFeedback(); router.push({ pathname: '/admin/evento', params: { id: item.id } }); }} style={s.cardContent}>
-                  <View style={s.icon}><EventArtwork icon={item.icono} size={30} tint={C.wine} emojiSize={20} /></View>
-                  <View style={{ flex: 1 }}><Text style={s.title} numberOfLines={1}>{item.titulo.trim()}</Text><Text style={s.meta} numberOfLines={1}>{item.horario}</Text><Text style={s.platform} numberOfLines={1}>{platform ? platform.name : 'Sin enlace'}</Text></View>
-                </Pressable>
-                <View style={s.eventActions}>
-                  <Switch value={item.activa} onValueChange={(v) => { tapFeedback(); void toggle(item, v); }} trackColor={{ true: C.wine, false: '#e5dcda' }} thumbColor="#fff" {...({ activeThumbColor: '#fff' } as object)} ios_backgroundColor="#e5dcda" accessibilityLabel={item.activa ? 'Visible en la web y la app' : 'Oculto'} />
-                </View>
+        {items?.length ? (
+          <View style={s.summary}>
+            <View style={s.stat}><Text style={s.statValue}>{items.length}</Text><Text style={s.statLabel}>reuniones</Text></View>
+            <View style={s.stat}><Text style={s.statValue}>{items.filter((e) => e.activa).length}</Text><Text style={s.statLabel}>visibles</Text></View>
+            <View style={s.stat}><Text style={s.statValue}>{items.filter((e) => e.notificar !== false).length}</Text><Text style={s.statLabel}>con aviso push</Text></View>
+          </View>
+        ) : null}
+        {(['Europa', 'América'] as const).map((group) => {
+          const list = (items ?? []).filter((e) => region(e) === group);
+          if (!list.length) return null;
+          return (
+            <View key={group} style={{ marginTop: 22 }}>
+              <Text style={s.groupTitle}>{group}<Text style={s.groupSub}>  ·  hora de {group === 'Europa' ? 'Luxemburgo' : 'Santo Domingo'}</Text></Text>
+              <View style={{ gap: 10 }}>
+                {list.map((item) => {
+                  const platform = meetingPlatform(item.link);
+                  const schedule = parseSchedule(item.horario);
+                  const open = () => { tapFeedback(); router.push({ pathname: '/admin/evento', params: { id: item.id } }); };
+                  return (
+                    <AdminGestureRow key={item.id} onEdit={open} onDelete={() => remove(item)} onReorder={(steps) => void move(item, steps)} stepHeight={112}>
+                      <Pressable onPress={open} style={[s.card, !item.activa && s.cardHidden]}>
+                        <View style={s.cardTop}>
+                          <View style={s.icon}><EventArtwork icon={item.icono} size={30} tint={C.wine} emojiSize={20} /></View>
+                          <View style={{ flex: 1, minWidth: 0 }}>
+                            <Text style={s.title} numberOfLines={1}>{item.titulo.trim()}</Text>
+                            <View style={s.badges}>
+                              <View style={[s.badge, !platform && s.badgeWarn]}>
+                                <Ionicons name={platform ? platform.icon : 'alert-circle-outline'} size={11} color={platform ? C.wine : '#b5523b'} />
+                                <Text style={[s.badgeText, !platform && { color: '#b5523b' }]}>{platform ? platform.name : 'Sin enlace'}</Text>
+                              </View>
+                              {item.notificar !== false ? <View style={s.badge}><Ionicons name="notifications" size={11} color={C.wine} /><Text style={s.badgeText}>Aviso</Text></View> : null}
+                            </View>
+                          </View>
+                          <Text style={s.time}>{schedule ? hhmm(schedule.minutes) : '—'}</Text>
+                          <Pressable
+                            accessibilityRole="switch"
+                            accessibilityState={{ checked: item.activa }}
+                            accessibilityLabel={item.activa ? 'Visible. Toca para ocultar' : 'Oculto. Toca para mostrar'}
+                            hitSlop={8}
+                            onPress={() => { tapFeedback(); void toggle(item, !item.activa); }}
+                            style={[s.eye, !item.activa && s.eyeOff]}>
+                            <Ionicons name={item.activa ? 'eye' : 'eye-off'} size={17} color={item.activa ? C.wine : '#fff'} />
+                          </Pressable>
+                        </View>
+                        <View style={s.days}>
+                          {DAY_LETTERS.map((letter, i) => {
+                            const on = !!schedule?.days.includes(DAY_INDEX[i]);
+                            return <View key={letter} style={[s.day, on && s.dayOn]}><Text style={[s.dayText, on && s.dayTextOn]}>{letter}</Text></View>;
+                          })}
+                        </View>
+                      </Pressable>
+                    </AdminGestureRow>
+                  );
+                })}
               </View>
-              </AdminGestureRow>
-            );
-          })}
-        </View>
-        {items?.length ? <Text style={s.hint}>Desliza a la derecha para editar, a la izquierda para eliminar o mantén pulsado y arrastra para ordenar.</Text> : null}
+            </View>
+          );
+        })}
+        {items?.length ? <Text style={s.hint}>Desliza a la derecha para editar o a la izquierda para eliminar. Mantén pulsado y arrastra para ordenar. El ojo muestra u oculta la reunión en la web y la app.</Text> : null}
       </ScrollView>
     </>
   );
@@ -112,9 +157,27 @@ export default function AdminEventos() {
 
 const s = StyleSheet.create({
   page: { padding: 16, paddingBottom: 60 },
-  card: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 12, borderRadius: 16, backgroundColor: C.card },
-  cardContent: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  eventActions: { alignItems: 'center', gap: 5 }, orderButtons: { flexDirection: 'row', gap: 4 }, orderButton: { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: C.fill },
+  summary: { flexDirection: 'row', gap: 10 },
+  stat: { flex: 1, backgroundColor: C.card, borderRadius: 16, paddingVertical: 12, alignItems: 'center' },
+  statValue: { fontFamily: sans, fontSize: 22, fontWeight: '700', color: C.ink, fontVariant: ['tabular-nums'] },
+  statLabel: { fontFamily: sans, fontSize: 12, color: C.muted, marginTop: 1 },
+  groupTitle: { fontFamily: sans, fontSize: 20, fontWeight: '700', letterSpacing: -0.4, color: C.ink, marginBottom: 10, marginLeft: 4 },
+  groupSub: { fontSize: 13, fontWeight: '500', color: C.muted, letterSpacing: 0 },
+  card: { padding: 14, borderRadius: 18, backgroundColor: C.card, gap: 12 },
+  cardHidden: { opacity: 0.55 },
+  cardTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  time: { fontFamily: sans, fontSize: 20, fontWeight: '700', letterSpacing: -0.5, color: C.ink, fontVariant: ['tabular-nums'] },
+  badges: { flexDirection: 'row', gap: 6, marginTop: 4 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 3, borderRadius: 999, backgroundColor: C.fill },
+  badgeWarn: { backgroundColor: 'rgba(181,82,59,0.12)' },
+  badgeText: { fontFamily: sans, fontSize: 11, fontWeight: '600', color: C.wine },
+  eye: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: C.fill },
+  eyeOff: { backgroundColor: 'rgba(40,24,22,0.85)' },
+  days: { flexDirection: 'row', gap: 6 },
+  day: { flex: 1, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg },
+  dayOn: { backgroundColor: C.wine },
+  dayText: { fontFamily: sans, fontSize: 12, fontWeight: '700', color: '#c4b3b0' },
+  dayTextOn: { color: '#fff' },
   icon: { width: 46, height: 46, borderRadius: 12, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center' },
   title: { fontFamily: sans, fontSize: 16, fontWeight: '600', letterSpacing: -0.2, color: C.ink },
   meta: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 1 },
