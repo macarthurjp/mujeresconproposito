@@ -135,38 +135,47 @@ export default function AdminEventos() {
                   const schedule = parseSchedule(item.horario);
                   const open = () => { tapFeedback(); router.push({ pathname: '/admin/evento', params: { id: item.id } }); };
                   return (
-                    <AdminGestureRow key={item.id} onEdit={open} onDelete={() => remove(item)} onReorder={(steps) => void move(item, steps)} stepHeight={ROW_HEIGHT}>
-                      <Pressable onPress={open} style={({ pressed }) => [s.row, pressed && s.rowPressed]}>
-                        <View style={[s.rowInner, !item.activa && s.dimmed]}>
-                          <View style={s.icon}><EventArtwork icon={item.icono} size={26} tint={C.wine} emojiSize={18} /></View>
-                          <View style={s.rowText}>
-                            <Text style={s.title} numberOfLines={1}>{item.titulo.trim()}</Text>
-                            <Text style={s.when} numberOfLines={1}>
-                              <Text style={s.time}>{schedule ? hhmm(schedule.minutes) : '--:--'}</Text>
-                              {'  ·  '}{daysLabel(schedule?.days)}
-                            </Text>
-                            <View style={s.meta}>
-                              {platform ? (
-                                <><Ionicons name={platform.icon} size={12} color={C.muted} /><Text style={s.metaText}>{platform.name}</Text></>
-                              ) : (
-                                <><Ionicons name="alert-circle" size={12} color="#c0612b" /><Text style={[s.metaText, { color: '#c0612b' }]}>Sin enlace</Text></>
-                              )}
-                              {item.notificar !== false ? <><Text style={s.metaDot}>·</Text><Ionicons name="notifications" size={11} color={C.muted} /><Text style={s.metaText}>Aviso</Text></> : null}
-                              {!item.activa ? <><Text style={s.metaDot}>·</Text><Text style={[s.metaText, s.hiddenText]}>Oculta</Text></> : null}
+                    <View key={item.id}>
+                      <View style={s.rowWrap}>
+                        <View style={s.rowSwipe}>
+                        <AdminGestureRow onEdit={open} onDelete={() => remove(item)} onReorder={(steps) => void move(item, steps)} stepHeight={ROW_HEIGHT}>
+                          <Pressable onPress={open} style={({ pressed }) => [s.row, pressed && s.rowPressed]}>
+                            <View style={[s.rowInner, !item.activa && s.dimmed]}>
+                              <View style={s.icon}><EventArtwork icon={item.icono} size={26} tint={C.wine} emojiSize={18} /></View>
+                              <View style={s.rowText}>
+                                <Text style={s.title} numberOfLines={1}>{item.titulo.trim()}</Text>
+                                <Text style={s.when} numberOfLines={1}>
+                                  <Text style={s.time}>{schedule ? hhmm(schedule.minutes) : '--:--'}</Text>
+                                  {'  ·  '}{daysLabel(schedule?.days)}
+                                </Text>
+                                <View style={s.meta}>
+                                  {platform ? (
+                                    <><Ionicons name={platform.icon} size={12} color={C.muted} /><Text style={s.metaText}>{platform.name}</Text></>
+                                  ) : (
+                                    <><Ionicons name="alert-circle" size={12} color="#c0612b" /><Text style={[s.metaText, { color: '#c0612b' }]}>Sin enlace</Text></>
+                                  )}
+                                  {item.notificar !== false ? <><Text style={s.metaDot}>·</Text><Ionicons name="notifications" size={11} color={C.muted} /><Text style={s.metaText}>Aviso</Text></> : null}
+                                  {!item.activa ? <><Text style={s.metaDot}>·</Text><Text style={[s.metaText, s.hiddenText]}>Oculta</Text></> : null}
+                                </View>
+                              </View>
                             </View>
-                          </View>
+                          </Pressable>
+                        </AdminGestureRow>
                         </View>
-                        <Switch
-                          accessibilityLabel={item.activa ? `${item.titulo.trim()}: visible en la web y la app` : `${item.titulo.trim()}: oculta`}
-                          value={item.activa}
-                          onValueChange={(value) => { tapFeedback(); void toggle(item, value); }}
-                          trackColor={{ true: C.wine, false: '#e5dcda' }}
-                          thumbColor="#fff"
-                          ios_backgroundColor="#e5dcda"
-                        />
-                      </Pressable>
+                        {/* Outside the swipe/press area so it never competes with those gestures. */}
+                        <View style={s.switchBox}>
+                            <Switch
+                              accessibilityLabel={item.activa ? `${item.titulo.trim()}: visible en la web y la app` : `${item.titulo.trim()}: oculta`}
+                              value={item.activa}
+                              onValueChange={(value) => { tapFeedback(); void toggle(item, value); }}
+                              trackColor={{ true: C.wine, false: '#e5dcda' }}
+                              thumbColor="#fff"
+                              ios_backgroundColor="#e5dcda"
+                            />
+                        </View>
+                      </View>
                       {index < list.length - 1 ? <View style={s.separator} /> : null}
-                    </AdminGestureRow>
+                    </View>
                   );
                 })}
               </View>
@@ -190,7 +199,10 @@ const s = StyleSheet.create({
   sectionTitle: { fontFamily: sans, fontSize: 13, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', color: C.wine },
   sectionZone: { fontFamily: sans, fontSize: 12, color: C.muted },
   group: { backgroundColor: C.card, borderRadius: 18, overflow: 'hidden' },
-  row: { minHeight: ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 14, paddingRight: 14, backgroundColor: C.card },
+  rowWrap: { flexDirection: 'row', alignItems: 'stretch', backgroundColor: C.card },
+  rowSwipe: { flex: 1, minWidth: 0 },
+  switchBox: { justifyContent: 'center', paddingLeft: 6, paddingRight: 14, backgroundColor: C.card },
+  row: { minHeight: ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', gap: 12, paddingLeft: 14, paddingRight: 8, backgroundColor: C.card },
   rowPressed: { backgroundColor: '#f6efed' },
   rowInner: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 12 },
   dimmed: { opacity: 0.45 },

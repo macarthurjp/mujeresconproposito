@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 
 import { AdminLogin } from '@/components/admin-login';
 import { C, sans } from '@/constants/theme';
@@ -18,6 +18,7 @@ export default function AdminLayout() {
         headerTitleStyle: { fontFamily: sans, fontWeight: '600', color: C.ink },
         headerBackTitle: 'Atrás',
         contentStyle: { backgroundColor: C.bg },
+        animation: Platform.OS === 'android' ? 'ios_from_right' : 'default',
       }}>
       <Stack.Screen name="index" options={{ title: 'Administración' }} />
       <Stack.Screen name="eventos" options={{ title: 'Eventos' }} />

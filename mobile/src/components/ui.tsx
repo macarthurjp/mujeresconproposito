@@ -14,6 +14,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import Animated, { Easing, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { C, radius, sans, serif, TAB_BAR_SPACE } from '@/constants/theme';
@@ -98,7 +99,9 @@ export function Screen({
       onScroll={reportScroll}
       scrollEventThrottle={100}
       refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.wine} /> : undefined}>
-      {children}
+      <Animated.View entering={FadeInDown.duration(420).easing(Easing.out(Easing.cubic)).withInitialValues({ transform: [{ translateY: 14 }] })}>
+        {children}
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -170,9 +173,33 @@ export function Button({
   );
 }
 
-export function Loading() {
-  return <ActivityIndicator style={{ marginVertical: 32 }} color={C.wine} />;
+/** Branded skeleton: soft placeholder cards that gently pulse while content loads. */
+export function Loading({ rows = 3 }: { rows?: number }) {
+  const pulse = useSharedValue(0.55);
+  useEffect(() => {
+    pulse.value = withRepeat(withTiming(1, { duration: 850, easing: Easing.inOut(Easing.sin) }), -1, true);
+  }, [pulse]);
+  const style = useAnimatedStyle(() => ({ opacity: pulse.value }));
+  return (
+    <Animated.View accessibilityLabel="Cargando" accessibilityRole="progressbar" style={[{ gap: 12, marginVertical: 16 }, style]}>
+      {Array.from({ length: rows }, (_, i) => (
+        <View key={i} style={skeleton.card}>
+          <View style={skeleton.thumb} />
+          <View style={{ flex: 1, gap: 8 }}>
+            <View style={[skeleton.line, { width: '70%' }]} />
+            <View style={[skeleton.line, { width: '45%', height: 10 }]} />
+          </View>
+        </View>
+      ))}
+    </Animated.View>
+  );
 }
+
+const skeleton = StyleSheet.create({
+  card: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 18, backgroundColor: C.card },
+  thumb: { width: 52, height: 52, borderRadius: 14, backgroundColor: '#f3e6e3' },
+  line: { height: 13, borderRadius: 7, backgroundColor: '#f3e6e3' },
+});
 
 export function ErrorNote({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (

@@ -5,7 +5,7 @@ import * as Print from 'expo-print';
 import { Stack, useFocusEffect } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActionSheetIOS, ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AdminLogin } from '@/components/admin-login';
 import { FieldRow, Group, InputRow, Row } from '@/components/form';
@@ -304,35 +304,109 @@ export default function AdminDashboard() {
     if (!canExport || exporting) return;
     setExporting('pdf');
     try {
-      const exportedAt = new Intl.DateTimeFormat('es-ES', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
-      const headers = ['Registro', 'Nombre', 'Email', 'Teléfono', 'País residencia', 'Comunidad', 'Cristiana', 'Nacimiento', 'País nacimiento', 'Estado civil', 'Hijos', 'Comentarios'];
-      const rows = filtered.map((member) => [memberDate(member.created_at), `${member.nombre} ${member.apellido}`.trim(), member.email, member.telefono, member.pais_residencia, member.comunidad, member.cristiana, memberDate(member.fecha_nacimiento), member.pais_nacimiento, member.estatus_matrimonial, member.hijos, member.comments]);
-      const table = rows.length
-        ? `<table><thead><tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell || '—')}</td>`).join('')}</tr>`).join('')}</tbody></table>`
-        : '<p class="empty">No hay registros que coincidan con la búsqueda actual.</p>';
-      const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-        @page{size:A4 landscape;margin:10mm}*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;color:#3f2623;margin:0}
-        h1{font-size:20px;color:#8f3f38;margin:0 0 5px}p.meta{font-size:9px;color:#6d5250;margin:0 0 14px}.empty{margin-top:28px;font-size:13px;color:#6d5250}
-              table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:6.5px}th{background:#993e35;color:white;text-align:left;font-weight:700;padding:6px 4px}td{padding:5px 4px;border:1px solid #e8d8d0;overflow-wrap:anywhere;vertical-align:top}tbody tr:nth-child(even){background:#fcf7f4}
-        footer{margin-top:10px;color:#786666;font-size:8px;text-align:right}
-      </style></head><body><h1>Lista de usuarias — Mujeres con Propósito</h1><p class="meta">${filtered.length} registro${filtered.length === 1 ? '' : 's'} · Exportado el ${escapeHtml(exportedAt)}</p>${table}<footer>Uso interno · Mujeres con Propósito</footer></body></html>`;
-      const { uri } = await Print.printToFileAsync({ html });
-      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Compartir dashboard PDF' });
+      const now = new Date();
+      const exportedAt = new Intl.DateTimeFormat('es-ES', { dateStyle: 'long', timeStyle: 'short' }).format(now);
+      const label = (options: WheelOption[], value: string) => options.find((o) => o.value === value)?.label ?? value;
+      const activeFilters = [
+        query.trim() ? `Búsqueda: «${query.trim()}»` : '',
+        countryFilter ? `País: ${countryFilter}` : '',
+        communityFilter ? `Comunidad: ${communityFilter}` : '',
+        faithFilter ? `Fe: ${label(faithFilterOptions, faithFilter)}` : '',
+        `Orden: ${label(sortOptions, sortMode)}`,
+      ].filter(Boolean);
+      const shownCountries = new Set(filtered.map((m) => m.pais_residencia).filter(Boolean)).size;
+      const shownCommunities = new Set(filtered.map((m) => m.comunidad).filter(Boolean)).size;
+      const cell = (value: unknown) => escapeHtml(String(value ?? '').trim() || '—');
+      const rows = filtered.map((m, i) => `<tr>
+        <td class="n">${i + 1}</td>
+        <td><strong>${cell(`${m.nombre} ${m.apellido}`)}</strong>${m.comments ? `<div class="note">${cell(m.comments)}</div>` : ''}</td>
+        <td>${cell(m.email)}<div class="sub">${cell(m.telefono)}</div></td>
+        <td>${cell(m.pais_residencia)}<div class="sub">Nac.: ${cell(m.pais_nacimiento)}</div></td>
+        <td>${cell(m.comunidad)}</td>
+        <td>${cell(m.cristiana)}</td>
+        <td>${cell(memberDate(m.fecha_nacimiento))}</td>
+        <td>${cell(m.estatus_matrimonial)}<div class="sub">Hijos: ${cell(m.hijos)}</div></td>
+        <td>${cell(memberDate(m.created_at))}</td>
+      </tr>`).join('');
+      const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><style>
+        @page { size: A4 landscape; margin: 14mm 12mm; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Roboto, Arial, sans-serif; color: #3f2623; font-size: 9px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .head { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 12px; border-bottom: 2px solid #a64b43; }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .logo { width: 34px; height: 34px; border-radius: 9px; background: #f9e1dc; display: flex; align-items: center; justify-content: center; }
+        .kicker { font-size: 8px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: #a64b43; }
+        h1 { margin: 2px 0 0; font-family: Georgia, "New York", serif; font-weight: 400; font-size: 22px; letter-spacing: -0.3px; }
+        .date { text-align: right; color: #6d5250; font-size: 9px; line-height: 1.5; }
+        .summary { display: flex; gap: 8px; margin: 12px 0 8px; }
+        .stat { flex: 1; background: #faf5f4; border-radius: 8px; padding: 8px 10px; }
+        .stat b { display: block; font-size: 16px; color: #3f2623; }
+        .stat span { color: #6d5250; font-size: 8px; text-transform: uppercase; letter-spacing: .6px; }
+        .filters { margin: 0 0 10px; color: #6d5250; font-size: 8.5px; }
+        .chip { display: inline-block; margin: 0 4px 4px 0; padding: 3px 8px; border-radius: 999px; background: #f3e9e6; color: #6d3a33; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        thead { display: table-header-group; }
+        th { text-align: left; font-size: 7.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: #fff; background: #a64b43; padding: 7px 6px; }
+        th:first-child { border-top-left-radius: 6px; } th:last-child { border-top-right-radius: 6px; }
+        td { padding: 6px; border-bottom: 1px solid #efe3df; vertical-align: top; overflow-wrap: anywhere; line-height: 1.35; }
+        tr { page-break-inside: avoid; }
+        tbody tr:nth-child(even) td { background: #fcf8f7; }
+        .n { color: #b09a96; }
+        .sub { color: #8a706c; font-size: 8px; margin-top: 2px; }
+        .note { color: #6d5250; font-style: italic; font-size: 8px; margin-top: 3px; }
+        .empty { margin-top: 30px; padding: 24px; text-align: center; border: 1px dashed #e0cfca; border-radius: 10px; color: #6d5250; font-size: 11px; }
+        footer { margin-top: 14px; padding-top: 8px; border-top: 1px solid #efe3df; display: flex; justify-content: space-between; color: #8a706c; font-size: 8px; }
+      </style></head><body>
+        <div class="head">
+          <div class="brand">
+            <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a64b43" stroke-width="1.6" stroke-linecap="round"><path d="M12 22c0-5 .5-8 1-10"/><path d="M13 12c-3-4-7-5-8-3s4 4 8 3z"/><path d="M13 12c1-5 4-8 6-6s-2 6-6 6z"/><path d="M13 12c4 0 7 2 6 4s-5 0-6-4z"/></svg></div>
+            <div><div class="kicker">Mujeres con Propósito · Panel de comunidad</div><h1>Registros de la comunidad</h1></div>
+          </div>
+          <div class="date">Exportado el ${escapeHtml(exportedAt)}<br>${escapeHtml(access?.nombre || access?.email || '')}</div>
+        </div>
+        <div class="summary">
+          <div class="stat"><b>${filtered.length}</b><span>${filtered.length === 1 ? 'Registro' : 'Registros'}</span></div>
+          <div class="stat"><b>${members.length}</b><span>Total en la base</span></div>
+          <div class="stat"><b>${shownCountries}</b><span>Países</span></div>
+          <div class="stat"><b>${shownCommunities}</b><span>Comunidades</span></div>
+        </div>
+        <div class="filters">${activeFilters.map((f) => `<span class="chip">${escapeHtml(f)}</span>`).join('')}</div>
+        ${filtered.length ? `<table><colgroup><col style="width:3%"><col style="width:18%"><col style="width:20%"><col style="width:13%"><col style="width:11%"><col style="width:7%"><col style="width:8%"><col style="width:10%"><col style="width:10%"></colgroup>
+          <thead><tr><th>#</th><th>Nombre</th><th>Contacto</th><th>País</th><th>Comunidad</th><th>Cristiana</th><th>Nacimiento</th><th>Familia</th><th>Registro</th></tr></thead>
+          <tbody>${rows}</tbody></table>` : '<div class="empty">No hay registros que coincidan con los filtros seleccionados.</div>'}
+        <footer><span>Documento confidencial · Uso interno de Mujeres con Propósito 930 a.s.b.l.</span><span>mcp930.org</span></footer>
+      </body></html>`;
+      // iOS ignores CSS @page margins; pass them explicitly (points). A4 landscape = 842 × 595 pt.
+      const { uri } = await Print.printToFileAsync({ html, width: 842, height: 595, margins: { top: 40, right: 34, bottom: 40, left: 34 } });
+      await Sharing.shareAsync(uri, { mimeType: 'application/pdf', UTI: 'com.adobe.pdf', dialogTitle: 'Compartir registros en PDF' });
     } catch (error) { Alert.alert('No se pudo generar el PDF', error instanceof Error ? error.message : 'Inténtalo de nuevo.'); }
     finally { setExporting(null); }
+  };
+
+  const openExport = () => {
+    if (exporting) return;
+    const summary = `${filtered.length} ${filtered.length === 1 ? 'registro' : 'registros'} con los filtros actuales`;
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { title: 'Exportar', message: summary, options: ['PDF para imprimir', 'CSV para Excel', 'Cancelar'], cancelButtonIndex: 2 },
+        (index) => { if (index === 0) void sharePdf(); if (index === 1) void shareCsv(); },
+      );
+    } else {
+      Alert.alert('Exportar', summary, [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'CSV', onPress: () => void shareCsv() },
+        { text: 'PDF', onPress: () => void sharePdf() },
+      ]);
+    }
   };
 
   return (
     <>
       <Stack.Screen options={{ title: 'Dashboard', headerRight: () => canExport ? (
-        <View style={s.headerActions}>
-          <Pressable accessibilityLabel="Exportar CSV" disabled={!!exporting} onPress={() => void shareCsv()} hitSlop={10} style={s.headerAction}>
-            {exporting === 'csv' ? <ActivityIndicator size="small" color={C.wine} /> : <Ionicons name="document-text-outline" size={21} color={C.wine} />}
-          </Pressable>
-          <Pressable accessibilityLabel="Exportar PDF" disabled={!!exporting} onPress={() => void sharePdf()} hitSlop={10} style={s.headerAction}>
-            {exporting === 'pdf' ? <ActivityIndicator size="small" color={C.wine} /> : <Ionicons name="download-outline" size={21} color={C.wine} />}
-          </Pressable>
-        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Exportar registros" disabled={!!exporting} onPress={openExport} hitSlop={10} style={({ pressed }) => [s.exportButton, pressed && { opacity: 0.6 }]}>
+          {exporting ? <ActivityIndicator size="small" color={C.wine} /> : <Ionicons name="share-outline" size={19} color={C.wine} />}
+          <Text style={s.exportText}>{exporting ? 'Preparando…' : 'Exportar'}</Text>
+        </Pressable>
       ) : undefined }} />
       <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={loading && members.length > 0} onRefresh={() => void load()} tintColor={C.wine} />}>
         <View style={s.heading}>
@@ -462,8 +536,8 @@ const s = StyleSheet.create({
   disabled: { opacity: 0.35 },
   pageText: { fontFamily: sans, color: C.muted, fontSize: 14, fontWeight: '600' },
   permissionNote: { fontFamily: sans, color: C.muted, textAlign: 'center', marginTop: 12, fontSize: 12 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 4 },
-  headerAction: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: C.blush },
+  exportButton: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 6 },
+  exportText: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.wine },
   dateSelector: { minHeight: 46, borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   dateSelectorText: { fontFamily: sans, fontSize: 15, color: C.ink },
   datePickerCard: { marginTop: 10, padding: 8, borderRadius: 18, backgroundColor: C.card, borderWidth: 1, borderColor: C.line, overflow: 'hidden' },
