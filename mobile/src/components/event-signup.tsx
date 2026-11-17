@@ -26,6 +26,16 @@ export function eventWhen(d: Destacada) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+/** Compact badge shown over posters so open registration is visible at a glance. */
+export function SignupBadge() {
+  return (
+    <View pointerEvents="none" accessibilityLabel="Inscripción abierta" style={s.badge}>
+      <Ionicons name="person-add" size={12} color="#fff" />
+      <Text style={s.badgeText}>Inscripción abierta</Text>
+    </View>
+  );
+}
+
 /** Local reminder the day before the event (same time), if it is still ahead. */
 async function scheduleReminder(d: Destacada) {
   if (Platform.OS === 'web' || !d.fecha_evento) return;
@@ -136,6 +146,8 @@ export function EventSignup({ destacada }: { destacada: Destacada }) {
 }
 
 const s = StyleSheet.create({
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: C.wine, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.35)', boxShadow: '0 4px 14px rgba(0,0,0,0.28)' },
+  badgeText: { fontFamily: sans, fontSize: 11, fontWeight: '700', color: '#fff' },
   box: { gap: 8, paddingHorizontal: 14, paddingBottom: 14 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   info: { fontFamily: sans, fontSize: 13, color: C.ink, flexShrink: 1 },

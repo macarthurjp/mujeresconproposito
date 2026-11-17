@@ -499,6 +499,159 @@ body.mcp-brand .admin-main #adminBannerForm .admin-yt-submit-row { justify-conte
 
 body.mcp-brand .admin-main #adminBannerForm .admin-banner-toggle { justify-content: space-between !important; }
 
+/* Banner editor: focused two-column workspace with a live announcement preview. */
+body.mcp-brand .admin-main #admin-banner.active { display: flex !important; flex-direction: column !important; gap: 0 !important; }
+body.mcp-brand .admin-main #admin-banner .admin-banner-page-head {
+  display: block !important; width: 100% !important; margin: 0 0 22px !important; padding: 0 !important;
+  text-align: left !important; border: 0 !important; background: none !important; box-shadow: none !important;
+}
+body.mcp-brand .admin-main #admin-banner .admin-banner-page-head > div { display: block !important; width: 100% !important; text-align: left !important; }
+body.mcp-brand .admin-main #admin-banner .admin-banner-page-head h3 { margin: 0 !important; text-align: left !important; font-size: clamp(24px, 2.4vw, 34px) !important; line-height: 1.15 !important; }
+body.mcp-brand .admin-main #admin-banner .admin-banner-page-head .admin-card-subtitle { margin: 7px 0 0 !important; text-align: left !important; line-height: 1.55 !important; }
+body.mcp-brand .admin-main #admin-banner > .admin-card.admin-banner-editor {
+  width: min(100%, 1180px) !important;
+  max-width: 1180px !important;
+  padding: clamp(22px, 3vw, 40px) !important;
+  margin: 30px auto !important;
+  border: 1px solid rgba(169, 80, 69, .10) !important;
+  box-shadow: 0 24px 70px rgba(67, 40, 35, .07) !important;
+}
+body.mcp-brand .admin-main .admin-banner-guidance {
+  display: flex; align-items: center; gap: 16px; margin: 0 0 30px; padding: 18px 21px;
+  border: 1px solid rgba(169, 80, 69, .13); border-radius: 20px;
+  background: linear-gradient(110deg, #fff9f7 0%, #fbefec 58%, #f7e9e6 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 10px 28px rgba(88,51,44,.045);
+}
+body.mcp-brand .admin-main .admin-banner-guidance-icon {
+  display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center;
+  border: 1px solid rgba(169,80,69,.15); border-radius: 15px;
+  background: linear-gradient(145deg,#fff,#f7dfda); color: var(--a-wine);
+  box-shadow: 0 5px 14px rgba(169,80,69,.12);
+  font-size: 24px; line-height: 1;
+}
+body.mcp-brand .admin-main .admin-banner-guidance p { margin: 0; color: #765a55; font-size: 15px; font-weight: 520; line-height: 1.65; letter-spacing: .005em; }
+body.mcp-brand .admin-main #adminBannerForm.admin-form { display: block !important; }
+body.mcp-brand .admin-main .admin-banner-editor-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, .95fr) !important;
+  align-items: start !important;
+  gap: clamp(28px, 5vw, 68px) !important;
+}
+body.mcp-brand .admin-main .admin-banner-fields { display: grid !important; gap: 22px !important; min-width: 0; }
+body.mcp-brand .admin-main .admin-banner-section-head { text-align: left !important; }
+body.mcp-brand .admin-main .admin-banner-section-head h4 { margin: 8px 0 6px !important; color: var(--a-ink); font-size: clamp(22px, 2.2vw, 30px); text-align: left !important; }
+body.mcp-brand .admin-main .admin-banner-section-head p,
+body.mcp-brand .admin-main .admin-banner-fields label > small { color: var(--a-muted); font-size: 14px; line-height: 1.55; }
+body.mcp-brand .admin-main .admin-banner-fields label:not(.admin-banner-toggle) { display: grid !important; gap: 8px !important; color: var(--a-ink); font-weight: 650; }
+body.mcp-brand .admin-main .admin-banner-fields input[type="text"],
+body.mcp-brand .admin-main .admin-banner-fields textarea {
+  box-sizing: border-box !important; width: 100% !important; max-width: none !important;
+  border: 1px solid #eadbd8 !important; border-radius: 16px !important; background: #fff !important;
+  padding: 15px 17px !important; color: var(--a-ink) !important; font: inherit !important;
+  box-shadow: inset 0 1px 2px rgba(48, 35, 32, .025) !important;
+}
+body.mcp-brand .admin-main .admin-banner-fields textarea { min-height: 132px; resize: vertical; }
+body.mcp-brand .admin-main .admin-banner-fields :is(input, textarea):focus { outline: 3px solid rgba(169, 80, 69, .13) !important; border-color: var(--a-wine) !important; }
+body.mcp-brand .admin-main #adminBannerForm .admin-banner-toggle {
+  min-height: 76px; box-sizing: border-box; padding: 15px 18px !important; border: 1px solid #f0e2df !important;
+  border-radius: 18px !important; background: #fcf8f7 !important; gap: 20px !important;
+}
+body.mcp-brand .admin-main .admin-banner-toggle > span { display: grid; gap: 4px; }
+body.mcp-brand .admin-main .admin-banner-toggle strong { font-size: 15px; }
+body.mcp-brand .admin-main .admin-banner-toggle small { color: var(--a-muted); font-size: 13px; font-weight: 400; }
+body.mcp-brand .admin-main .admin-banner-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+body.mcp-brand .admin-main .admin-banner-form-footer .form-message { margin: 0; }
+body.mcp-brand .admin-main .admin-banner-form-footer .btn { min-height: 50px; padding-inline: 24px !important; }
+body.mcp-brand .admin-main .admin-banner-preview-wrap { position: sticky; top: 24px; min-width: 0; padding: 20px; border: 1px solid #f0e2df; border-radius: 24px; background: linear-gradient(145deg, #fffaf9, #f8ebe8); }
+body.mcp-brand .admin-main .admin-banner-preview-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+body.mcp-brand .admin-main .admin-banner-state { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 999px; background: #f1e9e7; color: #76615d; font-size: 12px; font-weight: 700; }
+body.mcp-brand .admin-main .admin-banner-state i { width: 7px; height: 7px; border-radius: 50%; background: #aa9a97; }
+body.mcp-brand .admin-main .admin-banner-state.is-active { background: #e8f4ec; color: #346a49; }
+body.mcp-brand .admin-main .admin-banner-state.is-active i { background: #4b9a68; box-shadow: 0 0 0 3px rgba(75,154,104,.12); }
+body.mcp-brand .admin-main .admin-banner-preview-scene { display: grid; min-height: 330px; place-items: center; padding: 24px; border-radius: 19px; background: radial-gradient(ellipse at 50% 20%, rgba(255,255,255,.92), rgba(246,224,219,.6) 65%, rgba(237,204,197,.62)); }
+body.mcp-brand .admin-main .admin-banner-preview-card { width: min(100%, 340px); box-sizing: border-box; padding: 23px; border: 1px solid rgba(255,255,255,.85); border-radius: 24px; background: rgba(255,255,255,.91); box-shadow: 0 18px 50px rgba(88,51,44,.14); backdrop-filter: blur(16px); }
+body.mcp-brand .admin-main .admin-banner-preview-mark { display: grid; width: 38px; height: 38px; place-items: center; margin-bottom: 18px; border-radius: 13px; background: #f8e4e0; color: var(--a-wine); }
+body.mcp-brand .admin-main .admin-banner-preview-eyebrow { display: block; margin-bottom: 8px; color: var(--a-wine); font-size: 10px; font-weight: 800; letter-spacing: .15em; }
+body.mcp-brand .admin-main .admin-banner-preview-card strong { display: block; color: var(--a-ink); font-family: var(--a-display, Georgia, serif); font-size: 26px; line-height: 1.12; overflow-wrap: anywhere; }
+body.mcp-brand .admin-main .admin-banner-preview-card p { margin: 12px 0 18px; color: var(--a-muted); font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+body.mcp-brand .admin-main .admin-banner-preview-link { display: inline-flex; align-items: center; gap: 8px; color: var(--a-wine); font-size: 13px; font-weight: 750; }
+body.mcp-brand .admin-main .admin-banner-preview-note { margin: 14px 2px 0; color: var(--a-muted); font-size: 12px; line-height: 1.5; }
+@media (max-width: 900px) {
+  body.mcp-brand .admin-main .admin-banner-editor-grid { grid-template-columns: 1fr !important; }
+  body.mcp-brand .admin-main .admin-banner-preview-wrap { position: static; }
+  body.mcp-brand .admin-main .admin-banner-preview-scene { min-height: 280px; }
+}
+@media (max-width: 560px) {
+  body.mcp-brand .admin-main #admin-banner > .admin-card.admin-banner-editor { padding: 20px !important; }
+  body.mcp-brand .admin-main .admin-banner-guidance { align-items: flex-start; gap: 12px; margin-bottom: 22px; padding: 15px; border-radius: 17px; }
+  body.mcp-brand .admin-main .admin-banner-guidance p { font-size: 14px; }
+  body.mcp-brand .admin-main .admin-banner-preview-wrap { padding: 14px; }
+  body.mcp-brand .admin-main .admin-banner-preview-scene { min-height: 245px; padding: 16px; }
+  body.mcp-brand .admin-main .admin-banner-form-footer { align-items: stretch; flex-direction: column; }
+  body.mcp-brand .admin-main .admin-banner-form-footer .btn { width: 100%; }
+}
+
+/* Keep the announcement form and YouTube library readable on wide screens. */
+body.mcp-brand .admin-main #admin-banner > .admin-card {
+  width: min(100%, 900px) !important;
+  max-width: 900px !important;
+  margin-inline: auto !important;
+}
+body.mcp-brand .admin-main #admin-youtube > .admin-list-card {
+  width: min(100%, 900px) !important;
+  max-width: 900px !important;
+  margin-inline: auto !important;
+}
+body.mcp-brand .admin-main #adminYoutubeList {
+  width: min(100%, 820px) !important;
+  max-width: 820px !important;
+  margin-inline: auto !important;
+}
+body.mcp-brand .admin-main #adminYoutubeList.admin-content-list {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-items: start !important;
+  gap: 16px !important;
+}
+body.mcp-brand .admin-main #adminYoutubeList .admin-item-body { min-width: 0 !important; padding: 12px !important; }
+body.mcp-brand .admin-main #adminYoutubeList .admin-item-body strong,
+body.mcp-brand .admin-main #adminYoutubeList .admin-item-body > span { white-space: normal !important; overflow-wrap: anywhere; }
+body.mcp-brand .admin-main #adminYoutubeList .admin-item-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  padding: 0 12px 12px !important;
+}
+body.mcp-brand .admin-main #adminYoutubeList .admin-item-actions button {
+  width: 38px !important;
+  height: 38px !important;
+  flex: 0 0 38px !important;
+  padding: 0 !important;
+}
+body.mcp-brand .admin-main #adminYoutubeList .admin-drag-handle { top: 10px !important; left: 10px !important; }
+body.mcp-brand .admin-main #adminYoutubeList .admin-item-order-badge { top: 10px !important; right: 10px !important; }
+
+@media (max-width: 900px) {
+  body.mcp-brand .admin-main #admin-banner > .admin-card,
+  body.mcp-brand .admin-main #admin-youtube > .admin-list-card,
+  body.mcp-brand .admin-main #adminYoutubeList {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body.mcp-brand .admin-main #adminYoutubeList.admin-content-list { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (max-width: 600px) {
+  body.mcp-brand .admin-main #adminYoutubeList.admin-content-list { grid-template-columns: 1fr !important; }
+}
+
+body.mcp-brand .admin-main form :is(button[type="submit"], input[type="submit"]):disabled {
+  opacity: .48 !important;
+  cursor: not-allowed !important;
+  filter: saturate(.55);
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 @media (max-width: 900px) {
   body.mcp-brand .admin-main .admin-stats-grid {
     display: flex !important;
@@ -620,7 +773,7 @@ body.mcp-brand .admin-main .admin-item-media { position: relative !important; ov
 body.mcp-brand .admin-main .admin-item-media > img { transition: opacity .25s var(--a-ease); }
 body.mcp-brand .admin-main .admin-item-media.is-hidden > img { opacity: .35; }
 body.mcp-brand .admin-main .admin-item-media .admin-eye {
-  position: absolute !important; top: -8px !important; right: -8px !important; z-index: 2;
+  position: absolute !important; top: 12px !important; right: 12px !important; z-index: 2;
   width: 30px !important; height: 30px !important; min-width: 0 !important; padding: 0 !important;
   display: grid !important; place-items: center !important;
   border-radius: 50% !important; border: 0 !important; cursor: pointer;
@@ -678,6 +831,29 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgb
 .ci-history-row { display: flex; flex-direction: column; gap: 2px; padding: 12px 0; border-top: 1px solid var(--a-line); }
 .ci-history-row:first-child { border-top: 0; }
 .ci-history-row small { color: var(--a-muted); }
+.mcp-brand .admin-main #admin-avisos .ci-readonly-note {
+  display: flex !important; align-items: center; gap: 16px; width: 100%; box-sizing: border-box;
+  min-height: 0 !important; margin: 0 0 22px !important; padding: 18px 22px !important;
+  border: 1px solid rgba(169, 80, 69, .16) !important; border-radius: 20px !important;
+  background: linear-gradient(110deg, #fffaf9, #f8eae7) !important;
+  box-shadow: 0 12px 32px rgba(67, 39, 36, .045) !important;
+}
+.mcp-brand .admin-main #admin-avisos .ci-readonly-note[hidden] { display: none !important; }
+.ci-readonly-icon { display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center; border-radius: 14px; color: var(--a-wine); background: #f5dfdb; font-size: 17px; }
+.ci-readonly-note strong { display: block; margin-bottom: 3px; color: var(--a-ink); font-size: 15px; }
+.ci-readonly-note p { margin: 0; color: var(--a-muted); font-size: 13px; line-height: 1.5; }
+.mcp-brand .admin-main .ci-history-card { min-width: 0; }
+.ci-history-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ci-history-heading h3 { margin: 0 !important; }
+.ci-history-heading p { margin: 4px 0 0; color: var(--a-muted); font-size: 12px; }
+.ci-history-row { min-width: 0; overflow-wrap: anywhere; }
+.ci-history-row strong { color: var(--a-ink); }
+.ci-history-row span { color: var(--a-muted); line-height: 1.5; }
+.ci-history-card #ciHistory[aria-busy="true"] { opacity: .65; }
+@media (max-width: 560px) {
+  .mcp-brand .admin-main #admin-avisos .ci-readonly-note { align-items: flex-start; padding: 15px !important; }
+  .ci-readonly-icon { flex-basis: 36px; width: 36px; height: 36px; }
+}
 .ci-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 16px; }
 .mcp-brand .admin-main .ci-tile { padding: 16px !important; display: flex; flex-direction: column; }
 .ci-tile strong { font-size: 28px; color: var(--a-ink); }
@@ -698,6 +874,91 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgb
 .ci-rank-track i { display: block; height: 100%; background: var(--a-wine); }
 .ci-muted { color: var(--a-muted); font-size: 13px; }
 .admin-item-audit { display: block; margin-top: 2px; font-size: 11px; color: var(--a-muted); }
+
+/* ---------- Scalable event registration directory ---------- */
+.admin-list-pagination { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 4px; color:var(--a-muted); font-size:.82rem; }
+.admin-list-pagination > div { display:flex; align-items:center; gap:10px; }
+.admin-list-pagination button { display:grid; width:36px; height:36px; place-items:center; border:1px solid var(--a-line); border-radius:11px; color:var(--a-wine); background:#fff; font-family:inherit; font-size:1.25rem; font-weight:600; line-height:1; cursor:pointer; }
+.admin-list-pagination button:disabled { opacity:.42; cursor:not-allowed; }
+.admin-list-pagination button:not(:disabled):hover { background:var(--a-blush); }
+#admin-inscripciones .ci-list { gap: 18px; }
+.ci-inscriptions-overview { display: grid; grid-template-columns: repeat(3, minmax(130px, 1fr)) minmax(250px, 1.5fr); gap: 12px; }
+.ci-inscriptions-overview > article { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 78px; padding: 16px 18px; border: 1px solid var(--a-line); border-radius: 18px; background: #fff; }
+.ci-inscriptions-overview > article span { color: var(--a-muted); font-size: 12px; font-weight: 600; }
+.ci-inscriptions-overview > article strong { color: var(--a-ink); font-size: 24px; line-height: 1.1; }
+.ci-event-search, .ci-people-search { display: flex !important; flex-direction: row !important; align-items: center; gap: 10px !important; min-width: 0; padding: 0 14px; border: 1px solid var(--a-line-strong); border-radius: 15px; background: #fff; color: var(--a-muted); }
+.ci-event-search input, .ci-people-search input { width: 100%; min-width: 0; padding: 13px 0 !important; border: 0 !important; outline: 0; background: transparent !important; box-shadow: none !important; }
+.ci-events-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 2px 2px 0; }
+.ci-events-toolbar > div { display: grid; gap: 3px; }
+.ci-events-toolbar strong, .ci-people-toolbar strong { color: var(--a-ink); font-size: 15px; }
+.ci-events-toolbar span, .ci-people-count { color: var(--a-muted); font-size: 12px; }
+.ci-events-toolbar label { display: flex; align-items: center; gap: 8px; color: var(--a-muted); font-size: 13px; }
+.ci-events-toolbar select { min-height: 40px; padding: 7px 34px 7px 12px; border: 1px solid var(--a-line); border-radius: 12px; color: var(--a-ink); background: #fff; font: inherit; }
+.ci-events-results { display: grid; gap: 10px; }
+.ci-event-row { overflow: clip; border: 1px solid var(--a-line); border-radius: 20px; background: #fff; box-shadow: 0 5px 20px rgba(67, 39, 36, .035); }
+.ci-event-row[hidden] { display: none !important; }
+.ci-event-summary { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 16px 18px; }
+.ci-event-poster { display: block; width: 64px; height: 78px; object-fit: cover; border-radius: 11px; background: var(--a-blush); }
+.ci-event-copy { min-width: 0; }
+.ci-event-copy h4 { margin: 7px 0 2px; overflow-wrap: anywhere; color: var(--a-ink); font-size: 16px; line-height: 1.3; }
+.ci-event-copy > p { margin: 0; overflow: hidden; color: var(--a-muted); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.ci-event-status { display: inline-flex; align-items: center; gap: 6px; color: var(--a-muted); font-size: 11px; font-weight: 700; }
+.ci-event-status i { width: 7px; height: 7px; border-radius: 50%; background: #a99a97; }
+.ci-event-status.is-open { color: #347654; }
+.ci-event-status.is-open i { background: #4b9a69; box-shadow: 0 0 0 3px rgba(75, 154, 105, .12); }
+.ci-event-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 7px; color: var(--a-muted); font-size: 12px; }
+.ci-event-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.ci-event-meta i { color: var(--a-wine); }
+.ci-event-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.ci-event-action, .ci-export-btn, .ci-retry-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 8px 12px; border: 1px solid var(--a-line); border-radius: 12px; color: var(--a-wine); background: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.ci-event-action.is-primary { border-color: transparent; background: #f8e9e6; }
+.ci-event-action b { display: grid; min-width: 21px; height: 21px; place-items: center; border-radius: 999px; color: var(--a-wine); background: #fff; font-size: 11px; }
+.ci-chevron { transition: transform .18s ease; }
+.ci-event-action[aria-expanded="true"] .ci-chevron { transform: rotate(180deg); }
+.ci-event-panel { padding: 0 18px 18px; border-top: 1px solid var(--a-line); }
+.ci-event-panel[hidden] { display: none !important; }
+.ci-event-form { margin-top: 0; padding-top: 16px; }
+.ci-event-form .ci-check { grid-column: 1 / -1; align-items: flex-start; }
+.ci-people-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 16px 0 12px; }
+.ci-people-toolbar > div:first-child { display: grid; gap: 3px; }
+.ci-people-actions { display: flex; align-items: center; gap: 8px; }
+.ci-people-search { min-width: min(340px, 35vw); }
+.ci-export-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ci-table-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--a-line); border-radius: 13px; }
+.ci-people-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ci-people-table th, .ci-people-table td { padding: 11px 13px; border-bottom: 1px solid var(--a-line); text-align: left; white-space: nowrap; }
+.ci-people-table th { color: var(--a-muted); background: #fbf7f6; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+.ci-people-table tr:last-child td { border-bottom: 0; }
+.ci-people-table a { color: var(--a-wine); }
+.ci-people-pagination { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; color: var(--a-muted); font-size: 12px; }
+.ci-people-pagination > div { display: flex; align-items: center; gap: 10px; }
+.ci-people-pagination button { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid var(--a-line); border-radius: 10px; color: var(--a-wine); background: #fff; cursor: pointer; }
+.ci-people-pagination button:disabled { opacity: .45; cursor: not-allowed; }
+.ci-retry-btn { margin-left: 8px; }
+.ci-event-row .ci-audit { padding-top: 10px; border-top: 1px solid var(--a-line); }
+@media (max-width: 900px) {
+  .ci-inscriptions-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ci-event-search { grid-column: 1 / -1; }
+  .ci-event-summary { grid-template-columns: 56px minmax(0, 1fr); }
+  .ci-event-poster { width: 56px; height: 68px; }
+  .ci-event-controls { grid-column: 2; justify-content: flex-start; }
+}
+@media (max-width: 600px) {
+  .admin-list-pagination { align-items:flex-start; flex-direction:column; }
+  .ci-inscriptions-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ci-inscriptions-overview > article:last-of-type { grid-column: 1 / -1; }
+  .ci-events-toolbar, .ci-people-toolbar { align-items: stretch; flex-direction: column; }
+  .ci-events-toolbar label { justify-content: space-between; }
+  .ci-events-toolbar select { flex: 1; }
+  .ci-event-summary { gap: 11px; padding: 13px; }
+  .ci-event-controls { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1.2fr; }
+  .ci-event-action { min-height: 42px; }
+  .ci-event-panel { padding: 0 13px 14px; }
+  .ci-people-actions { align-items: stretch; flex-direction: column; }
+  .ci-people-search { min-width: 0; }
+  .ci-export-btn { align-self: flex-start; }
+  .ci-people-pagination { align-items: flex-start; flex-direction: column; }
+}
 #adminDashboard:has(#admin-inscripciones.active, #admin-seguimiento.active, #admin-avisos.active, #admin-estadisticas.active, #admin-permisos.active) .admin-stats-grid { display: none !important; }
 @media (max-width: 720px) {
   .ci-tabs, .ci-tiles { grid-template-columns: repeat(2, 1fr); }
@@ -723,6 +984,30 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgb
 .perm-no-events-edit #adminEventosList .admin-eye,
 .perm-no-content-publish :is(#adminDestacadasList, #adminYoutubeList) .admin-eye,
 .perm-no-gallery-edit #adminGaleriaList .admin-eye { pointer-events: none; opacity: .55; }
+
+/* Read-only gallery cards have no drag handle or action buttons. Use only the
+   thumbnail and copy tracks so the title keeps the full available width. */
+body.perm-no-gallery-edit #adminGaleriaList .admin-content-item {
+  display: grid !important;
+  grid-template-columns: 92px minmax(0, 1fr) !important;
+  width: 100% !important;
+}
+body.perm-no-gallery-edit #adminGaleriaList .admin-drag-handle,
+body.perm-no-gallery-edit #adminGaleriaList .admin-item-actions { display: none !important; }
+body.perm-no-gallery-edit #adminGaleriaList .admin-item-media {
+  grid-column: 1 !important;
+  width: 92px !important;
+  height: 92px !important;
+}
+body.perm-no-gallery-edit #adminGaleriaList .admin-item-body {
+  grid-column: 2 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 768px) {
+  body.perm-no-gallery-edit #adminGaleriaList .admin-content-item { grid-template-columns: 64px minmax(0, 1fr) !important; }
+  body.perm-no-gallery-edit #adminGaleriaList .admin-item-media { width: 64px !important; height: 64px !important; }
+}
 
 /* ---------- Roles y permisos (assets/js/roles-admin.js) ---------- */
 .rp-assign-card h3, #admin-permisos .admin-list-card h3 { margin-bottom: 12px; }
@@ -765,6 +1050,7 @@ body.rp-sheet-open { overflow: hidden; }
 .rp-sheet-bar h3 { margin: 0; font-size: 16px; }
 .rp-sheet-bar button { border: 0; background: none; font: inherit; font-size: 15px; color: var(--a-muted); cursor: pointer; }
 .rp-sheet-bar .rp-save { color: var(--a-wine); font-weight: 700; }
+.rp-sheet-bar .rp-save:disabled { opacity: .42; cursor: not-allowed; }
 .rp-sheet-body { padding: 18px; overflow: auto; }
 .rp-mini { margin: 0 0 8px 2px; font-size: 13px; font-weight: 600; color: var(--a-muted); }
 .rp-card { background: #fff; border-radius: 16px; overflow: hidden; }
@@ -827,3 +1113,175 @@ body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) .ci-wide { grid-
 body.mcp-brand .admin-main :is(.ci-follow-form, .ci-event-form) .btn { justify-self: start; min-height: 46px; }
 body.mcp-brand .admin-main .ci-person-head :is(h4, p) { text-align: left !important; margin-left: 0 !important; margin-right: 0 !important; }
 body.mcp-brand .admin-main .ci-person-head p { margin-top: 2px !important; }
+
+/* Disabled Save state must remain visible even on modal primary buttons. */
+body.mcp-brand .admin-main form :is(button[type="submit"], input[type="submit"]):disabled,
+body.mcp-brand .admin-main .admin-edit-modal form :is(button[type="submit"], input[type="submit"]):disabled {
+  opacity: .48 !important;
+  cursor: not-allowed !important;
+  filter: saturate(.55) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* =========================================================
+   Review pass (2026-11-17): premium polish for Inscripciones,
+   Banner and Avisos push. Selectors are scoped to the admin
+   panel and strong enough to beat the public site's global
+   `section { text-align:center !important }` and input styles.
+========================================================= */
+body.mcp-brand .admin-main :is(#admin-inscripciones, #admin-avisos, #admin-banner) :is(section, article, aside, div, p, h3, h4, label, span, strong, small):not(.admin-empty) { text-align: left !important; }
+
+/* Grid items must be allowed to shrink, or wide tables push the page sideways on phones. */
+body.mcp-brand .admin-main :is(#admin-inscripciones, #admin-avisos, #admin-banner) > *,
+body.mcp-brand .admin-main #admin-inscripciones :is(.ci-list, .ci-events-results, .ci-event-row, .ci-event-panel, .ci-people-results, .ci-table-scroll),
+body.mcp-brand .admin-main #admin-banner :is(.admin-banner-editor, .admin-banner-editor-grid, .admin-banner-fields, .admin-banner-preview-wrap) { min-width: 0 !important; max-width: 100%; box-sizing: border-box; }
+body.mcp-brand .admin-main #admin-inscripciones .ci-list { margin-top: 0 !important; gap: 22px !important; }
+
+/* Search fields: one clean capsule, no inner box. */
+body.mcp-brand .admin-main :is(.ci-event-search, .ci-people-search) {
+  min-height: 48px; padding: 0 16px !important; border: 1px solid rgba(169, 80, 69, .14) !important; border-radius: 999px !important;
+  background: #fff !important; box-shadow: 0 1px 2px rgba(63, 38, 35, .04), inset 0 1px 0 #fff; transition: border-color .18s ease, box-shadow .18s ease;
+}
+body.mcp-brand .admin-main :is(.ci-event-search, .ci-people-search):focus-within { border-color: rgba(169, 80, 69, .45) !important; box-shadow: 0 0 0 4px rgba(169, 80, 69, .10); }
+body.mcp-brand .admin-main :is(.ci-event-search, .ci-people-search) i { color: #a78a85; font-size: 14px; }
+body.mcp-brand .admin-main :is(.ci-event-search, .ci-people-search) input[type="search"] {
+  flex: 1; min-height: 0 !important; height: auto !important; margin: 0 !important; padding: 12px 0 !important;
+  border: 0 !important; border-radius: 0 !important; outline: 0 !important; background: transparent !important; box-shadow: none !important; font-size: 14px !important;
+}
+
+/* Summary: Apple-style stat tiles with an icon chip. */
+body.mcp-brand .admin-main .ci-inscriptions-overview { grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(240px, 1.4fr) !important; align-items: stretch; gap: 14px !important; }
+body.mcp-brand .admin-main .ci-inscriptions-overview > article {
+  flex-direction: row !important; align-items: center; justify-content: flex-start !important; gap: 14px !important; min-height: 86px; padding: 18px 20px !important;
+  border: 1px solid rgba(169, 80, 69, .10) !important; border-radius: 22px !important;
+  background: linear-gradient(160deg, #fff 0%, #fffaf9 100%) !important; box-shadow: 0 1px 2px rgba(63, 38, 35, .04), 0 12px 30px rgba(63, 38, 35, .05);
+}
+body.mcp-brand .admin-main .ci-inscriptions-overview > article > i {
+  display: grid; flex: 0 0 42px; width: 42px; height: 42px; place-items: center; border-radius: 14px; color: var(--a-wine); background: #f8e7e3; font-size: 17px;
+}
+body.mcp-brand .admin-main .ci-inscriptions-overview > article.is-accent > i { color: #2f7d4f; background: #e6f3eb; }
+body.mcp-brand .admin-main .ci-inscriptions-overview > article > div { display: grid; gap: 3px; min-width: 0; }
+body.mcp-brand .admin-main .ci-inscriptions-overview > article span { font-size: 12px !important; line-height: 1.3; }
+body.mcp-brand .admin-main .ci-inscriptions-overview > article strong { font-size: 28px !important; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+body.mcp-brand .admin-main .ci-inscriptions-overview > .ci-event-search { align-self: center; }
+
+body.mcp-brand .admin-main .ci-events-toolbar { padding: 8px 4px 0 !important; }
+body.mcp-brand .admin-main .ci-events-toolbar strong { font-size: 17px !important; letter-spacing: -.01em; }
+body.mcp-brand .admin-main .ci-events-toolbar select { min-height: 42px !important; border-radius: 999px !important; padding-inline: 16px 36px !important; border-color: rgba(169, 80, 69, .14) !important; }
+
+/* Event rows */
+body.mcp-brand .admin-main .ci-events-results { gap: 14px !important; }
+body.mcp-brand .admin-main .ci-event-row {
+  border: 1px solid rgba(169, 80, 69, .10) !important; border-radius: 24px !important; background: #fff !important;
+  box-shadow: 0 1px 2px rgba(63, 38, 35, .04), 0 14px 34px rgba(63, 38, 35, .055) !important; transition: box-shadow .2s ease, border-color .2s ease, transform .2s ease;
+}
+body.mcp-brand .admin-main .ci-event-row:hover { border-color: rgba(169, 80, 69, .2) !important; box-shadow: 0 2px 4px rgba(63, 38, 35, .05), 0 20px 44px rgba(63, 38, 35, .09) !important; }
+body.mcp-brand .admin-main .ci-event-row.is-signup { border-color: rgba(47, 125, 79, .18) !important; }
+body.mcp-brand .admin-main .ci-event-summary { grid-template-columns: 76px minmax(0, 1fr) auto !important; gap: 20px !important; padding: 18px 20px !important; }
+body.mcp-brand .admin-main .ci-event-poster { width: 76px !important; height: 96px !important; border-radius: 14px !important; box-shadow: 0 6px 16px rgba(63, 38, 35, .14); }
+body.mcp-brand .admin-main .ci-event-status { padding: 4px 10px 4px 8px; border-radius: 999px; background: #f3eeed; }
+body.mcp-brand .admin-main .ci-event-status.is-open { background: #e8f4ec; }
+body.mcp-brand .admin-main .ci-event-copy h4 { margin: 9px 0 3px !important; font-size: 17px !important; letter-spacing: -.01em; }
+body.mcp-brand .admin-main .ci-event-meta { margin-top: 9px !important; gap: 6px 16px !important; }
+body.mcp-brand .admin-main .ci-event-action { min-height: 42px !important; padding: 9px 14px !important; border-radius: 999px !important; transition: background .18s ease, border-color .18s ease; }
+body.mcp-brand .admin-main .ci-event-action:hover { background: #fbf3f1; border-color: rgba(169, 80, 69, .22); }
+body.mcp-brand .admin-main .ci-event-action.is-primary { background: var(--a-wine) !important; color: #fff !important; }
+body.mcp-brand .admin-main .ci-event-action.is-primary b { color: var(--a-wine); }
+body.mcp-brand .admin-main .ci-event-action.is-primary:hover { filter: brightness(1.06); }
+body.mcp-brand .admin-main .ci-event-panel { padding: 0 20px 20px !important; background: linear-gradient(180deg, #fdf9f8, #fff 80px); }
+body.mcp-brand .admin-main .ci-people-toolbar { padding: 18px 0 14px !important; }
+body.mcp-brand .admin-main .ci-export-btn { min-height: 46px; padding-inline: 16px !important; border-radius: 999px !important; }
+body.mcp-brand .admin-main .ci-table-scroll { border-color: rgba(169, 80, 69, .10) !important; border-radius: 16px !important; background: #fff; }
+body.mcp-brand .admin-main .ci-people-table tbody tr:hover td { background: #fdf7f6; }
+body.mcp-brand .admin-main .ci-people-table td:first-child { color: var(--a-ink); font-weight: 650; }
+
+/* Banner */
+body.mcp-brand .admin-main #admin-banner .admin-banner-section-head { margin-top: 0 !important; }
+body.mcp-brand .admin-main #admin-banner .admin-banner-fields > :first-child { margin-top: 0 !important; }
+body.mcp-brand .admin-main .admin-banner-preview-mark { font-size: 15px; }
+body.mcp-brand .admin-main .admin-banner-preview-card { text-align: left !important; }
+
+/* Avisos push: form on the left, lock-screen preview on the right. */
+body.mcp-brand .admin-main #admin-avisos .ci-broadcast { max-width: 980px !important; }
+body.mcp-brand .admin-main #ciBroadcastForm {
+  display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px) !important; column-gap: clamp(24px, 4vw, 48px) !important; row-gap: 18px !important; align-items: start !important;
+}
+body.mcp-brand .admin-main #ciBroadcastForm > :not(.ci-preview-scene) { grid-column: 1 !important; min-width: 0; }
+body.mcp-brand .admin-main #ciBroadcastForm > .ci-preview-scene { grid-column: 2 !important; grid-row: 1 / span 6 !important; }
+body.mcp-brand .admin-main #ciBroadcastForm > button[type="submit"] { justify-self: start !important; min-height: 50px; padding-inline: 26px !important; }
+body.mcp-brand .admin-main .ci-reach {
+  justify-self: start; display: inline-flex !important; align-items: center; gap: 7px; margin: -6px 0 0 !important; padding: 6px 12px !important;
+  border-radius: 999px; background: #f6efed; color: #6d5250 !important; font-size: 12px !important; font-weight: 600;
+}
+body.mcp-brand .admin-main .ci-reach::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #4b9a68; box-shadow: 0 0 0 3px rgba(75, 154, 104, .14); }
+body.mcp-brand .admin-main .ci-preview-scene {
+  position: sticky; top: 24px; display: grid; gap: 14px; padding: 20px; border-radius: 26px;
+  background: radial-gradient(120% 90% at 50% 0%, #6d3a35 0%, #3d2220 60%, #2b1716 100%); box-shadow: 0 18px 44px rgba(63, 38, 35, .2);
+}
+body.mcp-brand .admin-main .ci-preview-label { color: rgba(255, 236, 231, .72); font-size: 10.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+body.mcp-brand .admin-main .ci-preview-scene .ci-preview {
+  align-items: flex-start; padding: 13px 14px !important; border: 1px solid rgba(255, 255, 255, .5); border-radius: 20px !important;
+  background: rgba(255, 250, 249, .9) !important; box-shadow: 0 10px 28px rgba(0, 0, 0, .28); backdrop-filter: blur(18px);
+}
+body.mcp-brand .admin-main .ci-preview-scene .ci-preview > div { min-width: 0; gap: 2px; }
+body.mcp-brand .admin-main .ci-preview-scene .ci-preview strong,
+body.mcp-brand .admin-main .ci-preview-scene .ci-preview span:not(.ci-preview-icon) { overflow-wrap: anywhere; }
+body.mcp-brand .admin-main .ci-preview-note { margin: 0 !important; color: rgba(255, 236, 231, .62) !important; font-size: 12px !important; }
+body.mcp-brand .admin-main .ci-history-heading p { margin: 6px 0 0 !important; padding: 0 !important; }
+body.mcp-brand .admin-main #ciHistory { display: grid; gap: 10px; margin-top: 18px; }
+body.mcp-brand .admin-main .ci-history-row {
+  display: grid !important; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px !important;
+  border: 1px solid rgba(169, 80, 69, .09) !important; border-radius: 18px; background: #fffbfa;
+}
+body.mcp-brand .admin-main .ci-history-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 13px; color: var(--a-wine); background: #f8e7e3; font-size: 14px; }
+body.mcp-brand .admin-main .ci-history-row > div { display: grid; gap: 4px; min-width: 0; }
+body.mcp-brand .admin-main .ci-history-row strong { font-size: 15px; }
+body.mcp-brand .admin-main .ci-history-row > div > span { font-size: 14px; }
+body.mcp-brand .admin-main .ci-history-row small { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+body.mcp-brand .admin-main .ci-history-row small span { padding: 3px 9px; border-radius: 999px; background: #f3ebe9; color: #765f5b; font-size: 11.5px; font-weight: 600; }
+
+@media (max-width: 900px) {
+  body.mcp-brand .admin-main .ci-inscriptions-overview { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  body.mcp-brand .admin-main .ci-inscriptions-overview > .ci-event-search { grid-column: 1 / -1; }
+  body.mcp-brand .admin-main .ci-event-summary { grid-template-columns: 64px minmax(0, 1fr) !important; }
+  body.mcp-brand .admin-main .ci-event-poster { width: 64px !important; height: 80px !important; }
+  body.mcp-brand .admin-main #ciBroadcastForm { grid-template-columns: minmax(0, 1fr) !important; }
+  body.mcp-brand .admin-main #ciBroadcastForm > .ci-preview-scene { grid-column: 1 !important; grid-row: auto !important; position: static; }
+}
+@media (max-width: 600px) {
+  body.mcp-brand .admin-main .ci-inscriptions-overview { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px !important; }
+  body.mcp-brand .admin-main .ci-inscriptions-overview > article { min-height: 0; padding: 14px !important; gap: 10px !important; border-radius: 18px !important; }
+  body.mcp-brand .admin-main .ci-inscriptions-overview > article > i { flex-basis: 34px; width: 34px; height: 34px; border-radius: 11px; font-size: 14px; }
+  body.mcp-brand .admin-main .ci-inscriptions-overview > article strong { font-size: 22px !important; }
+  body.mcp-brand .admin-main .ci-inscriptions-overview > article:nth-of-type(3) { grid-column: 1 / -1; }
+  body.mcp-brand .admin-main .ci-event-summary { gap: 12px !important; padding: 14px !important; }
+  body.mcp-brand .admin-main .ci-event-controls { grid-template-columns: 1fr 1fr !important; }
+  body.mcp-brand .admin-main .ci-event-panel { padding: 0 14px 14px !important; }
+  body.mcp-brand .admin-main .ci-export-btn { align-self: stretch !important; }
+  body.mcp-brand .admin-main #admin-banner > .admin-card.admin-banner-editor { margin-inline: 0 !important; }
+  body.mcp-brand .admin-main #ciBroadcastForm > button[type="submit"] { justify-self: stretch !important; }
+}
+
+/* The public site pads every <section>; admin sections must not inherit that. */
+body.mcp-brand .admin-main :is(#admin-inscripciones, #admin-avisos, #admin-banner) section { width: auto !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; min-height: 0 !important; background: none; }
+body.mcp-brand .admin-main #admin-inscripciones section.ci-inscriptions-overview { background: none !important; }
+body.mcp-brand .admin-main #admin-avisos > :is(.ci-broadcast, .ci-history-card) { width: 100% !important; max-width: 1080px !important; margin-inline: 0 !important; }
+@media (max-width: 900px) {
+  body.mcp-brand .admin-main .admin-banner-editor-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
+/* Phones: participants become compact cards instead of a sideways-scrolling table. */
+@media (max-width: 600px) {
+  body.mcp-brand .admin-main .ci-table-scroll { overflow: visible !important; border: 0 !important; background: none !important; }
+  body.mcp-brand .admin-main .ci-people-table thead { display: none; }
+  body.mcp-brand .admin-main .ci-people-table, body.mcp-brand .admin-main .ci-people-table tbody { display: grid; gap: 10px; }
+  body.mcp-brand .admin-main .ci-people-table tr { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid rgba(169, 80, 69, .10); border-radius: 18px; background: #fff; box-shadow: 0 6px 18px rgba(63, 38, 35, .05); }
+  body.mcp-brand .admin-main .ci-people-table td { display: flex; justify-content: space-between; gap: 12px; padding: 0 !important; border: 0 !important; white-space: normal !important; overflow-wrap: anywhere; font-size: 13px; }
+  body.mcp-brand .admin-main .ci-people-table td::before { content: attr(data-label); flex: none; color: var(--a-muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  body.mcp-brand .admin-main .ci-people-table td:first-child { margin-bottom: 4px; font-size: 15px; }
+  body.mcp-brand .admin-main .ci-people-table td:first-child::before { content: none; }
+  body.mcp-brand .admin-main .ci-people-table td:not(:first-child) { text-align: right !important; }
+  body.mcp-brand .admin-main .ci-people-table tbody tr:hover td { background: none; }
+}
+body.mcp-brand .admin-main .admin-banner-fields { grid-template-columns: minmax(0, 1fr) !important; }
+body.mcp-brand .admin-main .admin-banner-fields > * { min-width: 0; }

@@ -163,9 +163,15 @@
     return Array.from(box.querySelectorAll("[data-rp-perm]")).filter((i) => i.checked).map((i) => i.dataset.rpPerm);
   }
 
+  function syncSheetSave() {
+    const button = $("rpSheetSave");
+    if (button) button.disabled = !sheet || typeof sheet.isDirty !== "function" || !sheet.isDirty();
+  }
+
   function openSheet(html, onSave, saveLabel = "Guardar") {
     $("rpSheetBody").innerHTML = html;
     $("rpSheetSave").textContent = saveLabel;
+    $("rpSheetSave").disabled = true;
     $("rpSheet").hidden = false;
     document.body.classList.add("rp-sheet-open");
     sheet = { onSave };
@@ -185,6 +191,8 @@
     if (ids) state.picked = ids;
     const people = state.picked.map(userById).filter(Boolean);
     let role = people.map((u) => roleOf(u.userId)).find(Boolean) || null;
+    const initialRoleId = role?.id || null;
+    const initialPerms = role ? [...(state.perms[role.id] || [])].sort() : [];
     const draw = () => {
       const value = role ? (sheet?.draft ?? (state.perms[role.id] || [])) : [];
       $("rpSheetBody").innerHTML = `<p class="rp-mini">Para</p><div class="rp-chips">${people.map((u) => `<span class="rp-chip is-static">${esc(u.nombre || u.email)}</span>`).join("")}</div>
@@ -207,11 +215,18 @@
     });
     $("rpSheetTitle").textContent = "Asignar rol";
     draw();
-    sheet.redraw = (newRoleId) => { role = state.roles.find((r) => r.id === newRoleId) || null; sheet.draft = null; draw(); };
+    sheet.isDirty = () => {
+      if (!role) return false;
+      const next = readEditor($("rpSheetBody")).sort();
+      return role.id !== initialRoleId || JSON.stringify(next) !== JSON.stringify(initialPerms);
+    };
+    sheet.redraw = (newRoleId) => { role = state.roles.find((r) => r.id === newRoleId) || null; sheet.draft = null; draw(); syncSheetSave(); };
+    syncSheetSave();
   }
 
   function openRole(roleId) {
     const role = roleId ? state.roles.find((r) => r.id === roleId) : null;
+    const initial = JSON.stringify({ name: role?.name || "", description: role?.description || "", permissions: [...(role ? state.perms[role.id] || [] : [])].sort() });
     openSheet(`<p class="rp-mini">Nombre</p><input class="rp-input" id="rpRoleName" maxlength="80" value="${esc(role?.name || "")}" placeholder="Ej. Coordinadora Europa">
       <p class="rp-mini" style="margin-top:12px">Descripción</p><textarea class="rp-input" id="rpRoleDesc" maxlength="300" rows="3" placeholder="Para qué sirve este rol">${esc(role?.description || "")}</textarea>
       <p class="rp-mini" style="margin-top:16px">Permisos</p><div id="rpEditor">${editorHtml(Boolean(role?.view_only), role ? state.perms[role.id] || [] : [])}</div>`, async () => {
@@ -225,6 +240,12 @@
       toast("success", "Rol guardado", name);
     });
     $("rpSheetTitle").textContent = role ? "Editar rol" : "Nuevo rol";
+    sheet.isDirty = () => JSON.stringify({
+      name: $("rpRoleName")?.value.trim() || "",
+      description: $("rpRoleDesc")?.value.trim() || "",
+      permissions: readEditor($("rpSheetBody")).sort()
+    }) !== initial;
+    syncSheetSave();
   }
 
   async function openOverrides(userId) {
@@ -235,6 +256,7 @@
     const state2 = Object.fromEntries(CATALOG.map((p) => [p.key, null]));
     (data || []).forEach((row) => { state2[row.permission_key] = row.allowed; });
     const inherited = state.perms[role.id] || [];
+    const initialOverrides = JSON.stringify(state2);
     const draw = () => {
       $("rpSheetBody").innerHTML = `<div class="rp-person-text"><strong>${esc(u.nombre || "Sin nombre")}</strong><span>${esc(u.email)} · ${esc(role.name)}</span></div>
         <p class="rp-hint" style="margin-top:10px">Toca un permiso para cambiarlo solo para esta persona: Heredar (lo que diga su rol) → Permitir → Denegar.${role.view_only ? " Su rol es de solo lectura: solo puedes ajustar qué puede ver." : ""}</p>
@@ -256,8 +278,11 @@
       const cur = state2[key]; const canAllow = !role.view_only || actionOf(key) === "view";
       state2[key] = cur === null ? (inherited.includes(key) ? false : canAllow ? true : false) : cur === true ? false : null;
       draw();
+      syncSheetSave();
     };
+    sheet.isDirty = () => JSON.stringify(state2) !== initialOverrides;
     draw();
+    syncSheetSave();
   }
 
   function wire() {
@@ -271,8 +296,9 @@
       const saveButton = e.currentTarget;
       saveButton.disabled = true;
       try { await sheet.onSave(); } catch (err) { toast("error", "No se pudo guardar", err.message); }
-      finally { saveButton.disabled = false; }
+      finally { syncSheetSave(); }
     });
+    $("rpSheetBody").addEventListener("input", syncSheetSave);
     $("rpRoot").addEventListener("click", async (e) => {
       const pick = e.target.closest("[data-rp-pick]");
       if (pick) { const id = pick.dataset.rpPick; state.picked = state.picked.includes(id) ? state.picked.filter((x) => x !== id) : [...state.picked, id]; return render(); }
@@ -290,7 +316,7 @@
     });
     $("rpSheetBody").addEventListener("change", (e) => {
       if (e.target.name === "rpRole") return sheet?.redraw?.(e.target.value);
-      if (e.target.matches("[data-rp-perm]")) { const box = $("rpEditor"); if (box) { const v = readEditor(box); if (sheet) sheet.draft = v; const vo = Boolean(box.querySelector(".rp-note")); box.innerHTML = editorHtml(vo, v); } }
+      if (e.target.matches("[data-rp-perm]")) { const box = $("rpEditor"); if (box) { const v = readEditor(box); if (sheet) sheet.draft = v; const vo = Boolean(box.querySelector(".rp-note")); box.innerHTML = editorHtml(vo, v); syncSheetSave(); } }
     });
     $("rpSheetBody").addEventListener("click", (e) => {
       const preset = e.target.closest("[data-rp-preset]");
@@ -298,7 +324,7 @@
         const box = $("rpEditor"); const vo = Boolean(box.querySelector(".rp-note"));
         const acts = PRESETS[Number(preset.dataset.rpPreset)][1];
         const v = CATALOG.filter((p) => (acts === null || acts.includes(p.action)) && (!vo || p.action === "view")).map((p) => p.key);
-        if (sheet) sheet.draft = v; box.innerHTML = editorHtml(vo, v); return;
+        if (sheet) sheet.draft = v; box.innerHTML = editorHtml(vo, v); syncSheetSave(); return;
       }
       const cyc = e.target.closest("[data-rp-cycle]"); if (cyc) sheet?.cycle?.(cyc.dataset.rpCycle);
     });

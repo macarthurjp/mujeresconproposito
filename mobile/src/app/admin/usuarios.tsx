@@ -10,7 +10,7 @@ import { AdminLogin } from '@/components/admin-login';
 import { useAdmin } from '@/lib/use-admin';
 import {
   changeMyAdminEmail, inviteUser, listAdminRoleAssignments, listUsers, PERMISSIONS, resetUserPassword, restoreUser, revokeUser,
-  setMyBirthdayCalendar, setUserRole, type ManagedUser,
+  setMyBirthdayCalendar, setUserName, setUserRole, type ManagedUser,
 } from '@/lib/admin';
 
 type GroupKey = 'super' | 'team' | 'none' | 'revoked';
@@ -65,6 +65,7 @@ function UserSheet({ user, onClose, onChanged }: { user: ManagedUser; onClose: (
   const [superAdmin, setSuperAdmin] = useState(user.isSuperAdmin);
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState(user.email);
+  const [nombre, setNombre] = useState(user.nombre || '');
   const self = user.isCurrentUser;
 
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
@@ -101,6 +102,16 @@ function UserSheet({ user, onClose, onChanged }: { user: ManagedUser; onClose: (
             <Text style={s.userName}>{user.nombre || user.email}</Text>
             <Text style={s.userMail}>{user.email}{self ? ' · Tu cuenta' : ''}</Text>
           </View>
+
+          <Group header="Nombre" footer="Así aparece en el panel, en los registros de cambios y en los correos.">
+            <InputRow label="Nombre completo" value={nombre} onChangeText={setNombre} placeholder="Ej: Ana Pérez" maxLength={120} autoCapitalize="words" editable={!busy} />
+            <Row icon="create-outline" label="Guardar nombre" chevron={false} onPress={() => {
+              const next = nombre.trim();
+              if (next.length < 2) return Alert.alert('Nombre no válido', 'Escribe al menos 2 caracteres.');
+              if (next === (user.nombre || '').trim()) return Alert.alert('Sin cambios', 'El nombre no ha cambiado.');
+              void run(() => setUserName(user.userId, next), 'Nombre actualizado');
+            }} />
+          </Group>
 
           {!self && !superAdmin ? <Group header="Acceso a módulos" footer="Qué puede ver y hacer en el panel se define con su rol.">
             <Row icon="shield-checkmark" tint="#6b5b95" label={user.roleName ? `Rol: ${user.roleName}` : 'Sin rol asignado'} sub="Asignar o cambiar en Roles y permisos" onPress={() => router.push('/admin/roles' as Href)} />

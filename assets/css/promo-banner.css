@@ -94,3 +94,63 @@
     max-width: none;
   }
 }
+
+/* Premium pass: matches the admin preview (eyebrow, serif title, wine accent)
+   and shows the remaining time as a thin bar that pauses on hover/focus. */
+.promo-banner {
+  max-width: 360px;
+  padding: 18px 40px 20px 18px;
+  overflow: hidden;
+  border: 1px solid rgba(169, 80, 69, 0.12);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 2px 6px rgba(63, 38, 35, 0.06), 0 22px 50px rgba(63, 38, 35, 0.16);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+.promo-banner-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: #f8e4e0;
+  color: #a64b43;
+  font-size: 1rem;
+}
+.promo-banner-text { gap: 4px; min-width: 0; }
+.promo-banner-eyebrow {
+  color: #a64b43;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.promo-banner .promo-banner-text strong {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #3f2623;
+  overflow-wrap: anywhere;
+}
+.promo-banner .promo-banner-text span { font-size: 0.9rem; line-height: 1.45; color: #6d5250; overflow-wrap: anywhere; }
+.promo-banner-close {
+  top: 12px;
+  right: 12px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.05rem;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.promo-banner-close:hover, .promo-banner-close:focus-visible { background: #f6ecea; color: #3f2623; }
+.promo-banner-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(169, 80, 69, 0.08); }
+.promo-banner-progress i { display: block; height: 100%; background: linear-gradient(90deg, #c9a46b, #a64b43); transform-origin: left center; transform: scaleX(1); }
+.promo-banner.show .promo-banner-progress i { animation: promo-banner-countdown var(--promo-duration, 12000ms) linear forwards; }
+.promo-banner.is-paused .promo-banner-progress i { animation-play-state: paused; }
+@keyframes promo-banner-countdown { to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .promo-banner.show .promo-banner-progress i { animation: none; }
+}

@@ -2833,10 +2833,10 @@ function renderContactCalendar(apiData = {}) {
 	  const adminCurrentEmailForm = document.getElementById("adminCurrentEmailForm");
 	  const adminCurrentEmail = document.getElementById("adminCurrentEmail");
 
-	  function showAdminMsg(el, text, ok = true) {
+	  function showAdminMsg(el, text, ok = true, progress = false) {
 	    if (!el) return;
 	    el.style.display = "block";
-	    el.className = `form-message ${ok ? "ok" : "err"}`;
+	    el.className = `form-message ${ok ? "ok" : "err"}${progress ? " is-progress" : ""}`;
 	    el.textContent = text;
 	  }
 
@@ -4301,7 +4301,10 @@ function renderContactCalendar(apiData = {}) {
 	    const users = (Array.isArray(result?.users) ? result.users : []).map((u) => ({ ...u, roleName: roleNames.get(u.userId) || null }));
 	    users.sort((a, b) => String(a.email || "").localeCompare(String(b.email || ""), "es"));
 	    const currentUser = users.find((entry) => entry.isCurrentUser);
-	    if (adminCurrentEmail && currentUser?.email) adminCurrentEmail.value = currentUser.email;
+	    if (adminCurrentEmail && currentUser?.email) {
+	      adminCurrentEmail.value = currentUser.email;
+	      window.McpFormDirty?.markSaved(adminCurrentEmailForm);
+	    }
 	    adminRolesCache = users;
 	    renderAdminRolesList();
 	  }
@@ -4410,26 +4413,35 @@ function renderContactCalendar(apiData = {}) {
 	      this.reset();
 	      await loadAdminRoles();
 	      showAdminToast("success", "Usuario creado", "La invitación fue enviada por correo.");
+	      window.McpFormDirty?.markSaved(this);
 	    } catch (error) {
 	      showAdminToast("error", "No se pudo crear el usuario", error?.message || "Intenta nuevamente.");
+	      window.McpFormDirty?.markFailed(this);
 	    } finally {
-	      if (button) button.disabled = false;
+	      if (window.McpFormDirty) window.McpFormDirty.sync(this);
+	      else if (button) button.disabled = false;
 	    }
 	  });
 
 	  adminCurrentEmailForm?.addEventListener("submit", async function (event) {
 	    event.preventDefault();
 	    const button = this.querySelector('button[type="submit"]');
-	    if (!window.confirm("¿Cambiar el correo de acceso del Super Admin?")) return;
+	    if (!window.confirm("¿Cambiar el correo de acceso del Super Admin?")) {
+	      window.setTimeout(() => window.McpFormDirty?.markFailed(this), 0);
+	      return;
+	    }
 	    if (button) button.disabled = true;
 	    try {
 	      await invokeManageUsers({ action: "change_my_email", email: adminCurrentEmail?.value || "" });
 	      await loadAdminRoles();
 	      showAdminToast("success", "Correo actualizado", "Desde ahora debes iniciar sesión con el nuevo correo.");
+	      window.McpFormDirty?.markSaved(this);
 	    } catch (error) {
 	      showAdminToast("error", "No se pudo cambiar el correo", error?.message || "Intenta nuevamente.");
+	      window.McpFormDirty?.markFailed(this);
 	    } finally {
-	      if (button) button.disabled = false;
+	      if (window.McpFormDirty) window.McpFormDirty.sync(this);
+	      else if (button) button.disabled = false;
 	    }
 	  });
 
@@ -4798,7 +4810,7 @@ function renderContactCalendar(apiData = {}) {
     const iconFile = document.getElementById("adminEventoIconoFoto")?.files?.[0];
 
     try {
-      if (iconFile) showAdminMsg(msg, "Optimizando y subiendo imagen...", true);
+      if (iconFile) showAdminMsg(msg, "Optimizando y subiendo imagen...", true, true);
       const icono = iconFile
         ? await uploadImageToSupabaseBucket(iconFile, "mcp930-images", "eventos")
         : document.getElementById("adminEventoIcono")?.value || "✦";
@@ -4852,7 +4864,7 @@ function renderContactCalendar(apiData = {}) {
     if (!file) { showAdminMsg(msg, "Selecciona una foto.", false); return; }
 
     try {
-      showAdminMsg(msg, "Optimizando y subiendo imagen...", true);
+      showAdminMsg(msg, "Optimizando y subiendo imagen...", true, true);
       await window.mcpUploadDestacada({
         file,
         nombre: document.getElementById("adminDestacadaNombre")?.value || "",
@@ -4898,7 +4910,12 @@ function renderContactCalendar(apiData = {}) {
     const grid = document.getElementById("adminGaleriaThumbs");
     const head = document.getElementById("adminGaleriaThumbsHead");
     const count = document.getElementById("adminGaleriaThumbsCount");
+    const pendingCount = document.getElementById("adminGaleriaPendingCount");
     if (!grid || !head || !count) return;
+    if (pendingCount) {
+      pendingCount.value = String(galleryPendingFiles.length);
+      pendingCount.dispatchEvent(new Event("input", { bubbles: true }));
+    }
     head.hidden = galleryPendingFiles.length === 0;
     grid.hidden = galleryPendingFiles.length === 0;
     count.textContent = String(galleryPendingFiles.length);
@@ -4983,6 +5000,7 @@ function renderContactCalendar(apiData = {}) {
         showAdminMsg(
           msg,
           files.length > 1 ? `Subiendo foto ${i + 1} de ${files.length}...` : "Optimizando y subiendo imagen...",
+          true,
           true
         );
         await window.mcpUploadGaleria({

@@ -71,7 +71,10 @@
     const button = event.submitter || event.target.querySelector('button[type="submit"]');
     const email = $("adminRecipientEmail").value.trim().toLowerCase();
     const form = $("adminRecipientFormType").value;
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast("error", "Correo no válido", "Revisa el correo e inténtalo de nuevo.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      window.McpFormDirty?.markFailed(event.target);
+      return toast("error", "Correo no válido", "Revisa el correo e inténtalo de nuevo.");
+    }
     if (button) button.disabled = true;
     try {
       const { error } = await client().from("notification_recipients").insert({
@@ -85,10 +88,13 @@
       $("adminRecipientNombre").value = "";
       await load();
       toast("success", "Destinatario añadido", email);
+      window.McpFormDirty?.markSaved(event.target);
     } catch (error) {
       toast("error", "No se pudo añadir", error?.message);
+      window.McpFormDirty?.markFailed(event.target);
     } finally {
-      if (button) button.disabled = false;
+      if (window.McpFormDirty) window.McpFormDirty.sync(event.target);
+      else if (button) button.disabled = false;
     }
   }
 

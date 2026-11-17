@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
   <link rel="stylesheet" href="assets/css/admin.css?v=20261117-ui-polish-1" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261115-3" />
-  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261117-roles-5" />
+  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261117-premium-pass-4" />
   <link rel="stylesheet" href="assets/css/app-parity.css?v=20261117-ui-polish-1" />
 </head>
 <body class="mcp-brand admin-locked auth-pending" data-admin-page="true">
@@ -378,6 +378,7 @@
               <p class="admin-card-subtitle">Sube una o varias fotos y organízalas por comunidad y categoría.</p>
             </div>
             <form id="adminGaleriaForm" class="admin-form admin-form-clean">
+              <input type="hidden" id="adminGaleriaPendingCount" value="0" />
               <div class="admin-gallery-fields-row">
                 <div class="admin-field">
                   <label for="adminGaleriaCategoria"><i class="fa-solid fa-users" aria-hidden="true"></i> Comunidad</label>
@@ -662,28 +663,40 @@
         </div>
 
         <div class="admin-tab-panel" id="admin-banner">
-          <div class="admin-devotional-page-head">
-            <div><h3>Banner promocional</h3></div>
+          <div class="admin-devotional-page-head admin-banner-page-head">
+            <div><h3>Banner promocional</h3><p class="admin-card-subtitle">Prepara el aviso que aparecerá temporalmente en la página principal.</p></div>
           </div>
-          <div class="admin-card">
-            <p class="admin-card-subtitle">Este mensaje aparece como una tarjeta flotante en la página principal unos segundos después de cargar, y se cierra sola. Actívalo solo mientras tengas un anuncio vigente.</p>
+          <div class="admin-card admin-banner-editor">
+            <div class="admin-banner-guidance"><span class="admin-banner-guidance-icon" aria-hidden="true">✦</span><p>Este mensaje aparece como una tarjeta flotante en la página principal unos segundos después de cargar, y se cierra sola. Actívalo solo mientras tengas un anuncio vigente.</p></div>
             <form id="adminBannerForm" class="admin-form">
-              <label>
-                Título
-                <input type="text" id="adminBannerTitulo" placeholder="Ej: Nuevo evento este sábado" maxlength="80" />
-              </label>
-              <label>
-                Mensaje
-                <textarea id="adminBannerMensaje" rows="3" placeholder="Ej: Únete a nuestra reunión especial este fin de semana." maxlength="200"></textarea>
-              </label>
-              <label class="admin-banner-toggle">
-                <input type="checkbox" id="adminBannerActiva" />
-                Mostrar banner en el sitio
-              </label>
-              <div class="admin-yt-submit-row">
-                <button type="submit" class="btn">Guardar</button>
+              <div class="admin-banner-editor-grid">
+                <section class="admin-banner-fields" aria-labelledby="adminBannerFieldsTitle">
+                  <div class="admin-banner-section-head"><span class="admin-dashboard-kicker">EDITOR DEL AVISO</span><h4 id="adminBannerFieldsTitle">Contenido</h4></div>
+                  <label for="adminBannerTitulo">Título
+                    <input type="text" id="adminBannerTitulo" placeholder="Ej: Nuevo evento este sábado" maxlength="80" />
+                    <small>Hasta 80 caracteres</small>
+                  </label>
+                  <label for="adminBannerMensaje">Mensaje
+                    <textarea id="adminBannerMensaje" rows="4" placeholder="Ej: Únete a nuestra reunión especial este fin de semana." maxlength="200"></textarea>
+                    <small>Hasta 200 caracteres</small>
+                  </label>
+                  <label class="admin-banner-toggle" for="adminBannerActiva">
+                    <span><strong>Mostrar banner en el sitio</strong><small>Actívalo solo mientras tengas un anuncio vigente.</small></span>
+                    <input type="checkbox" id="adminBannerActiva" />
+                  </label>
+                  <div class="admin-banner-form-footer">
+                    <div id="adminBannerMsg" class="form-message" style="display:none;"></div>
+                    <button type="submit" class="btn"><i class="fa-solid fa-check" aria-hidden="true"></i> Guardar cambios</button>
+                  </div>
+                </section>
+                <aside class="admin-banner-preview-wrap" aria-label="Vista previa">
+                  <div class="admin-banner-preview-top"><span class="admin-dashboard-kicker">VISTA PREVIA</span><span class="admin-banner-state" id="adminBannerPreviewState"><i></i> Inactivo</span></div>
+                  <div class="admin-banner-preview-scene">
+                    <div class="admin-banner-preview-card"><span class="admin-banner-preview-mark"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></span><span class="admin-banner-preview-eyebrow">MUJERES CON PROPÓSITO</span><strong id="adminBannerPreviewTitle">Tu título aparecerá aquí</strong><p id="adminBannerPreviewMessage">Escribe un mensaje breve para invitar a la comunidad.</p></div>
+                  </div>
+                  <p class="admin-banner-preview-note">Así se verá como anuncio flotante en la página principal.</p>
+                </aside>
               </div>
-              <div id="adminBannerMsg" class="form-message" style="display:none;"></div>
             </form>
           </div>
         </div>
@@ -805,6 +818,10 @@
             <h3>Avisos push</h3>
             <p class="admin-card-subtitle">Envía una notificación al teléfono de la comunidad: cambios de horario, eventos especiales o mensajes importantes.</p>
           </div>
+          <aside class="admin-card ci-readonly-note" id="ciReadOnlyNote" aria-live="polite" hidden>
+            <span class="ci-readonly-icon" aria-hidden="true"><i class="fa-regular fa-eye"></i></span>
+            <div><strong>Consulta de avisos</strong><p>Tu rol permite revisar los envíos recientes. Para enviar notificaciones, un superadministrador debe concederte el permiso «Enviar avisos».</p></div>
+          </aside>
           <div class="admin-card ci-broadcast">
             <form id="ciBroadcastForm" class="admin-form">
               <label>Para
@@ -813,11 +830,11 @@
               <p class="ci-reach" id="ciReach">Calculando destinatarios…</p>
               <label>Título <input type="text" id="ciTitle" maxlength="80" placeholder="Ej. Cambio de horario hoy" required /></label>
               <label>Mensaje <textarea id="ciMessage" maxlength="240" rows="3" placeholder="Ej. La oración de esta noche empieza a las 20:30." required></textarea></label>
-              <div class="ci-preview"><span class="ci-preview-icon"><i class="fa-solid fa-seedling" aria-hidden="true"></i></span><div><small>MCP930 · ahora</small><strong id="ciPrevTitle">Título del aviso</strong><span id="ciPrevBody">Así verán el aviso en su teléfono.</span></div></div>
+              <div class="ci-preview-scene" aria-label="Vista previa del aviso"><span class="ci-preview-label">Vista previa</span><div class="ci-preview"><span class="ci-preview-icon"><i class="fa-solid fa-seedling" aria-hidden="true"></i></span><div><small>MCP930 · ahora</small><strong id="ciPrevTitle">Título del aviso</strong><span id="ciPrevBody">Así verán el aviso en su teléfono.</span></div></div><p class="ci-preview-note">Así aparecerá en la pantalla de bloqueo.</p></div>
               <button type="submit" class="btn"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar aviso</button>
             </form>
           </div>
-          <div class="admin-card admin-list-card"><h3>Enviados recientemente</h3><div id="ciHistory" class="ci-list"><div class="admin-empty">Cargando…</div></div></div>
+          <div class="admin-card admin-list-card ci-history-card"><div class="ci-history-heading"><div><h3>Enviados recientemente</h3><p>Los 10 avisos más recientes.</p></div></div><div id="ciHistory" class="ci-list" aria-live="polite"><div class="admin-empty">Cargando…</div></div></div>
         </div>
 
         <div class="admin-tab-panel" id="admin-estadisticas">
@@ -884,12 +901,13 @@
   <script src="assets/js/supabase.js?v=20260729-modules-1"></script>
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
   <script src="assets/js/admin-permissions.js?v=20261117-1"></script>
-  <script src="assets/js/main.js?v=20261117-ui-polish-1"></script>
-  <script src="assets/js/devocionales-admin.js?v=20260906-crop-rounding-fix-1"></script>
-  <script src="assets/js/promo-banner-admin.js?v=20261117-1"></script>
-  <script src="assets/js/roles-admin.js?v=20261117-2"></script>
-  <script src="assets/js/community-admin.js?v=20261117-1"></script>
-  <script src="assets/js/recipients-admin.js?v=20261115-3"></script>
+  <script src="assets/js/main.js?v=20261117-review-fix-1"></script>
+  <script src="assets/js/devocionales-admin.js?v=20261117-review-fix-1"></script>
+  <script src="assets/js/promo-banner-admin.js?v=20261117-save-state-3"></script>
+  <script src="assets/js/roles-admin.js?v=20261117-save-state-1"></script>
+  <script src="assets/js/community-admin.js?v=20261117-premium-pass-1"></script>
+  <script src="assets/js/recipients-admin.js?v=20261117-save-state-1"></script>
   <script src="assets/js/admin-shell.js?v=20261114-1"></script>
+  <script src="assets/js/form-dirty-state.js?v=20261117-review-fix-1"></script>
 </body>
 </html>

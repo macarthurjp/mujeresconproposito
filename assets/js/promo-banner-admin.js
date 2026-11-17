@@ -17,6 +17,21 @@
     element.style.display = "block";
   }
 
+  function syncPreview() {
+    const title = ($("adminBannerTitulo")?.value || "").trim();
+    const body = ($("adminBannerMensaje")?.value || "").trim();
+    const active = Boolean($("adminBannerActiva")?.checked);
+    const titlePreview = $("adminBannerPreviewTitle");
+    const bodyPreview = $("adminBannerPreviewMessage");
+    const state = $("adminBannerPreviewState");
+    if (titlePreview) titlePreview.textContent = title || "Tu título aparecerá aquí";
+    if (bodyPreview) bodyPreview.textContent = body || "Escribe un mensaje breve para invitar a la comunidad.";
+    if (state) {
+      state.classList.toggle("is-active", active);
+      state.innerHTML = `<i aria-hidden="true"></i> ${active ? "Activo" : "Inactivo"}`;
+    }
+  }
+
   async function load() {
     try {
       const { data, error } = await client()
@@ -28,6 +43,8 @@
       if ($("adminBannerTitulo")) $("adminBannerTitulo").value = data?.titulo || "";
       if ($("adminBannerMensaje")) $("adminBannerMensaje").value = data?.mensaje || "";
       if ($("adminBannerActiva")) $("adminBannerActiva").checked = Boolean(data?.activa);
+      syncPreview();
+      window.McpFormDirty?.markSaved($("adminBannerForm"));
     } catch (error) {
       message(error?.message || "No se pudo cargar el banner.", false);
     }
@@ -52,7 +69,8 @@
     } catch (error) {
       message(error?.message || "No se pudo guardar el banner.", false);
     } finally {
-      if (button) button.disabled = false;
+      if (window.McpFormDirty) window.McpFormDirty.sync(event.target);
+      else if (button) button.disabled = false;
     }
   }
 
@@ -61,6 +79,8 @@
     if (!initialized) {
       initialized = true;
       $("adminBannerForm")?.addEventListener("submit", save);
+      $("adminBannerForm")?.addEventListener("input", syncPreview);
+      $("adminBannerForm")?.addEventListener("change", syncPreview);
     }
     await load();
   };

@@ -976,6 +976,7 @@ function openRecordModal(userId) {
   setRecordField("dashboardRecordEstatusMatrimonial", user.estatusMatrimonial);
   setRecordField("dashboardRecordHijos", user.hijos);
   setRecordField("dashboardRecordComentarios", user.comentarios);
+  window.McpFormDirty?.markSaved(dashboardRecordForm);
   dashboardRecordModal.hidden = false;
   document.body.classList.add("record-modal-open");
   document.getElementById("dashboardRecordNombre")?.focus();
@@ -985,6 +986,7 @@ dashboardRecordForm?.addEventListener("submit", async function (event) {
   event.preventDefault();
   if (!canDashboardManageRecords()) {
     showDashboardToast("Tu rol no permite editar registros.");
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
     return;
   }
 
@@ -997,6 +999,7 @@ dashboardRecordForm?.addEventListener("submit", async function (event) {
   ));
   if (duplicate) {
     showDashboardToast("Ya existe otra usuaria con ese correo o teléfono.");
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
     return;
   }
 
@@ -1018,18 +1021,22 @@ dashboardRecordForm?.addEventListener("submit", async function (event) {
   const namePattern = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]{2,}$/;
   if (!namePattern.test(payload.nombre)) {
     showDashboardToast("El nombre solo puede contener letras, espacios, apóstrofe o guion.");
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
     return;
   }
   if (!namePattern.test(payload.apellido)) {
     showDashboardToast("El apellido solo puede contener letras, espacios, apóstrofe o guion.");
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
     return;
   }
   if (!/^\+?\d{7,15}$/.test(sanitizeRecordPhone(payload.telefono))) {
     showDashboardToast("El teléfono no es válido.");
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
     return;
   }
   if (dashboardRecordPhoneInput?.isValidNumber && !dashboardRecordPhoneInput.isValidNumber()) {
     showDashboardToast("El teléfono no es válido para el país seleccionado.");
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
     return;
   }
   const birthDate = new Date(`${payload.fecha_nacimiento}T00:00:00`);
@@ -1037,13 +1044,16 @@ dashboardRecordForm?.addEventListener("submit", async function (event) {
   const minimumAdultDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
   if (Number.isNaN(birthDate.getTime()) || birthDate >= new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
     showDashboardToast("La fecha de nacimiento no puede ser hoy o futura.");
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
     return;
   }
   if (birthDate > minimumAdultDate) {
     showDashboardToast("La usuaria debe ser mayor de 18 años.");
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
     return;
   }
 
+  window.McpFormDirty?.begin(dashboardRecordForm);
   dashboardRecordSaveBtn.disabled = true;
   try {
     const client = getDashboardSupabaseClient();
@@ -1052,14 +1062,16 @@ dashboardRecordForm?.addEventListener("submit", async function (event) {
     closeRecordModal();
     await loadDashboardData();
     showDashboardToast("Registro actualizado correctamente.");
+    window.McpFormDirty?.markSaved(dashboardRecordForm);
   } catch (error) {
     console.error("ERROR ACTUALIZANDO REGISTRO:", error);
     const message = error?.code === "23505"
       ? "Ya existe otra usuaria con ese correo o teléfono."
       : error?.message || "No se pudo actualizar el registro.";
     showDashboardToast(message);
+    window.McpFormDirty?.markFailed(dashboardRecordForm);
   } finally {
-    dashboardRecordSaveBtn.disabled = false;
+    window.McpFormDirty?.sync(dashboardRecordForm);
   }
 });
 
