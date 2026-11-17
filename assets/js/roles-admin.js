@@ -13,6 +13,31 @@
     { key: "notices", label: "Enviar aviso", perms: [["view", "Acceder al módulo"], ["send", "Enviar avisos"]] },
     { key: "dashboard", label: "Dashboard", perms: [["view", "Visualizar"], ["contacts", "Ver contactos y exportar"], ["followup", "Seguimiento y estadísticas"]] },
   ];
+  const PERMISSION_DESCRIPTIONS = {
+    "events.view": "Consulta las reuniones publicadas y su información.",
+    "events.create": "Crea reuniones y añade sus datos de horario y acceso.",
+    "events.edit": "Modifica reuniones existentes, horarios, enlaces e imágenes.",
+    "events.delete": "Elimina reuniones del sistema.",
+    "devotionals.view": "Consulta los devocionales visibles y los que permite el flujo editorial.",
+    "devotionals.create": "Prepara borradores conservando la autoría y el flujo de revisión.",
+    "devotionals.edit": "Edita contenido respetando autoría, borradores y revisión.",
+    "devotionals.delete": "Elimina devocionales según las reglas editoriales vigentes.",
+    "devotionals.publish": "Publica devocionales mediante las transiciones autorizadas.",
+    "gallery.view": "Consulta las fotos y categorías de la galería.",
+    "gallery.add": "Añade fotos a la galería.",
+    "gallery.edit": "Edita fotos, categorías, portada y orden.",
+    "gallery.delete": "Elimina fotos de la galería.",
+    "content.view": "Consulta destacados y publicaciones de YouTube.",
+    "content.create": "Añade destacados y publicaciones de YouTube.",
+    "content.edit": "Edita destacados, videos y banners.",
+    "content.delete": "Elimina destacados y publicaciones de YouTube.",
+    "content.publish": "Controla qué destacados y videos se muestran al público.",
+    "notices.view": "Consulta el módulo de avisos.",
+    "notices.send": "Envía avisos a sus destinatarios.",
+    "dashboard.view": "Abre el dashboard y consulta sus secciones permitidas.",
+    "dashboard.contacts": "Consulta datos de contacto y exporta registros.",
+    "dashboard.followup": "Consulta seguimiento, actividad y estadísticas.",
+  };
   const CATALOG = MODULES.flatMap((m) => m.perms.map(([a, label]) => ({ key: `${m.key}.${a}`, module: m.key, action: a, label })));
   const SENSITIVE = new Set(["delete", "publish", "send", "contacts", "followup"]);
   const PRESETS = [["Nada", []], ["Solo lectura", ["view"]], ["Editor", ["view", "create", "add", "edit"]], ["Todo", null]];
@@ -24,7 +49,7 @@
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
   const actionOf = (key) => key.split(".")[1];
 
-  const state = { users: [], roles: [], perms: {}, assignments: [], picked: [], ready: false };
+  const state = { users: [], roles: [], perms: {}, assignments: [], overrideCounts: {}, picked: [], ready: false };
   let sheet = null; // { kind: 'assign' | 'role' | 'overrides', ... }
 
   async function rpc(name, args) {
@@ -34,11 +59,12 @@
   }
   async function refresh() {
     const c = client();
-    const [{ data: users, error: ue }, roles, rp, asg] = await Promise.all([
+    const [{ data: users, error: ue }, roles, rp, asg, overrides] = await Promise.all([
       c.functions.invoke("manage-users", { body: { action: "list" } }),
       c.from("admin_roles").select("id,name,description,view_only").order("name"),
       c.from("admin_role_permissions").select("role_id,permission_key"),
       c.from("admin_role_assignments").select("user_id,role_id"),
+      readAllOverrides(c),
     ]);
     if (ue) throw new Error(ue.message);
     [roles, rp, asg].forEach((r) => { if (r.error) throw new Error(r.error.message); });
@@ -47,8 +73,21 @@
     state.perms = {};
     (rp.data || []).forEach((row) => { (state.perms[row.role_id] ||= []).push(row.permission_key); });
     state.assignments = asg.data || [];
+    state.overrideCounts = {};
+    overrides.forEach((row) => { state.overrideCounts[row.user_id] = (state.overrideCounts[row.user_id] || 0) + 1; });
     state.ready = true;
     render();
+  }
+  async function readAllOverrides(c) {
+    const rows = [];
+    const pageSize = 1000;
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await c.from("admin_user_permission_overrides")
+        .select("user_id,permission_key").order("user_id").order("permission_key").range(from, from + pageSize - 1);
+      if (error) throw new Error(error.message);
+      rows.push(...(data || []));
+      if (!data || data.length < pageSize) return rows;
+    }
   }
   const roleOf = (userId) => {
     const a = state.assignments.find((x) => x.user_id === userId);
@@ -86,19 +125,22 @@
       return `<div class="rp-assigned">
         <span class="rp-avatar">${esc((u.nombre || u.email).charAt(0).toUpperCase())}</span>
         <span class="rp-person-text"><strong>${esc(u.nombre || "Sin nombre")}</strong><span>${esc(u.email)}</span></span>
-        <span class="rp-role-pill${r.view_only ? " is-read" : ""}">${esc(r.name)}</span>
+        <span class="rp-role-badges"><span class="rp-role-pill${r.view_only ? " is-read" : ""}">${esc(r.name)}</span>${state.overrideCounts[u.userId] ? `<span class="rp-exception-badge">Excepción (${state.overrideCounts[u.userId]})</span>` : ""}</span>
         <span class="rp-actions">
           <button type="button" data-rp-change="${esc(u.userId)}"><i class="fa-solid fa-right-left"></i> Cambiar rol</button>
-          <button type="button" data-rp-overrides="${esc(u.userId)}"><i class="fa-solid fa-sliders"></i> Excepciones</button>
+          <button type="button" data-rp-overrides="${esc(u.userId)}"><i class="fa-solid fa-sliders"></i> Excepciones${state.overrideCounts[u.userId] ? ` (${state.overrideCounts[u.userId]})` : ""}</button>
           <button type="button" class="danger" data-rp-remove="${esc(u.userId)}"><i class="fa-regular fa-circle-xmark"></i> Quitar</button>
         </span></div>`;
     }).join("") : '<div class="admin-empty">Todavía nadie tiene un rol asignado.</div>';
 
     $("rpRoles").innerHTML = state.roles.map((r) => {
-      const n = state.assignments.filter((a) => a.role_id === r.id).length; const p = (state.perms[r.id] || []).length;
+      const assigned = state.assignments.filter((a) => a.role_id === r.id);
+      const n = assigned.length; const p = (state.perms[r.id] || []).length;
+      const exceptions = assigned.reduce((sum, assignment) => sum + (state.overrideCounts[assignment.user_id] || 0), 0);
       return `<button type="button" class="rp-role-row" data-rp-role="${esc(r.id)}">
         <span class="rp-role-icon"><i class="fa-solid ${r.view_only ? "fa-eye" : "fa-shield-halved"}"></i></span>
         <span class="rp-person-text"><strong>${esc(r.name)}</strong><span>${plural(n, "persona", "personas")} · ${p ? plural(p, "permiso", "permisos") : "sin configurar"}${r.view_only ? " · solo lectura" : ""}</span></span>
+        ${exceptions ? `<span class="rp-exception-badge">Excepciones (${exceptions})</span>` : ""}
         <i class="fa-solid fa-chevron-right rp-chev"></i></button>`;
     }).join("");
   }
@@ -114,7 +156,7 @@
       <div class="rp-presets">${PRESETS.filter(([, acts]) => !viewOnly || (acts && acts.every((a) => a === "view"))).map(([label], i) => `<button type="button" data-rp-preset="${i}">${label}</button>`).join("")}</div>
       ${MODULES.map((m) => `<div class="rp-module"><h4>${esc(m.label)}</h4>${m.perms.filter(([a]) => !viewOnly || a === "view").map(([a, label]) => {
         const key = `${m.key}.${a}`;
-        return `<label class="rp-toggle"><span>${esc(label)}${SENSITIVE.has(a) ? '<small>Permiso importante</small>' : ""}</span><input type="checkbox" data-rp-perm="${key}" ${value.includes(key) ? "checked" : ""}></label>`;
+        return `<label class="rp-toggle"><span class="rp-toggle-copy"><strong>${esc(label)}${SENSITIVE.has(a) ? ' <em>Importante</em>' : ""}</strong><small>${esc(PERMISSION_DESCRIPTIONS[key] || "Controla esta acción dentro del módulo.")}</small></span><input type="checkbox" data-rp-perm="${key}" aria-label="${esc(label)}" ${value.includes(key) ? "checked" : ""}></label>`;
       }).join("")}</div>`).join("")}`;
   }
   function readEditor(box) {
@@ -205,7 +247,9 @@
     openSheet("", async () => {
       const explicit = Object.fromEntries(Object.entries(state2).filter(([, v]) => v !== null));
       await rpc("admin_save_user_overrides", { p_user_id: userId, p_overrides: explicit });
-      closeSheet(); toast("success", "Excepciones guardadas", u.nombre || u.email);
+      closeSheet();
+      await refresh();
+      toast("success", "Excepciones guardadas", u.nombre || u.email);
     });
     $("rpSheetTitle").textContent = "Excepciones";
     sheet.cycle = (key) => {
@@ -224,9 +268,10 @@
     $("rpSheet").addEventListener("click", (e) => { if (e.target.id === "rpSheet") closeSheet(); });
     $("rpSheetSave").addEventListener("click", async (e) => {
       if (!sheet) return;
-      e.currentTarget.disabled = true;
+      const saveButton = e.currentTarget;
+      saveButton.disabled = true;
       try { await sheet.onSave(); } catch (err) { toast("error", "No se pudo guardar", err.message); }
-      finally { e.currentTarget.disabled = false; }
+      finally { saveButton.disabled = false; }
     });
     $("rpRoot").addEventListener("click", async (e) => {
       const pick = e.target.closest("[data-rp-pick]");

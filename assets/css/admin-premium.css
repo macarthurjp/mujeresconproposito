@@ -750,6 +750,8 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgb
 .rp-assigned:first-child { border-top: 0; }
 .rp-role-pill { padding: 5px 11px; border-radius: 999px; background: var(--a-wine); color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
 .rp-role-pill.is-read { background: #8e8187; }
+.rp-role-badges { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+.rp-exception-badge { display: inline-flex; align-items: center; padding: 5px 9px; border: 1px solid rgba(166, 75, 67, .18); border-radius: 999px; background: rgba(166, 75, 67, .08); color: var(--a-wine); font-size: 11px; font-weight: 700; white-space: nowrap; }
 .rp-actions { grid-column: 2 / 4; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .rp-actions button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border: 0; border-radius: 999px; background: var(--a-sand); color: var(--a-wine); font: 700 12px/1 inherit; cursor: pointer; }
 .rp-actions button.danger { color: #c62828; }
@@ -780,9 +782,12 @@ body.rp-sheet-open { overflow: hidden; }
 .rp-presets button { padding: 8px 14px; border: 1px solid var(--a-line-strong); border-radius: 999px; background: #fff; color: var(--a-wine); font: 600 13px/1 inherit; cursor: pointer; }
 .rp-module { margin-top: 14px; background: #fff; border-radius: 16px; overflow: hidden; }
 .rp-module h4 { margin: 0; padding: 12px 14px 4px; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--a-muted); }
-.rp-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; border-top: 1px solid var(--a-line); cursor: pointer; font-size: 15px; }
+.rp-toggle { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 14px; border-top: 1px solid var(--a-line); cursor: pointer; font-size: 15px; }
 .rp-toggle:first-of-type { border-top: 0; }
-.rp-toggle small { display: block; font-size: 12px; color: var(--a-muted); }
+.rp-toggle-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
+.rp-toggle-copy strong { font-size: 14px; font-weight: 650; }
+.rp-toggle-copy small { display: block; max-width: 470px; color: var(--a-muted); font-size: 12px; font-weight: 400; line-height: 1.45; }
+.rp-toggle-copy em { margin-left: 4px; color: var(--a-wine); font-size: 10px; font-style: normal; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
 .rp-toggle input { appearance: none; width: 46px; height: 28px; border-radius: 999px; background: #e5dcda; position: relative; cursor: pointer; transition: background .2s; flex: none; }
 .rp-toggle input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: transform .2s var(--a-ease); }
 .rp-toggle input:checked { background: var(--a-wine); }
@@ -794,7 +799,7 @@ body.rp-sheet-open { overflow: hidden; }
 .rp-state { min-width: 86px; text-align: center; padding: 6px 12px; border-radius: 999px; background: rgba(166, 75, 67, .08); color: var(--a-muted); font-size: 13px; font-weight: 700; }
 .rp-state.is-allow { background: rgba(46, 125, 79, .12); color: #2e7d4f; }
 .rp-state.is-deny { background: rgba(214, 69, 69, .12); color: #c62828; }
-@media (max-width: 860px) { .rp-columns { grid-template-columns: 1fr; } }
+@media (max-width: 860px) { .rp-columns { grid-template-columns: 1fr; } .rp-role-badges { grid-column: 2 / -1; justify-content: flex-start; } }
 
 .rp-intro { margin: 0; max-width: 620px; text-align: left; }
 #admin-permisos, .rp-sheet-card, .rp-sheet-card :is(p, h4, label, .rp-person-text, .rp-summary) { text-align: left; }
