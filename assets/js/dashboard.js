@@ -1279,7 +1279,7 @@ hasPrivateAccessGranted().then(async (hasSession) => {
 
   window.McpSocialAuth?.clearPending();
   dashboardAccessEmail?.focus();
-});
+}).finally(() => document.body.classList.remove("auth-pending"));
 
 if (window.lucide) {
   window.lucide.createIcons();

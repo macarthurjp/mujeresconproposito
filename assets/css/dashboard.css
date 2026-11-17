@@ -37,6 +37,24 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
   padding: 24px;
   background: linear-gradient(145deg, #f4e5df, #fbf8f5);
 }
+body.auth-pending #dashboardAccessScreen { visibility: hidden !important; }
+body.auth-pending::before {
+  content: "";
+  position: fixed;
+  z-index: 20000;
+  inset: 0;
+  background: linear-gradient(145deg, #f4e5df, #fbf8f5);
+}
+body.auth-pending::after {
+  content: "Verificando sesión…";
+  position: fixed;
+  z-index: 20001;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #6d5250;
+  font: 600 1rem/1.4 "Manrope", Arial, sans-serif;
+}
 .private-access-card {
   width: min(620px, 100%);
   padding: 42px;
@@ -178,7 +196,8 @@ svg { width: 20px; height: 20px; stroke-width: 1.8; }
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 34px; }
 .page-title h1 { margin: 0; color: var(--wine); font: 700 clamp(2rem, 3vw, 2.75rem)/1.05 "Playfair Display", Georgia, serif; letter-spacing: 0; }
 .page-title p { margin: 10px 0 0; color: var(--rose); font-weight: 700; }
-.top-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.top-actions { display: flex; align-items: center; justify-content: flex-end; align-self: flex-start; flex-wrap: wrap; gap: 10px; }
+.top-actions .btn { min-height: 46px; white-space: nowrap; }
 .btn {
   display: inline-flex;
   align-items: center;

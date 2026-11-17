@@ -5,7 +5,9 @@
    ===================================================================== */
 
 :root {
-  --app-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Manrope is loaded as a webfont on every public and admin page. Keeping it
+     first avoids OS-specific glyph metrics (SF on macOS vs Segoe on Windows). */
+  --app-sans: "Manrope", Arial, sans-serif;
   --app-serif: Georgia, "Times New Roman", serif;
   --app-bg: #faf5f4;
   --app-band: #f3e9e6;

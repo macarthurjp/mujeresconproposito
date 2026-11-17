@@ -4651,7 +4651,7 @@ function renderContactCalendar(apiData = {}) {
       }
 
 	      await unlockAdminPanel();
-	    });
+	    }).finally(() => document.body.classList.remove("auth-pending"));
   }
 
   document.querySelectorAll(".admin-tab").forEach((tab) => {
