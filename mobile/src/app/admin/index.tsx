@@ -84,6 +84,10 @@ export default function AdminHome() {
   const canNotices = canAdmin(access,'notices','view');
   const canDevotionals = canAdmin(access,'devotionals','view');
   const canReadDashboard = canAdmin(access,'dashboard','view');
+  const canBanner = canAdmin(access,'content','edit');
+  const canSignups = canAdmin(access,'content','edit');
+  const canFollowup = canAdmin(access,'dashboard','followup');
+  const hasAnyModule = access.isSuperAdmin || canEvents || canGallery || canContent || canNotices || canDevotionals || canReadDashboard || canFollowup;
 
   return (
     <ScrollView contentContainerStyle={a.page}>
@@ -99,29 +103,31 @@ export default function AdminHome() {
         <Group footer="Tu acceso fue revocado. Contacta a la administración si crees que es un error."><Row label="Sin acceso" chevron={false} /></Group>
       ) : (
         <>
-          {canEvents || canGallery ? <Group header="Contenido">
-            {canEvents ? <Row icon="calendar" label="Eventos y reuniones" sub="Administrar reuniones" onPress={() => router.push('/admin/eventos')} /> : null}
-            {canGallery ? <Row icon="images" tint="#c08a3e" label="Galería de fotos" sub="Administrar imágenes permitidas" onPress={() => router.push('/admin/galeria')} /> : null}
+          {canEvents || canContent || canGallery || canDevotionals || canBanner ? <Group header="Contenido" footer="Lo que la comunidad ve en la web y en la app.">
+            {canEvents ? <Row icon="calendar" label="Eventos" sub="Reuniones y horarios" onPress={() => router.push('/admin/eventos')} /> : null}
+            {canContent ? <Row icon="heart" tint="#c0577a" label="Destacadas" sub="Conferencistas y pósters" onPress={() => router.push({ pathname: '/admin/contenido', params: { tipo: 'destacadas' } } as Href)} /> : null}
+            {canGallery ? <Row icon="images" tint="#c08a3e" label="Galería" sub="Fotos por comunidad y álbum" onPress={() => router.push('/admin/galeria')} /> : null}
+            {canContent ? <Row icon="logo-youtube" tint="#d64545" label="YouTube" sub="Videos y conferencias" onPress={() => router.push({ pathname: '/admin/contenido', params: { tipo: 'youtube' } } as Href)} /> : null}
+            {canDevotionals ? <Row icon="book" tint="#8a6d3b" label="Devocionales" sub="Escribir, revisar y publicar" onPress={() => router.push('/admin/devocionales')} /> : null}
+            {canBanner ? <Row icon="flag" tint="#b8864a" label="Banner" sub="Aviso flotante de la página principal" onPress={() => router.push({ pathname: '/admin/contenido', params: { tipo: 'banner' } } as Href)} /> : null}
+          </Group> : null}
+          {canSignups || canFollowup || canNotices ? <Group header="Comunidad">
+            {canSignups ? <Row icon="clipboard" tint="#a64b43" label="Inscripciones" sub="Cupos, eventos y participantes" onPress={() => router.push('/admin/inscripciones' as Href)} /> : null}
+            {canFollowup ? <Row icon="people-circle" tint="#2f7d4f" label="Seguimiento" sub="Nuevas, contactadas e integradas" onPress={() => router.push('/admin/seguimiento')} /> : null}
+            {canNotices ? <Row icon="paper-plane" tint="#d64545" label="Avisos push" sub={canAdmin(access,'notices','send') ? 'Enviar notificaciones' : 'Solo acceso de lectura'} onPress={() => router.push('/admin/avisos')} /> : null}
+            {canFollowup ? <Row icon="analytics" tint="#2f6db5" label="Estadísticas" sub="Registros, lecturas, reuniones e inscripciones" onPress={() => router.push('/admin/estadisticas')} /> : null}
+          </Group> : null}
+          {canReadDashboard ? <Group header="Dashboard" footer={canAdmin(access,'dashboard','contacts') ? 'Filtros, exportación y métricas de registros.' : 'Resumen de registros en modo lectura.'}>
+            <Row icon="stats-chart" tint="#8e8187" label="Registros y métricas" onPress={() => router.push('/admin/dashboard')} />
           </Group> : null}
           {access.isSuperAdmin ? <Group header="Equipo">
             <Row icon="people" tint="#6b5b95" label="Usuarios y roles" sub="Paso 1 · Invitar y gestionar accesos" onPress={() => router.push('/admin/usuarios')} />
             <Row icon="shield-checkmark" tint="#6b5b95" label="Roles y permisos" sub="Paso 2 · Asignar rol y permisos" onPress={() => router.push('/admin/roles' as Href)} />
             <Row icon="mail-unread" tint="#2f6db5" label="Destinatarios de correo" sub="Contacto y Únete por comunidad" onPress={() => router.push('/admin/correos')} />
           </Group> : null}
-          {canDevotionals ? <Group header="Devocionales" footer="Gestiona los artículos y el flujo de revisión desde la app.">
-            <Row icon="book" label="Devocionales" sub="Escribir, revisar y publicar" onPress={() => router.push('/admin/devocionales')} />
-            {!access.isSuperAdmin ? <Row icon="share-outline" label="Compartir formulario para unirse" onPress={shareJoin} /> : null}
-          </Group> : null}
-          {canContent || canNotices ? <Group header="Publicaciones">
-            {canContent ? <Row icon="layers" tint="#8e8187" label="Contenido y publicaciones" sub="Destacadas, YouTube y banner" onPress={() => router.push('/admin/contenido')} /> : null}
-            {canNotices ? <Row icon="paper-plane" tint="#d64545" label="Enviar aviso" sub={canAdmin(access,'notices','send') ? 'Enviar notificaciones' : 'Solo acceso de lectura'} onPress={() => router.push('/admin/avisos')} /> : null}
-            {access.isSuperAdmin ? <Row icon="share-outline" label="Compartir formulario para unirse" onPress={shareJoin} /> : null}
-          </Group> : null}
-          {canReadDashboard ? <Group header="Dashboard" footer={canAdmin(access,'dashboard','contacts') ? 'Filtros, exportación y métricas de registros.' : 'Resumen de registros en modo lectura.'}>
-            <Row icon="stats-chart" tint="#8e8187" label="Registros y métricas" onPress={() => router.push('/admin/dashboard')} />
-            {canAdmin(access,'dashboard','followup') ? <Row icon="people-circle" tint="#2f7d4f" label="Seguimiento de nuevas" sub="Nuevas, contactadas e integradas" onPress={() => router.push('/admin/seguimiento')} /> : null}
-            {canAdmin(access,'dashboard','followup') ? <Row icon="analytics" tint="#2f6db5" label="Estadísticas" sub="Registros, lecturas, reuniones e inscripciones" onPress={() => router.push('/admin/estadisticas')} /> : null}
-          </Group> : !canDevotionals && !canEvents && !canGallery && !canContent && !canNotices && !canReadDashboard ? <Group footer="Pide al Super Admin que te asigne un rol para acceder a los módulos."><Row icon="lock-closed" label="Todavía no tienes un rol asignado" chevron={false} /></Group> : null}
+          {hasAnyModule ? <Group>
+            <Row icon="share-outline" label="Compartir formulario para unirse" onPress={shareJoin} />
+          </Group> : <Group footer="Pide al Super Admin que te asigne un rol para acceder a los módulos."><Row icon="lock-closed" label="Todavía no tienes un rol asignado" chevron={false} /></Group>}
           {bioSupported ? <Group header="Seguridad" footer={bioOn ? `Entrarás al panel con ${bioLabel}, sin escribir tu contraseña. Solo en este iPhone.` : `Actívalo para entrar al panel con ${bioLabel} en este dispositivo.`}>
             <SwitchRow icon="finger-print" tint="#34a853" label={`Entrar con ${bioLabel}`} value={bioOn} disabled={busy} onValueChange={toggleBiometrics} />
           </Group> : null}

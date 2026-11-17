@@ -10,7 +10,7 @@
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js';"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.8.2/build/css/intlTelInput.css" />
 
-  <link rel="stylesheet" href="assets/css/dashboard.css?v=20261117-ui-polish-1" />
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=20261117-dashboard-actionbar-1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" />
@@ -83,9 +83,11 @@
             <p>Mujeres con Propósito</p>
           </div>
           <div class="top-actions no-export">
-            <button id="homePageBtn" class="btn btn-soft" type="button">Página principal</button>
-            <button id="adminPanelBtn" class="btn btn-soft" type="button"><i data-lucide="shield"></i><span id="adminPanelBtnLabel">Admin</span></button>
-            <button id="dashboardLogoutBtn" class="btn btn-soft" type="button">Cerrar sesión</button>
+            <div class="dashboard-quick-actions" role="group" aria-label="Accesos rápidos">
+              <button id="homePageBtn" class="dashboard-quick-action" type="button"><i data-lucide="house" aria-hidden="true"></i><span>Página principal</span></button>
+              <button id="adminPanelBtn" class="dashboard-quick-action dashboard-quick-action-primary" type="button"><i data-lucide="shield" aria-hidden="true"></i><span id="adminPanelBtnLabel">Admin</span></button>
+              <button id="dashboardLogoutBtn" class="dashboard-quick-action dashboard-quick-action-logout" type="button"><i data-lucide="log-out" aria-hidden="true"></i><span>Cerrar sesión</span></button>
+            </div>
             <button id="exportCsvBtn" class="btn btn-soft" type="button"><i data-lucide="sheet"></i>Exportar CSV</button>
             <button id="exportPdfBtn" class="btn btn-primary" type="button"><i data-lucide="download"></i>Exportar PDF</button>
           </div>
@@ -192,7 +194,8 @@
   <script src="assets/js/script-loader.js?v=20260729-lazy-scripts-1"></script>
   <script src="assets/js/form-options.js?v=20260831-1"></script>
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
-  <script src="assets/js/dashboard.js?v=20261117-ui-polish-1"></script>
+  <script src="assets/js/dashboard.js?v=20261117-save-state-1"></script>
+  <script src="assets/js/form-dirty-state.js?v=20261117-review-fix-1"></script>
 </body>
 
 </html>

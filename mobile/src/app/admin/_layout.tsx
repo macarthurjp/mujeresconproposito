@@ -32,6 +32,7 @@ export default function AdminLayout() {
       <Stack.Screen name="estadisticas" options={{ title: 'Estadísticas' }} />
       <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
       <Stack.Screen name="contenido" options={{ title: 'Contenido' }} />
+      <Stack.Screen name="inscripciones" options={{ title: 'Inscripciones' }} />
       <Stack.Screen name="devocionales" options={{ title: 'Devocionales' }} />
     </Stack>
   );

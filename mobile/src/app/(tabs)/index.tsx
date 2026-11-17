@@ -8,7 +8,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
 import { BirthdayWeek } from '@/components/birthday-week';
+import { EventSignup, SignupBadge } from '@/components/event-signup';
 import { PrayerCard } from '@/components/prayer-card';
+import { SnapCarousel } from '@/components/snap-carousel';
 import { reportScroll } from '@/lib/scroll-activity';
 import { AlbumCard, PosterCard } from '@/components/media';
 import { PhotoViewer } from '@/components/photo-viewer';
@@ -33,6 +35,7 @@ export default function Home() {
   const [aboutVisible, setAboutVisible] = useState(false);
   const [showHomeActivities, setShowHomeActivities] = useState(true);
   const galleryCardWidth = Math.min(screenWidth * 0.46, 200);
+  const videoWidth = 260;
   const galleryAlbums = useMemo(() => albumsFor(galeria.data ?? [], selectedGalleryRegion), [galeria.data, selectedGalleryRegion]);
 
   useFocusEffect(useCallback(() => {
@@ -84,14 +87,20 @@ export default function Home() {
       {/* Destacadas — first content section, matching the website */}
       {destacadas.data?.length ? (
         <Reveal index={5}><Section eyebrow="Voces que inspiran" title="Destacadas">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} snapToInterval={posterWidth + 14} decelerationRate="fast" contentContainerStyle={s.bleedTrack} style={s.bleed}>
-            {destacadas.data.slice(0, 8).map((d, i) => (
-              <Reveal key={d.id} index={5 + i} style={{ width: posterWidth }}>
-                <PosterCard uri={d.foto_url} name={d.nombre} role={d.titulo} onPress={() => router.push('/destacadas')} />
-                {d.inscripcion_abierta ? <View style={s.signupBadge}><Ionicons name="person-add" size={11} color="#fff" /><Text style={s.signupBadgeText}>Inscripción abierta</Text></View> : null}
+          <SnapCarousel
+            data={destacadas.data.slice(0, 8)}
+            itemWidth={posterWidth}
+            keyExtractor={(d) => d.id}
+            style={s.bleed}
+            contentContainerStyle={{ paddingTop: 2, paddingBottom: 30 }}
+            renderItem={(d, i) => (
+              <Reveal index={5 + i}>
+                <PosterCard compact uri={d.foto_url} name={d.nombre} role={d.titulo} eyebrow={d.inscripcion_abierta ? 'Evento' : 'Voz destacada'} badge={d.inscripcion_abierta ? <SignupBadge /> : null} onPress={() => router.push('/destacadas')}>
+                  {d.inscripcion_abierta ? <EventSignup destacada={d} /> : null}
+                </PosterCard>
               </Reveal>
-            ))}
-          </ScrollView>
+            )}
+          />
         </Section></Reveal>
       ) : null}
 
@@ -174,15 +183,21 @@ export default function Home() {
       {videos.data?.length ? (
         <Section eyebrow="Canal de YouTube" title="Mensajes que fortalecen tu fe">
           <Text style={[ui.body, { marginTop: -8, marginBottom: 16 }]}>Mensajes, reflexiones y contenido para tu crecimiento espiritual.</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.videoTrack}>
-            {videos.data.map((v) => (
-              <Pressable key={v.id} style={s.video} onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${v.video_id}`)}>
+          <SnapCarousel
+            data={videos.data}
+            itemWidth={videoWidth}
+            inset={4}
+            intensity={0.5}
+            keyExtractor={(v) => v.id}
+            contentContainerStyle={{ paddingTop: 4, paddingBottom: 10 }}
+            renderItem={(v) => (
+              <Pressable style={[s.video, { width: videoWidth }]} onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${v.video_id}`)}>
                 <Image source={{ uri: `https://i.ytimg.com/vi/${v.video_id}/hqdefault.jpg` }} style={s.videoImg} contentFit="cover" transition={{ duration: 450, effect: 'cross-dissolve' }} />
                 <View style={s.play}><Ionicons name="play" size={18} color="#fff" /></View>
                 <Text style={s.videoTitle} numberOfLines={2}>{v.titulo}</Text>
               </Pressable>
-            ))}
-          </ScrollView>
+            )}
+          />
           <Pressable onPress={() => Linking.openURL('https://www.youtube.com/@MujeresconProposito930')} style={s.moreLink}><Text style={s.moreLinkText}>Ver más videos</Text><Ionicons name="arrow-forward" size={16} color={C.wine} /></Pressable>
         </Section>
       ) : null}
@@ -206,11 +221,15 @@ export default function Home() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.bleedTrack, { gap: 8, paddingBottom: 14 }]} style={s.bleed}>
           {galleryRegions.map((region) => <Pressable key={region.key} onPress={() => { tapFeedback(); setSelectedGalleryRegion(region.key); }} style={[s.regionPill, selectedGalleryRegion === region.key && s.regionPillActive]}><Text style={[s.regionPillText, selectedGalleryRegion === region.key && s.regionPillTextActive]}>{region.label}</Text></Pressable>)}
         </ScrollView>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} decelerationRate="fast" snapToInterval={galleryCardWidth + 14} contentContainerStyle={s.bleedTrack} style={s.bleed}>
-          {galleryAlbums.map((album) => (
-            <AlbumCard key={album.key} title={album.title} coverUri={album.cover.foto_url} count={album.photos.length} width={galleryCardWidth} onPress={() => setOpenAlbum(album)} />
-          ))}
-        </ScrollView>
+        <SnapCarousel
+          data={galleryAlbums}
+          itemWidth={galleryCardWidth}
+          intensity={0.5}
+          keyExtractor={(album) => album.key}
+          style={s.bleed}
+          contentContainerStyle={{ paddingTop: 2, paddingBottom: 30 }}
+          renderItem={(album) => <AlbumCard title={album.title} coverUri={album.cover.foto_url} count={album.photos.length} width={galleryCardWidth} onPress={() => setOpenAlbum(album)} />}
+        />
         <Pressable onPress={() => router.push('/galeria')} style={s.seeAll}><Text style={s.seeAllText}>Ver todas las galerías</Text><Ionicons name="chevron-forward" size={16} color={C.wine} /></Pressable>
         {!galeria.loading && !galleryAlbums.length ? <Text style={[ui.body, { paddingHorizontal: 20 }]}>Explora fotos de nuestra comunidad por región.</Text> : null}
       </Section>
@@ -306,8 +325,6 @@ const s = StyleSheet.create({
   videoTitle: { color: C.text, fontSize: 14, fontWeight: '600', marginTop: 8, lineHeight: 19 },
   moreLink: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, alignSelf: 'flex-start' },
   moreLinkText: { color: C.wine, fontWeight: '700', fontSize: 13 },
-  signupBadge: { position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 999, backgroundColor: C.wine },
-  signupBadgeText: { fontFamily: sans, fontSize: 11, fontWeight: '700', color: '#fff' },
   aboutCards: { gap: 12, marginTop: 18 },
   aboutCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)' },
   aboutCardIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
@@ -340,7 +357,7 @@ const s = StyleSheet.create({
   audioCopy: { fontFamily: sans, color: 'rgba(255,255,255,0.8)', fontSize: 13, lineHeight: 18, marginTop: 2 },
   audioPlay: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
   bleed: { marginHorizontal: -20 },
-  bleedTrack: { paddingHorizontal: 20, paddingTop: 2, paddingBottom: 18, gap: 14 },
+  bleedTrack: { paddingHorizontal: 20, paddingTop: 2, paddingBottom: 30, gap: 14, alignItems: 'flex-start' },
   seeAll: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingVertical: 4 },
   seeAllText: { fontFamily: sans, fontSize: 15, fontWeight: '600', color: C.wine },
   regionPill: { minHeight: 34, paddingHorizontal: 14, borderRadius: 999, backgroundColor: C.fill, justifyContent: 'center' },

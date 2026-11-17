@@ -422,3 +422,4 @@ export const revokeUser = (userId: string) => manageUsers({ action: 'revoke', us
 export const restoreUser = (userId: string) => manageUsers({ action: 'restore', userId });
 export const resetUserPassword = (userId: string) => manageUsers({ action: 'send_password_reset', userId });
 export const changeMyAdminEmail = (email: string) => manageUsers({ action: 'change_my_email', email });
+export const setUserName = (userId: string, nombre: string) => manageUsers({ action: 'set_name', userId, nombre });

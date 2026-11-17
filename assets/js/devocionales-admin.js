@@ -5,6 +5,9 @@
   let articles = [];
   let reviewQueue = [];
   let activeFilter = "all";
+  let articlePage = 0;
+  let reviewPage = 0;
+  const ARTICLE_PAGE_SIZE = 20;
   let editingArticle = null;
   const historyCache = new Map();
 
@@ -68,11 +71,11 @@
       .catch((error) => console.error("No se pudo notificar a los revisores.", error));
   }
 
-  function message(text, ok = true) {
+  function message(text, ok = true, progress = false) {
     const element = $("adminDevocionalMsg");
     if (!element) return;
     element.textContent = text;
-    element.className = `form-message ${ok ? "ok" : "err"}`;
+    element.className = `form-message ${ok ? "ok" : "err"}${progress ? " is-progress" : ""}`;
     element.style.display = "block";
   }
 
@@ -557,7 +560,10 @@
       container.innerHTML = `<div class="admin-empty">No hay ${activeFilter === "published" ? "artículos publicados" : activeFilter === "draft" ? "borradores" : "artículos"} todavía.</div>`;
       return;
     }
-    container.innerHTML = filtered.map((article) => {
+    const pages = Math.max(1, Math.ceil(filtered.length / ARTICLE_PAGE_SIZE));
+    articlePage = Math.min(articlePage, pages - 1);
+    const pageItems = filtered.slice(articlePage * ARTICLE_PAGE_SIZE, (articlePage + 1) * ARTICLE_PAGE_SIZE);
+    container.innerHTML = pageItems.map((article) => {
       const fields = pendingFields(article);
       const canDelete = !article.publicado || currentAccess.is_super_admin;
       return `
@@ -577,7 +583,7 @@
         </div>
         ${historyToggleHtml(article.id)}
       </article>`;
-    }).join("");
+    }).join("") + paginationMarkup(filtered.length, articlePage, "articles");
   }
 
   function renderQueue() {
@@ -591,7 +597,10 @@
       container.innerHTML = `<div class="admin-empty">No hay artículos esperando revisión.</div>`;
       return;
     }
-    container.innerHTML = reviewQueue.map((article) => {
+    const pages = Math.max(1, Math.ceil(reviewQueue.length / ARTICLE_PAGE_SIZE));
+    reviewPage = Math.min(reviewPage, pages - 1);
+    const pageItems = reviewQueue.slice(reviewPage * ARTICLE_PAGE_SIZE, (reviewPage + 1) * ARTICLE_PAGE_SIZE);
+    container.innerHTML = pageItems.map((article) => {
       const fields = pendingFields(article);
       const defaultFecha = localDateTime(article.pending_fecha_publicacion || new Date());
       return `
@@ -612,7 +621,15 @@
         </div>
         ${historyToggleHtml(article.id)}
       </article>`;
-    }).join("");
+    }).join("") + paginationMarkup(reviewQueue.length, reviewPage, "review");
+  }
+
+  function paginationMarkup(total, page, key) {
+    if (total <= ARTICLE_PAGE_SIZE) return "";
+    const pages = Math.ceil(total / ARTICLE_PAGE_SIZE);
+    const start = page * ARTICLE_PAGE_SIZE + 1;
+    const end = Math.min((page + 1) * ARTICLE_PAGE_SIZE, total);
+    return `<nav class="admin-list-pagination" aria-label="Paginación"><span>Mostrando ${start}–${end} de ${total}</span><div><button type="button" data-dev-page="${key}" data-page="${page - 1}" ${page === 0 ? "disabled" : ""} aria-label="Página anterior">‹</button><span>Página ${page + 1} de ${pages}</span><button type="button" data-dev-page="${key}" data-page="${page + 1}" ${page + 1 >= pages ? "disabled" : ""} aria-label="Página siguiente">›</button></div></nav>`;
   }
 
   async function loadArticles() {
@@ -672,9 +689,9 @@
     if (!reflection) { message("Escribe la reflexión antes de guardar.", false); $("adminDevocionalContenidoEditor").focus(); return; }
     document.querySelectorAll("[data-dev-save]").forEach((button) => { button.disabled = true; });
     try {
-      message("Preparando imagen…");
+      message("Preparando imagen…", true, true);
       const uploadFile = await getUploadableCoverFile();
-      message(uploadFile ? "Optimizando imagen…" : "Guardando artículo…");
+      message(uploadFile ? "Optimizando imagen…" : "Guardando artículo…", true, true);
       const imageUrl = uploadFile
         ? await window.McpSupabase.uploadImageToSupabaseBucket(uploadFile, "mcp930-images", "devocionales")
         : $("adminDevocionalImagenActual").value || null;
@@ -765,6 +782,8 @@
   }
 
   async function listAction(event) {
+    const pageButton = event.target.closest("[data-dev-page='articles']");
+    if (pageButton) { articlePage = Number(pageButton.dataset.page) || 0; render(); return; }
     const historyButton = event.target.closest("[data-dev-history]");
     if (historyButton) return toggleHistory(historyButton);
 
@@ -807,6 +826,8 @@
   }
 
   async function reviewQueueAction(event) {
+    const pageButton = event.target.closest("[data-dev-page='review']");
+    if (pageButton) { reviewPage = Number(pageButton.dataset.page) || 0; renderQueue(); return; }
     const historyButton = event.target.closest("[data-dev-history]");
     if (historyButton) return toggleHistory(historyButton);
 
@@ -887,6 +908,7 @@
       $("adminDevocionalReviewList")?.addEventListener("click", reviewQueueAction);
       document.querySelectorAll("[data-dev-filter]").forEach((button) => button.addEventListener("click", () => {
         activeFilter = button.dataset.devFilter;
+        articlePage = 0;
         document.querySelectorAll("[data-dev-filter]").forEach((item) => item.classList.toggle("active", item === button));
         render();
       }));

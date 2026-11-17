@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { router, Stack, useFocusEffect } from 'expo-router';
+import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
@@ -55,7 +55,8 @@ function videoIdFrom(value: string) {
 
 export default function AdminContenido() {
   const { access, ready } = useAdmin();
-  const [kind, setKind] = useState<Kind>('destacadas');
+  const { tipo } = useLocalSearchParams<{ tipo?: string }>();
+  const [kind, setKind] = useState<Kind>(tipo === 'youtube' || tipo === 'banner' ? tipo : 'destacadas');
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -213,7 +214,7 @@ export default function AdminContenido() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Contenido', headerRight: () => kind !== 'banner' && (canAdmin(access,'content','create') || canAdmin(access,'content','edit')) ? (
+      <Stack.Screen options={{ title: kind === 'youtube' ? 'YouTube' : kind === 'banner' ? 'Banner' : 'Destacadas', headerRight: () => kind !== 'banner' && (canAdmin(access,'content','create') || canAdmin(access,'content','edit')) ? (
         <Pressable accessibilityLabel="Nueva publicación" onPress={() => beginEdit()} hitSlop={12} style={{ paddingHorizontal: 8 }}><Ionicons name="add-circle" size={27} color={C.wine} /></Pressable>
       ) : null }} />
       <ScrollView contentContainerStyle={s.page} refreshControl={undefined}>
@@ -223,12 +224,20 @@ export default function AdminContenido() {
         <View style={s.segment}>
           {types.filter((type) => type.key !== 'banner' || canAdmin(access,'content','edit')).map((type) => <Pressable key={type.key} onPress={() => setKind(type.key)} style={[s.segmentOption, kind === type.key && s.segmentActive]}><Text style={[s.segmentText, kind === type.key && s.segmentTextActive]}>{type.label}</Text></Pressable>)}
         </View>
-        <View style={s.devotionLink}><Row icon="book-outline" label="Devocionales" sub="Escribir, revisar y publicar" onPress={() => router.push('/admin/devocionales')} /></View>
         {kind === 'banner' ? (
           <Group header="Aviso de bienvenida" footer="El banner aparece en la página de inicio mientras esté activado.">
             <InputRow label="Título" value={bannerTitle} onChangeText={setBannerTitle} placeholder="Título del aviso" editable={canAdmin(access,'content','edit')} />
             <View style={s.messageField}><Text style={s.fieldLabel}>Mensaje</Text><TextInput multiline value={bannerMessage} onChangeText={setBannerMessage} editable={canAdmin(access,'content','edit')} placeholder="Escribe el aviso para la comunidad" placeholderTextColor="#a28f8c" style={s.messageInput} /></View>
             <View style={s.toggle}><Text style={s.toggleLabel}>Mostrar banner</Text><Switch value={bannerActive} disabled={!canAdmin(access,'content','publish')} onValueChange={setBannerActive} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View>
+            <View style={s.bannerPreview}>
+              <View style={s.bannerPreviewTop}><Text style={s.bannerPreviewKicker}>VISTA PREVIA</Text><View style={[s.bannerState, bannerActive && s.bannerStateOn]}><View style={[s.bannerStateDot, bannerActive && s.bannerStateDotOn]} /><Text style={[s.bannerStateText, bannerActive && s.bannerStateTextOn]}>{bannerActive ? 'Activo' : 'Inactivo'}</Text></View></View>
+              <View style={s.bannerPreviewCard}>
+                <View style={s.bannerPreviewMark}><Ionicons name="sparkles" size={15} color={C.wine} /></View>
+                <Text style={s.bannerPreviewEyebrow}>MUJERES CON PROPÓSITO</Text>
+                <Text style={s.bannerPreviewTitle}>{bannerTitle.trim() || 'Tu título aparecerá aquí'}</Text>
+                <Text style={s.bannerPreviewText}>{bannerMessage.trim() || 'Escribe un mensaje breve para invitar a la comunidad.'}</Text>
+              </View>
+            </View>
             {canAdmin(access,'content','edit') ? <Pressable onPress={() => void save()} disabled={busy} style={s.saveButton}><Text style={s.saveText}>{busy ? 'Guardando…' : 'Guardar banner'}</Text></Pressable> : null}
           </Group>
         ) : loading ? <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} /> : (
@@ -321,4 +330,18 @@ const s = StyleSheet.create({
   saveButton: { minHeight: 48, margin: 14, borderRadius: 14, backgroundColor: C.wine, alignItems: 'center', justifyContent: 'center' }, saveText: { fontFamily: sans, color: '#fff', fontWeight: '700', fontSize: 15 },
   modalBar: { height: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderColor: C.line }, modalTitle: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink }, modalAction: { fontFamily: sans, fontSize: 15, color: C.wine },
   preview: { width: '100%', height: 220, borderRadius: 20, backgroundColor: C.sand, marginBottom: 12 }, pickButton: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'center', padding: 12 }, pickText: { fontFamily: sans, fontSize: 14, fontWeight: '600', color: C.wine },
+  bannerPreview: { marginHorizontal: 16, marginBottom: 14, padding: 14, borderRadius: 18, backgroundColor: C.sand, gap: 12 },
+  bannerPreviewTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  bannerPreviewKicker: { fontFamily: sans, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: C.wine },
+  bannerState: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(60,40,38,0.08)' },
+  bannerStateOn: { backgroundColor: 'rgba(47,125,79,0.12)' },
+  bannerStateDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.muted },
+  bannerStateDotOn: { backgroundColor: '#2f7d4f' },
+  bannerStateText: { fontFamily: sans, fontSize: 11.5, fontWeight: '600', color: C.muted },
+  bannerStateTextOn: { color: '#2f7d4f' },
+  bannerPreviewCard: { padding: 16, borderRadius: 16, backgroundColor: C.card, gap: 5, boxShadow: '0 1px 2px rgba(63,38,35,0.05), 0 10px 26px rgba(63,38,35,0.10)' },
+  bannerPreviewMark: { width: 30, height: 30, borderRadius: 15, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  bannerPreviewEyebrow: { fontFamily: sans, fontSize: 10.5, fontWeight: '700', letterSpacing: 1.3, color: C.gold2 },
+  bannerPreviewTitle: { fontFamily: sans, fontSize: 17, fontWeight: '700', color: C.ink },
+  bannerPreviewText: { fontFamily: sans, fontSize: 14, lineHeight: 20, color: C.muted },
 });
