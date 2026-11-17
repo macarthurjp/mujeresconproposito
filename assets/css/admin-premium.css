@@ -724,6 +724,13 @@ body.mcp-brand .admin-main .admin-item-media .admin-eye.is-off { background: rgb
 .perm-no-content-publish :is(#adminDestacadasList, #adminYoutubeList) .admin-eye,
 .perm-no-gallery-edit #adminGaleriaList .admin-eye { pointer-events: none; opacity: .55; }
 
+/* When a role cannot reorder gallery photos, the drag handle is hidden. Remove
+   its reserved grid track too, or the title is squeezed into the thumbnail
+   column and wraps one short fragment per line. */
+body.perm-no-gallery-edit #adminGaleriaList .admin-content-item {
+  grid-template-columns: 56px minmax(0, 1fr) auto !important;
+}
+
 /* ---------- Roles y permisos (assets/js/roles-admin.js) ---------- */
 .rp-assign-card h3, #admin-permisos .admin-list-card h3 { margin-bottom: 12px; }
 .rp-search { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 14px; background: var(--a-sand); color: var(--a-muted); }
