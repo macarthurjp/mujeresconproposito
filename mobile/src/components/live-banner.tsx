@@ -113,7 +113,7 @@ const b = StyleSheet.create({
     borderRadius: 20, overflow: 'hidden',
     boxShadow: '0 12px 32px rgba(63,38,35,0.22)',
   },
-  cardSolid: { backgroundColor: 'rgba(255,255,255,0.97)' },
+  cardSolid: { backgroundColor: '#ffffff' },
   dotWrap: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(214,69,69,0.15)', alignItems: 'center', justifyContent: 'center' },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.live },
   kicker: { fontFamily: sans, fontSize: 11, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', color: C.live },

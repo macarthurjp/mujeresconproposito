@@ -31,7 +31,10 @@ function TabBarBackground() {
       </View>
     );
   }
-  return <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,247,246,0.76)' }]} />;
+  // Without blur, a see-through fill lets titles behind the bar mix with the
+  // icons (Android renders partial alpha here far more transparent than its
+  // value suggests), so Android gets a fully opaque surface with a hairline edge.
+  return <View style={[StyleSheet.absoluteFill, { backgroundColor: '#fff8f7', borderRadius: 31, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(63,38,35,0.10)' }]} />;
 }
 
 export default function TabsLayout() {
@@ -62,7 +65,10 @@ export default function TabsLayout() {
           borderTopWidth: 0,
           borderWidth: 1,
           borderColor: 'rgba(255,255,255,0.52)',
-          elevation: 0,
+          // Android draws higher-elevation views on top regardless of order, and
+          // cards with shadows have elevation, so the bar needs a higher one.
+          elevation: Platform.OS === 'android' ? 24 : 0,
+          zIndex: 20,
           boxShadow: '0 8px 24px rgba(91,48,55,0.13)',
         },
         tabBarLabelStyle: { fontFamily: sans, fontSize: 10, fontWeight: '600', letterSpacing: 0.1 },
