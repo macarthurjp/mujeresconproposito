@@ -1,5 +1,5 @@
 import { corsHeaders, jsonResponse } from "../_shared/http.ts";
-import { getClientIp, verifyTurnstile } from "../_shared/turnstile.ts";
+import { getClientIp, verifyHumanToken } from "../_shared/turnstile.ts";
 
 const ALLOWED_HOSTNAMES = new Set(["macarthurjp.github.io", "mcp930.org", "www.mcp930.org"]);
 const EXPECTED_ACTION = "join";
@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
 
   try {
     const payload = await req.json();
-    const turnstileResult = await verifyTurnstile(payload.turnstileToken, getClientIp(req));
+    const turnstileResult = await verifyHumanToken(payload.turnstileToken, getClientIp(req), EXPECTED_ACTION);
 
     if (
       !turnstileResult.success ||
