@@ -26,19 +26,65 @@
     <div id="widget"></div>
   </main>
   <script>
+    var FALLBACK_URL = "https://jkunywiyiyidhyodsbfh.supabase.co/functions/v1/form-fallback-token";
+    var ANON_KEY = "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
+    var action = new URLSearchParams(location.search).get("action") === "contact" ? "contact" : "join";
+    var widgetId = null, failures = 0, done = false, watchdog = null;
+
     function send(message) {
       if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(message));
     }
+    function setStatus(text) { var p = document.querySelector("main p"); if (p) p.textContent = text; }
+
+    // When Turnstile cannot complete inside the app WebView, ask the server for a
+    // single-use, rate-limited token so the person can still send the form.
+    function fallback(code) {
+      if (done) return;
+      done = true;
+      clearTimeout(watchdog);
+      setStatus("Completando la verificación…");
+      fetch(FALLBACK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", apikey: ANON_KEY, Authorization: "Bearer " + ANON_KEY },
+        body: JSON.stringify({ action: action, code: String(code || "") })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data && data.ok && data.token) send({ type: "turnstile", token: data.token });
+          else send({ type: "turnstile-error", code: String(code || "") });
+        })
+        .catch(function () { send({ type: "turnstile-error", code: String(code || "") }); });
+    }
+
     function mcpReady() {
-      var action = new URLSearchParams(location.search).get("action") === "contact" ? "contact" : "join";
-      window.turnstile.render("#widget", {
+      widgetId = window.turnstile.render("#widget", {
         sitekey: "0x4AAAAAAEh_oJLzQvnRIJsH",
         action: action,
-        callback: function (token) { send({ type: "turnstile", token: token }); },
-        "error-callback": function () { send({ type: "turnstile-error" }); },
-        "expired-callback": function () { send({ type: "turnstile-expired" }); }
+        retry: "auto",
+        "refresh-expired": "auto",
+        callback: function (token) {
+          if (done) return;
+          done = true;
+          clearTimeout(watchdog);
+          send({ type: "turnstile", token: token });
+        },
+        "error-callback": function (code) {
+          failures += 1;
+          if (failures < 2) {
+            setStatus("Reintentando la verificación…");
+            try { window.turnstile.reset(widgetId); } catch (e) { fallback(code); }
+          } else {
+            fallback(code);
+          }
+          return true; // handled: do not let Turnstile throw
+        },
+        "expired-callback": function () { try { window.turnstile.reset(widgetId); } catch (e) {} }
       });
+      // If nothing happens in a reasonable time, do not leave the person waiting.
+      watchdog = setTimeout(function () { fallback("timeout"); }, 25000);
     }
+    // If the Turnstile script itself cannot load, fall back too.
+    setTimeout(function () { if (!window.turnstile) fallback("script-not-loaded"); }, 12000);
   </script>
 </body>
 </html>

@@ -67,3 +67,8 @@ entrypoint = "./functions/send-content-push/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/send-broadcast/index.ts"
+
+[functions.form-fallback-token]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/form-fallback-token/index.ts"
