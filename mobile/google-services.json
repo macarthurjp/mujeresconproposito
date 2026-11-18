@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "748771103025",
+    "project_id": "mujeres-con-proposito-24bda",
+    "storage_bucket": "mujeres-con-proposito-24bda.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:748771103025:android:fb1584079a6ca91492e010",
+        "android_client_info": {
+          "package_name": "org.mcp930.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHlOo0DjzeFdmdXGTYyBqhuD1D_qWr6WU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
