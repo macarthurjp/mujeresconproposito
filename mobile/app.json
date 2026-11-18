@@ -56,6 +56,7 @@
     },
     "android": {
       "package": "org.mcp930.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FCEAE5",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
