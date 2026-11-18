@@ -28,13 +28,13 @@ Deno.serve(async (req) => {
 
     const { data: devocional, error: devocionalError } = await admin
       .from("devocionales")
-      .select("id,slug,estado,created_by,pending_content")
+      .select("id,slug,estado,created_by,autora,pending_content")
       .eq("id", devocionalId)
       .maybeSingle();
     if (devocionalError) throw devocionalError;
     if (!devocional) return jsonResponse({ ok: false, error: "Devocional no encontrado." }, 404);
-    if (devocional.estado !== "en_revision") {
-      return jsonResponse({ ok: false, error: "Este devocional no está en revisión." }, 400);
+    if (devocional.estado !== "pendiente_revision") {
+      return jsonResponse({ ok: false, error: "Este devocional no está pendiente de revisión." }, 400);
     }
 
     const { data: requesterRole } = await admin
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
 
     const pending = (devocional.pending_content || {}) as Record<string, unknown>;
     const titulo = String(pending.titulo || "Sin título").trim();
-    const autora = String(pending.autora || "").trim();
+    const autora = String(devocional.autora || "").trim();
     const adminUrl = "https://mcp930.org/admin.html";
     const safeTitulo = escapeHtml(titulo);
     const safeAutora = escapeHtml(autora || "Un editor");

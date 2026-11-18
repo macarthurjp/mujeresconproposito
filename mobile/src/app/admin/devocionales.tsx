@@ -15,7 +15,7 @@ import { canAdmin, uploadImage } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 
-type Article = { id: number; slug: string; titulo: string; resumen: string; contenido: string; introduccion_html?: string; contenido_html?: string; versiculo: string; categorias: string[]; autora: string; imagen_url: string; estado: string; publicado: boolean; fecha_publicacion: string | null; created_by: string; updated_at?: string; pending_content?: Record<string, unknown> | null; pending_fecha_publicacion?: string | null };
+type Article = { id: number; slug: string; titulo: string; resumen: string; contenido: string; introduccion_html?: string; contenido_html?: string; versiculo: string; categorias: string[]; autora: string; imagen_url: string; estado: string; publicado: boolean; fecha_publicacion: string | null; created_by: string; updated_at?: string; reviewer_id?: string | null; pending_content?: Record<string, unknown> | null; pending_fecha_publicacion?: string | null; cover_alt?: string | null; serie?: string | null; etiquetas?: string[]; aplicacion_html?: string | null; oracion_html?: string | null };
 type HistoryEntry = { id: number; accion: string; nota?: string | null; actor_email?: string | null; created_at: string };
 const DEVOTIONAL_CATEGORIES = ['Fe', 'Esperanza', 'Amor', 'Oración', 'Gracia', 'Sabiduría', 'Salvación'];
 
@@ -95,7 +95,7 @@ export default function AdminDevocionales() {
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [busy, setBusy] = useState(false);
   const contentInputRef = useRef<ComponentRef<typeof TextInput>>(null);
-  const author = String(editing?.pending_content?.autora ?? editing?.autora ?? access?.nombre ?? 'Equipo Mujeres con Propósito');
+  const author = String(editing?.autora ?? access?.nombre ?? 'Equipo Mujeres con Propósito');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,7 +111,7 @@ export default function AdminDevocionales() {
       } else {
         const requests = [];
         if (canAdmin(access,'devotionals','create')) requests.push(base().eq('created_by', id));
-        if (canAdmin(access,'devotionals','publish')) requests.push(base().eq('estado', 'en_revision').neq('created_by', id));
+        if (canAdmin(access,'devotionals','publish')) requests.push(base().in('estado', ['pendiente_revision', 'en_revision']).neq('created_by', id));
         if (!requests.length && canAdmin(access,'devotionals','view')) requests.push(base().eq('publicado', true));
         const results = await Promise.all(requests);
         const failed = results.find((result) => result.error);
@@ -198,42 +198,28 @@ export default function AdminDevocionales() {
     if (event.type === 'dismissed' || Platform.OS !== 'ios') setShowTimePicker(false);
   };
 
-  const save = async (submitForReview: boolean, publish = false) => {
+  const save = async (submitForReview: boolean) => {
     if (!title.trim() || !content.trim()) return Alert.alert('Completa el devocional', 'Escribe un título y la reflexión.');
     setBusy(true);
     try {
-      const fields = { titulo: title.trim(), resumen: summary.trim(), contenido: content.trim(), introduccion_html: editorHtml(summary), contenido_html: editorHtml(content), versiculo: verse.trim(), categorias: categories, autora: author.trim() || 'Equipo Mujeres con Propósito', imagen_url: image.trim() || null };
+      const fields = { titulo: title.trim(), resumen: summary.trim(), contenido: content.trim(), introduccion_html: editorHtml(summary), contenido_html: editorHtml(content), versiculo: verse.trim(), categorias: categories, imagen_url: image.trim() || null, cover_alt: editing?.pending_content?.cover_alt ?? editing?.cover_alt ?? null, serie: editing?.pending_content?.serie ?? editing?.serie ?? null, etiquetas: editing?.pending_content?.etiquetas ?? editing?.etiquetas ?? [], aplicacion_html: editing?.pending_content?.aplicacion_html ?? editing?.aplicacion_html ?? null, oracion_html: editing?.pending_content?.oracion_html ?? editing?.oracion_html ?? null };
       let id = editing?.id;
-      if (access?.isSuperAdmin) {
-        const shouldPublish = publish || Boolean(editing?.publicado);
-        const payload = { ...fields, publicado: shouldPublish, fecha_publicacion: shouldPublish ? publishAt.toISOString() : null, estado: editing?.estado || 'borrador', updated_at: new Date().toISOString() };
-        if (id) {
-          const { error } = await supabase.from('devocionales').update(payload).eq('id', id);
-          if (error) throw error;
-        } else {
-          const slug = `${title.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now().toString(36)}`;
-          const { data, error } = await supabase.from('devocionales').insert({ ...payload, slug, created_by: userId }).select('id').single();
-          if (error) throw error;
-          id = data.id;
-        }
+      const payload = { pending_content: fields, pending_fecha_publicacion: publishAt.toISOString(), updated_at: new Date().toISOString() };
+      if (id) {
+        const { error } = await supabase.from('devocionales').update(payload).eq('id', id);
+        if (error) throw error;
       } else {
-        const payload = { pending_content: fields, pending_fecha_publicacion: publishAt.toISOString(), updated_at: new Date().toISOString() };
-        if (id) {
-          const { error } = await supabase.from('devocionales').update(payload).eq('id', id);
-          if (error) throw error;
-        } else {
-          const slug = `${title.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now().toString(36)}`;
-          const { data, error } = await supabase.from('devocionales').insert({ ...payload, slug, created_by: userId }).select('id').single();
-          if (error) throw error;
-          id = data.id;
-        }
-        if (submitForReview && id) {
-          const { error } = await supabase.rpc('devocional_submit_for_review', { p_id: id });
-          if (error) throw error;
-        }
+        const slug = `${title.trim().toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-${Date.now().toString(36)}`;
+        const { data, error } = await supabase.from('devocionales').insert({ ...payload, slug, created_by: userId, autora: author }).select('id').single();
+        if (error) throw error;
+        id = data.id;
+      }
+      if (submitForReview && id) {
+        const { error } = await supabase.rpc('devocional_submit_for_review', { p_id: id });
+        if (error) throw error;
       }
       setModal(false); await load();
-      Alert.alert(publish ? 'Devocional publicado' : submitForReview ? 'Enviado a revisión' : 'Devocional guardado');
+      Alert.alert(submitForReview ? 'Enviado a revisión' : 'Borrador guardado');
     } catch (error) { Alert.alert('No se pudo guardar', error instanceof Error ? error.message : ''); }
     finally { setBusy(false); }
   };
@@ -252,6 +238,20 @@ export default function AdminDevocionales() {
       if (error) throw error;
       setApprovalArticle(null); await load(); Alert.alert('Devocional aprobado y publicado');
     } catch (error) { Alert.alert('No se pudo publicar', error instanceof Error ? error.message : ''); }
+    finally { setBusy(false); }
+  };
+
+  const claimReview = async (article: Article) => {
+    setBusy(true);
+    try { const { error } = await supabase.rpc('devocional_claim_review', { p_id: article.id }); if (error) throw error; await load(); }
+    catch (error) { Alert.alert('No se pudo tomar la revisión', error instanceof Error ? error.message : ''); }
+    finally { setBusy(false); }
+  };
+
+  const releaseReview = async (article: Article) => {
+    setBusy(true);
+    try { const { error } = await supabase.rpc('devocional_release_review', { p_id: article.id }); if (error) throw error; await load(); Alert.alert('Revisión liberada', 'El artículo volvió a la cola para que otra persona lo revise.'); }
+    catch (error) { Alert.alert('No se pudo liberar la revisión', error instanceof Error ? error.message : ''); }
     finally { setBusy(false); }
   };
 
@@ -279,18 +279,18 @@ export default function AdminDevocionales() {
   };
 
   const articleAction = (article: Article, action: 'delete' | 'withdraw' | 'unpublish' | 'publish') => Alert.alert(
-    action === 'delete' ? 'Eliminar devocional' : action === 'withdraw' ? 'Retirar de revisión' : action === 'unpublish' ? 'Despublicar' : 'Publicar devocional',
-    action === 'delete' ? '¿Eliminar este borrador? Esta acción no se puede deshacer.' : `¿${action === 'withdraw' ? 'Retirar' : action === 'unpublish' ? 'Despublicar' : 'Publicar'} “${article.titulo}”?`,
+    action === 'delete' ? 'Eliminar devocional' : action === 'withdraw' ? 'Retirar de revisión' : action === 'unpublish' ? 'Devolver a borrador' : 'Publicar devocional',
+    action === 'delete' ? '¿Eliminar este devocional? Esta acción lo ocultará y conservará su historial.' : `¿${action === 'withdraw' ? 'Retirar' : action === 'unpublish' ? 'Devolver a borrador' : 'Publicar'} “${article.titulo}”?`,
     [
       { text: 'Cancelar', style: 'cancel' },
       { text: action === 'delete' ? 'Eliminar' : 'Continuar', style: action === 'delete' ? 'destructive' : 'default', onPress: async () => {
         setBusy(true);
         try {
           const result = action === 'delete'
-            ? await supabase.from('devocionales').delete().eq('id', article.id)
-            : action === 'publish'
-              ? await supabase.from('devocionales').update({ publicado: true, fecha_publicacion: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', article.id)
-              : await supabase.rpc(action === 'withdraw' ? 'devocional_withdraw' : 'devocional_unpublish', { p_id: article.id });
+            ? await supabase.rpc('devocional_soft_delete', { p_id: article.id })
+            : action === 'withdraw'
+              ? await supabase.rpc('devocional_withdraw', { p_id: article.id })
+              : await supabase.rpc('devocional_admin_return_to_draft', { p_id: article.id });
           if (result.error) throw result.error;
           await load();
         } catch (error) { Alert.alert('No se pudo completar la acción', error instanceof Error ? error.message : ''); }
@@ -313,7 +313,7 @@ export default function AdminDevocionales() {
   const reviewContent = previewArticle?.pending_content;
   const reviewImage = String(reviewContent?.imagen_url ?? previewArticle?.imagen_url ?? '');
   const reviewTitle = String(reviewContent?.titulo ?? previewArticle?.titulo ?? '');
-  const reviewAuthor = String(reviewContent?.autora ?? previewArticle?.autora ?? '');
+  const reviewAuthor = String(previewArticle?.autora ?? '');
   const reviewVerse = String(reviewContent?.versiculo ?? previewArticle?.versiculo ?? '');
   const reviewSummary = toEditorText(String(reviewContent?.introduccion_html ?? reviewContent?.resumen ?? previewArticle?.introduccion_html ?? previewArticle?.resumen ?? ''));
   const reviewBody = toEditorText(String(reviewContent?.contenido_html ?? reviewContent?.contenido ?? previewArticle?.contenido_html ?? previewArticle?.contenido ?? ''));
@@ -334,22 +334,23 @@ export default function AdminDevocionales() {
           <Text style={s.gestureHint}>Desliza a la derecha para editar y a la izquierda para eliminar.</Text>
           {visibleArticles.map((article) => {
             const articleTitle = String(article.pending_content?.titulo || article.titulo || 'Sin título');
-            const reviewItem = article.estado === 'en_revision' && !article.publicado;
+            const reviewItem = ['pendiente_revision', 'en_revision'].includes(article.estado) && !article.publicado;
             const isOwnArticle = article.created_by === userId;
             const reviewerQueueItem = reviewer && reviewItem && !isOwnArticle;
-            const canEditArticle = access.isSuperAdmin || (canAdmin(access,'devotionals','edit') && isOwnArticle);
+            const canEditArticle = (access.isSuperAdmin || canAdmin(access,'devotionals','edit')) && isOwnArticle && ['borrador', 'cambios_solicitados'].includes(article.estado) && !article.publicado;
             const canDelete = access.isSuperAdmin || (canAdmin(access,'devotionals','delete') && isOwnArticle && !article.publicado);
             return <AdminGestureRow key={article.id} onEdit={canEditArticle ? () => open(article) : undefined} onDelete={canDelete ? () => articleAction(article, 'delete') : undefined} stepHeight={112}>
               <View style={s.articleCard}>
               <Row icon={reviewerQueueItem ? 'eye' : 'book'} tint={reviewerQueueItem ? C.gold2 : C.wine} label={articleTitle} sub={`${article.estado || (article.publicado ? 'Publicado' : 'Borrador')} · ${article.autora || 'Sin autora'}${article.categorias?.length ? ` · ${article.categorias.join(', ')}` : ''}`} onPress={() => reviewerQueueItem ? previewArticleContent(article) : canEditArticle ? open(article) : previewArticleContent(article)} />
               <View style={s.articleActions}>
                 <Pressable onPress={() => showHistory(article)} style={s.articleAction}><Ionicons name="time-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Historial</Text></Pressable>
-                  {reviewerQueueItem ? <>
+                  {reviewerQueueItem && article.estado === 'pendiente_revision' ? <Pressable onPress={() => void claimReview(article)} style={s.articleAction}><Ionicons name="hand-left-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Tomar revisión</Text></Pressable> : reviewerQueueItem && article.reviewer_id === userId ? <>
                   {canAdmin(access,'devotionals','edit') ? <Pressable onPress={() => { setChangeRequest(article); setChangeNote(''); }} style={s.articleAction}><Ionicons name="chatbox-ellipses-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Solicitar cambios</Text></Pressable> : null}
+                  <Pressable onPress={() => void releaseReview(article)} style={s.articleAction}><Ionicons name="return-down-back-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Liberar revisión</Text></Pressable>
                   <Pressable onPress={() => approve(article)} style={s.articleAction}><Ionicons name="checkmark-circle-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Aprobar</Text></Pressable>
                 </> : <>
-                  {article.estado === 'en_revision' && !article.publicado && (isOwnArticle || access.isSuperAdmin) && canAdmin(access,'devotionals','edit') ? <Pressable onPress={() => articleAction(article, 'withdraw')} style={s.articleAction}><Ionicons name="return-down-back-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Retirar</Text></Pressable> : null}
-                  {article.publicado && access.isSuperAdmin ? <Pressable onPress={() => articleAction(article, 'unpublish')} style={s.articleAction}><Ionicons name="eye-off-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Despublicar</Text></Pressable> : canAdmin(access,'devotionals','publish') && reviewItem && !isOwnArticle ? <Pressable onPress={() => approve(article)} style={s.articleAction}><Ionicons name="checkmark-circle-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Revisar y publicar</Text></Pressable> : access.isSuperAdmin && !article.publicado && !reviewItem ? <Pressable onPress={() => articleAction(article, 'publish')} style={s.articleAction}><Ionicons name="globe-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Publicar</Text></Pressable> : null}
+                  {article.estado === 'pendiente_revision' && !article.publicado && (isOwnArticle || access.isSuperAdmin) && canAdmin(access,'devotionals','edit') ? <Pressable onPress={() => articleAction(article, 'withdraw')} style={s.articleAction}><Ionicons name="return-down-back-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Retirar</Text></Pressable> : null}
+                  {article.publicado && access.isSuperAdmin ? <Pressable onPress={() => articleAction(article, 'unpublish')} style={s.articleAction}><Ionicons name="eye-off-outline" size={15} color={C.wine} /><Text style={s.articleActionText}>Devolver a borrador</Text></Pressable> : null}
                 </>}
               </View>
               </View>
@@ -452,7 +453,7 @@ export default function AdminDevocionales() {
               <View style={s.editorFooter}>
                 <Pressable onPress={() => setPreview(true)} style={s.previewButton}><Ionicons name="eye-outline" size={18} color={C.wine} /><Text style={s.previewButtonText}>Vista previa</Text></Pressable>
                 {editor ? <Pressable onPress={() => void save(true)} disabled={busy} style={s.submit}><Text style={s.submitText}>{busy ? 'Enviando…' : 'Enviar a revisión'}</Text></Pressable> : null}
-                {access.isSuperAdmin ? <Pressable onPress={() => void save(false, true)} disabled={busy} style={[s.submit, s.publish]}><Text style={s.submitText}>{busy ? 'Publicando…' : editing?.publicado ? 'Guardar y publicar' : 'Publicar / programar'}</Text></Pressable> : null}
+                {access.isSuperAdmin && editing && ['publicado','programado'].includes(editing.estado) ? <Pressable onPress={() => articleAction(editing, 'unpublish')} disabled={busy} style={[s.submit, s.publish]}><Text style={s.submitText}>Devolver a borrador</Text></Pressable> : null}
               </View>
             </>
           )}

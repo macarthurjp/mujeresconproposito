@@ -1,7 +1,14 @@
-const SUPABASE_URL = "https://jkunywiyiyidhyodsbfh.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
+const isLocalResetOrigin = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+let resetLocalConfig = null;
+if (isLocalResetOrigin) {
+  try { resetLocalConfig = JSON.parse(window.localStorage.getItem("mcp930.localSupabase") || "null"); } catch (_) {}
+}
+const SUPABASE_URL = isLocalResetOrigin ? String(resetLocalConfig?.url || "").trim() : "https://jkunywiyiyidhyodsbfh.supabase.co";
+const SUPABASE_ANON_KEY = isLocalResetOrigin ? String(resetLocalConfig?.anonKey || "").trim() : "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
 
-const resetClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const hasResetConfig = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
+  && (!isLocalResetOrigin || SUPABASE_URL.startsWith("http://127.0.0.1:") || SUPABASE_URL.startsWith("http://localhost:"));
+const resetClient = hasResetConfig ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 const newPasswordInput = document.getElementById("newPassword");
 const confirmPasswordInput = document.getElementById("confirmPassword");
@@ -13,6 +20,11 @@ function showResetMessage(text, ok = false) {
   resetPasswordMsg.style.display = "block";
   resetPasswordMsg.className = `form-message ${ok ? "ok" : "err"}`;
   resetPasswordMsg.textContent = text;
+}
+
+if (!resetClient) {
+  showResetMessage("Configura primero el Supabase local desde la página de administración.");
+  if (savePasswordBtn) savePasswordBtn.disabled = true;
 }
 
 function getLinkErrorDescription() {
@@ -69,6 +81,7 @@ async function ensureRecoverySession() {
 }
 
 savePasswordBtn?.addEventListener("click", async function () {
+  if (!resetClient) return;
   const password = newPasswordInput?.value || "";
   const confirmPassword = confirmPasswordInput?.value || "";
 

@@ -4465,6 +4465,7 @@ function renderContactCalendar(apiData = {}) {
 	      // Role-based access (Roles y permisos): same permissions as the app.
 	      const perms = await window.McpAdminPerms.load(getAdminSupabaseClient(), access);
 	      access.roleName = perms.roleName;
+	      access.modulePermissions = perms.modulePermissions;
 	      if (!window.McpAdminPerms.hasAdminModule()) {
 	        window.location.href = "dashboard.html";
 	        return false;

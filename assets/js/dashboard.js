@@ -1,10 +1,17 @@
-const SUPABASE_URL = "https://jkunywiyiyidhyodsbfh.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
+const isLocalDashboard = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+let dashboardLocalConfig = null;
+if (isLocalDashboard) {
+  try { dashboardLocalConfig = JSON.parse(window.localStorage.getItem("mcp930.localSupabase") || "null"); } catch (_) {}
+}
+const SUPABASE_URL = isLocalDashboard ? String(dashboardLocalConfig?.url || "").trim() : "https://jkunywiyiyidhyodsbfh.supabase.co";
+const SUPABASE_ANON_KEY = isLocalDashboard ? String(dashboardLocalConfig?.anonKey || "").trim() : "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
 const SUPABASE_TABLE = "unirse";
 let dashboardSupabaseClient = null;
 
 function hasSupabaseConfig() {
-  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
+  if (isLocalDashboard) return SUPABASE_URL.startsWith("http://127.0.0.1:") || SUPABASE_URL.startsWith("http://localhost:");
+  return SUPABASE_URL.startsWith("https://");
 }
 
 async function fetchDashboardDataFromSupabase() {

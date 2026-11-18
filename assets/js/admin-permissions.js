@@ -102,7 +102,7 @@
         roleName = (Array.isArray(role) ? role[0]?.name : role?.name) || null;
       }
     }
-    return { roleName };
+    return { roleName, modulePermissions: Array.from(allowed) };
   }
 
   /** Shows only the tabs this person may use and activates the first one. */

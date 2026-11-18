@@ -1,6 +1,15 @@
 (function initializeMcpSupabase() {
-  const SUPABASE_URL = "https://jkunywiyiyidhyodsbfh.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
+  const PRODUCTION_SUPABASE_URL = "https://jkunywiyiyidhyodsbfh.supabase.co";
+  const PRODUCTION_SUPABASE_ANON_KEY = "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
+  const isLocalOrigin = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+  let localConfig = null;
+  if (isLocalOrigin) {
+    try { localConfig = JSON.parse(window.localStorage.getItem("mcp930.localSupabase") || "null"); } catch (_) {}
+  }
+  // A local preview must never fall through to the hosted database. Configure
+  // localStorage.mcp930.localSupabase with the isolated URL and anon key first.
+  const SUPABASE_URL = isLocalOrigin ? String(localConfig?.url || "").trim() : PRODUCTION_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = isLocalOrigin ? String(localConfig?.anonKey || "").trim() : PRODUCTION_SUPABASE_ANON_KEY;
   const CONTACT_EMAILS = ["mujeresconproposito930@gmail.com", "ing.arthur03@gmail.com"];
   const CONTACT_EMAIL = CONTACT_EMAILS.join(", ");
 
@@ -12,7 +21,9 @@
   };
 
   function hasSupabaseConfig() {
-    return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL.startsWith("https://"));
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
+    if (isLocalOrigin) return SUPABASE_URL.startsWith("http://127.0.0.1:") || SUPABASE_URL.startsWith("http://localhost:");
+    return SUPABASE_URL.startsWith("https://");
   }
 
   function getSupabaseBrowserClient() {
