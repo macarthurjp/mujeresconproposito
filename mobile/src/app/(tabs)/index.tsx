@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
 import { BirthdayWeek } from '@/components/birthday-week';
-import { EventSignup, SignupBadge } from '@/components/event-signup';
+import { EventDetailsSheet, SignupBadge } from '@/components/event-signup';
 import { PrayerCard } from '@/components/prayer-card';
 import { SnapCarousel } from '@/components/snap-carousel';
 import { reportScroll } from '@/lib/scroll-activity';
@@ -32,6 +32,7 @@ export default function Home() {
   const birthdays = useAsync(api.birthdays);
   const [selectedGalleryRegion, setSelectedGalleryRegion] = useState<RegionKey>('usa');
   const [openAlbum, setOpenAlbum] = useState<Album<Foto> | null>(null);
+  const [signupId, setSignupId] = useState<string | null>(null);
   const [aboutVisible, setAboutVisible] = useState(false);
   const [showHomeActivities, setShowHomeActivities] = useState(true);
   const galleryCardWidth = Math.min(screenWidth * 0.46, 200);
@@ -95,9 +96,7 @@ export default function Home() {
             contentContainerStyle={{ paddingTop: 2, paddingBottom: 30 }}
             renderItem={(d, i) => (
               <Reveal index={5 + i}>
-                <PosterCard compact uri={d.foto_url} name={d.nombre} role={d.titulo} eyebrow={d.inscripcion_abierta ? 'Evento' : 'Voz destacada'} badge={d.inscripcion_abierta ? <SignupBadge /> : null} onPress={() => router.push('/destacadas')}>
-                  {d.inscripcion_abierta ? <EventSignup destacada={d} /> : null}
-                </PosterCard>
+                <PosterCard compact uri={d.foto_url} name={d.nombre} role={d.titulo} eyebrow={d.inscripcion_abierta ? 'Evento' : 'Voz destacada'} badge={d.inscripcion_abierta ? <SignupBadge /> : null} onPress={() => (d.inscripcion_abierta ? setSignupId(d.id) : router.push('/destacadas'))} />
               </Reveal>
             )}
           />
@@ -256,6 +255,7 @@ export default function Home() {
       {/* Porción: embedded SoundCloud player with native playlist controls */}
       <PorcionPlayer />
     </ScrollView>
+    <EventDetailsSheet destacada={destacadas.data?.find((d) => d.id === signupId) ?? null} onClose={() => setSignupId(null)} />
     <PhotoViewer visible={!!openAlbum} title={openAlbum?.title ?? ''} photos={openAlbum?.photos ?? []} onClose={() => setOpenAlbum(null)} />
     <Modal visible={aboutVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAboutVisible(false)}>
       <View style={s.aboutModal}>
