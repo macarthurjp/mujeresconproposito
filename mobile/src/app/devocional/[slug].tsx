@@ -29,6 +29,7 @@ export default function DevocionalDetalle() {
     ? [...htmlToParagraphs(data.introduccion_html), ...htmlToParagraphs(data.contenido_html)]
     : [];
   const body = paragraphs.length ? paragraphs : (data?.contenido ?? '').split(/\n{2,}/).filter(Boolean);
+  const prayer = data?.oracion_html ? htmlToParagraphs(data.oracion_html) : [];
   const [favorite, setFavorite] = useState(false);
   const [note, setNote] = useState('');
   const noteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,7 +57,7 @@ export default function DevocionalDetalle() {
       {data ? (
         <View style={s.page}>
           <View style={s.hero}>
-            {data.imagen_url ? <Image source={{ uri: data.imagen_url }} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} /> : null}
+            {data.imagen_url ? <Image source={{ uri: data.imagen_url }} accessible accessibilityRole="image" accessibilityLabel={data.cover_alt || data.titulo || 'Portada del devocional'} style={StyleSheet.absoluteFill} contentFit="cover" transition={300} /> : null}
             <LinearGradient
               colors={data.imagen_url ? ['rgba(30,17,18,0.02)', 'rgba(30,17,18,0.18)', 'rgba(30,17,18,0.9)'] : ['#e9c2bc', '#b86258', '#6f3936']}
               locations={[0, 0.42, 1]}
@@ -90,6 +91,12 @@ export default function DevocionalDetalle() {
                     {formattedText(p, s.paragraph)}
                   </View>)}
             </View>
+            {prayer.length ? (
+              <View style={s.prayerCard} accessibilityRole="summary">
+                <View style={s.prayerHead}><Ionicons name="hand-left-outline" size={15} color={C.wine} /><Text style={s.prayerLabel}>ORACIÓN</Text></View>
+                {prayer.map((p, i) => <Text key={i} style={s.prayerText}>{p.replace(/^(## |> |• )/, '')}</Text>)}
+              </View>
+            ) : null}
             <View style={s.endMark}><View style={s.endRule} /><Ionicons name="heart" size={15} color={C.rose} /><View style={s.endRule} /></View>
             <View style={s.notesCard}>
               <View style={s.notesHead}>
@@ -141,6 +148,10 @@ const s = StyleSheet.create({
   verseCard: { paddingHorizontal: 17, paddingVertical: 17, borderRadius: 20, backgroundColor: '#fff', borderWidth: 1, borderColor: 'rgba(166,75,67,0.11)', boxShadow: '0 6px 18px rgba(63,38,35,0.05)', marginBottom: 22, gap: 10 },
   verse: { fontFamily: serif, fontStyle: 'italic', fontSize: 20, lineHeight: 29, color: C.wine },
   body: { gap: 18 },
+  prayerCard: { marginTop: 28, paddingHorizontal: 20, paddingVertical: 18, borderRadius: 20, borderLeftWidth: 4, borderLeftColor: C.gold, backgroundColor: '#fbf1ec', gap: 10, boxShadow: '0 6px 18px rgba(63,38,35,0.05)' },
+  prayerHead: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  prayerLabel: { fontFamily: sans, fontSize: 12, fontWeight: '800', letterSpacing: 1.6, color: C.wine },
+  prayerText: { fontFamily: serif, fontStyle: 'italic', fontSize: 18, lineHeight: 28, color: C.text },
   paragraphRow: { flexDirection: 'row', alignItems: 'stretch', gap: 12 },
   firstParagraphMark: { position: 'absolute', left: -12, top: 0, bottom: 0, width: 2, borderRadius: 2, backgroundColor: 'rgba(166,75,67,0.38)' },
   paragraph: { flex: 1, color: C.text, fontFamily: sans, fontSize: 16, lineHeight: 27, letterSpacing: -0.16, textAlign: 'left' },

@@ -131,6 +131,8 @@ export type Devocional = {
   versiculo: string | null;
   autora: string;
   imagen_url: string | null;
+  cover_alt?: string | null;
+  oracion_html?: string | null;
   fecha_publicacion: string | null;
 };
 export type CuentaAporte = {
@@ -150,11 +152,11 @@ export const api = {
   videos: () => rest<Video[]>('youtube?select=id,video_id,titulo,subtitulo,etiqueta&activa=eq.true&order=orden.asc'),
   devocionales: () =>
     rest<Devocional[]>(
-      'devocionales?select=id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,versiculo,autora,imagen_url,fecha_publicacion&publicado=eq.true&order=fecha_publicacion.desc',
+      'devocionales?select=id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,oracion_html,cover_alt,versiculo,autora,imagen_url,fecha_publicacion&publicado=eq.true&order=fecha_publicacion.desc',
     ),
   devocional: async (slug: string) => {
     const rows = await rest<Devocional[]>(
-      `devocionales?select=id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,versiculo,autora,imagen_url,fecha_publicacion&publicado=eq.true&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+      `devocionales?select=id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,oracion_html,cover_alt,versiculo,autora,imagen_url,fecha_publicacion&publicado=eq.true&slug=eq.${encodeURIComponent(slug)}&limit=1`,
     );
     return rows[0] ?? null;
   },

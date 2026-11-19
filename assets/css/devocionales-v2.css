@@ -223,3 +223,27 @@ body.dv {
   .dv *, .dv *::before, .dv *::after { transition: none !important; animation: none !important; }
   html { scroll-behavior: auto; }
 }
+
+/* Closing prayer (optional field "Oración final") */
+.dv-closing-prayer {
+  margin: 34px 0 8px;
+  padding: 24px 26px 22px;
+  border-radius: 22px;
+  border-left: 4px solid var(--gold, #c9a46b);
+  background: linear-gradient(160deg, #fffaf6 0%, #fbf0eb 100%);
+  box-shadow: 0 1px 2px rgba(63, 38, 35, .04), 0 12px 30px rgba(63, 38, 35, .06);
+}
+.dv-closing-prayer h2 {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 12px; font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--wine, #a64b43);
+}
+.dv-closing-prayer-text, .dv-closing-prayer-text p {
+  margin: 0 0 .8em; font-family: "Playfair Display", Georgia, serif; font-size: 19px; font-style: italic; line-height: 1.7;
+  color: var(--text, #3f2623); text-align: left !important;
+}
+.dv-closing-prayer-text > :last-child { margin-bottom: 0; }
+@media (max-width: 600px) {
+  .dv-closing-prayer { margin-top: 28px; padding: 20px 18px 18px; border-radius: 18px; }
+  .dv-closing-prayer-text, .dv-closing-prayer-text p { font-size: 17px; }
+}

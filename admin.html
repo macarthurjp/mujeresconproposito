@@ -579,6 +579,9 @@
                   <input class="admin-cover-file" type="file" id="adminDevocionalImagen" accept="image/jpeg,image/png,image/webp,image/avif" />
                   <small class="admin-field-help">Recomendado: imagen horizontal. Arrastra las esquinas o bordes para ajustar el recorte.</small>
                   <input type="hidden" id="adminDevocionalImagenActual" />
+                  <label for="adminDevocionalCoverAlt" class="admin-cover-alt-label">Descripción de la imagen <span class="admin-optional">(opcional)</span></label>
+                  <input type="text" id="adminDevocionalCoverAlt" maxlength="180" placeholder="Ej.: Mujer leyendo la Biblia junto a una ventana" />
+                  <small class="admin-field-help">Para quienes usan lectores de pantalla. Si la dejas vacía, se usará el título.</small>
                 </div>
 
                 <div class="admin-devotional-field">
@@ -599,6 +602,13 @@
                   <div class="admin-rich-editor" data-rich-wrap>
                     <div class="admin-rich-toolbar" data-editor-target="adminDevocionalContenidoEditor"></div>
                     <div id="adminDevocionalContenidoEditor" class="admin-rich-content admin-rich-content-large" contenteditable="true" data-placeholder="Escribe la reflexión devocional…"></div>
+                  </div>
+                </div>
+                <div class="admin-devotional-field">
+                  <label>Oración final <span class="admin-optional">(opcional)</span></label>
+                  <div class="admin-rich-editor" data-rich-wrap>
+                    <div class="admin-rich-toolbar" data-editor-target="adminDevocionalOracion"></div>
+                    <div id="adminDevocionalOracion" class="admin-rich-content" contenteditable="true" data-placeholder="Una oración breve para cerrar el devocional…"></div>
                   </div>
                 </div>
                 <textarea id="adminDevocionalResumen" hidden></textarea>
@@ -902,7 +912,7 @@
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
   <script src="assets/js/admin-permissions.js?v=20261117-1"></script>
   <script src="assets/js/main.js?v=20261117-review-fix-1"></script>
-  <script src="assets/js/devocionales-admin.js?v=20261117-review-fix-1"></script>
+  <script src="assets/js/devocionales-admin.js?v=20261119-v2-1"></script>
   <script src="assets/js/promo-banner-admin.js?v=20261117-save-state-3"></script>
   <script src="assets/js/roles-admin.js?v=20261117-save-state-1"></script>
   <script src="assets/js/community-admin.js?v=20261117-premium-pass-1"></script>

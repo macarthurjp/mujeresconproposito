@@ -50,6 +50,8 @@
       versiculo: get("versiculo", article?.versiculo || ""),
       categorias: pending?.categorias || article?.categorias || [],
       imagen_url: get("imagen_url", article?.imagen_url || ""),
+      cover_alt: get("cover_alt", article?.cover_alt || ""),
+      oracion_html: get("oracion_html", article?.oracion_html || ""),
       fecha: article?.pending_fecha_publicacion || article?.fecha_publicacion || new Date()
     };
   }
@@ -220,6 +222,8 @@
       versiculo: $("adminDevocionalVersiculo").value.trim(),
       introduccionHtml: cleanRichHtml($("adminDevocionalIntroduccion").innerHTML),
       contenidoHtml: cleanRichHtml($("adminDevocionalContenidoEditor").innerHTML),
+      oracionHtml: $("adminDevocionalOracion")?.innerText.trim() ? cleanRichHtml($("adminDevocionalOracion").innerHTML) : "",
+      coverAlt: $("adminDevocionalCoverAlt")?.value.trim() || "",
       imagenUrl
     };
   }
@@ -251,6 +255,11 @@
         ${contenidoHtml}
       </div>
     ` : contenidoHtml;
+    const prayerSection = article.oracionHtml ? `
+      <div class="dev-article-section dev-article-prayer" style="margin-top:28px;padding:22px 24px;border-left:4px solid #c9a46b;border-radius:20px;background:linear-gradient(160deg,#fffaf6,#fbf0eb)">
+        <span class="dev-section-label">Oración</span>
+        <div style="font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:19px;line-height:1.7">${article.oracionHtml}</div>
+      </div>` : "";
     return `<!doctype html>
 <html lang="es">
 <head>
@@ -289,9 +298,9 @@
     ${categoriesHtml}
     <div class="dev-article-hero-row">
       ${article.versiculo ? `<blockquote class="dev-verse"><i class="fa-solid fa-quote-left" aria-hidden="true"></i>${escapeHtml(article.versiculo)}</blockquote>` : ""}
-      ${article.imagenUrl ? `<div class="dev-hero-image"><img src="${escapeHtml(article.imagenUrl)}" alt="" /></div>` : ""}
+      ${article.imagenUrl ? `<div class="dev-hero-image"><img src="${escapeHtml(article.imagenUrl)}" alt="${escapeHtml(article.coverAlt || article.titulo || "")}" /></div>` : ""}
     </div>
-    <div class="dev-article-content">${contentHtml}</div>
+    <div class="dev-article-content">${contentHtml}${prayerSection}</div>
     <aside class="dev-sidebar">
       <div class="dev-sidebar-card dev-notes-card">
         <span class="dev-sidebar-title"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i> Mis notas</span>
@@ -535,11 +544,14 @@
   function updateSaveButtonsVisibility() {
     const draftBtn = document.querySelector('[data-dev-save="draft"]');
     const submitBtn = document.querySelector('[data-dev-save="submit"]');
+    const isSuper = Boolean(currentAccess.is_super_admin);
     const isOwn = !editingArticle || editingArticle.created_by === currentUser?.id;
-    const canEdit = editingArticle ? canDevotional("edit") : canDevotional("create");
-    if (draftBtn) draftBtn.hidden = !isOwn || !canEdit;
+    const canEdit = isSuper || (editingArticle ? canDevotional("edit") : canDevotional("create"));
+    if (draftBtn) draftBtn.hidden = !(isOwn || isSuper) || !canEdit;
+    // Super Admin may also send their own article to review for a second opinion.
     if (submitBtn) submitBtn.hidden = !isOwn || !canEdit;
-    document.querySelector('[data-dev-save="publish"]')?.setAttribute("hidden", "");
+    const publishBtn = document.querySelector('[data-dev-save="publish"]');
+    if (publishBtn) publishBtn.hidden = !isSuper;
   }
 
   function resetForm() {
@@ -554,6 +566,8 @@
     $("adminDevocionalVersiculo").value = "";
     $("adminDevocionalIntroduccion").innerHTML = "";
     $("adminDevocionalContenidoEditor").innerHTML = "";
+    $("adminDevocionalOracion").innerHTML = "";
+    $("adminDevocionalCoverAlt").value = "";
     document.querySelectorAll('input[name="devCategoria"]').forEach((input) => { input.checked = false; });
     $("adminDevocionalAutora").value = connectedUserName();
     $("adminDevocionalMsg").style.display = "none";
@@ -576,7 +590,7 @@
 
   function publishActionHtml(article) {
     if (!currentAccess.is_super_admin) return "";
-    if (article.publicado || article.estado === "programado") return `<button type="button" data-dev-action="return-draft">Devolver a borrador</button>`;
+    if (article.publicado || article.estado === "programado") return `<button type="button" data-dev-action="return-draft">Retirar de la web</button>`;
     if (["pendiente_revision", "en_revision"].includes(article.estado)) return `<button type="button" data-dev-action="review">Ver en cola editorial</button>`;
     return "";
   }
@@ -592,7 +606,8 @@
     articlePage = Math.min(articlePage, pages - 1);
     container.innerHTML = articles.map((article) => {
       const fields = pendingFields(article);
-      const canEdit = article.created_by === currentUser?.id && !article.publicado && ["borrador", "cambios_solicitados"].includes(article.estado) && canDevotional("edit");
+      const canEdit = article.estado !== "eliminado" && (currentAccess.is_super_admin
+        || (article.created_by === currentUser?.id && ["borrador", "cambios_solicitados", "publicado"].includes(article.estado) && canDevotional("edit")));
       const canDelete = canDevotional("delete") && (!article.publicado && !["pendiente_revision", "en_revision", "programado"].includes(article.estado) || currentAccess.is_super_admin);
       return `
       <article class="admin-devotional-item" data-dev-id="${escapeHtml(article.id)}">
@@ -715,6 +730,8 @@
     $("adminDevocionalAutora").value = article.autora || "Autora asignada";
     $("adminDevocionalFecha").value = localDateTime(fields.fecha);
     $("adminDevocionalImagenActual").value = fields.imagen_url || "";
+    $("adminDevocionalCoverAlt").value = fields.cover_alt || "";
+    $("adminDevocionalOracion").innerHTML = cleanRichHtml(fields.oracion_html || "");
     $("adminDevocionalImagen").value = "";
     updateCoverPreview(fields.imagen_url || "");
     $("adminDevocionalFormTitle").textContent = "Editar devocional";
@@ -748,7 +765,9 @@
         contenido_html: cleanRichHtml($("adminDevocionalContenidoEditor").innerHTML),
         versiculo: $("adminDevocionalVersiculo").value.trim() || null,
         categorias: Array.from(document.querySelectorAll('input[name="devCategoria"]:checked')).map((input) => input.value),
-        imagen_url: imageUrl
+        imagen_url: imageUrl,
+        cover_alt: $("adminDevocionalCoverAlt").value.trim() || null,
+        oracion_html: $("adminDevocionalOracion").innerText.trim() ? cleanRichHtml($("adminDevocionalOracion").innerHTML) : null
       };
 
       let error;
@@ -774,11 +793,20 @@
           if (submitError) error = submitError;
           else notifyReviewers(savedId);
         }
+        // Super Admin: publish (or schedule) directly, without review.
+        if (!error && action === "publish" && savedId && currentAccess.is_super_admin) {
+          const fecha = publicationValue ? new Date(publicationValue).toISOString() : null;
+          const { error: publishError } = await client().rpc("devocional_approve_and_publish", { p_id: savedId, p_fecha: fecha });
+          if (publishError) error = publishError;
+        }
       if (error) throw error;
       resetForm();
       closeModal();
       await loadArticles();
-      message(action === "submit" ? "Devocional enviado a revisión." : "Borrador guardado correctamente.");
+      const scheduled = action === "publish" && publicationValue && new Date(publicationValue) > new Date();
+      message(action === "submit" ? "Devocional enviado a revisión."
+        : action === "publish" ? (scheduled ? "Devocional programado." : "Devocional publicado.")
+        : "Borrador guardado correctamente.");
     } catch (error) {
       console.error(error);
       message(error?.message || "No se pudo guardar el devocional.", false);
@@ -872,7 +900,8 @@
         const { error } = await client().rpc("devocional_withdraw", { p_id: Number(id) });
         if (error) throw error;
       } else if (button.dataset.devAction === "return-draft") {
-        const { error } = await client().rpc("devocional_admin_return_to_draft", { p_id: Number(id) });
+        if (!window.confirm("¿Retirar este devocional de la web? Quedará como borrador y podrás volver a publicarlo.")) { button.disabled = false; return; }
+        const { error } = await client().rpc("devocional_unpublish", { p_id: Number(id) });
         if (error) throw error;
       }
       await loadArticles();
