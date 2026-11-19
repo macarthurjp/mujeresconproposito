@@ -1876,3 +1876,5 @@ body.theme-premium {
 .theme-premium .p-sync-option:hover { border-color: var(--p-wine); background: var(--p-sand); }
 .theme-premium .p-sync-option i { color: var(--p-wine); }
 @media (max-width: 420px) { .theme-premium .p-sync-options { grid-template-columns: 1fr; } }
+/* Developer credit, same as the app ("Más" tab) */
+.site-footer .footer-bottom .site-credit { display: block; margin-top: 6px; font-size: 11px !important; letter-spacing: .03em; opacity: .72; }
