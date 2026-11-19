@@ -1285,3 +1285,51 @@ body.mcp-brand .admin-main #admin-avisos > :is(.ci-broadcast, .ci-history-card) 
 }
 body.mcp-brand .admin-main .admin-banner-fields { grid-template-columns: minmax(0, 1fr) !important; }
 body.mcp-brand .admin-main .admin-banner-fields > * { min-width: 0; }
+
+/* Confetti on a special date (Banner tab) */
+body.mcp-brand .admin-main #admin-banner > .admin-card.admin-confetti-card {
+  width: min(100%, 1180px) !important; max-width: 1180px !important; margin: 0 auto 30px !important;
+  padding: clamp(22px, 3vw, 36px) !important; box-sizing: border-box;
+}
+body.mcp-brand .admin-main .admin-confetti-head { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 22px; }
+body.mcp-brand .admin-main .admin-confetti-head :is(div, h4, p, span) { text-align: left !important; }
+body.mcp-brand .admin-main .admin-confetti-icon { display: grid; flex: 0 0 46px; width: 46px; height: 46px; place-items: center; border-radius: 15px; background: linear-gradient(145deg, #fff4e4, #f6dfc0); color: #b8864a; font-size: 19px; }
+body.mcp-brand .admin-main .admin-confetti-head h4 { margin: 6px 0 4px !important; font-size: clamp(20px, 2vw, 26px); color: var(--a-ink); }
+body.mcp-brand .admin-main .admin-confetti-head p { margin: 0 !important; color: var(--a-muted); font-size: 14px; line-height: 1.55; }
+body.mcp-brand .admin-main #adminConfettiForm { display: grid !important; gap: 18px !important; }
+body.mcp-brand .admin-main .admin-confetti-fields { display: grid; grid-template-columns: minmax(0, 220px) minmax(0, 1fr); gap: 16px; }
+body.mcp-brand .admin-main .admin-confetti-fields label { display: grid !important; gap: 8px !important; color: var(--a-ink); font-weight: 650; text-align: left !important; }
+body.mcp-brand .admin-main .admin-confetti-fields input { box-sizing: border-box !important; width: 100% !important; min-height: 50px; border: 1px solid #eadbd8 !important; border-radius: 14px !important; padding: 12px 15px !important; background: #fff !important; font: inherit !important; }
+body.mcp-brand .admin-main .admin-confetti-actions { display: flex; gap: 10px; }
+@media (max-width: 600px) {
+  body.mcp-brand .admin-main .admin-confetti-fields { grid-template-columns: minmax(0, 1fr); }
+  body.mcp-brand .admin-main .admin-confetti-actions { flex-direction: column-reverse; align-items: stretch; }
+}
+body.mcp-brand .admin-main #adminConfettiForm { grid-template-columns: minmax(0, 1fr) !important; }
+body.mcp-brand .admin-main #adminConfettiForm .admin-banner-toggle {
+  display: flex !important; align-items: center; justify-content: space-between; gap: 20px !important;
+  min-height: 72px; box-sizing: border-box; padding: 15px 18px !important; border: 1px solid #f0e2df !important;
+  border-radius: 18px !important; background: #fcf8f7 !important; cursor: pointer;
+}
+body.mcp-brand .admin-main #adminConfettiForm .admin-banner-toggle > span { display: grid; gap: 4px; text-align: left !important; }
+body.mcp-brand .admin-main #adminConfettiForm .admin-banner-toggle strong { font-size: 15px; color: var(--a-ink); }
+body.mcp-brand .admin-main #adminConfettiForm .admin-banner-toggle small { color: var(--a-muted); font-size: 13px; font-weight: 400; }
+body.mcp-brand .admin-main .admin-confetti-fields label { white-space: nowrap; }
+body.mcp-brand .admin-main #adminConfettiForm .admin-banner-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+body.mcp-brand .admin-main #adminConfettiTry {
+  min-height: 50px; padding-inline: 20px !important; border-radius: 999px !important;
+  background: #fff !important; color: var(--a-wine) !important; border: 1px solid rgba(169, 80, 69, .22) !important; box-shadow: none !important;
+}
+body.mcp-brand .admin-main #adminConfettiTry:hover { background: #fbf3f1 !important; }
+body.mcp-brand .admin-main #adminConfettiForm button[type="submit"] { min-height: 50px; padding-inline: 24px !important; }
+body.mcp-brand .admin-main #adminConfettiForm .admin-banner-toggle { flex-direction: row !important; }
+body.mcp-brand .admin-main #adminConfettiForm .admin-banner-toggle > span { display: grid !important; flex: 1; min-width: 0; }
+body.mcp-brand .admin-main #adminConfettiForm .admin-banner-toggle > input { order: 2; flex: none; }
+body.mcp-brand .admin-main .admin-confetti-label { display: block; white-space: nowrap; }
+body.mcp-brand .admin-main .admin-confetti-label .admin-optional { color: var(--a-muted); font-weight: 500; }
+@media (max-width: 600px) {
+  body.mcp-brand .admin-main #adminConfettiForm .admin-banner-form-footer { flex-direction: column; align-items: stretch; }
+  body.mcp-brand .admin-main .admin-confetti-actions { width: 100%; }
+  body.mcp-brand .admin-main .admin-confetti-actions > button { width: 100%; justify-content: center; }
+  body.mcp-brand .admin-main .admin-confetti-head p { font-size: 13.5px; }
+}

@@ -6,10 +6,22 @@ import { AppState, Platform } from 'react-native';
 
 import { ADMIN_REMEMBER_SESSION_KEY } from './app-preferences';
 
-// Same project and publishable key as the website. Admin writes are protected
-// by Row Level Security (is_super_admin) and the manage-users Edge Function.
-const SUPABASE_URL = 'https://jkunywiyiyidhyodsbfh.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX';
+// Development builds must be explicitly pointed at the isolated local stack.
+// Release builds retain the hosted project configuration.
+const PRODUCTION_SUPABASE_URL = 'https://jkunywiyiyidhyodsbfh.supabase.co';
+const PRODUCTION_SUPABASE_KEY = 'sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX';
+const configuredUrl = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
+const configuredKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim();
+const isDevelopment = __DEV__;
+const SUPABASE_URL = isDevelopment ? (configuredUrl || '') : (configuredUrl || PRODUCTION_SUPABASE_URL);
+const SUPABASE_KEY = isDevelopment ? (configuredKey || '') : (configuredKey || PRODUCTION_SUPABASE_KEY);
+
+if (isDevelopment && (!SUPABASE_URL || !SUPABASE_KEY)) {
+  console.error('Supabase local no está configurado. Define EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY antes de iniciar la app.');
+}
+if (isDevelopment && SUPABASE_URL && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(SUPABASE_URL)) {
+  throw new Error('En desarrollo, la app solo puede usar Supabase local (localhost o 127.0.0.1).');
+}
 
 // "Recordarme" on: the session is persisted on the phone.
 // "Recordarme" off: the session lives only in memory while the app is open
@@ -38,7 +50,10 @@ const nativeAuthStorage = {
   },
 };
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+/** The project this build talks to (local stack in development, hosted in release). */
+export const SUPABASE_PROJECT = { url: SUPABASE_URL || 'http://127.0.0.1:55421', key: SUPABASE_KEY || 'local-unconfigured-anon-key' };
+
+export const supabase = createClient(SUPABASE_PROJECT.url, SUPABASE_PROJECT.key, {
   auth: {
     storage: Platform.OS === 'web' ? undefined : nativeAuthStorage,
     autoRefreshToken: true,

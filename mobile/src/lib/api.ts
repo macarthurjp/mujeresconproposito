@@ -1,8 +1,16 @@
-// Read-only access to the same Supabase project the website uses.
-// The publishable key is public by design (it is also in the website source);
-// Row Level Security limits it to public content.
-const SUPABASE_URL = 'https://jkunywiyiyidhyodsbfh.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX';
+// In development, require the isolated local stack. Production builds may use
+// the hosted project unless explicit Expo public configuration is provided.
+const PRODUCTION_SUPABASE_URL = 'https://jkunywiyiyidhyodsbfh.supabase.co';
+const PRODUCTION_SUPABASE_KEY = 'sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX';
+const configuredUrl = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
+const configuredKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim();
+const isDevelopment = __DEV__;
+const SUPABASE_URL = isDevelopment ? (configuredUrl || '') : (configuredUrl || PRODUCTION_SUPABASE_URL);
+const SUPABASE_KEY = isDevelopment ? (configuredKey || '') : (configuredKey || PRODUCTION_SUPABASE_KEY);
+if (isDevelopment && SUPABASE_URL && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(SUPABASE_URL)) {
+  throw new Error('En desarrollo, la app solo puede usar Supabase local (localhost o 127.0.0.1).');
+}
+const localUnconfigured = isDevelopment && (!SUPABASE_URL || !SUPABASE_KEY);
 
 const headers = {
   apikey: SUPABASE_KEY,
@@ -10,13 +18,19 @@ const headers = {
   'Content-Type': 'application/json',
 };
 
+function assertConfigured() {
+  if (localUnconfigured) throw new Error('Supabase local no está configurado. Define EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY antes de iniciar la app.');
+}
+
 async function rest<T>(path: string): Promise<T> {
+  assertConfigured();
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers });
   if (!response.ok) throw new Error(`Error ${response.status} al cargar datos`);
   return response.json() as Promise<T>;
 }
 
 async function rpc(name: string, body: Record<string, unknown>) {
+  assertConfigured();
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
     method: 'POST',
     headers,
@@ -26,6 +40,7 @@ async function rpc(name: string, body: Record<string, unknown>) {
 }
 
 async function rpcJson<T>(name: string, body: Record<string, unknown>): Promise<T> {
+  assertConfigured();
   const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, { method: 'POST', headers, body: JSON.stringify(body) });
   const text = await response.text();
   if (!response.ok) {
@@ -37,6 +52,7 @@ async function rpcJson<T>(name: string, body: Record<string, unknown>): Promise<
 }
 
 async function submitJoin(payload: Record<string, unknown>) {
+  assertConfigured();
   const response = await fetch(`${SUPABASE_URL}/functions/v1/submit-join`, {
     method: 'POST',
     headers,
@@ -48,6 +64,7 @@ async function submitJoin(payload: Record<string, unknown>) {
 }
 
 async function submitContact(payload: { nombre: string; email: string; mensaje: string; destino: string; turnstileToken: string }) {
+  assertConfigured();
   const response = await fetch(`${SUPABASE_URL}/functions/v1/submit-contact`, {
     method: 'POST',
     headers,
@@ -77,7 +94,13 @@ function demoBirthdays() {
   };
 }
 
+async function confetti() {
+  const rows = await rest<{ activa: boolean; fecha: string | null; mensaje: string }[]>('site_confetti?select=activa,fecha,mensaje&id=eq.1&limit=1');
+  return rows[0] ?? null;
+}
+
 async function birthdays() {
+  assertConfigured();
   const demo = demoBirthdays();
   if (demo) return demo;
   const response = await fetch(`${SUPABASE_URL}/functions/v1/get-today-birthdays`, {
@@ -113,6 +136,8 @@ export type Devocional = {
   versiculo: string | null;
   autora: string;
   imagen_url: string | null;
+  cover_alt?: string | null;
+  oracion_html?: string | null;
   fecha_publicacion: string | null;
 };
 export type CuentaAporte = {
@@ -126,17 +151,18 @@ export type CuentaAporte = {
 };
 
 export const api = {
+  confetti,
   eventos: () => rest<Evento[]>('eventos?select=*&activa=eq.true&order=orden.asc'),
   destacadas: () => rest<Destacada[]>('destacadas?select=*&activa=eq.true&order=orden.asc'),
   galeria: () => rest<Foto[]>('galeria?select=id,foto_url,categoria,texto,orden,portada&activa=eq.true&order=orden.asc'),
   videos: () => rest<Video[]>('youtube?select=id,video_id,titulo,subtitulo,etiqueta&activa=eq.true&order=orden.asc'),
   devocionales: () =>
     rest<Devocional[]>(
-      'devocionales?select=id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,versiculo,autora,imagen_url,fecha_publicacion&publicado=eq.true&order=fecha_publicacion.desc',
+      'devocionales?select=id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,oracion_html,cover_alt,versiculo,autora,imagen_url,fecha_publicacion&publicado=eq.true&order=fecha_publicacion.desc',
     ),
   devocional: async (slug: string) => {
     const rows = await rest<Devocional[]>(
-      `devocionales?select=id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,versiculo,autora,imagen_url,fecha_publicacion&publicado=eq.true&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+      `devocionales?select=id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,oracion_html,cover_alt,versiculo,autora,imagen_url,fecha_publicacion&publicado=eq.true&slug=eq.${encodeURIComponent(slug)}&limit=1`,
     );
     return rows[0] ?? null;
   },

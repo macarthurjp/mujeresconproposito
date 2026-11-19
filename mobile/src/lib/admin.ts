@@ -2,7 +2,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
-import { supabase } from './supabase';
+import { SUPABASE_PROJECT, supabase } from './supabase';
 
 // ---------- Access ----------
 export type Access = { isSuperAdmin: boolean; permissions: string[]; modulePermissions: string[]; roleName: string | null; isRevoked: boolean; nombre: string; email: string };
@@ -111,8 +111,8 @@ export function canAccessAdminPanel(access: Access | null): access is Access {
 /** Starts a provider sign-in in the OS authentication session and returns to the app scheme. */
 /** Which OAuth providers are enabled in Supabase Auth (public endpoint). */
 export async function enabledProviders(): Promise<{ apple: boolean; google: boolean }> {
-  const response = await fetch('https://jkunywiyiyidhyodsbfh.supabase.co/auth/v1/settings', {
-    headers: { apikey: 'sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX' },
+  const response = await fetch(`${SUPABASE_PROJECT.url}/auth/v1/settings`, {
+    headers: { apikey: SUPABASE_PROJECT.key },
   });
   const external = ((await response.json()) as { external?: Record<string, boolean> }).external ?? {};
   return { apple: Boolean(external.apple), google: Boolean(external.google) };

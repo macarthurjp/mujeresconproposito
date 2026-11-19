@@ -38,6 +38,9 @@ async function mockSupabase(page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  // On localhost the site refuses the hosted project and needs an explicit local
+  // stack (see assets/js/supabase.js). Point it at a fake one; the client itself is mocked.
+  await page.addInitScript(() => localStorage.setItem("mcp930.localSupabase", JSON.stringify({ url: "http://127.0.0.1:54321", anonKey: "test-anon-key" })));
   await mockSupabase(page);
 });
 
@@ -151,7 +154,7 @@ test("admin includes the devotional editorial workspace", async ({ page }) => {
   await expect(page.locator('.admin-invite-form input[data-permission="read_export"]')).toHaveCount(0);
   await expect(page.locator('.admin-invite-form')).toContainText("Roles y permisos");
   await expect(page.locator("#adminDevocionalVersiculo")).toHaveCount(1);
-  await expect(page.locator(".admin-rich-editor")).toHaveCount(2);
+  await expect(page.locator(".admin-rich-editor")).toHaveCount(3); // introducción, reflexión, oración final
   await expect(page.locator('input[name="devCategoria"]')).toHaveCount(7);
 });
 

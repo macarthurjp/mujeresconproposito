@@ -28,6 +28,7 @@
   <script>
     var FALLBACK_URL = "https://jkunywiyiyidhyodsbfh.supabase.co/functions/v1/form-fallback-token";
     var ANON_KEY = "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
+    var isLocalHost = ["localhost", "127.0.0.1", "::1"].includes(location.hostname);
     var action = new URLSearchParams(location.search).get("action") === "contact" ? "contact" : "join";
     var widgetId = null, failures = 0, done = false, watchdog = null;
 
@@ -42,6 +43,11 @@
       if (done) return;
       done = true;
       clearTimeout(watchdog);
+      if (isLocalHost) {
+        setStatus("La verificación automática no está configurada para pruebas locales.");
+        send({ type: "turnstile-error", code: "local-verification-unavailable" });
+        return;
+      }
       setStatus("Completando la verificación…");
       fetch(FALLBACK_URL, {
         method: "POST",

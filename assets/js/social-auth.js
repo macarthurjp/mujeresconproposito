@@ -79,8 +79,10 @@
     const setVisible = (el, on) => { if (el) el.hidden = !on; };
     groups.forEach((g) => { setVisible(g, false); setVisible(g.previousElementSibling?.classList.contains("social-login-divider") ? g.previousElementSibling : null, false); });
     try {
-      const base = window.McpSupabase?.SUPABASE_URL || "https://jkunywiyiyidhyodsbfh.supabase.co";
-      const key = window.McpSupabase?.SUPABASE_ANON_KEY || "sb_publishable_To7eDo0ZnOqm9AjlkJ7u6A_pNMFvRjX";
+      const supabase = window.McpSupabase;
+      if (!supabase?.hasSupabaseConfig?.()) return;
+      const base = supabase.SUPABASE_URL;
+      const key = supabase.SUPABASE_ANON_KEY;
       const response = await fetch(`${base}/auth/v1/settings`, { headers: { apikey: key } });
       const external = (await response.json())?.external || {};
       groups.forEach((g) => {

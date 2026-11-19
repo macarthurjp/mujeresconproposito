@@ -79,6 +79,10 @@ export default function AdminContenido() {
   const [bannerTitle, setBannerTitle] = useState('');
   const [bannerMessage, setBannerMessage] = useState('');
   const [bannerActive, setBannerActive] = useState(false);
+  const [confettiActive, setConfettiActive] = useState(false);
+  const [confettiDate, setConfettiDate] = useState('');
+  const [confettiMessage, setConfettiMessage] = useState('');
+  const [confettiBusy, setConfettiBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -87,6 +91,8 @@ export default function AdminContenido() {
         const { data, error } = await supabase.from('site_banner').select('titulo,mensaje,activa').eq('id', 1).maybeSingle();
         if (error) throw error;
         setBannerTitle(data?.titulo ?? ''); setBannerMessage(data?.mensaje ?? ''); setBannerActive(Boolean(data?.activa));
+        const confetti = await supabase.from('site_confetti').select('activa,fecha,mensaje').eq('id', 1).maybeSingle();
+        if (!confetti.error) { setConfettiActive(Boolean(confetti.data?.activa)); setConfettiDate(confetti.data?.fecha ?? ''); setConfettiMessage(confetti.data?.mensaje ?? ''); }
         setItems([]);
       } else {
         const table = kind;
@@ -124,6 +130,18 @@ export default function AdminContenido() {
     if (result.canceled) return;
     const asset = result.assets[0];
     setPicked({ uri: asset.uri, width: asset.width, height: asset.height });
+  };
+
+  const saveConfetti = async () => {
+    if (confettiActive && !confettiDate) return Alert.alert('Falta la fecha', 'Elige el día de la celebración.');
+    setConfettiBusy(true);
+    try {
+      const { error } = await supabase.from('site_confetti').update({ activa: confettiActive, fecha: confettiDate || null, mensaje: confettiMessage.trim(), updated_at: new Date().toISOString() }).eq('id', 1);
+      if (error) throw error;
+      tapFeedback();
+      Alert.alert(confettiActive ? 'Celebración programada' : 'Confeti desactivado', confettiActive ? 'Ese día, la web y la app mostrarán confeti al abrirse.' : undefined);
+    } catch (error) { Alert.alert('No se pudo guardar', error instanceof Error ? error.message : 'Inténtalo de nuevo.'); }
+    finally { setConfettiBusy(false); }
   };
 
   const save = async () => {
@@ -228,7 +246,7 @@ export default function AdminContenido() {
           <Group header="Aviso de bienvenida" footer="El banner aparece en la página de inicio mientras esté activado.">
             <InputRow label="Título" value={bannerTitle} onChangeText={setBannerTitle} placeholder="Título del aviso" editable={canAdmin(access,'content','edit')} />
             <View style={s.messageField}><Text style={s.fieldLabel}>Mensaje</Text><TextInput multiline value={bannerMessage} onChangeText={setBannerMessage} editable={canAdmin(access,'content','edit')} placeholder="Escribe el aviso para la comunidad" placeholderTextColor="#a28f8c" style={s.messageInput} /></View>
-            <View style={s.toggle}><Text style={s.toggleLabel}>Mostrar banner</Text><Switch value={bannerActive} disabled={!canAdmin(access,'content','publish')} onValueChange={setBannerActive} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View>
+            <View style={s.toggle}><Text style={s.toggleLabel}>Mostrar banner</Text><Switch value={bannerActive} disabled={!canAdmin(access,'content','publish')} onValueChange={setBannerActive} trackColor={{ true: C.wine, false: '#e5dcda' }} thumbColor="#fff" /></View>
             <View style={s.bannerPreview}>
               <View style={s.bannerPreviewTop}><Text style={s.bannerPreviewKicker}>VISTA PREVIA</Text><View style={[s.bannerState, bannerActive && s.bannerStateOn]}><View style={[s.bannerStateDot, bannerActive && s.bannerStateDotOn]} /><Text style={[s.bannerStateText, bannerActive && s.bannerStateTextOn]}>{bannerActive ? 'Activo' : 'Inactivo'}</Text></View></View>
               <View style={s.bannerPreviewCard}>
@@ -239,6 +257,14 @@ export default function AdminContenido() {
               </View>
             </View>
             {canAdmin(access,'content','edit') ? <Pressable onPress={() => void save()} disabled={busy} style={s.saveButton}><Text style={s.saveText}>{busy ? 'Guardando…' : 'Guardar banner'}</Text></Pressable> : null}
+          </Group>
+        ) : null}
+        {kind === 'banner' ? (
+          <Group header="Celebración con confeti" footer="Ese día (hora de Luxemburgo), cada vez que alguien abra la web o la app verá confeti unos segundos. Ej.: el primer año en Europa.">
+            <View style={s.toggle}><Text style={s.toggleLabel}>Habilitar confeti</Text><Switch value={confettiActive} disabled={!canAdmin(access,'content','publish')} onValueChange={setConfettiActive} trackColor={{ true: C.wine, false: '#e5dcda' }} thumbColor="#fff" /></View>
+            <FieldRow label="Fecha"><DateField title="Fecha de la celebración" value={confettiDate} onChange={setConfettiDate} minimumDate={new Date(2024, 0, 1)} maximumDate={new Date(2035, 11, 31)} defaultDate={new Date()} placeholder="Elige el día" /></FieldRow>
+            <InputRow label="Mensaje (opcional)" value={confettiMessage} onChangeText={setConfettiMessage} placeholder="¡Celebramos 1 año en Europa!" maxLength={90} editable={canAdmin(access,'content','edit')} />
+            {canAdmin(access,'content','edit') ? <Pressable onPress={() => void saveConfetti()} disabled={confettiBusy} style={s.saveButton}><Text style={s.saveText}>{confettiBusy ? 'Guardando…' : 'Guardar celebración'}</Text></Pressable> : null}
           </Group>
         ) : loading ? <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} /> : (
           <Group header={`${items.length} ${kind === 'destacadas' ? 'destacadas' : 'videos'}`} footer="Desliza a la derecha para editar, a la izquierda para eliminar o mantén pulsado y arrastra para ordenar.">
@@ -279,7 +305,7 @@ export default function AdminContenido() {
               <Group header="Imagen"><InputRow label="URL de la imagen" value={imageUrl} onChangeText={setImageUrl} placeholder="https://…" autoCapitalize="none" keyboardType="url" /></Group>
               <Group header="Texto"><InputRow label="Nombre" value={title} onChangeText={setTitle} placeholder="Nombre de la invitada" /><InputRow label="Título" value={subtitle} onChangeText={setSubtitle} placeholder="Nombre del encuentro" /></Group>
               <Group header="Confirmación de asistencia" footer={signups ? 'Se mostrará el botón “Inscribirme” en la web y la app. Al apagarlo se cierra la inscripción, pero la lista de inscritas se conserva. Deja las plazas vacías si no hay límite.' : 'Apagado: la destacada se muestra solo como anuncio, sin botón. Enciéndelo únicamente para actividades que necesiten confirmar quién asistirá.'}>
-                <View style={s.toggle}><Text style={s.toggleLabel}>Requiere inscripción</Text><Switch value={signups} onValueChange={setSignups} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View>
+                <View style={s.toggle}><Text style={s.toggleLabel}>Requiere inscripción</Text><Switch value={signups} onValueChange={setSignups} trackColor={{ true: C.wine, false: '#e5dcda' }} thumbColor="#fff" /></View>
                 {signups ? <>
                   <FieldRow label="Fecha del evento"><DateField title="Fecha del evento" value={eventDate} onChange={setEventDate} minimumDate={new Date(2024, 0, 1)} maximumDate={new Date(2035, 11, 31)} defaultDate={new Date()} placeholder="Elige la fecha" /></FieldRow>
                   <InputRow label="Hora (opcional)" value={eventTime} onChangeText={setEventTime} placeholder="18:30" keyboardType="numbers-and-punctuation" />
@@ -295,7 +321,7 @@ export default function AdminContenido() {
                 </Group>
               ) : null}
             </> : <Group header="Video"><InputRow label="Enlace o ID de YouTube" value={video} onChangeText={setVideo} placeholder="https://youtu.be/…" autoCapitalize="none" keyboardType="url" /><InputRow label="Título" value={title} onChangeText={setTitle} placeholder="Título del video" /><InputRow label="Subtítulo" value={subtitle} onChangeText={setSubtitle} placeholder="Descripción breve" /><InputRow label="Etiqueta" value={tag} onChangeText={setTag} placeholder="Conferencia" /></Group>}
-            <Group header="Publicación"><InputRow label="Orden" value={order} onChangeText={(value) => setOrder(value.replace(/\D/g, ''))} editable={canAdmin(access,'content','edit') || canAdmin(access,'content','create')} keyboardType="number-pad" /><View style={s.toggle}><Text style={s.toggleLabel}>Visible en la web y la app</Text><Switch value={active} disabled={!canAdmin(access,'content','publish')} onValueChange={setActive} trackColor={{ true: C.wine, false: '#e5dcda' }} /></View></Group>
+            <Group header="Publicación"><InputRow label="Orden" value={order} onChangeText={(value) => setOrder(value.replace(/\D/g, ''))} editable={canAdmin(access,'content','edit') || canAdmin(access,'content','create')} keyboardType="number-pad" /><View style={s.toggle}><Text style={s.toggleLabel}>Visible en la web y la app</Text><Switch value={active} disabled={!canAdmin(access,'content','publish')} onValueChange={setActive} trackColor={{ true: C.wine, false: '#e5dcda' }} thumbColor="#fff" /></View></Group>
             {editing ? <AuditCard item={editing} /> : null}
             {editing && canAdmin(access,'content','delete') ? <Group><Row label="Eliminar" destructive chevron={false} onPress={() => { const row = editing; setEditing(null); setModalVisible(false); remove(row); }} /></Group> : null}
           </ScrollView>

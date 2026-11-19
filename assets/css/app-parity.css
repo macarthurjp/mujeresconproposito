@@ -754,3 +754,19 @@ html body .es-backdrop .es-stepper button { width: 34px !important; height: 34px
 @keyframes es-rise { from { opacity: 0; transform: translateY(16px) scale(.98); } }
 @media (max-width: 560px) { .es-backdrop { place-items: end center; padding: 0; } .es-sheet { width: 100%; border-radius: 24px 24px 0 0; padding-bottom: calc(22px + env(safe-area-inset-bottom)); } }
 @media (prefers-reduced-motion: reduce) { .es-backdrop, .es-sheet { animation: none; } }
+
+/* Destacadas with registration: a tag on the poster; details open on press. */
+html body.theme-premium[class] .invitees-track .card.has-signup { position: relative; cursor: pointer; }
+html body.theme-premium[class] .invitee-tag {
+  position: absolute; top: 14px; left: 14px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 999px;
+  background: var(--app-wine, #a64b43); color: #fff; font: 700 12px/1 var(--app-sans, system-ui);
+  border: 1px solid rgba(255,255,255,.35); box-shadow: 0 4px 14px rgba(0,0,0,.22); pointer-events: none;
+}
+html body.theme-premium[class] .invitee-details {
+  margin: 10px auto 2px; display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 16px;
+  border: 0; border-radius: 999px; background: rgba(166,75,67,.1); color: var(--app-wine, #a64b43);
+  font: 600 14px/1 var(--app-sans, system-ui); cursor: pointer;
+}
+html body.theme-premium[class] .invitee-details:hover { background: rgba(166,75,67,.16); }
+html body.theme-premium[class] .invitee-details i { font-size: 11px; }

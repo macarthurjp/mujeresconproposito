@@ -33,7 +33,12 @@ export const radius = { sm: 12, md: 20, lg: 28 };
 export const TAB_BAR_SPACE = 96;
 export const space = (n: number) => n * 4;
 
-export const SITE_URL = 'https://mcp930.org';
+const PRODUCTION_SITE_URL = 'https://mcp930.org';
+const configuredSiteUrl = process.env.EXPO_PUBLIC_SITE_URL?.trim();
+export const SITE_URL = __DEV__ ? (configuredSiteUrl || '') : (configuredSiteUrl || PRODUCTION_SITE_URL);
+if (__DEV__ && SITE_URL && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(SITE_URL)) {
+  throw new Error('En desarrollo, los enlaces de la app deben apuntar al sitio local.');
+}
 export const YOUTUBE_URL = 'https://www.youtube.com/@MujeresconProposito930';
 export const SOUNDCLOUD_URL = 'https://soundcloud.com/mujeresconproposito930/sets/mujeres-con-proposito-porcion';
 export const INSTAGRAM_URL = 'https://instagram.com/mujeresconproposito930';

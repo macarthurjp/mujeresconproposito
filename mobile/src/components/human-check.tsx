@@ -42,7 +42,7 @@ export function HumanCheck({ visible, action = 'join', onToken, onCancel, onErro
             {visible && WebView ? (
               <WebView
                 source={{ uri: `${VERIFY_URL}?action=${action}` }}
-                originWhitelist={['https://*']}
+                originWhitelist={['https://*', 'http://127.0.0.1:*', 'http://localhost:*']}
                 javaScriptEnabled
                 onMessage={(event) => {
                   try {

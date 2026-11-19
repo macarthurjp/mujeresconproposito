@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { EventSignup, SignupBadge } from '@/components/event-signup';
+import { EventDetailsSheet, SignupBadge } from '@/components/event-signup';
 import { PosterCard } from '@/components/media';
 import { ErrorNote, Loading, Screen, Title, Eyebrow, useAsync } from '@/components/ui';
 import { C, sans, serif } from '@/constants/theme';
@@ -14,8 +14,10 @@ import { api } from '@/lib/api';
 export default function Destacadas() {
   const { data, error, loading, reload } = useAsync(api.destacadas);
   const [selected, setSelected] = useState<string | null>(null);
+  const [signupId, setSignupId] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   const active = useMemo(() => data?.find((person) => person.id === selected) ?? null, [data, selected]);
+  const signupFor = useMemo(() => data?.find((person) => person.id === signupId) ?? null, [data, signupId]);
   const openCount = (data ?? []).filter((d) => d.inscripcion_abierta).length;
 
   return <>
@@ -40,9 +42,7 @@ export default function Destacadas() {
             role={d.titulo}
             eyebrow={d.inscripcion_abierta ? 'Evento con inscripción' : 'Voz destacada'}
             badge={d.inscripcion_abierta ? <SignupBadge /> : null}
-            onPress={() => setSelected(d.id)}>
-            {d.inscripcion_abierta ? <EventSignup destacada={d} /> : null}
-          </PosterCard>
+            onPress={() => (d.inscripcion_abierta ? setSignupId(d.id) : setSelected(d.id))} />
         ))}</View>
         {!loading && !data?.length && !error ? (
           <View style={s.empty}>
@@ -53,6 +53,7 @@ export default function Destacadas() {
         ) : null}
       </View>
     </Screen>
+    <EventDetailsSheet destacada={signupFor} onClose={() => setSignupId(null)} onViewPoster={() => { const id = signupId; setSignupId(null); setTimeout(() => setSelected(id), 350); }} />
     <Modal visible={!!active} transparent animationType="fade" statusBarTranslucent onRequestClose={() => setSelected(null)}>
       {active ? <View style={s.modal}>
         <Image source={{ uri: active.foto_url }} style={[StyleSheet.absoluteFill, { transform: [{ scale: 1.3 }] }]} contentFit="cover" blurRadius={60} />

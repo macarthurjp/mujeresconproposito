@@ -2150,7 +2150,7 @@ function renderGaleria(galeria) {
     latestInvitees = normalizedInvitees;
 
     grid.innerHTML = normalizedInvitees.map(item => `
-  <div class="card"
+  <div class="card${item.inscripcionAbierta ? " has-signup" : ""}"
        data-id="${escapeHtml(item.id)}"
        data-foto="${escapeHtml(item.fotoUrl)}"
        data-nombre="${escapeHtml(item.nombre)}"
@@ -2158,7 +2158,7 @@ function renderGaleria(galeria) {
     <img src="${escapeHtml(item.fotoUrl)}" alt="${escapeHtml(item.nombre)}">
     <h3>${escapeHtml(item.nombre)}</h3>
     <p class="invitee-title">${escapeHtml(item.titulo)}</p>
-    ${item.inscripcionAbierta ? `<button type="button" class="invitee-signup" data-signup="${escapeHtml(item.id)}"><i class="fa-solid fa-ticket" aria-hidden="true"></i> Inscribirme</button>` : ""}
+    ${item.inscripcionAbierta ? `<span class="invitee-tag" data-signup="${escapeHtml(item.id)}"><i class="fa-solid fa-ticket" aria-hidden="true"></i> Inscripción</span><button type="button" class="invitee-details" data-signup="${escapeHtml(item.id)}" aria-label="Ver detalles de la inscripción de ${escapeHtml(item.nombre)}">Ver detalles <i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>` : ""}
   </div>
 `).join("");
 
@@ -2177,7 +2177,9 @@ function renderGaleria(galeria) {
 
     inviteeCards.forEach(card => {
       card.addEventListener("click", (event) => {
-        const signup = event.target.closest(".invitee-signup");
+        // Cards with open registration show their details (date, place,
+        // places left, form) when pressed; the others open the poster.
+        const signup = event.target.closest("[data-signup]") || (card.classList.contains("has-signup") ? card.querySelector("[data-signup]") : null);
         if (signup) {
           event.stopPropagation();
           if (inviteesMoved) { inviteesMoved = false; return; }
@@ -4465,6 +4467,7 @@ function renderContactCalendar(apiData = {}) {
 	      // Role-based access (Roles y permisos): same permissions as the app.
 	      const perms = await window.McpAdminPerms.load(getAdminSupabaseClient(), access);
 	      access.roleName = perms.roleName;
+	      access.modulePermissions = perms.modulePermissions;
 	      if (!window.McpAdminPerms.hasAdminModule()) {
 	        window.location.href = "dashboard.html";
 	        return false;

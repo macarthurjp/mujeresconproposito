@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
+import { CelebrationConfetti } from '@/components/celebration-confetti';
 import { LaunchScreen } from '@/components/launch-screen';
 import { C } from '@/constants/theme';
 import { loadLiveActivitiesPreference } from '@/lib/live-activity';
@@ -72,6 +73,7 @@ export default function RootLayout() {
         <Stack.Screen name="admin" options={{ headerShown: false }} />
       </Stack>
       <LaunchScreen />
+      <CelebrationConfetti />
     </GestureHandlerRootView>
   );
 }

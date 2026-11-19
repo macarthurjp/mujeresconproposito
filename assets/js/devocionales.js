@@ -269,11 +269,15 @@
           </span>
         </div>
       </header>
-      ${hasImage ? `<figure class="dv-hero-figure"><img src="${escapeHtml(article.imagen_url)}" alt="" onerror="this.closest('figure').remove()" /></figure>` : ""}
+      ${hasImage ? `<figure class="dv-hero-figure"><img src="${escapeHtml(article.imagen_url)}" alt="${escapeHtml(article.cover_alt || article.titulo || "")}" onerror="this.closest('figure').remove()" /></figure>` : ""}
       <div class="dv-body" id="devArticleContent">
         ${verse && verse.text ? `<figure class="dv-pullquote"><blockquote>${escapeHtml(verse.text)}</blockquote>${verse.ref ? `<figcaption>${escapeHtml(verse.ref)}</figcaption>` : ""}</figure>` : ""}
         ${showLead ? `<div class="dv-lead">${safeRichHtml(article.introduccion_html, "")}</div>` : ""}
         <div class="dv-prose">${safeRichHtml(article.contenido_html, article.contenido)}</div>
+        ${article.oracion_html ? `<section class="dv-closing-prayer" aria-labelledby="devClosingPrayerTitle">
+          <h2 id="devClosingPrayerTitle"><i class="fa-solid fa-hands-praying" aria-hidden="true"></i> Oración</h2>
+          <div class="dv-closing-prayer-text">${safeRichHtml(article.oracion_html, "")}</div>
+        </section>` : ""}
         <div class="dv-article-actions">
           <button type="button" class="dv-action" data-share><i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i> Compartir</button>
           <button type="button" class="dv-action dv-action-primary" data-fav-toggle aria-pressed="${favored}"><i class="fa-${favored ? "solid" : "regular"} fa-bookmark" aria-hidden="true"></i> <span data-fav-label>${favored ? "Guardado" : "Guardar"}</span></button>
@@ -300,7 +304,7 @@
     try {
       const client = window.McpSupabase?.getSupabaseBrowserClient();
       if (!client) throw new Error("Servicio no disponible");
-      const request = client.from("devocionales").select("id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,versiculo,categorias,autora,imagen_url,fecha_publicacion,compartidos").eq("publicado", true).order("fecha_publicacion", { ascending: false });
+      const request = client.from("devocionales").select("id,titulo,slug,resumen,contenido,introduccion_html,contenido_html,versiculo,categorias,autora,imagen_url,cover_alt,oracion_html,fecha_publicacion,compartidos").eq("publicado", true).order("fecha_publicacion", { ascending: false });
       const { data, error } = await Promise.race([
         request,
         new Promise((_, reject) => setTimeout(() => reject(new Error("Tiempo de espera agotado")), 8000))

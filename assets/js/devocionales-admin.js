@@ -3,7 +3,9 @@
   let currentAccess = { is_super_admin: false, permissions: ["read_only"], is_revoked: false };
   let currentUser = null;
   let articles = [];
+  let articleTotal = 0;
   let reviewQueue = [];
+  let reviewTotal = 0;
   let activeFilter = "all";
   let articlePage = 0;
   let reviewPage = 0;
@@ -13,8 +15,12 @@
 
   const ESTADO_LABELS = {
     borrador: "Borrador",
+    pendiente_revision: "Pendiente de revisión",
     en_revision: "En revisión",
-    cambios_solicitados: "Cambios solicitados"
+    cambios_solicitados: "Cambios solicitados",
+    programado: "Programado",
+    publicado: "Publicado",
+    eliminado: "Eliminado"
   };
 
   const ACCION_LABELS = {
@@ -24,6 +30,9 @@
     cambios_solicitados: "Cambios solicitados",
     retirado: "Retirado de revisión",
     aprobado_publicado: "Aprobado y publicado",
+    revision_tomada: "Revisión asignada",
+    revision_liberada: "Revisión liberada",
+    programado: "Programado",
     despublicado: "Despublicado",
     eliminado: "Eliminado"
   };
@@ -32,6 +41,7 @@
     const pending = article?.pending_content || null;
     const get = (key, fallback) => (pending && pending[key] !== undefined && pending[key] !== null ? pending[key] : fallback);
     return {
+      autora: article?.autora || "",
       titulo: get("titulo", article?.titulo || ""),
       resumen: get("resumen", article?.resumen || ""),
       contenido: get("contenido", article?.contenido || ""),
@@ -39,8 +49,9 @@
       introduccion_html: get("introduccion_html", article?.introduccion_html || ""),
       versiculo: get("versiculo", article?.versiculo || ""),
       categorias: pending?.categorias || article?.categorias || [],
-      autora: get("autora", article?.autora || ""),
       imagen_url: get("imagen_url", article?.imagen_url || ""),
+      cover_alt: get("cover_alt", article?.cover_alt || ""),
+      oracion_html: get("oracion_html", article?.oracion_html || ""),
       fecha: article?.pending_fecha_publicacion || article?.fecha_publicacion || new Date()
     };
   }
@@ -69,6 +80,10 @@
   function notifyReviewers(devocionalId) {
     client().functions.invoke("send-devotional-review-notification", { body: { id: devocionalId } })
       .catch((error) => console.error("No se pudo notificar a los revisores.", error));
+  }
+
+  function canDevotional(action) {
+    return currentAccess.is_super_admin || currentAccess.modulePermissions?.includes(`devotionals.${action}`) || false;
   }
 
   function message(text, ok = true, progress = false) {
@@ -174,6 +189,7 @@
   }
 
   let previewObjectUrl = null;
+  let previewReturnFocus = null;
 
   function previewFormattedDate(value) {
     if (!value) return "Sin fecha";
@@ -206,6 +222,8 @@
       versiculo: $("adminDevocionalVersiculo").value.trim(),
       introduccionHtml: cleanRichHtml($("adminDevocionalIntroduccion").innerHTML),
       contenidoHtml: cleanRichHtml($("adminDevocionalContenidoEditor").innerHTML),
+      oracionHtml: $("adminDevocionalOracion")?.innerText.trim() ? cleanRichHtml($("adminDevocionalOracion").innerHTML) : "",
+      coverAlt: $("adminDevocionalCoverAlt")?.value.trim() || "",
       imagenUrl
     };
   }
@@ -237,6 +255,11 @@
         ${contenidoHtml}
       </div>
     ` : contenidoHtml;
+    const prayerSection = article.oracionHtml ? `
+      <div class="dev-article-section dev-article-prayer" style="margin-top:28px;padding:22px 24px;border-left:4px solid #c9a46b;border-radius:20px;background:linear-gradient(160deg,#fffaf6,#fbf0eb)">
+        <span class="dev-section-label">Oración</span>
+        <div style="font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:19px;line-height:1.7">${article.oracionHtml}</div>
+      </div>` : "";
     return `<!doctype html>
 <html lang="es">
 <head>
@@ -249,6 +272,7 @@
 <style>
   .admin-preview-flag { display:inline-flex; align-items:center; gap:8px; width:max-content; margin:28px auto 0; padding:8px 16px; border-radius:999px; background:#30231c; color:#fff; font-size:.72rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
   main { display:block; padding:28px 0 60px; }
+  button.dev-icon-btn, button.dev-action-btn { font:inherit; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -262,7 +286,7 @@
       <span class="dev-kicker">${escapeHtml(category)}</span>
       <div class="dev-article-tools">
         <span class="dev-icon-btn"><i class="fa-regular fa-bookmark" aria-hidden="true"></i></span>
-        <span class="dev-icon-btn"><i class="fa-solid fa-xmark" aria-hidden="true"></i></span>
+        <button type="button" class="dev-icon-btn" data-preview-close aria-label="Cerrar vista previa"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       </div>
     </div>
     <div class="dev-progress">
@@ -274,9 +298,9 @@
     ${categoriesHtml}
     <div class="dev-article-hero-row">
       ${article.versiculo ? `<blockquote class="dev-verse"><i class="fa-solid fa-quote-left" aria-hidden="true"></i>${escapeHtml(article.versiculo)}</blockquote>` : ""}
-      ${article.imagenUrl ? `<div class="dev-hero-image"><img src="${escapeHtml(article.imagenUrl)}" alt="" /></div>` : ""}
+      ${article.imagenUrl ? `<div class="dev-hero-image"><img src="${escapeHtml(article.imagenUrl)}" alt="${escapeHtml(article.coverAlt || article.titulo || "")}" /></div>` : ""}
     </div>
-    <div class="dev-article-content">${contentHtml}</div>
+    <div class="dev-article-content">${contentHtml}${prayerSection}</div>
     <aside class="dev-sidebar">
       <div class="dev-sidebar-card dev-notes-card">
         <span class="dev-sidebar-title"><i class="fa-regular fa-pen-to-square" aria-hidden="true"></i> Mis notas</span>
@@ -294,26 +318,45 @@
     <div class="dev-article-actions">
       <span class="dev-action-btn"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i> Compartir</span>
       <span class="dev-action-btn dev-action-btn-primary"><i class="fa-regular fa-heart" aria-hidden="true"></i> Guardar en favoritos</span>
-      <span class="dev-action-btn"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cerrar</span>
+      <button type="button" class="dev-action-btn" data-preview-close><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cerrar</button>
     </div>
   </div>
 </main>
+<script>
+  document.addEventListener('click', function (event) {
+    if (event.target.closest('[data-preview-close]')) {
+      window.parent.postMessage({ type: 'mcp930-devocional-preview-close' }, '*');
+    }
+  });
+</script>
 </body>
 </html>`;
   }
 
   async function openPreview() {
-    $("adminDevocionalPreviewOverlay").hidden = false;
-    document.body.style.overflow = "hidden";
-    const article = await collectPreviewArticle();
+    previewReturnFocus = document.activeElement;
+    const overlay = $("adminDevocionalPreviewOverlay");
     const iframe = $("adminDevocionalPreviewIframe");
-    if (iframe) iframe.srcdoc = buildPreviewDocument(article);
+    if (!overlay || !iframe) return;
+    overlay.hidden = false;
+    document.body.style.overflow = "hidden";
+    try {
+      const article = await collectPreviewArticle();
+      iframe.srcdoc = buildPreviewDocument(article);
+      $("adminDevocionalPreviewClose")?.focus();
+    } catch (error) {
+      closePreview();
+      message(error?.message || "No se pudo preparar la vista previa.", false);
+    }
   }
 
   function closePreview() {
-    $("adminDevocionalPreviewOverlay").hidden = true;
-    document.body.style.overflow = "";
+    const overlay = $("adminDevocionalPreviewOverlay");
+    if (overlay) overlay.hidden = true;
+    document.body.style.overflow = $("adminDevocionalOverlay") && !$("adminDevocionalOverlay").hidden ? "hidden" : "";
     if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
+    previewReturnFocus?.focus?.();
+    previewReturnFocus = null;
   }
 
   let coverPreviewObjectUrl = null;
@@ -501,12 +544,14 @@
   function updateSaveButtonsVisibility() {
     const draftBtn = document.querySelector('[data-dev-save="draft"]');
     const submitBtn = document.querySelector('[data-dev-save="submit"]');
-    const publishBtn = document.querySelector('[data-dev-save="publish"]');
-    const isSuperAdmin = currentAccess.is_super_admin;
+    const isSuper = Boolean(currentAccess.is_super_admin);
     const isOwn = !editingArticle || editingArticle.created_by === currentUser?.id;
-    if (draftBtn) draftBtn.hidden = false;
-    if (publishBtn) publishBtn.hidden = !isSuperAdmin;
-    if (submitBtn) submitBtn.hidden = isSuperAdmin || !isOwn || !currentAccess.permissions.includes("editor");
+    const canEdit = isSuper || (editingArticle ? canDevotional("edit") : canDevotional("create"));
+    if (draftBtn) draftBtn.hidden = !(isOwn || isSuper) || !canEdit;
+    // Super Admin may also send their own article to review for a second opinion.
+    if (submitBtn) submitBtn.hidden = !isOwn || !canEdit;
+    const publishBtn = document.querySelector('[data-dev-save="publish"]');
+    if (publishBtn) publishBtn.hidden = !isSuper;
   }
 
   function resetForm() {
@@ -521,6 +566,8 @@
     $("adminDevocionalVersiculo").value = "";
     $("adminDevocionalIntroduccion").innerHTML = "";
     $("adminDevocionalContenidoEditor").innerHTML = "";
+    $("adminDevocionalOracion").innerHTML = "";
+    $("adminDevocionalCoverAlt").value = "";
     document.querySelectorAll('input[name="devCategoria"]').forEach((input) => { input.checked = false; });
     $("adminDevocionalAutora").value = connectedUserName();
     $("adminDevocionalMsg").style.display = "none";
@@ -532,7 +579,7 @@
       const pendingFlag = article.pending_content ? `<span class="admin-devotional-pending-flag">Cambios pendientes</span>` : "";
       return `<div class="admin-devotional-badges"><span class="admin-devotional-state published">Publicado</span>${pendingFlag}</div>`;
     }
-    const cls = article.estado === "en_revision" ? "review" : article.estado === "cambios_solicitados" ? "changes-requested" : "draft";
+    const cls = ["pendiente_revision", "en_revision"].includes(article.estado) ? "review" : article.estado === "cambios_solicitados" ? "changes-requested" : article.estado === "programado" ? "scheduled" : "draft";
     const label = ESTADO_LABELS[article.estado] || "Borrador";
     return `<span class="admin-devotional-state ${cls}">${label}</span>`;
   }
@@ -543,66 +590,62 @@
 
   function publishActionHtml(article) {
     if (!currentAccess.is_super_admin) return "";
-    if (article.publicado) return `<button type="button" data-dev-action="toggle">Retirar</button>`;
-    if (article.pending_content) {
-      return article.estado === "en_revision"
-        ? `<button type="button" data-dev-action="review">Revisar artículo</button>`
-        : "";
-    }
-    return `<button type="button" data-dev-action="toggle">Publicar</button>`;
+    if (article.publicado || article.estado === "programado") return `<button type="button" data-dev-action="return-draft">Retirar de la web</button>`;
+    if (["pendiente_revision", "en_revision"].includes(article.estado)) return `<button type="button" data-dev-action="review">Ver en cola editorial</button>`;
+    return "";
   }
 
   function render() {
     const container = $("adminDevocionalesList");
     if (!container) return;
-    const filtered = articles.filter((article) => activeFilter === "all" || (activeFilter === "published" ? article.publicado : !article.publicado));
-    if (!filtered.length) {
+    if (!articles.length) {
       container.innerHTML = `<div class="admin-empty">No hay ${activeFilter === "published" ? "artículos publicados" : activeFilter === "draft" ? "borradores" : "artículos"} todavía.</div>`;
       return;
     }
-    const pages = Math.max(1, Math.ceil(filtered.length / ARTICLE_PAGE_SIZE));
+    const pages = Math.max(1, Math.ceil(articleTotal / ARTICLE_PAGE_SIZE));
     articlePage = Math.min(articlePage, pages - 1);
-    const pageItems = filtered.slice(articlePage * ARTICLE_PAGE_SIZE, (articlePage + 1) * ARTICLE_PAGE_SIZE);
-    container.innerHTML = pageItems.map((article) => {
+    container.innerHTML = articles.map((article) => {
       const fields = pendingFields(article);
-      const canDelete = !article.publicado || currentAccess.is_super_admin;
+      const canEdit = article.estado !== "eliminado" && (currentAccess.is_super_admin
+        || (article.created_by === currentUser?.id && ["borrador", "cambios_solicitados", "publicado"].includes(article.estado) && canDevotional("edit")));
+      const canDelete = canDevotional("delete") && (!article.publicado && !["pendiente_revision", "en_revision", "programado"].includes(article.estado) || currentAccess.is_super_admin);
       return `
       <article class="admin-devotional-item" data-dev-id="${escapeHtml(article.id)}">
         <div class="admin-devotional-thumb">${fields.imagen_url ? `<img src="${escapeHtml(fields.imagen_url)}" alt="">` : '<i class="fa-solid fa-book-open" aria-hidden="true"></i>'}</div>
         <div class="admin-devotional-item-copy">
           ${statusBadgeHtml(article)}
           <strong>${escapeHtml(fields.titulo || "Sin título")}</strong>
-          <small>${escapeHtml(fields.autora)} · ${escapeHtml(formattedDate(article.fecha_publicacion || article.updated_at))}${fields.categorias?.length ? ` · ${escapeHtml(fields.categorias.join(", "))}` : ""}</small>
+          <small>${escapeHtml(article.autora || "Autora asignada")} · ${escapeHtml(formattedDate(article.fecha_publicacion || article.updated_at))}${fields.categorias?.length ? ` · ${escapeHtml(fields.categorias.join(", "))}` : ""}</small>
         </div>
         <div class="admin-item-actions">
           ${article.publicado ? `<a href="devocionales.html?articulo=${encodeURIComponent(article.slug)}" target="_blank" rel="noopener">Ver</a>` : ""}
-          <button type="button" data-dev-action="edit">Editar</button>
-          ${article.estado === "en_revision" ? `<button type="button" data-dev-action="withdraw">Retirar de revisión</button>` : ""}
+          ${canEdit ? `<button type="button" data-dev-action="edit">Editar</button>` : ""}
+          ${article.created_by === currentUser?.id && ["pendiente_revision", "cambios_solicitados"].includes(article.estado) ? `<button type="button" data-dev-action="withdraw">Retirar de revisión</button>` : ""}
           ${publishActionHtml(article)}
           ${canDelete ? `<button type="button" data-dev-action="delete" class="danger">Borrar</button>` : ""}
         </div>
         ${historyToggleHtml(article.id)}
       </article>`;
-    }).join("") + paginationMarkup(filtered.length, articlePage, "articles");
+    }).join("") + paginationMarkup(articleTotal, articlePage, "articles");
   }
 
   function renderQueue() {
     const card = $("adminDevocionalReviewCard");
     const container = $("adminDevocionalReviewList");
     if (!card || !container) return;
-    const canReview = currentAccess.permissions.includes("reviewer") || currentAccess.is_super_admin;
+    const canReview = currentAccess.is_super_admin || (canDevotional("view") && canDevotional("publish"));
     card.hidden = !canReview;
     if (!canReview) return;
     if (!reviewQueue.length) {
       container.innerHTML = `<div class="admin-empty">No hay artículos esperando revisión.</div>`;
       return;
     }
-    const pages = Math.max(1, Math.ceil(reviewQueue.length / ARTICLE_PAGE_SIZE));
+    const pages = Math.max(1, Math.ceil(reviewTotal / ARTICLE_PAGE_SIZE));
     reviewPage = Math.min(reviewPage, pages - 1);
-    const pageItems = reviewQueue.slice(reviewPage * ARTICLE_PAGE_SIZE, (reviewPage + 1) * ARTICLE_PAGE_SIZE);
-    container.innerHTML = pageItems.map((article) => {
+    container.innerHTML = reviewQueue.map((article) => {
       const fields = pendingFields(article);
       const defaultFecha = localDateTime(article.pending_fecha_publicacion || new Date());
+      const assigned = article.estado === "en_revision" && article.reviewer_id === currentUser?.id;
       return `
       <article class="admin-devotional-item" data-dev-id="${escapeHtml(article.id)}">
         <div class="admin-devotional-thumb">${fields.imagen_url ? `<img src="${escapeHtml(fields.imagen_url)}" alt="">` : '<i class="fa-solid fa-book-open" aria-hidden="true"></i>'}</div>
@@ -612,16 +655,11 @@
           <small>${escapeHtml(fields.autora)} · enviado ${escapeHtml(formattedDate(article.updated_at))}${fields.categorias?.length ? ` · ${escapeHtml(fields.categorias.join(", "))}` : ""}</small>
         </div>
         <div class="admin-item-actions">
-          <button type="button" data-dev-review-action="edit">Editar</button>
-          <button type="button" data-dev-review-action="request-changes">Solicitar cambios</button>
-          <div class="admin-devotional-approve-row">
-            <input type="datetime-local" data-dev-approve-fecha value="${escapeHtml(defaultFecha)}" />
-            <button type="button" class="btn" data-dev-review-action="approve">Aprobar y publicar</button>
-          </div>
+          ${article.estado === "pendiente_revision" ? `<button type="button" data-dev-review-action="claim">Tomar revisión</button>` : assigned ? `<button type="button" data-dev-review-action="request-changes">Solicitar cambios</button><button type="button" data-dev-review-action="release">Liberar revisión</button><div class="admin-devotional-approve-row"><input type="datetime-local" data-dev-approve-fecha value="${escapeHtml(defaultFecha)}"/><button type="button" class="btn" data-dev-review-action="approve">Aprobar y publicar</button></div>` : `<span>Revisión asignada a otra persona</span>`}
         </div>
         ${historyToggleHtml(article.id)}
       </article>`;
-    }).join("") + paginationMarkup(reviewQueue.length, reviewPage, "review");
+    }).join("") + paginationMarkup(reviewTotal, reviewPage, "review");
   }
 
   function paginationMarkup(total, page, key) {
@@ -634,24 +672,46 @@
 
   async function loadArticles() {
     const mineCard = $("adminDevocionalMineCard");
-    const canSeeMine = currentAccess.is_super_admin || currentAccess.permissions.includes("editor");
+    const canSeeMine = currentAccess.is_super_admin || canDevotional("create") || canDevotional("edit");
     if (mineCard) mineCard.hidden = !canSeeMine;
     if (canSeeMine) {
-      let query = client().from("devocionales").select("*").order("updated_at", { ascending: false });
-      if (currentAccess.permissions.includes("editor") && !currentAccess.is_super_admin) query = query.eq("created_by", currentUser.id);
-      const { data, error } = await query;
+      let query = client().from("devocionales").select("*", { count: "exact" }).neq("estado", "eliminado").order("updated_at", { ascending: false });
+      if (!currentAccess.is_super_admin) query = query.eq("created_by", currentUser.id);
+      if (activeFilter === "published") query = query.eq("publicado", true);
+      if (activeFilter === "draft") query = query.eq("publicado", false);
+      const from = articlePage * ARTICLE_PAGE_SIZE;
+      const { data, error, count } = await query.range(from, from + ARTICLE_PAGE_SIZE - 1);
       if (error) throw error;
       articles = data || [];
+      articleTotal = count || 0;
+      if (articleTotal > 0 && articlePage >= Math.ceil(articleTotal / ARTICLE_PAGE_SIZE)) {
+        articlePage = Math.ceil(articleTotal / ARTICLE_PAGE_SIZE) - 1;
+        return loadArticles();
+      }
+      render();
+    } else {
+      articles = [];
+      articleTotal = 0;
       render();
     }
 
-    if (currentAccess.permissions.includes("reviewer") || currentAccess.is_super_admin) {
-      let reviewQuery = client().from("devocionales").select("*")
-        .eq("estado", "en_revision").order("updated_at", { ascending: true });
+    if (currentAccess.is_super_admin || (canDevotional("view") && canDevotional("publish"))) {
+      let reviewQuery = client().from("devocionales").select("*", { count: "exact" })
+        .in("estado", ["pendiente_revision", "en_revision"]).order("submitted_at", { ascending: true });
       if (!currentAccess.is_super_admin) reviewQuery = reviewQuery.neq("created_by", currentUser.id);
-      const { data, error } = await reviewQuery;
+      const from = reviewPage * ARTICLE_PAGE_SIZE;
+      const { data, error, count } = await reviewQuery.range(from, from + ARTICLE_PAGE_SIZE - 1);
       if (error) throw error;
       reviewQueue = data || [];
+      reviewTotal = count || 0;
+      if (reviewTotal > 0 && reviewPage >= Math.ceil(reviewTotal / ARTICLE_PAGE_SIZE)) {
+        reviewPage = Math.ceil(reviewTotal / ARTICLE_PAGE_SIZE) - 1;
+        return loadArticles();
+      }
+      renderQueue();
+    } else {
+      reviewQueue = [];
+      reviewTotal = 0;
       renderQueue();
     }
   }
@@ -667,10 +727,11 @@
     $("adminDevocionalIntroduccion").innerHTML = cleanRichHtml(fields.introduccion_html || fields.resumen || "");
     $("adminDevocionalContenidoEditor").innerHTML = cleanRichHtml(fields.contenido_html || fields.contenido || "");
     document.querySelectorAll('input[name="devCategoria"]').forEach((input) => { input.checked = fields.categorias.includes(input.value); });
-    const isOwnArticle = article.created_by === currentUser?.id;
-    $("adminDevocionalAutora").value = isOwnArticle ? connectedUserName() : fields.autora;
+    $("adminDevocionalAutora").value = article.autora || "Autora asignada";
     $("adminDevocionalFecha").value = localDateTime(fields.fecha);
     $("adminDevocionalImagenActual").value = fields.imagen_url || "";
+    $("adminDevocionalCoverAlt").value = fields.cover_alt || "";
+    $("adminDevocionalOracion").innerHTML = cleanRichHtml(fields.oracion_html || "");
     $("adminDevocionalImagen").value = "";
     updateCoverPreview(fields.imagen_url || "");
     $("adminDevocionalFormTitle").textContent = "Editar devocional";
@@ -704,29 +765,14 @@
         contenido_html: cleanRichHtml($("adminDevocionalContenidoEditor").innerHTML),
         versiculo: $("adminDevocionalVersiculo").value.trim() || null,
         categorias: Array.from(document.querySelectorAll('input[name="devCategoria"]:checked')).map((input) => input.value),
-        autora: $("adminDevocionalAutora").value.trim(),
-        imagen_url: imageUrl
+        imagen_url: imageUrl,
+        cover_alt: $("adminDevocionalCoverAlt").value.trim() || null,
+        oracion_html: $("adminDevocionalOracion").innerText.trim() ? cleanRichHtml($("adminDevocionalOracion").innerHTML) : null
       };
 
       let error;
       let savedId = id ? Number(id) : null;
 
-      if (currentAccess.is_super_admin) {
-        const publish = action === "publish";
-        const payload = {
-          ...fields,
-          publicado: publish,
-          fecha_publicacion: publish ? new Date(publicationValue || Date.now()).toISOString() : null,
-          updated_at: new Date().toISOString()
-        };
-        if (id) {
-          ({ error } = await client().from("devocionales").update(payload).eq("id", id));
-        } else {
-          payload.slug = `${slugify(title)}-${Date.now().toString(36)}`;
-          payload.created_by = currentUser.id;
-          ({ error } = await client().from("devocionales").insert(payload));
-        }
-      } else {
         const payload = {
           pending_content: fields,
           pending_fecha_publicacion: publicationValue ? new Date(publicationValue).toISOString() : null,
@@ -737,6 +783,7 @@
         } else {
           payload.slug = `${slugify(title)}-${Date.now().toString(36)}`;
           payload.created_by = currentUser.id;
+          payload.autora = connectedUserName() || "Equipo Mujeres con Propósito";
           const { data, error: insertError } = await client().from("devocionales").insert(payload).select("id").single();
           error = insertError;
           savedId = data?.id || null;
@@ -746,12 +793,20 @@
           if (submitError) error = submitError;
           else notifyReviewers(savedId);
         }
-      }
+        // Super Admin: publish (or schedule) directly, without review.
+        if (!error && action === "publish" && savedId && currentAccess.is_super_admin) {
+          const fecha = publicationValue ? new Date(publicationValue).toISOString() : null;
+          const { error: publishError } = await client().rpc("devocional_approve_and_publish", { p_id: savedId, p_fecha: fecha });
+          if (publishError) error = publishError;
+        }
       if (error) throw error;
       resetForm();
       closeModal();
       await loadArticles();
-      message(action === "publish" ? "Devocional publicado correctamente." : action === "submit" ? "Devocional enviado a revisión." : "Borrador guardado correctamente.");
+      const scheduled = action === "publish" && publicationValue && new Date(publicationValue) > new Date();
+      message(action === "submit" ? "Devocional enviado a revisión."
+        : action === "publish" ? (scheduled ? "Devocional programado." : "Devocional publicado.")
+        : "Borrador guardado correctamente.");
     } catch (error) {
       console.error(error);
       message(error?.message || "No se pudo guardar el devocional.", false);
@@ -783,7 +838,7 @@
 
   async function listAction(event) {
     const pageButton = event.target.closest("[data-dev-page='articles']");
-    if (pageButton) { articlePage = Number(pageButton.dataset.page) || 0; render(); return; }
+    if (pageButton) { articlePage = Number(pageButton.dataset.page) || 0; loadArticles().catch((error) => message(error?.message || "No se pudo cambiar de página.", false)); return; }
     const historyButton = event.target.closest("[data-dev-history]");
     if (historyButton) return toggleHistory(historyButton);
 
@@ -794,29 +849,60 @@
     if (!article) return;
     if (button.dataset.devAction === "edit") return edit(article);
     if (button.dataset.devAction === "review") {
-      const card = document.querySelector(`#adminDevocionalReviewList [data-dev-id="${CSS.escape(String(id))}"]`);
-      card?.scrollIntoView({ behavior: "smooth", block: "center" });
-      card?.classList.add("admin-devotional-item-highlight");
-      setTimeout(() => card?.classList.remove("admin-devotional-item-highlight"), 1600);
+      try {
+        if (!currentAccess.is_super_admin && !(canDevotional("view") && canDevotional("publish"))) {
+          message("Tu cuenta no tiene acceso a la cola editorial.", false);
+          return;
+        }
+        button.disabled = true;
+        await loadArticles();
+        let targetPage = -1;
+        const totalPages = Math.max(1, Math.ceil(reviewTotal / ARTICLE_PAGE_SIZE));
+        for (let page = 0; page < totalPages; page += 1) {
+          const from = page * ARTICLE_PAGE_SIZE;
+          const { data, error } = await client().from("devocionales").select("id")
+            .in("estado", ["pendiente_revision", "en_revision"]).order("submitted_at", { ascending: true })
+            .range(from, from + ARTICLE_PAGE_SIZE - 1);
+          if (error) throw error;
+          if ((data || []).some((item) => String(item.id) === String(id))) { targetPage = page; break; }
+        }
+        if (targetPage >= 0 && targetPage !== reviewPage) {
+          reviewPage = targetPage;
+          await loadArticles();
+        }
+        const queueCard = $("adminDevocionalReviewCard");
+        const queueItem = Array.from($("adminDevocionalReviewList")?.querySelectorAll("[data-dev-id]") || [])
+          .find((item) => item.dataset.devId === String(id));
+        if (!queueCard || queueCard.hidden || !queueItem) {
+          message("No se encontró este artículo en la cola. Actualiza la lista o verifica sus permisos.", false);
+          button.disabled = false;
+          return;
+        }
+        queueItem.scrollIntoView({ behavior: "smooth", block: "center" });
+        queueItem.classList.add("admin-devotional-item-highlight");
+        setTimeout(() => queueItem.classList.remove("admin-devotional-item-highlight"), 2200);
+        message("Artículo localizado en la cola editorial.");
+      } catch (error) {
+        message(error?.message || "No se pudo abrir la cola editorial.", false);
+      } finally {
+        button.disabled = false;
+      }
       return;
     }
-    if (button.dataset.devAction === "delete" && !window.confirm(`¿Borrar “${article.titulo || "este devocional"}”? Esta acción no se puede deshacer.`)) return;
+    if (button.dataset.devAction === "delete" && !window.confirm(`¿Mover “${article.titulo || "este devocional"}” a eliminados? Se conserva el historial editorial.`)) return;
+    if (button.dataset.devAction === "return-draft" && !window.confirm(`¿Devolver “${article.titulo || "este devocional"}” a borrador?`)) return;
     button.disabled = true;
     try {
       if (button.dataset.devAction === "delete") {
-        const { error } = await client().from("devocionales").delete().eq("id", id);
+        const { error } = await client().rpc("devocional_soft_delete", { p_id: Number(id) });
         if (error) throw error;
       } else if (button.dataset.devAction === "withdraw") {
         const { error } = await client().rpc("devocional_withdraw", { p_id: Number(id) });
         if (error) throw error;
-      } else if (button.dataset.devAction === "toggle") {
-        if (article.publicado) {
-          const { error } = await client().rpc("devocional_unpublish", { p_id: Number(id) });
-          if (error) throw error;
-        } else {
-          const { error } = await client().from("devocionales").update({ publicado: true, fecha_publicacion: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", id);
-          if (error) throw error;
-        }
+      } else if (button.dataset.devAction === "return-draft") {
+        if (!window.confirm("¿Retirar este devocional de la web? Quedará como borrador y podrás volver a publicarlo.")) { button.disabled = false; return; }
+        const { error } = await client().rpc("devocional_unpublish", { p_id: Number(id) });
+        if (error) throw error;
       }
       await loadArticles();
     } catch (error) {
@@ -827,7 +913,7 @@
 
   async function reviewQueueAction(event) {
     const pageButton = event.target.closest("[data-dev-page='review']");
-    if (pageButton) { reviewPage = Number(pageButton.dataset.page) || 0; renderQueue(); return; }
+    if (pageButton) { reviewPage = Number(pageButton.dataset.page) || 0; loadArticles().catch((error) => message(error?.message || "No se pudo cambiar de página.", false)); return; }
     const historyButton = event.target.closest("[data-dev-history]");
     if (historyButton) return toggleHistory(historyButton);
 
@@ -839,7 +925,33 @@
     if (!article) return;
     const action = button.dataset.devReviewAction;
 
-    if (action === "edit") return edit(article);
+    if (action === "claim") {
+      button.disabled = true;
+      try {
+        const { error } = await client().rpc("devocional_claim_review", { p_id: Number(id) });
+        if (error) throw error;
+        await loadArticles();
+        message("Revisión asignada a tu cuenta.");
+      } catch (error) {
+        message(error?.message || "No se pudo tomar la revisión.", false);
+        button.disabled = false;
+      }
+      return;
+    }
+
+    if (action === "release") {
+      button.disabled = true;
+      try {
+        const { error } = await client().rpc("devocional_release_review", { p_id: Number(id) });
+        if (error) throw error;
+        await loadArticles();
+        message("La revisión volvió a la cola.");
+      } catch (error) {
+        message(error?.message || "No se pudo liberar la revisión.", false);
+        button.disabled = false;
+      }
+      return;
+    }
 
     if (action === "request-changes") {
       const nota = window.prompt("¿Qué cambios necesita este devocional?");
@@ -876,8 +988,8 @@
 
   window.initDevocionalesAdmin = async function initDevocionalesAdmin(access) {
     currentAccess = access && typeof access === "object"
-      ? { is_super_admin: Boolean(access.is_super_admin), permissions: Array.isArray(access.permissions) ? access.permissions : ["read_only"], is_revoked: Boolean(access.is_revoked), nombre: String(access.nombre || "").trim() }
-      : { is_super_admin: false, permissions: ["read_only"], is_revoked: false, nombre: "" };
+      ? { is_super_admin: Boolean(access.is_super_admin), permissions: Array.isArray(access.permissions) ? access.permissions : ["read_only"], modulePermissions: Array.isArray(access.modulePermissions) ? access.modulePermissions : [], is_revoked: Boolean(access.is_revoked), nombre: String(access.nombre || "").trim() }
+      : { is_super_admin: false, permissions: ["read_only"], modulePermissions: [], is_revoked: false, nombre: "" };
     if (!initialized) {
       initialized = true;
       initRichEditors();
@@ -901,6 +1013,9 @@
       $("adminDevocionalPreview")?.addEventListener("click", openPreview);
       $("adminDevocionalPreviewClose")?.addEventListener("click", closePreview);
       $("adminDevocionalPreviewOverlay")?.addEventListener("click", (event) => { if (event.target === $("adminDevocionalPreviewOverlay")) closePreview(); });
+      window.addEventListener("message", (event) => {
+        if (event.source === $("adminDevocionalPreviewIframe")?.contentWindow && event.data?.type === "mcp930-devocional-preview-close") closePreview();
+      });
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && !$("adminDevocionalPreviewOverlay").hidden) closePreview();
       });
@@ -910,7 +1025,7 @@
         activeFilter = button.dataset.devFilter;
         articlePage = 0;
         document.querySelectorAll("[data-dev-filter]").forEach((item) => item.classList.toggle("active", item === button));
-        render();
+        loadArticles().catch((error) => message(error?.message || "No se pudo cargar la lista.", false));
       }));
     }
     const { data, error } = await client().auth.getUser();
