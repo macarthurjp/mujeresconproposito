@@ -247,3 +247,5 @@ body.dv {
   .dv-closing-prayer { margin-top: 28px; padding: 20px 18px 18px; border-radius: 18px; }
   .dv-closing-prayer-text, .dv-closing-prayer-text p { font-size: 17px; }
 }
+/* Developer credit, same as the app ("Más" tab) */
+.dv-footer .site-credit { display: block; margin-top: 7px; font-size: 11px; letter-spacing: .03em; opacity: .72; }
