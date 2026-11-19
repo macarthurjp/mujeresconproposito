@@ -83,5 +83,6 @@
       $("adminBannerForm")?.addEventListener("change", syncPreview);
     }
     await load();
+    await window.initConfettiAdmin?.(access);
   };
 })();

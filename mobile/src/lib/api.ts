@@ -94,6 +94,11 @@ function demoBirthdays() {
   };
 }
 
+async function confetti() {
+  const rows = await rest<{ activa: boolean; fecha: string | null; mensaje: string }[]>('site_confetti?select=activa,fecha,mensaje&id=eq.1&limit=1');
+  return rows[0] ?? null;
+}
+
 async function birthdays() {
   assertConfigured();
   const demo = demoBirthdays();
@@ -146,6 +151,7 @@ export type CuentaAporte = {
 };
 
 export const api = {
+  confetti,
   eventos: () => rest<Evento[]>('eventos?select=*&activa=eq.true&order=orden.asc'),
   destacadas: () => rest<Destacada[]>('destacadas?select=*&activa=eq.true&order=orden.asc'),
   galeria: () => rest<Foto[]>('galeria?select=id,foto_url,categoria,texto,orden,portada&activa=eq.true&order=orden.asc'),

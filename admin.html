@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
   <link rel="stylesheet" href="assets/css/admin.css?v=20261117-ui-polish-1" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261115-3" />
-  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261117-premium-pass-4" />
+  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261119-confetti-1" />
   <link rel="stylesheet" href="assets/css/app-parity.css?v=20261119-signup-tag-1" />
 </head>
 <body class="mcp-brand admin-locked auth-pending" data-admin-page="true">
@@ -709,6 +709,35 @@
               </div>
             </form>
           </div>
+
+          <div class="admin-card admin-confetti-card">
+            <div class="admin-confetti-head">
+              <span class="admin-confetti-icon" aria-hidden="true"><i class="fa-solid fa-champagne-glasses"></i></span>
+              <div><span class="admin-dashboard-kicker">FECHA ESPECIAL</span><h4>Celebración con confeti</h4>
+                <p>Ese día, cada vez que alguien abra la página o la app, verá confeti durante unos segundos. Ej.: el primer año de MCP930 en Europa.</p></div>
+            </div>
+            <form id="adminConfettiForm" class="admin-form admin-confetti-form">
+              <label class="admin-banner-toggle" for="adminConfettiActiva">
+                <span><strong>Habilitar confeti</strong><small>Solo se muestra en la fecha elegida (hora de Luxemburgo).</small></span>
+                <input type="checkbox" id="adminConfettiActiva" />
+              </label>
+              <div class="admin-confetti-fields">
+                <label for="adminConfettiFecha">Fecha
+                  <input type="date" id="adminConfettiFecha" />
+                </label>
+                <label for="adminConfettiMensaje">Mensaje <span class="admin-optional">(opcional)</span>
+                  <input type="text" id="adminConfettiMensaje" maxlength="90" placeholder="Ej.: ¡Celebramos 1 año en Europa!" />
+                </label>
+              </div>
+              <div class="admin-banner-form-footer">
+                <div id="adminConfettiMsg" class="form-message" style="display:none;"></div>
+                <div class="admin-confetti-actions">
+                  <button type="button" class="admin-draft-btn" id="adminConfettiTry"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Probar</button>
+                  <button type="submit" class="btn"><i class="fa-solid fa-check" aria-hidden="true"></i> Guardar</button>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
 
         <div class="admin-tab-panel" id="admin-roles">
@@ -913,7 +942,8 @@
   <script src="assets/js/admin-permissions.js?v=20261117-1"></script>
   <script src="assets/js/main.js?v=20261119-signup-tag-1"></script>
   <script src="assets/js/devocionales-admin.js?v=20261119-v2-1"></script>
-  <script src="assets/js/promo-banner-admin.js?v=20261117-save-state-3"></script>
+  <script src="assets/js/promo-banner-admin.js?v=20261119-confetti-1"></script>
+  <script src="assets/js/confetti-admin.js?v=20261119-1"></script>
   <script src="assets/js/roles-admin.js?v=20261117-save-state-1"></script>
   <script src="assets/js/community-admin.js?v=20261117-premium-pass-1"></script>
   <script src="assets/js/recipients-admin.js?v=20261117-save-state-1"></script>
