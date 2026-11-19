@@ -34,12 +34,17 @@ alter table public.devocionales drop constraint if exists devocionales_estado_ch
 alter table public.devocionales add constraint devocionales_estado_check
   check (estado in ('borrador','pendiente_revision','en_revision','cambios_solicitados','programado','publicado','eliminado'));
 
+-- The current write guard blocks state changes from plain UPDATEs; this
+-- backfill is a trusted data migration, so it uses the same bypass flag the
+-- workflow functions use (transaction-local).
+select set_config('app.devocional_guard_bypass','on',true);
 -- Backfill. Old 'en_revision' meant "waiting in the queue" (nobody claimed it).
 update public.devocionales set estado='pendiente_revision', submitted_at=coalesce(submitted_at, updated_at)
   where estado='en_revision' and reviewer_id is null;
 -- Live articles without pending edits are 'publicado'.
 update public.devocionales set estado='publicado', published_at=coalesce(published_at, fecha_publicacion, updated_at, now())
   where publicado=true and pending_content is null and estado='borrador';
+select set_config('app.devocional_guard_bypass','off',true);
 
 alter table public.devocional_historial drop constraint if exists devocional_historial_accion_check;
 alter table public.devocional_historial add constraint devocional_historial_accion_check
