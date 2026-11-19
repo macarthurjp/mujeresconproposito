@@ -330,7 +330,7 @@ export default function AdminDevocionales() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Devocionales', headerRight: () => editor || access.isSuperAdmin ? <Pressable onPress={() => open()} hitSlop={12} style={{ paddingHorizontal: 8 }}><Ionicons name="add-circle" size={27} color={C.wine} /></Pressable> : null }} />
+      <Stack.Screen options={{ title: 'Devocionales', headerRight: () => editor || access.isSuperAdmin ? <Pressable accessibilityRole="button" accessibilityLabel="Nuevo devocional" onPress={() => open()} hitSlop={12} style={{ paddingHorizontal: 8 }}><Ionicons name="add-circle" size={27} color={C.wine} /></Pressable> : null }} />
       <ScrollView contentContainerStyle={s.page}>
         <Text style={s.kicker}>{reviewer ? 'REVISIÓN EDITORIAL' : 'CENTRO EDITORIAL'}</Text>
         <Text style={s.title}>{reviewer ? 'Por revisar' : 'Devocionales'}</Text>

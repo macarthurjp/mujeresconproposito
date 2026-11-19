@@ -50,7 +50,10 @@ const nativeAuthStorage = {
   },
 };
 
-export const supabase = createClient(SUPABASE_URL || 'http://127.0.0.1:55421', SUPABASE_KEY || 'local-unconfigured-anon-key', {
+/** The project this build talks to (local stack in development, hosted in release). */
+export const SUPABASE_PROJECT = { url: SUPABASE_URL || 'http://127.0.0.1:55421', key: SUPABASE_KEY || 'local-unconfigured-anon-key' };
+
+export const supabase = createClient(SUPABASE_PROJECT.url, SUPABASE_PROJECT.key, {
   auth: {
     storage: Platform.OS === 'web' ? undefined : nativeAuthStorage,
     autoRefreshToken: true,

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -93,7 +93,7 @@ export default function DevocionalDetalle() {
             </View>
             {prayer.length ? (
               <View style={s.prayerCard} accessibilityRole="summary">
-                <View style={s.prayerHead}><Ionicons name="hand-left-outline" size={15} color={C.wine} /><Text style={s.prayerLabel}>ORACIÓN</Text></View>
+                <View style={s.prayerHead}><MaterialCommunityIcons name="hands-pray" size={16} color={C.wine} /><Text style={s.prayerLabel}>ORACIÓN</Text></View>
                 {prayer.map((p, i) => <Text key={i} style={s.prayerText}>{p.replace(/^(## |> |• )/, '')}</Text>)}
               </View>
             ) : null}
