@@ -9,8 +9,9 @@
 --     article, including edits to an already published one; the live version
 --     stays online until the change is approved.
 --   * Reviewer (devotionals view + publish): reviews OTHER people's articles.
---     Claims one, may edit the claimed copy (needs edit too), requests
---     changes, or approves/schedules it.
+--     Claims one, then requests changes (with a note) or approves/schedules
+--     it. Reviewers never edit the author's text, so the author's voice is
+--     kept: any change goes back to the author as a request.
 --   * Authors get an email for every change made to their devotional by
 --     someone else (outbox below, sent by Edge Function send-devotional-updates).
 --
@@ -170,13 +171,10 @@ begin
      is distinct from (to_jsonb(old) - array['pending_content','pending_fecha_publicacion','updated_at']) then
     raise exception 'Usa las acciones del flujo editorial para cambiar el estado o la versión publicada.' using errcode='42501';
   end if;
-  allowed :=
-    -- the author, on their draft / returned article / live article (proposing an edit)
-    (old.created_by = auth.uid() and old.estado in ('borrador','cambios_solicitados','publicado')
-       and public.has_admin_module_permission('devotionals','edit'))
-    -- or the reviewer who claimed it
-    or (old.reviewer_id = auth.uid() and old.estado = 'en_revision'
-       and public.has_admin_module_permission('devotionals','edit') and public.devocional_can_review());
+  -- Only the author, on their draft / returned article / live article
+  -- (proposing an edit). Reviewers request changes instead of editing.
+  allowed := old.created_by = auth.uid() and old.estado in ('borrador','cambios_solicitados','publicado')
+    and public.has_admin_module_permission('devotionals','edit');
   if not allowed then
     raise exception 'El artículo está bloqueado mientras está en revisión o programado.' using errcode='42501';
   end if;
@@ -203,13 +201,10 @@ create policy "roles update devocionales" on public.devocionales for update to a
 using (
   public.is_super_admin()
   or (public.has_admin_module_permission('devotionals','edit') and created_by = auth.uid())
-  or (public.has_admin_module_permission('devotionals','edit') and public.devocional_can_review()
-      and created_by <> auth.uid() and reviewer_id = auth.uid() and estado = 'en_revision')
 )
 with check (
   public.is_super_admin()
   or (public.has_admin_module_permission('devotionals','edit') and created_by = auth.uid())
-  or (public.has_admin_module_permission('devotionals','edit') and public.devocional_can_review() and reviewer_id = auth.uid())
 );
 -- insert / delete policies are unchanged.
 

@@ -3,7 +3,7 @@
 
 Reuses the rbac_audit.py setup (same LOCAL database, never a remote one) and
 adds two reviewers:
-  REVW  Editor role + "devotionals.publish" exception  -> view, create, edit, publish
+  REVW  Editor role + "devotionals.publish" exception  -> view, create, edit, publish (still cannot edit others)
   REVO  custom role "Revisora" with view + publish only (no edit)
 Each check runs in its own rolled-back transaction; multi-step flows switch
 the simulated user with as_() inside one check.
@@ -98,9 +98,9 @@ def main():
     check("revisora", "Toma la revisión -> en_revision", True,
           claim500 + " select estado from public.devocionales where id=500;", "EDT", must_contain="en_revision")
     check("revisora", "Al tomarla, la autora recibe un correo", True, claim500 + outbox("revision_tomada", 500), "EDT", must_contain="1")
-    check("revisora", "Edita la copia que tomó", True,
-          claim500 + """ update public.devocionales set pending_content='{"titulo":"Revisado","contenido":"R"}' where id=500 returning 1;""",
-          "EDT", must_contain="1")
+    check("revisora", "No modifica el texto de la autora, aunque tenga 'editar' (0 filas)", True,
+          claim500 + """ with u as (update public.devocionales set pending_content='{"titulo":"Revisado","contenido":"R"}' where id=500 returning 1)"""
+          + " select 'filas='||count(*) from u;", "EDT", must_contain="filas=0")
     check("revisora", "Revisora sin 'editar' toma pero no edita (0 filas)", True,
           submit500 + as_("REVO") + " select public.devocional_claim_review(500);"
           + """ with u as (update public.devocionales set pending_content='{"titulo":"x","contenido":"y"}' where id=500 returning 1)"""
