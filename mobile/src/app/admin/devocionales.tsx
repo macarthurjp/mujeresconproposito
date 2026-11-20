@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState, type ComponentRef, type ReactNode } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AdminLogin } from '@/components/admin-login';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
@@ -14,6 +14,7 @@ import { C, sans } from '@/constants/theme';
 import { canAdmin, uploadImage } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
+import { SheetModal } from '@/components/sheet-modal';
 
 type Article = { id: number; slug: string; titulo: string; resumen: string; contenido: string; introduccion_html?: string; contenido_html?: string; versiculo: string; categorias: string[]; autora: string; imagen_url: string; estado: string; publicado: boolean; fecha_publicacion: string | null; created_by: string; updated_at?: string; reviewer_id?: string | null; pending_content?: Record<string, unknown> | null; pending_fecha_publicacion?: string | null; cover_alt?: string | null; oracion_html?: string | null };
 type HistoryEntry = { id: number; accion: string; nota?: string | null; actor_email?: string | null; created_at: string };
@@ -370,7 +371,7 @@ export default function AdminDevocionales() {
           {!visibleArticles.length ? <View style={s.emptyCollection}><Ionicons name="book-outline" size={23} color={C.wine} /><Text style={s.emptyCollectionTitle}>Sin artículos para mostrar</Text><Text style={s.emptyCollectionCopy}>Ajusta los filtros o crea un nuevo devocional.</Text></View> : null}
         </View>}
       </ScrollView>
-      <Modal visible={modal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setModal(false)}>
+      <SheetModal visible={modal} onRequestClose={() => setModal(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}>
             <Pressable onPress={() => preview ? setPreview(false) : setModal(false)}><Text style={s.action}>{preview ? 'Editar' : 'Cancelar'}</Text></Pressable>
@@ -476,8 +477,8 @@ export default function AdminDevocionales() {
             </>
           )}
         </KeyboardAvoidingView>
-      </Modal>
-      <Modal visible={!!previewArticle} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPreviewArticle(null)}>
+      </SheetModal>
+      <SheetModal visible={!!previewArticle} onRequestClose={() => setPreviewArticle(null)}>
         <View style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}><Pressable onPress={() => setPreviewArticle(null)}><Text style={s.action}>Cerrar</Text></Pressable><Text style={s.modalTitle}>Vista previa</Text><View style={{ width: 42 }} /></View>
           <ScrollView contentContainerStyle={s.previewPage}>
@@ -493,26 +494,26 @@ export default function AdminDevocionales() {
             <View style={s.previewEnd}><View style={s.previewEndLine} /><Ionicons name="heart" size={15} color={C.rose} /><View style={s.previewEndLine} /></View>
           </ScrollView>
         </View>
-      </Modal>
-      <Modal visible={!!historyArticle} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setHistoryArticle(null)}>
+      </SheetModal>
+      <SheetModal visible={!!historyArticle} onRequestClose={() => setHistoryArticle(null)}>
         <View style={{ flex: 1, backgroundColor: C.bg }}><View style={s.modalBar}><Text style={s.modalTitle}>Historial de cambios</Text><Pressable onPress={() => setHistoryArticle(null)}><Text style={s.action}>Cerrar</Text></Pressable></View>
           <ScrollView contentContainerStyle={s.page}>{historyLoading ? <ActivityIndicator color={C.wine} /> : history.length ? <Group header={historyArticle?.titulo}>{history.map((entry) => <Row key={entry.id} icon="time-outline" label={entry.accion.replaceAll('_', ' ')} sub={`${entry.actor_email || 'Equipo'} · ${dateTimeLabel(new Date(entry.created_at))}${entry.nota ? `\n${entry.nota}` : ''}`} chevron={false} />)}</Group> : <Group><Row label="Sin historial registrado" chevron={false} /></Group>}</ScrollView>
         </View>
-      </Modal>
-      <Modal visible={!!changeRequest} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setChangeRequest(null)}>
+      </SheetModal>
+      <SheetModal visible={!!changeRequest} onRequestClose={() => setChangeRequest(null)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}><Pressable onPress={() => setChangeRequest(null)}><Text style={s.action}>Cancelar</Text></Pressable><Text style={s.modalTitle}>Solicitar cambios</Text><Pressable disabled={busy} onPress={() => void submitChangeRequest()}><Text style={s.action}>{busy ? 'Enviando…' : 'Enviar'}</Text></Pressable></View>
           <View style={s.changeNoteWrap}><Text style={s.fieldLabel}>Explica qué debe ajustar la autora</Text><TextInput multiline value={changeNote} onChangeText={setChangeNote} placeholder="Escribe una nota para la autora…" placeholderTextColor="#a28f8c" style={s.changeNote} /></View>
         </KeyboardAvoidingView>
-      </Modal>
-      <Modal visible={!!approvalArticle} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setApprovalArticle(null)}>
+      </SheetModal>
+      <SheetModal visible={!!approvalArticle} onRequestClose={() => setApprovalArticle(null)}>
         <View style={{ flex: 1, backgroundColor: C.bg }}><View style={s.modalBar}><Pressable onPress={() => setApprovalArticle(null)}><Text style={s.action}>Cancelar</Text></Pressable><Text style={s.modalTitle}>Aprobar y publicar</Text><Pressable disabled={busy} onPress={() => void confirmApproval()}><Text style={s.action}>{busy ? '…' : 'Publicar'}</Text></Pressable></View>
           <ScrollView contentContainerStyle={s.page}><Text style={s.subtitle}>{String(approvalArticle?.pending_content?.titulo ?? approvalArticle?.titulo ?? '')}</Text><Row icon="calendar-outline" label="Fecha de publicación" value={dateTimeLabel(approvalDate)} onPress={() => setShowDatePicker(true)} /><Row icon="time-outline" label="Hora de publicación" value={new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit' }).format(approvalDate)} onPress={() => setShowTimePicker(true)} />
             {showDatePicker ? <DateTimePicker value={approvalDate} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(event, date) => { if (date) setApprovalDate((current) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), current.getHours(), current.getMinutes())); if (Platform.OS !== 'ios' || event.type === 'dismissed') setShowDatePicker(false); }} /> : null}
             {showTimePicker ? <DateTimePicker value={approvalDate} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(event, date) => { if (date) setApprovalDate((current) => new Date(current.getFullYear(), current.getMonth(), current.getDate(), date.getHours(), date.getMinutes())); if (Platform.OS !== 'ios' || event.type === 'dismissed') setShowTimePicker(false); }} /> : null}
           </ScrollView>
         </View>
-      </Modal>
+      </SheetModal>
     </>
   );
 }

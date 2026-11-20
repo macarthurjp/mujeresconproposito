@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
@@ -20,6 +20,7 @@ import { C, TAB_BAR_SPACE, serif, sans } from '@/constants/theme';
 import { api, type Foto } from '@/lib/api';
 import { getShowHomeActivities } from '@/lib/app-preferences';
 import { albumsFor, GALLERY_REGIONS as galleryRegions, type Album, type RegionKey } from '@/lib/gallery';
+import { SheetModal } from '@/components/sheet-modal';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -257,8 +258,8 @@ export default function Home() {
     </ScrollView>
     <EventDetailsSheet destacada={destacadas.data?.find((d) => d.id === signupId) ?? null} onClose={() => setSignupId(null)} />
     <PhotoViewer visible={!!openAlbum} title={openAlbum?.title ?? ''} photos={openAlbum?.photos ?? []} onClose={() => setOpenAlbum(null)} />
-    <Modal visible={aboutVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAboutVisible(false)}>
-      <View style={[s.aboutModal, Platform.OS === 'android' && { paddingTop: insets.top + 12 }]}>
+    <SheetModal visible={aboutVisible} onRequestClose={() => setAboutVisible(false)}>
+      <View style={s.aboutModal}>
         <View style={s.aboutModalHeader}>
           <View style={{ flex: 1 }}><Text style={s.aboutModalEyebrow}>NOSOTRAS</Text><Text style={s.aboutModalTitle}>Misión, visión y valores</Text></View>
           <Pressable onPress={() => setAboutVisible(false)} accessibilityRole="button" accessibilityLabel="Cerrar" hitSlop={12} style={s.aboutClose}><Ionicons name="close" size={22} color={C.ink} /></Pressable>
@@ -278,7 +279,7 @@ export default function Home() {
           </View>
         </ScrollView>
       </View>
-    </Modal>
+    </SheetModal>
     </>
   );
 }

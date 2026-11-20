@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { FieldRow, Group, InputRow, Row, SwitchRow } from '@/components/form';
 import { AdminLogin } from '@/components/admin-login';
@@ -14,6 +14,7 @@ import { AdminGestureRow } from '@/components/admin-gesture-row';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 import { addGalleryPhoto, canAdmin, listGalleryAlbums, listGalleryPhotos, removeGalleryPhoto, reorderGalleryAlbum, saveGalleryPhoto, setGalleryCover, uploadImage, type GalleryPhoto, type GalleryRegion } from '@/lib/admin';
+import { SheetModal } from '@/components/sheet-modal';
 
 const REGIONS = [
   { value: 'usa', label: 'Estados Unidos' },
@@ -262,7 +263,7 @@ export default function AdminGaleria() {
           </>}
         </>}
       </ScrollView>
-      <Modal visible={!!editingPhoto} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setEditingPhoto(null)}>
+      <SheetModal visible={!!editingPhoto} onRequestClose={() => setEditingPhoto(null)}>
         <View style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}><Pressable onPress={() => setEditingPhoto(null)}><Text style={s.cancel}>Cancelar</Text></Pressable><Text style={s.modalTitle}>Gestionar foto</Text>{canAdmin(access,'gallery','edit') ? <Pressable disabled={savingEdit} onPress={() => void saveManagedPhoto()}><Text style={s.done}>{savingEdit ? 'Guardando…' : 'Guardar'}</Text></Pressable> : <View />}</View>
           <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
@@ -277,7 +278,7 @@ export default function AdminGaleria() {
             </Group> : null}
           </ScrollView>
         </View>
-      </Modal>
+      </SheetModal>
     </KeyboardAvoidingView>
   );
 }

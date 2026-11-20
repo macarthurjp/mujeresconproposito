@@ -2,12 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { C, sans } from '@/constants/theme';
 import { api, type Destacada } from '@/lib/api';
 import { isOnlinePlace, openInMaps } from '@/lib/places';
 
+import { SheetModal } from './sheet-modal';
 import { tapFeedback } from './ui';
 
 const SIGNED_KEY = 'mcp930:event-signups';
@@ -153,7 +154,7 @@ export function EventSignup({ destacada }: { destacada: Destacada }) {
         ) : null}
         <SignupCta signed={signup.signed} full={signup.full} left={signup.left} onPress={() => setOpen(true)} />
       </View>
-      <Modal visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOpen(false)}>
+      <SheetModal visible={open} onRequestClose={() => setOpen(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.bar}>
             <Pressable hitSlop={10} onPress={() => setOpen(false)} style={{ width: 80 }}><Text style={s.cancel}>Cancelar</Text></Pressable>
@@ -166,7 +167,7 @@ export function EventSignup({ destacada }: { destacada: Destacada }) {
             <SignupFields destacada={destacada} form={signup.form} />
           </ScrollView>
         </KeyboardAvoidingView>
-      </Modal>
+      </SheetModal>
     </>
   );
 }
@@ -190,7 +191,7 @@ function EventDetailsSheetInner({ destacada, onClose, onViewPoster }: { destacad
     destacada.cupo ? { icon: 'people-outline' as const, label: 'Plazas', value: signup.left === null ? `${destacada.cupo} plazas` : signup.full ? 'Completo' : `${signup.left} de ${destacada.cupo} disponibles` } : null,
   ].filter(Boolean) as { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; onPress?: () => void }[];
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <SheetModal visible onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={s.bar}>
           <Pressable hitSlop={10} onPress={() => step === 'form' ? setStep('details') : onClose()} style={{ width: 80 }}><Text style={s.cancel}>{step === 'form' ? 'Atrás' : 'Cerrar'}</Text></Pressable>
@@ -242,7 +243,7 @@ function EventDetailsSheetInner({ destacada, onClose, onViewPoster }: { destacad
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </Modal>
+    </SheetModal>
   );
 }
 

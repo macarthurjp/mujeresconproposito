@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { tapFeedback } from '@/components/ui';
 import { FieldRow, Group, InputRow, Row } from '@/components/form';
@@ -14,6 +14,7 @@ import { AdminGestureRow } from '@/components/admin-gesture-row';
 import { canAdmin, uploadImage } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
+import { SheetModal } from '@/components/sheet-modal';
 
 type Kind = 'destacadas' | 'youtube' | 'banner';
 type Item = {
@@ -296,7 +297,7 @@ export default function AdminContenido() {
           </Group>
         )}
       </ScrollView>
-      <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setEditing(null); setModalVisible(false); }}>
+      <SheetModal visible={modalVisible} onRequestClose={() => { setEditing(null); setModalVisible(false); }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}><Pressable onPress={() => { setEditing(null); setModalVisible(false); }}><Text style={s.modalAction}>Cancelar</Text></Pressable><Text style={s.modalTitle}>{editing ? 'Editar' : 'Nueva'} {kind === 'destacadas' ? 'destacada' : 'video'}</Text><Pressable disabled={busy} onPress={() => void save()}><Text style={[s.modalAction, { fontWeight: '700' }]}>{busy ? '…' : 'Guardar'}</Text></Pressable></View>
           <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
@@ -327,7 +328,7 @@ export default function AdminContenido() {
             {editing && canAdmin(access,'content','delete') ? <Group><Row label="Eliminar" destructive chevron={false} onPress={() => { const row = editing; setEditing(null); setModalVisible(false); remove(row); }} /></Group> : null}
           </ScrollView>
         </KeyboardAvoidingView>
-      </Modal>
+      </SheetModal>
     </>
   );
 }
