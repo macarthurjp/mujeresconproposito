@@ -71,6 +71,7 @@ export default function AdminContenido() {
   const [order, setOrder] = useState('1');
   const [active, setActive] = useState(true);
   const [picked, setPicked] = useState<{ uri: string; width: number; height: number } | null>(null);
+  const [previewRatio, setPreviewRatio] = useState(4 / 5);
   const [busy, setBusy] = useState(false);
   const [signups, setSignups] = useState(false);
   const [capacity, setCapacity] = useState('');
@@ -302,7 +303,15 @@ export default function AdminContenido() {
           <View style={s.modalBar}><Pressable onPress={() => { setEditing(null); setModalVisible(false); }}><Text style={s.modalAction}>Cancelar</Text></Pressable><Text style={s.modalTitle}>{editing ? 'Editar' : 'Nueva'} {kind === 'destacadas' ? 'destacada' : 'video'}</Text><Pressable disabled={busy} onPress={() => void save()}><Text style={[s.modalAction, { fontWeight: '700' }]}>{busy ? '…' : 'Guardar'}</Text></Pressable></View>
           <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
             {kind === 'destacadas' ? <>
-              {picked ? <Image source={{ uri: picked.uri }} style={s.preview} contentFit="cover" /> : imageUrl ? <Image source={{ uri: imageUrl }} style={s.preview} contentFit="cover" /> : null}
+              {picked || imageUrl ? (
+                // The whole poster, at its own proportions (never cropped), so it can be checked before saving.
+                <Image
+                  source={{ uri: picked ? picked.uri : imageUrl }}
+                  style={[s.preview, { aspectRatio: previewRatio }]}
+                  contentFit="contain"
+                  onLoad={(event) => { const { width, height } = event.source; if (width > 0 && height > 0) setPreviewRatio(Math.max(0.55, width / height)); }}
+                />
+              ) : null}
               <Pressable style={s.pickButton} onPress={() => void pickPhoto()}><Ionicons name="image-outline" size={18} color={C.wine} /><Text style={s.pickText}>{picked || imageUrl ? 'Cambiar póster' : 'Elegir póster del carrete'}</Text></Pressable>
               <Group header="Imagen"><InputRow label="URL de la imagen" value={imageUrl} onChangeText={setImageUrl} placeholder="https://…" autoCapitalize="none" keyboardType="url" /></Group>
               <Group header="Texto"><InputRow label="Nombre" value={title} onChangeText={setTitle} placeholder="Nombre de la invitada" /><InputRow label="Título" value={subtitle} onChangeText={setSubtitle} placeholder="Nombre del encuentro" /></Group>
@@ -357,7 +366,7 @@ const s = StyleSheet.create({
   toggle: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, toggleLabel: { fontFamily: sans, fontSize: 15, fontWeight: '500', color: C.ink },
   saveButton: { minHeight: 48, margin: 14, borderRadius: 14, backgroundColor: C.wine, alignItems: 'center', justifyContent: 'center' }, saveText: { fontFamily: sans, color: '#fff', fontWeight: '700', fontSize: 15 },
   modalBar: { height: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderColor: C.line }, modalTitle: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink }, modalAction: { fontFamily: sans, fontSize: 15, color: C.wine },
-  preview: { width: '100%', height: 220, borderRadius: 20, backgroundColor: C.sand, marginBottom: 12 }, pickButton: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'center', padding: 12 }, pickText: { fontFamily: sans, fontSize: 14, fontWeight: '600', color: C.wine },
+  preview: { width: '100%', borderRadius: 20, backgroundColor: C.sand, marginBottom: 12 }, pickButton: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'center', padding: 12 }, pickText: { fontFamily: sans, fontSize: 14, fontWeight: '600', color: C.wine },
   bannerPreview: { marginHorizontal: 16, marginBottom: 14, padding: 14, borderRadius: 18, backgroundColor: C.sand, gap: 12 },
   bannerPreviewTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bannerPreviewKicker: { fontFamily: sans, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: C.wine },
