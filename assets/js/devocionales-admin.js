@@ -680,6 +680,30 @@
     }).join("") + paginationMarkup(articleTotal, articlePage, "articles");
   }
 
+  /** Full pending copy shown inline once the reviewer has claimed the article, with the decision bar under it. */
+  function reviewReadingHtml(article, fields, defaultFecha) {
+    const verse = String(fields.versiculo || "").trim();
+    const body = cleanRichHtml(fields.contenido_html || "") || (fields.contenido ? `<p>${escapeHtml(fields.contenido)}</p>` : "");
+    const intro = cleanRichHtml(fields.introduccion_html || "");
+    const prayer = fields.oracion_html ? cleanRichHtml(fields.oracion_html) : "";
+    return `
+        <div class="admin-review-reading" role="region" aria-label="Texto del devocional">
+          <div class="admin-review-reading-head"><span class="admin-dashboard-kicker">TU REVISIÓN</span><button type="button" class="admin-review-full" data-dev-review-action="read"><i class="fa-solid fa-up-right-and-down-left-from-center" aria-hidden="true"></i> Ver como en la web</button></div>
+          ${fields.imagen_url ? `<img class="admin-review-cover" src="${escapeHtml(fields.imagen_url)}" alt="${escapeHtml(fields.cover_alt || fields.titulo || "")}">` : ""}
+          <h4>${escapeHtml(fields.titulo || "Sin título")}</h4>
+          ${verse ? `<blockquote class="admin-review-verse">${escapeHtml(verse)}</blockquote>` : ""}
+          ${intro ? `<div class="admin-review-intro">${intro}</div>` : ""}
+          <div class="admin-review-body">${body || '<p class="admin-review-empty">Sin reflexión.</p>'}</div>
+          ${prayer ? `<div class="admin-review-prayer"><span>Oración</span>${prayer}</div>` : ""}
+        </div>
+        <div class="admin-review-decision">
+          <button type="button" data-dev-review-action="release" class="admin-review-ghost">Liberar revisión</button>
+          <button type="button" data-dev-review-action="request-changes" class="admin-review-secondary"><i class="fa-regular fa-comment-dots" aria-hidden="true"></i> Solicitar cambios</button>
+          <label class="admin-review-date">Publicar el <input type="datetime-local" data-dev-approve-fecha value="${escapeHtml(defaultFecha)}"></label>
+          <button type="button" class="btn" data-dev-review-action="approve"><i class="fa-solid fa-check" aria-hidden="true"></i> Aprobar y publicar</button>
+        </div>`;
+  }
+
   function renderQueue() {
     const card = $("adminDevocionalReviewCard");
     const container = $("adminDevocionalReviewList");
@@ -695,7 +719,9 @@
     reviewPage = Math.min(reviewPage, pages - 1);
     container.innerHTML = reviewQueue.map((article) => {
       const fields = pendingFields(article);
-      const defaultFecha = localDateTime(article.pending_fecha_publicacion || new Date());
+      // A planned date that already passed means "publish now".
+      const planned = article.pending_fecha_publicacion ? new Date(article.pending_fecha_publicacion) : null;
+      const defaultFecha = localDateTime(planned && planned > new Date() ? planned : new Date());
       const assigned = article.estado === "en_revision" && article.reviewer_id === currentUser?.id;
       return `
       <article class="admin-devotional-item" data-dev-id="${escapeHtml(article.id)}">
@@ -706,9 +732,10 @@
           <small>${escapeHtml(fields.autora)} · enviado ${escapeHtml(formattedDate(article.updated_at))}${fields.categorias?.length ? ` · ${escapeHtml(fields.categorias.join(", "))}` : ""}</small>
         </div>
         <div class="admin-item-actions">
-          <button type="button" data-dev-review-action="read"><i class="fa-regular fa-eye" aria-hidden="true"></i> Leer devocional</button>
-          ${article.estado === "pendiente_revision" ? `<button type="button" data-dev-review-action="claim">Tomar revisión</button>` : assigned ? `<button type="button" data-dev-review-action="request-changes">Solicitar cambios</button><button type="button" data-dev-review-action="release">Liberar revisión</button><div class="admin-devotional-approve-row"><input type="datetime-local" data-dev-approve-fecha value="${escapeHtml(defaultFecha)}"/><button type="button" class="btn" data-dev-review-action="approve">Aprobar y publicar</button></div>` : `<span>Revisión asignada a otra persona</span>`}
+          ${assigned ? "" : `<button type="button" data-dev-review-action="read"><i class="fa-regular fa-eye" aria-hidden="true"></i> Leer devocional</button>`}
+          ${article.estado === "pendiente_revision" ? `<button type="button" class="btn" data-dev-review-action="claim">Tomar revisión</button>` : assigned ? "" : `<span>Revisión asignada a otra persona</span>`}
         </div>
+        ${assigned ? reviewReadingHtml(article, fields, defaultFecha) : ""}
         ${historyToggleHtml(article.id)}
       </article>`;
     }).join("") + paginationMarkup(reviewTotal, reviewPage, "review");
