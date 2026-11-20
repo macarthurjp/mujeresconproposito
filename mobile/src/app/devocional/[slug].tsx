@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Button, ErrorNote, Loading, Screen, useAsync , tapFeedback } from '@/components/ui';
 import { C, sans, serif, SITE_URL } from '@/constants/theme';
@@ -154,7 +154,7 @@ const s = StyleSheet.create({
   prayerText: { fontFamily: serif, fontStyle: 'italic', fontSize: 18, lineHeight: 28, color: C.text },
   paragraphRow: { flexDirection: 'row', alignItems: 'stretch', gap: 12 },
   firstParagraphMark: { position: 'absolute', left: -12, top: 0, bottom: 0, width: 2, borderRadius: 2, backgroundColor: 'rgba(166,75,67,0.38)' },
-  paragraph: { flex: 1, color: C.text, fontFamily: sans, fontSize: 16, lineHeight: 27, letterSpacing: -0.16, textAlign: 'justify' },
+  paragraph: { flex: 1, color: C.text, fontFamily: sans, fontSize: 16, lineHeight: 27, letterSpacing: Platform.OS === 'ios' ? -0.16 : 0, textAlign: 'justify' },
   subheadingRow: { marginTop: 9 },
   subheading: { color: C.ink, fontFamily: serif, fontSize: 24, lineHeight: 30, fontWeight: '700' },
   quoteRow: { borderLeftWidth: 2, borderLeftColor: C.rose, paddingLeft: 13, marginVertical: 4 },
