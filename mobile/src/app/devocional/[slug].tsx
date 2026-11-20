@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Button, ErrorNote, Loading, Screen, useAsync , tapFeedback } from '@/components/ui';
 import { C, sans, serif, SITE_URL } from '@/constants/theme';
@@ -12,7 +12,7 @@ import { getFavorites, getNote, saveNote, toggleFavorite } from '@/lib/devotiona
 
 function formattedText(value: string, style: object): ReactNode {
   const tokens = value.split(/(\*\*.+?\*\*|\*.+?\*|__.+?__|~~.+?~~)/g);
-  return <Text style={style}>{tokens.map((token, index) => {
+  return <Text style={style} textBreakStrategy="highQuality" android_hyphenationFrequency="full">{tokens.map((token, index) => {
     if (token.startsWith('**') && token.endsWith('**')) return <Text key={index} style={{ fontWeight: '800' }}>{token.slice(2, -2)}</Text>;
     if (token.startsWith('__') && token.endsWith('__')) return <Text key={index} style={{ textDecorationLine: 'underline' }}>{token.slice(2, -2)}</Text>;
     if (token.startsWith('~~') && token.endsWith('~~')) return <Text key={index} style={{ textDecorationLine: 'line-through' }}>{token.slice(2, -2)}</Text>;
@@ -154,11 +154,11 @@ const s = StyleSheet.create({
   prayerText: { fontFamily: serif, fontStyle: 'italic', fontSize: 18, lineHeight: 28, color: C.text },
   paragraphRow: { flexDirection: 'row', alignItems: 'stretch', gap: 12 },
   firstParagraphMark: { position: 'absolute', left: -12, top: 0, bottom: 0, width: 2, borderRadius: 2, backgroundColor: 'rgba(166,75,67,0.38)' },
-  paragraph: { flex: 1, color: C.text, fontFamily: sans, fontSize: 16, lineHeight: 27, letterSpacing: -0.16, textAlign: 'left' },
+  paragraph: { flex: 1, color: C.text, fontFamily: sans, fontSize: 16, lineHeight: 27, letterSpacing: Platform.OS === 'ios' ? -0.16 : 0, textAlign: 'justify' },
   subheadingRow: { marginTop: 9 },
   subheading: { color: C.ink, fontFamily: serif, fontSize: 24, lineHeight: 30, fontWeight: '700' },
   quoteRow: { borderLeftWidth: 2, borderLeftColor: C.rose, paddingLeft: 13, marginVertical: 4 },
-  bodyQuote: { color: C.wine, fontFamily: serif, fontSize: 18, lineHeight: 27, fontStyle: 'italic', textAlign: 'left' },
+  bodyQuote: { color: C.wine, fontFamily: serif, fontSize: 18, lineHeight: 27, fontStyle: 'italic', textAlign: 'justify' },
   listRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 9 },
   listBullet: { color: C.wine, fontFamily: sans, fontWeight: '800', fontSize: 16 },
   endMark: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 25, marginBottom: 23 },

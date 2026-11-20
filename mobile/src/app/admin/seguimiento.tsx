@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Group, Row } from '@/components/form';
 import { tapFeedback } from '@/components/ui';
@@ -8,6 +8,7 @@ import { C, sans } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
 import { canAdmin } from '@/lib/admin';
 import { useAdmin } from '@/lib/use-admin';
+import { SheetModal } from '@/components/sheet-modal';
 
 type Estado = 'nueva' | 'contactada' | 'integrada' | 'sin_respuesta';
 type Persona = {
@@ -50,7 +51,7 @@ function FollowSheet({ persona, me, onClose, onSaved }: { persona: Persona; me: 
   };
 
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <SheetModal visible onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={s.bar}>
           <Pressable hitSlop={10} onPress={onClose} style={{ width: 80 }}><Text style={s.cancel}>Cancelar</Text></Pressable>
@@ -86,7 +87,7 @@ function FollowSheet({ persona, me, onClose, onSaved }: { persona: Persona; me: 
           {persona.seguimiento_at ? <Text style={s.hint}>Última actualización {ago(persona.seguimiento_at)}.</Text> : null}
         </ScrollView>
       </KeyboardAvoidingView>
-    </Modal>
+    </SheetModal>
   );
 }
 

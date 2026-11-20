@@ -1,13 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Group, InputRow, Row, SwitchRow } from '@/components/form';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { AdminLogin } from '@/components/admin-login';
 import { useAdmin } from '@/lib/use-admin';
+import { SheetModal } from '@/components/sheet-modal';
 import {
   changeMyAdminEmail, inviteUser, listAdminRoleAssignments, listUsers, PERMISSIONS, resetUserPassword, restoreUser, revokeUser,
   setMyBirthdayCalendar, setUserName, setUserRole, type ManagedUser,
@@ -89,7 +90,7 @@ function UserSheet({ user, onClose, onChanged }: { user: ManagedUser; onClose: (
   };
 
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <SheetModal visible onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={s.sheetBar}>
           <View style={{ width: 70 }} />
@@ -170,7 +171,7 @@ function UserSheet({ user, onClose, onChanged }: { user: ManagedUser; onClose: (
           {busy ? <ActivityIndicator color={C.wine} style={{ marginTop: 16 }} /> : null}
         </ScrollView>
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
@@ -197,7 +198,7 @@ function InviteSheet({ onClose, onDone }: { onClose: () => void; onDone: () => v
   };
 
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <SheetModal visible onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={s.sheetBar}>
           <Pressable hitSlop={10} onPress={onClose} style={{ width: 80 }}><Text style={s.cancel}>Cancelar</Text></Pressable>
@@ -220,7 +221,7 @@ function InviteSheet({ onClose, onDone }: { onClose: () => void; onDone: () => v
           </Group>
         </ScrollView>
       </KeyboardAvoidingView>
-    </Modal>
+    </SheetModal>
   );
 }
 

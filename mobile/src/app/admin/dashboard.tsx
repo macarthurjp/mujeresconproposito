@@ -5,7 +5,7 @@ import * as Print from 'expo-print';
 import { Stack, useFocusEffect } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useCallback, useMemo, useState } from 'react';
-import { ActionSheetIOS, ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActionSheetIOS, ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AdminLogin } from '@/components/admin-login';
 import { FieldRow, Group, InputRow, Row } from '@/components/form';
@@ -15,6 +15,7 @@ import { canAdmin } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 import { WheelPicker, type WheelOption } from '@/components/wheel-picker';
+import { SheetModal } from '@/components/sheet-modal';
 
 type Member = {
   id: number;
@@ -461,7 +462,7 @@ export default function AdminDashboard() {
         ) : null}
         {!canExport ? <Text style={s.permissionNote}>La exportación está disponible para Manager y Super Admin.</Text> : null}
       </ScrollView>
-      <Modal visible={!!editingMember} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeMemberEditor}>
+      <SheetModal visible={!!editingMember} onRequestClose={closeMemberEditor}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}>
             <Pressable disabled={savingMember} onPress={closeMemberEditor}><Text style={s.modalAction}>Cancelar</Text></Pressable>
@@ -509,7 +510,7 @@ export default function AdminDashboard() {
             </Group>
           </ScrollView>
         </KeyboardAvoidingView>
-      </Modal>
+      </SheetModal>
     </>
   );
 }

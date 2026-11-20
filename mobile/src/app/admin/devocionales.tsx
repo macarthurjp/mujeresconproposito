@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState, type ComponentRef, type ReactNode } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AdminLogin } from '@/components/admin-login';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
@@ -14,6 +14,7 @@ import { C, sans } from '@/constants/theme';
 import { canAdmin, uploadImage } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
+import { SheetModal } from '@/components/sheet-modal';
 
 type Article = { id: number; slug: string; titulo: string; resumen: string; contenido: string; introduccion_html?: string; contenido_html?: string; versiculo: string; categorias: string[]; autora: string; imagen_url: string; estado: string; publicado: boolean; fecha_publicacion: string | null; created_by: string; updated_at?: string; reviewer_id?: string | null; pending_content?: Record<string, unknown> | null; pending_fecha_publicacion?: string | null; cover_alt?: string | null; oracion_html?: string | null };
 type HistoryEntry = { id: number; accion: string; nota?: string | null; actor_email?: string | null; created_at: string };
@@ -370,7 +371,7 @@ export default function AdminDevocionales() {
           {!visibleArticles.length ? <View style={s.emptyCollection}><Ionicons name="book-outline" size={23} color={C.wine} /><Text style={s.emptyCollectionTitle}>Sin artículos para mostrar</Text><Text style={s.emptyCollectionCopy}>Ajusta los filtros o crea un nuevo devocional.</Text></View> : null}
         </View>}
       </ScrollView>
-      <Modal visible={modal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setModal(false)}>
+      <SheetModal visible={modal} onRequestClose={() => setModal(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}>
             <Pressable onPress={() => preview ? setPreview(false) : setModal(false)}><Text style={s.action}>{preview ? 'Editar' : 'Cancelar'}</Text></Pressable>
@@ -476,8 +477,8 @@ export default function AdminDevocionales() {
             </>
           )}
         </KeyboardAvoidingView>
-      </Modal>
-      <Modal visible={!!previewArticle} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setPreviewArticle(null)}>
+      </SheetModal>
+      <SheetModal visible={!!previewArticle} onRequestClose={() => setPreviewArticle(null)}>
         <View style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}><Pressable onPress={() => setPreviewArticle(null)}><Text style={s.action}>Cerrar</Text></Pressable><Text style={s.modalTitle}>Vista previa</Text><View style={{ width: 42 }} /></View>
           <ScrollView contentContainerStyle={s.previewPage}>
@@ -493,26 +494,26 @@ export default function AdminDevocionales() {
             <View style={s.previewEnd}><View style={s.previewEndLine} /><Ionicons name="heart" size={15} color={C.rose} /><View style={s.previewEndLine} /></View>
           </ScrollView>
         </View>
-      </Modal>
-      <Modal visible={!!historyArticle} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setHistoryArticle(null)}>
+      </SheetModal>
+      <SheetModal visible={!!historyArticle} onRequestClose={() => setHistoryArticle(null)}>
         <View style={{ flex: 1, backgroundColor: C.bg }}><View style={s.modalBar}><Text style={s.modalTitle}>Historial de cambios</Text><Pressable onPress={() => setHistoryArticle(null)}><Text style={s.action}>Cerrar</Text></Pressable></View>
           <ScrollView contentContainerStyle={s.page}>{historyLoading ? <ActivityIndicator color={C.wine} /> : history.length ? <Group header={historyArticle?.titulo}>{history.map((entry) => <Row key={entry.id} icon="time-outline" label={entry.accion.replaceAll('_', ' ')} sub={`${entry.actor_email || 'Equipo'} · ${dateTimeLabel(new Date(entry.created_at))}${entry.nota ? `\n${entry.nota}` : ''}`} chevron={false} />)}</Group> : <Group><Row label="Sin historial registrado" chevron={false} /></Group>}</ScrollView>
         </View>
-      </Modal>
-      <Modal visible={!!changeRequest} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setChangeRequest(null)}>
+      </SheetModal>
+      <SheetModal visible={!!changeRequest} onRequestClose={() => setChangeRequest(null)}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}><Pressable onPress={() => setChangeRequest(null)}><Text style={s.action}>Cancelar</Text></Pressable><Text style={s.modalTitle}>Solicitar cambios</Text><Pressable disabled={busy} onPress={() => void submitChangeRequest()}><Text style={s.action}>{busy ? 'Enviando…' : 'Enviar'}</Text></Pressable></View>
           <View style={s.changeNoteWrap}><Text style={s.fieldLabel}>Explica qué debe ajustar la autora</Text><TextInput multiline value={changeNote} onChangeText={setChangeNote} placeholder="Escribe una nota para la autora…" placeholderTextColor="#a28f8c" style={s.changeNote} /></View>
         </KeyboardAvoidingView>
-      </Modal>
-      <Modal visible={!!approvalArticle} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setApprovalArticle(null)}>
+      </SheetModal>
+      <SheetModal visible={!!approvalArticle} onRequestClose={() => setApprovalArticle(null)}>
         <View style={{ flex: 1, backgroundColor: C.bg }}><View style={s.modalBar}><Pressable onPress={() => setApprovalArticle(null)}><Text style={s.action}>Cancelar</Text></Pressable><Text style={s.modalTitle}>Aprobar y publicar</Text><Pressable disabled={busy} onPress={() => void confirmApproval()}><Text style={s.action}>{busy ? '…' : 'Publicar'}</Text></Pressable></View>
           <ScrollView contentContainerStyle={s.page}><Text style={s.subtitle}>{String(approvalArticle?.pending_content?.titulo ?? approvalArticle?.titulo ?? '')}</Text><Row icon="calendar-outline" label="Fecha de publicación" value={dateTimeLabel(approvalDate)} onPress={() => setShowDatePicker(true)} /><Row icon="time-outline" label="Hora de publicación" value={new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit' }).format(approvalDate)} onPress={() => setShowTimePicker(true)} />
             {showDatePicker ? <DateTimePicker value={approvalDate} mode="date" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(event, date) => { if (date) setApprovalDate((current) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), current.getHours(), current.getMinutes())); if (Platform.OS !== 'ios' || event.type === 'dismissed') setShowDatePicker(false); }} /> : null}
             {showTimePicker ? <DateTimePicker value={approvalDate} mode="time" display={Platform.OS === 'ios' ? 'spinner' : 'default'} onChange={(event, date) => { if (date) setApprovalDate((current) => new Date(current.getFullYear(), current.getMonth(), current.getDate(), date.getHours(), date.getMinutes())); if (Platform.OS !== 'ios' || event.type === 'dismissed') setShowTimePicker(false); }} /> : null}
           </ScrollView>
         </View>
-      </Modal>
+      </SheetModal>
     </>
   );
 }
@@ -557,8 +558,8 @@ const s = StyleSheet.create({
   coverPreview: { width: '100%', height: 220, borderRadius: 18, backgroundColor: C.sand, marginBottom: 8 }, coverButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12 }, coverButtonText: { fontFamily: sans, color: C.wine, fontWeight: '600', fontSize: 14 },
   pickerCard: { marginTop: 8, marginHorizontal: 12, padding: 8, borderRadius: 16, backgroundColor: C.card }, pickerDone: { alignSelf: 'flex-end', padding: 10 }, pickerDoneText: { fontFamily: sans, color: C.wine, fontWeight: '700' },
   previewButton: { minHeight: 48, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(166,75,67,0.18)', backgroundColor: '#fff', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }, previewButtonText: { fontFamily: sans, color: C.wine, fontWeight: '700', fontSize: 14 },
-  previewPage: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 50 }, previewKicker: { color: C.wine, fontFamily: sans, fontSize: 10, fontWeight: '800', letterSpacing: 1.3, marginBottom: 12 }, previewHero: { minHeight: 330, borderRadius: 27, overflow: 'hidden', backgroundColor: '#92504a', justifyContent: 'flex-end', borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)', boxShadow: '0 14px 28px rgba(82,42,39,0.15)' }, previewHeroContent: { padding: 21, paddingTop: 70 }, previewByline: { color: 'rgba(255,255,255,0.84)', fontFamily: sans, fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }, previewHeroTitle: { color: '#fff', fontFamily: 'Georgia', fontSize: 32, lineHeight: 38, fontWeight: '700' }, previewCategoryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 15 }, previewCategory: { overflow: 'hidden', color: C.wine, backgroundColor: C.blush, fontFamily: sans, fontSize: 10, fontWeight: '700', borderRadius: 99, paddingHorizontal: 11, paddingVertical: 7 }, previewVerseCard: { borderRadius: 19, backgroundColor: '#fff', padding: 17, gap: 10, marginTop: 21, marginBottom: 19, borderWidth: 1, borderColor: 'rgba(166,75,67,0.10)' }, previewIntroCard: { marginTop: 22, paddingHorizontal: 17, paddingVertical: 16, borderRadius: 19, backgroundColor: '#f6e9e6', borderLeftWidth: 3, borderLeftColor: C.rose }, previewSectionLabel: { color: C.wine, fontFamily: sans, fontSize: 9, fontWeight: '800', letterSpacing: 1.35 }, previewIntroText: { color: C.muted, fontFamily: sans, fontSize: 15, lineHeight: 24, textAlign: 'left', marginTop: 8 }, previewReflection: { marginTop: 27 }, previewReflectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 11, marginBottom: 2 }, previewReflectionRule: { flex: 1, height: 1, backgroundColor: 'rgba(166,75,67,0.19)' }, previewArticleBody: { marginTop: 5 }, previewBlock: { marginTop: 15 }, previewSubheading: { color: C.ink, fontFamily: 'Georgia', fontSize: 23, lineHeight: 29, fontWeight: '700' }, previewQuote: { borderLeftWidth: 2, borderLeftColor: C.rose, paddingLeft: 14, marginVertical: 11 }, previewQuoteText: { color: C.wine, fontFamily: 'Georgia', fontSize: 18, lineHeight: 27, fontStyle: 'italic', textAlign: 'left' }, previewListRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, marginTop: 7 }, previewBullet: { color: C.wine, fontFamily: sans, fontSize: 15, fontWeight: '800' }, previewEnd: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 11, marginTop: 27 }, previewEndLine: { width: 48, height: 1, backgroundColor: 'rgba(166,75,67,0.18)' },
-  previewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }, previewTitle: { fontFamily: 'Georgia', fontSize: 30, lineHeight: 36, fontWeight: '700', color: C.ink, marginTop: 12 }, previewMeta: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 8 }, previewVerse: { fontFamily: 'Georgia', fontStyle: 'italic', color: C.wine, fontSize: 19, lineHeight: 27, marginTop: 0, textAlign: 'left' }, previewSummary: { fontFamily: sans, color: C.muted, fontSize: 16, lineHeight: 24, marginTop: 16, textAlign: 'left' }, previewBody: { fontFamily: sans, color: C.ink, fontSize: 16, lineHeight: 26, textAlign: 'left' },
+  previewPage: { paddingHorizontal: 22, paddingTop: 20, paddingBottom: 50 }, previewKicker: { color: C.wine, fontFamily: sans, fontSize: 10, fontWeight: '800', letterSpacing: 1.3, marginBottom: 12 }, previewHero: { minHeight: 330, borderRadius: 27, overflow: 'hidden', backgroundColor: '#92504a', justifyContent: 'flex-end', borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)', boxShadow: '0 14px 28px rgba(82,42,39,0.15)' }, previewHeroContent: { padding: 21, paddingTop: 70 }, previewByline: { color: 'rgba(255,255,255,0.84)', fontFamily: sans, fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 }, previewHeroTitle: { color: '#fff', fontFamily: 'Georgia', fontSize: 32, lineHeight: 38, fontWeight: '700' }, previewCategoryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 15 }, previewCategory: { overflow: 'hidden', color: C.wine, backgroundColor: C.blush, fontFamily: sans, fontSize: 10, fontWeight: '700', borderRadius: 99, paddingHorizontal: 11, paddingVertical: 7 }, previewVerseCard: { borderRadius: 19, backgroundColor: '#fff', padding: 17, gap: 10, marginTop: 21, marginBottom: 19, borderWidth: 1, borderColor: 'rgba(166,75,67,0.10)' }, previewIntroCard: { marginTop: 22, paddingHorizontal: 17, paddingVertical: 16, borderRadius: 19, backgroundColor: '#f6e9e6', borderLeftWidth: 3, borderLeftColor: C.rose }, previewSectionLabel: { color: C.wine, fontFamily: sans, fontSize: 9, fontWeight: '800', letterSpacing: 1.35 }, previewIntroText: { color: C.muted, fontFamily: sans, fontSize: 15, lineHeight: 24, textAlign: 'justify', marginTop: 8 }, previewReflection: { marginTop: 27 }, previewReflectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 11, marginBottom: 2 }, previewReflectionRule: { flex: 1, height: 1, backgroundColor: 'rgba(166,75,67,0.19)' }, previewArticleBody: { marginTop: 5 }, previewBlock: { marginTop: 15 }, previewSubheading: { color: C.ink, fontFamily: 'Georgia', fontSize: 23, lineHeight: 29, fontWeight: '700' }, previewQuote: { borderLeftWidth: 2, borderLeftColor: C.rose, paddingLeft: 14, marginVertical: 11 }, previewQuoteText: { color: C.wine, fontFamily: 'Georgia', fontSize: 18, lineHeight: 27, fontStyle: 'italic', textAlign: 'justify' }, previewListRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 9, marginTop: 7 }, previewBullet: { color: C.wine, fontFamily: sans, fontSize: 15, fontWeight: '800' }, previewEnd: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 11, marginTop: 27 }, previewEndLine: { width: 48, height: 1, backgroundColor: 'rgba(166,75,67,0.18)' },
+  previewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }, previewTitle: { fontFamily: 'Georgia', fontSize: 30, lineHeight: 36, fontWeight: '700', color: C.ink, marginTop: 12 }, previewMeta: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 8 }, previewVerse: { fontFamily: 'Georgia', fontStyle: 'italic', color: C.wine, fontSize: 19, lineHeight: 27, marginTop: 0, textAlign: 'left' }, previewSummary: { fontFamily: sans, color: C.muted, fontSize: 16, lineHeight: 24, marginTop: 16, textAlign: 'justify' }, previewBody: { fontFamily: sans, color: C.ink, fontSize: 16, lineHeight: 26, textAlign: 'justify' },
   changeNoteWrap: { padding: 18 }, changeNote: { minHeight: 170, borderRadius: 14, borderWidth: 1, borderColor: C.line, backgroundColor: C.card, padding: 14, textAlignVertical: 'top', fontFamily: sans, color: C.ink, fontSize: 15, lineHeight: 22 },
   submit: { minHeight: 50, borderRadius: 15, backgroundColor: C.wine, alignItems: 'center', justifyContent: 'center', marginTop: 16 }, submitText: { fontFamily: sans, color: '#fff', fontWeight: '700', fontSize: 15 },
   publish: { backgroundColor: C.ink },

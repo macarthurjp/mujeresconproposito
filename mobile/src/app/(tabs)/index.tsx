@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Linking, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
@@ -20,6 +20,7 @@ import { C, TAB_BAR_SPACE, serif, sans } from '@/constants/theme';
 import { api, type Foto } from '@/lib/api';
 import { getShowHomeActivities } from '@/lib/app-preferences';
 import { albumsFor, GALLERY_REGIONS as galleryRegions, type Album, type RegionKey } from '@/lib/gallery';
+import { SheetModal } from '@/components/sheet-modal';
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -112,7 +113,7 @@ export default function Home() {
 
       {/* About */}
       <Section eyebrow="Nosotras" title="¿Quiénes somos?" band>
-        <Text style={ui.body}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
+        <Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={ui.body}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
         <View style={s.aboutCards}>
           {[
             { icon: 'leaf-outline' as const, title: 'Misión', copy: 'Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades.' },
@@ -121,7 +122,7 @@ export default function Home() {
             <View key={card.title} style={s.aboutCard}>
               <View style={s.aboutCardIcon}><Ionicons name={card.icon} size={18} color={C.wine} /></View>
               <Text style={s.aboutCardTitle}>{card.title}</Text>
-              <Text style={s.aboutCardText}>{card.copy}</Text>
+              <Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={s.aboutCardText}>{card.copy}</Text>
             </View>
           ))}
         </View>
@@ -257,15 +258,15 @@ export default function Home() {
     </ScrollView>
     <EventDetailsSheet destacada={destacadas.data?.find((d) => d.id === signupId) ?? null} onClose={() => setSignupId(null)} />
     <PhotoViewer visible={!!openAlbum} title={openAlbum?.title ?? ''} photos={openAlbum?.photos ?? []} onClose={() => setOpenAlbum(null)} />
-    <Modal visible={aboutVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAboutVisible(false)}>
+    <SheetModal visible={aboutVisible} onRequestClose={() => setAboutVisible(false)}>
       <View style={s.aboutModal}>
         <View style={s.aboutModalHeader}>
           <View style={{ flex: 1 }}><Text style={s.aboutModalEyebrow}>NOSOTRAS</Text><Text style={s.aboutModalTitle}>Misión, visión y valores</Text></View>
           <Pressable onPress={() => setAboutVisible(false)} accessibilityRole="button" accessibilityLabel="Cerrar" hitSlop={12} style={s.aboutClose}><Ionicons name="close" size={22} color={C.ink} /></Pressable>
         </View>
         <ScrollView contentContainerStyle={s.aboutModalContent} showsVerticalScrollIndicator={false}>
-          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Misión</Text><Text style={s.aboutParagraphText}>Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades; fomentando sus dones y talentos.</Text></View>
-          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Visión</Text><Text style={s.aboutParagraphText}>Ser una comunidad internacional de mujeres transformadas por Dios, que caminan en su propósito, crecen integralmente y generan un impacto social que transforma vidas, familias y comunidades.</Text></View>
+          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Misión</Text><Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={s.aboutParagraphText}>Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades; fomentando sus dones y talentos.</Text></View>
+          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Visión</Text><Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={s.aboutParagraphText}>Ser una comunidad internacional de mujeres transformadas por Dios, que caminan en su propósito, crecen integralmente y generan un impacto social que transforma vidas, familias y comunidades.</Text></View>
           <View style={s.aboutDetailCard}>
             <Text style={s.aboutDetailTitle}>Nuestros valores</Text>
             <View style={s.aboutValuesList}>{[
@@ -274,11 +275,11 @@ export default function Home() {
               ['Hermandad', 'Nos acompañamos, apoyamos y fortalecemos unas a otras.'],
               ['Transparencia', 'Actuamos con apertura, integridad y claridad en nuestras relaciones y recursos.'],
               ['Honestidad', 'Vivimos y nos relacionamos con verdad, respeto y coherencia.'],
-            ].map(([title, copy]) => <View key={title} style={s.aboutValue}><View style={s.aboutValueDot} /><View style={s.aboutValueCopy}><Text style={s.aboutValueName}>{title}</Text><Text style={s.aboutDetailText}>{copy}</Text></View></View>)}</View>
+            ].map(([title, copy]) => <View key={title} style={s.aboutValue}><View style={s.aboutValueDot} /><View style={s.aboutValueCopy}><Text style={s.aboutValueName}>{title}</Text><Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={s.aboutDetailText}>{copy}</Text></View></View>)}</View>
           </View>
         </ScrollView>
       </View>
-    </Modal>
+    </SheetModal>
     </>
   );
 }
@@ -329,7 +330,7 @@ const s = StyleSheet.create({
   aboutCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)' },
   aboutCardIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   aboutCardTitle: { fontFamily: serif, fontSize: 22, color: C.ink, marginBottom: 6 },
-  aboutCardText: { fontFamily: sans, fontSize: 15, lineHeight: 22, color: C.muted, textAlign: 'left' },
+  aboutCardText: { fontFamily: sans, fontSize: 15, lineHeight: 22, color: C.muted, textAlign: 'justify' },
   aboutModal: { flex: 1, backgroundColor: C.bg, paddingTop: 12 },
   aboutModalHeader: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 22, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: C.separator },
   aboutModalEyebrow: { color: C.wine, fontSize: 11, fontWeight: '800', letterSpacing: 2 },
@@ -338,7 +339,8 @@ const s = StyleSheet.create({
   aboutModalContent: { padding: 20, paddingBottom: 36, gap: 14 },
   aboutDetailCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, borderWidth: 1, borderColor: C.line, gap: 8 },
   aboutDetailTitle: { color: C.ink, fontFamily: serif, fontSize: 21 },
-  aboutParagraphText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'left' },
+  aboutParagraphText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'justify' },
+  // Short list items: justifying a 2-line phrase in a narrow column only stretches the spaces.
   aboutDetailText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'left' },
   aboutValuesList: { gap: 8 },
   aboutValue: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },

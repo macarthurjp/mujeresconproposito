@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Group, Row, SwitchRow } from '@/components/form';
 import { tapFeedback } from '@/components/ui';
@@ -12,6 +12,7 @@ import {
   type AdminRole, type ManagedUser,
 } from '@/lib/admin';
 import { useAdmin } from '@/lib/use-admin';
+import { SheetModal } from '@/components/sheet-modal';
 
 type Assignment = { user_id: string; role_id: string; assigned_at: string };
 
@@ -299,7 +300,7 @@ export default function AdminRoles() {
     </ScrollView>
 
     {/* Assign sheet */}
-    <Modal visible={assignOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAssignOpen(false)}>
+    <SheetModal visible={assignOpen} onRequestClose={() => setAssignOpen(false)}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={s.sheetBar}>
           <Pressable onPress={() => setAssignOpen(false)} hitSlop={10}><Text style={s.sheetCancel}>Cancelar</Text></Pressable>
@@ -331,10 +332,10 @@ export default function AdminRoles() {
           </> : <Text style={[s.hint, { marginHorizontal: 4, marginTop: 10 }]}>Elige un rol para ver y ajustar sus permisos.</Text>}
         </ScrollView>
       </KeyboardAvoidingView>
-    </Modal>
+    </SheetModal>
 
     {/* Role sheet: create / edit */}
-    <Modal visible={!!roleSheet} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setRoleSheet(null)}>
+    <SheetModal visible={!!roleSheet} onRequestClose={() => setRoleSheet(null)}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={s.sheetBar}>
           <Pressable onPress={() => setRoleSheet(null)} hitSlop={10}><Text style={s.sheetCancel}>Cancelar</Text></Pressable>
@@ -350,10 +351,10 @@ export default function AdminRoles() {
           <PermissionEditor viewOnly={Boolean(roleSheet?.role?.view_only)} value={draft} onChange={setDraft} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </Modal>
+    </SheetModal>
 
     {/* Exceptions */}
-    <Modal visible={!!overrideUser} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOverrideUser(null)}>
+    <SheetModal visible={!!overrideUser} onRequestClose={() => setOverrideUser(null)}>
       <View style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={s.sheetBar}>
           <Pressable onPress={() => setOverrideUser(null)} hitSlop={10}><Text style={s.sheetCancel}>Cancelar</Text></Pressable>
@@ -382,7 +383,7 @@ export default function AdminRoles() {
           ))}
         </ScrollView>
       </View>
-    </Modal>
+    </SheetModal>
   </>;
 }
 

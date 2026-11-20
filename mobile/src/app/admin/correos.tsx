@@ -1,8 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import {
-  ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View,
-} from 'react-native';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { FieldRow, Group, InputRow, Row } from '@/components/form';
 import { tapFeedback, useAsync } from '@/components/ui';
@@ -11,6 +9,7 @@ import {
   addRecipient, COMMUNITIES, listRecipients, removeRecipient, setRecipientActive, type Recipient, type RecipientForm,
 } from '@/lib/recipients';
 import { useAdmin } from '@/lib/use-admin';
+import { SheetModal } from '@/components/sheet-modal';
 
 type Target = { form: RecipientForm; comunidad: string | null };
 
@@ -65,7 +64,7 @@ function AddSheet({ initial, onClose, onSaved }: { initial: Target; onClose: () 
   };
 
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <SheetModal visible onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
         <View style={s.sheetBar}>
           <Pressable hitSlop={10} onPress={onClose} style={{ width: 80 }}><Text style={s.cancel}>Cancelar</Text></Pressable>
@@ -96,7 +95,7 @@ function AddSheet({ initial, onClose, onSaved }: { initial: Target; onClose: () 
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
-    </Modal>
+    </SheetModal>
   );
 }
 

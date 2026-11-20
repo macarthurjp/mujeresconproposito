@@ -264,5 +264,6 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: { fontFamily: sans, fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
-  body: { fontFamily: sans, color: C.muted, fontSize: 16, lineHeight: 23, letterSpacing: -0.2 },
+  // Android clips the end of justified lines that use letterSpacing, so it is iOS only.
+  body: { fontFamily: sans, color: C.muted, fontSize: 16, lineHeight: 23, letterSpacing: Platform.OS === 'ios' ? -0.2 : 0, textAlign: 'justify' },
 });
