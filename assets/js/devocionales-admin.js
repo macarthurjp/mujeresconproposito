@@ -362,8 +362,8 @@
           <h3 id="adminChangesTitle">${escapeHtml(title)}</h3>
           <p>Explica con detalle qué debe ajustar la autora. Ella recibirá esta nota por correo y en el historial; tú no modificas su texto.</p>
           <label for="adminChangesNote" class="sr-only">Nota para la autora</label>
-          <textarea id="adminChangesNote" rows="9" maxlength="2000" placeholder="Ej.: En el segundo párrafo, el versículo citado es Salmo 27:14, no 27:13. Podrías añadir una aplicación práctica al final…"></textarea>
-          <div class="admin-changes-meta"><span data-count>0 / 2000</span></div>
+          <textarea id="adminChangesNote" rows="9" maxlength="10000" placeholder="Ej.: En el segundo párrafo, el versículo citado es Salmo 27:14, no 27:13. Podrías añadir una aplicación práctica al final…"></textarea>
+          <div class="admin-changes-meta"><span data-count>0 / 10.000</span></div>
           <div class="admin-changes-actions">
             <button type="button" class="admin-changes-cancel" data-cancel>Cancelar</button>
             <button type="button" class="btn" data-send disabled><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar a la autora</button>
@@ -373,9 +373,9 @@
       const area = wrap.querySelector("textarea");
       const send = wrap.querySelector("[data-send]");
       const count = wrap.querySelector("[data-count]");
-      const close = (value) => { wrap.remove(); document.removeEventListener("keydown", onKey, true); previous?.focus?.(); resolve(value); };
+      const close = (value) => { wrap.remove(); document.removeEventListener("keydown", onKey, true); previous?.focus?.({ focusVisible: false, preventScroll: true }); resolve(value); };
       const onKey = (event) => { if (event.key === "Escape") { event.preventDefault(); close(null); } };
-      area.addEventListener("input", () => { count.textContent = `${area.value.length} / 2000`; send.disabled = !area.value.trim(); });
+      area.addEventListener("input", () => { count.textContent = `${area.value.length.toLocaleString("es")} / 10.000`; send.disabled = !area.value.trim(); });
       wrap.querySelector("[data-cancel]").addEventListener("click", () => close(null));
       wrap.addEventListener("click", (event) => { if (event.target === wrap) close(null); });
       send.addEventListener("click", () => close(area.value.trim()));
