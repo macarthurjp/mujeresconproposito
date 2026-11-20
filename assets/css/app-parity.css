@@ -284,9 +284,10 @@ html body.mcp-brand[class] .dev-hero h1 :is(em, span) {
 html body.mcp-brand[class] .dev-hero h1 em { font-style: italic !important; color: var(--app-wine) !important; }
 
 /* ---------- Destacadas: whole flyer over a blurred fill (app PosterCard) ---------- */
+/* 4:5 frame: every flyer up to 4:5 (2:3, 3:4, 4:5) is shown whole at the same height. */
 html body.theme-premium[class] #inviteesTrack .poster-media {
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
   margin: 0 0 16px;
   border-radius: 16px;
   overflow: hidden;

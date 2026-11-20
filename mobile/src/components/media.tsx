@@ -8,7 +8,10 @@ import { C, sans, serif } from '@/constants/theme';
 
 import { tapFeedback } from './ui';
 
-const COMPACT_STAGE_RATIO = 1.42;
+// Carousels: the poster area is 4:5, so every flyer up to 4:5 (2:3, 3:4, 4:5)
+// is shown whole at the SAME height; only its width varies (blurred fill at
+// the sides). A fixed taller box made 4:5 flyers look smaller than 2:3 ones.
+const COMPACT_POSTER_RATIO = 4 / 5;
 const MAX_STAGE_RATIO = 1.75;
 const cardShadow = '0 1px 2px rgba(63,38,35,0.05), 0 10px 28px rgba(63,38,35,0.10)';
 
@@ -90,7 +93,7 @@ export function PosterCard({
   const pad = compact ? { x: 12, top: 50, bottom: 4 } : { x: 14, top: 58, bottom: 6 };
   const innerW = Math.max(0, cardWidth - pad.x * 2);
   const stageHeight = compact
-    ? cardWidth * COMPACT_STAGE_RATIO
+    ? pad.top + pad.bottom + innerW / COMPACT_POSTER_RATIO
     : Math.min(pad.top + pad.bottom + innerW / ratio, cardWidth * MAX_STAGE_RATIO);
   const fitted = useMemo(() => {
     if (!cardWidth) return null;
