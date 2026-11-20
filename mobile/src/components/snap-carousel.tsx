@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   Extrapolation, interpolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, type SharedValue,
 } from 'react-native-reanimated';
@@ -60,6 +60,9 @@ export function SnapCarousel<T>({
       snapToAlignment="start"
       decelerationRate="fast"
       disableIntervalMomentum
+      // Android only honours one-card-per-swipe on quick flings in paging
+      // mode (it then pages by snapToInterval, not by the view width).
+      pagingEnabled={Platform.OS === 'android'}
       style={style}
       contentContainerStyle={[{ paddingHorizontal: inset, gap }, styles.track, contentContainerStyle]}>
       {data.map((item, index) => (
