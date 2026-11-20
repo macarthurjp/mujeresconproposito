@@ -4752,7 +4752,14 @@ function renderContactCalendar(apiData = {}) {
       input.value = "";
       update();
     }
-    dropzone.addEventListener("click", () => input.click());
+    // The dropzone sits inside a <label>: without preventDefault the label also
+    // activates the input, and Safari opens a second file dialog that discards
+    // the photo picked in the first one.
+    dropzone.addEventListener("click", (event) => {
+      if (event.target === input) return;
+      event.preventDefault();
+      input.click();
+    });
     input.addEventListener("change", update);
     ["dragenter", "dragover"].forEach((evt) => dropzone.addEventListener(evt, (event) => {
       event.preventDefault();
@@ -4766,7 +4773,7 @@ function renderContactCalendar(apiData = {}) {
       dropzone.classList.remove("is-dragover");
       if (event.dataTransfer?.files?.length) {
         input.files = event.dataTransfer.files;
-        update();
+        input.dispatchEvent(new Event("change", { bubbles: true }));
       }
     });
     return { update, clear };
