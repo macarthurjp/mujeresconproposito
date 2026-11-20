@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Linking, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Agenda } from '@/components/agenda';
@@ -258,7 +258,7 @@ export default function Home() {
     <EventDetailsSheet destacada={destacadas.data?.find((d) => d.id === signupId) ?? null} onClose={() => setSignupId(null)} />
     <PhotoViewer visible={!!openAlbum} title={openAlbum?.title ?? ''} photos={openAlbum?.photos ?? []} onClose={() => setOpenAlbum(null)} />
     <Modal visible={aboutVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setAboutVisible(false)}>
-      <View style={s.aboutModal}>
+      <View style={[s.aboutModal, Platform.OS === 'android' && { paddingTop: insets.top + 12 }]}>
         <View style={s.aboutModalHeader}>
           <View style={{ flex: 1 }}><Text style={s.aboutModalEyebrow}>NOSOTRAS</Text><Text style={s.aboutModalTitle}>Misión, visión y valores</Text></View>
           <Pressable onPress={() => setAboutVisible(false)} accessibilityRole="button" accessibilityLabel="Cerrar" hitSlop={12} style={s.aboutClose}><Ionicons name="close" size={22} color={C.ink} /></Pressable>
@@ -329,7 +329,7 @@ const s = StyleSheet.create({
   aboutCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, boxShadow: '0 1px 2px rgba(63,38,35,0.04), 0 8px 24px rgba(63,38,35,0.06)' },
   aboutCardIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   aboutCardTitle: { fontFamily: serif, fontSize: 22, color: C.ink, marginBottom: 6 },
-  aboutCardText: { fontFamily: sans, fontSize: 15, lineHeight: 22, color: C.muted, textAlign: 'left' },
+  aboutCardText: { fontFamily: sans, fontSize: 15, lineHeight: 22, color: C.muted, textAlign: 'justify' },
   aboutModal: { flex: 1, backgroundColor: C.bg, paddingTop: 12 },
   aboutModalHeader: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingHorizontal: 22, paddingBottom: 18, borderBottomWidth: 1, borderBottomColor: C.separator },
   aboutModalEyebrow: { color: C.wine, fontSize: 11, fontWeight: '800', letterSpacing: 2 },
@@ -338,8 +338,8 @@ const s = StyleSheet.create({
   aboutModalContent: { padding: 20, paddingBottom: 36, gap: 14 },
   aboutDetailCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, borderWidth: 1, borderColor: C.line, gap: 8 },
   aboutDetailTitle: { color: C.ink, fontFamily: serif, fontSize: 21 },
-  aboutParagraphText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'left' },
-  aboutDetailText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'left' },
+  aboutParagraphText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'justify' },
+  aboutDetailText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'justify' },
   aboutValuesList: { gap: 8 },
   aboutValue: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   aboutValueCopy: { flex: 1, gap: 3 },

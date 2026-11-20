@@ -1,6 +1,6 @@
 import { router, usePathname } from 'expo-router';
 import type { ReactNode } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { Directions, GestureDetector, useCompetingGestures, useFlingGesture } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 
@@ -22,8 +22,14 @@ function go(pathname: string, step: number) {
 /**
  * Swipe between tabs from the screen edges (so carousels keep working):
  * from the right edge towards the left → next tab; from the left edge → previous tab.
+ * iOS only: on Android the screen edges belong to the system back gesture, and
+ * the fling recognizer swallowed quick swipes in horizontal carousels.
  */
 export function TabSwipe({ children }: { children: ReactNode }) {
+  return Platform.OS === 'ios' ? <EdgeTabSwipe>{children}</EdgeTabSwipe> : <>{children}</>;
+}
+
+function EdgeTabSwipe({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const next = useFlingGesture({

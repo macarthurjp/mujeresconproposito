@@ -264,5 +264,5 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: { fontFamily: sans, fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
-  body: { fontFamily: sans, color: C.muted, fontSize: 16, lineHeight: 23, letterSpacing: -0.2 },
+  body: { fontFamily: sans, color: C.muted, fontSize: 16, lineHeight: 23, letterSpacing: -0.2, textAlign: 'justify' },
 });
