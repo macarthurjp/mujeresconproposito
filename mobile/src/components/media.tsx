@@ -8,10 +8,10 @@ import { C, sans, serif } from '@/constants/theme';
 
 import { tapFeedback } from './ui';
 
-// Carousels: the poster area is 4:5, so every flyer up to 4:5 (2:3, 3:4, 4:5)
-// is shown whole at the SAME height; only its width varies (blurred fill at
-// the sides). A fixed taller box made 4:5 flyers look smaller than 2:3 ones.
-const COMPACT_POSTER_RATIO = 4 / 5;
+// Carousels: the poster area is 2:3, the house format for destacadas. 2:3
+// flyers fill it edge to edge; any other ratio is shown whole (never cropped)
+// over its blurred fill. The editor recommends 1080×1620.
+const COMPACT_POSTER_RATIO = 2 / 3;
 const MAX_STAGE_RATIO = 1.75;
 const cardShadow = '0 1px 2px rgba(63,38,35,0.05), 0 10px 28px rgba(63,38,35,0.10)';
 

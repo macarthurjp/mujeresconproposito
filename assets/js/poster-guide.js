@@ -1,8 +1,7 @@
-// Destacadas: posters are shown whole in a 4:5 frame, so every vertical flyer
-// up to 4:5 (2:3, 3:4, 4:5) gets the same height automatically. Only wider
-// images (square or landscape) look shorter; warn when one is picked.
+// Destacadas use a 2:3 frame (house format). A 2:3 poster fills it; any other
+// ratio is shown whole but looks shorter or narrower. Tell the admin when picking.
 (function () {
-  var MAX_RATIO = 0.82; // 4:5 = 0.8, small tolerance
+  var TARGET = 2 / 3, TOLERANCE = 0.03;
   function isPosterInput(input) {
     if (!input || input.type !== "file") return false;
     if (input.id === "adminDestacadaFoto") return true;
@@ -31,12 +30,14 @@
     img.onload = function () {
       var ratio = img.naturalWidth / img.naturalHeight;
       hint.hidden = false;
-      if (ratio > MAX_RATIO) {
-        hint.className = "poster-guide is-warn";
-        hint.textContent = "Este póster es " + (ratio >= 0.98 ? (ratio > 1.05 ? "horizontal" : "cuadrado") : "más ancho de lo recomendado") + " (" + img.naturalWidth + "×" + img.naturalHeight + "): se verá completo pero más bajo que los demás. Ideal: vertical 4:5 (1080×1350) o 2:3 (1080×1620).";
-      } else {
+      var size = " (" + img.naturalWidth + "×" + img.naturalHeight + ")";
+      if (Math.abs(ratio - TARGET) <= TOLERANCE) {
         hint.className = "poster-guide is-ok";
-        hint.textContent = "Formato correcto (" + img.naturalWidth + "×" + img.naturalHeight + "): se verá a la misma altura que los demás pósteres.";
+        hint.textContent = "Formato correcto 2:3" + size + ": llenará el marco igual que los demás pósteres.";
+      } else {
+        hint.className = "poster-guide is-warn";
+        var shape = ratio > 1.05 ? "horizontal" : ratio >= 0.95 ? "cuadrado" : ratio > TARGET ? "más ancho que 2:3" : "más alargado que 2:3";
+        hint.textContent = "Este póster es " + shape + size + ": se verá completo, pero " + (ratio > TARGET ? "más bajo" : "más estrecho") + " que los demás. Para que quede igual, súbelo en 2:3 (1080×1620; en Canva: Cambiar tamaño).";
       }
       URL.revokeObjectURL(url);
     };

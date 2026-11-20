@@ -315,12 +315,12 @@ export default function AdminContenido() {
                 />
               ) : null}
               <Pressable style={s.pickButton} onPress={() => void pickPhoto()}><Ionicons name="image-outline" size={18} color={C.wine} /><Text style={s.pickText}>{picked || imageUrl ? 'Cambiar póster' : 'Elegir póster del carrete'}</Text></Pressable>
-              {picked && picked.width / picked.height > 0.82 ? (
-                <Text style={[s.posterGuide, s.posterGuideWarn]}>Este póster es más ancho de lo recomendado ({picked.width}×{picked.height}): se verá completo pero más bajo que los demás. Ideal: vertical 4:5 (1080×1350) o 2:3 (1080×1620).</Text>
+              {picked && Math.abs(picked.width / picked.height - 2 / 3) > 0.03 ? (
+                <Text style={[s.posterGuide, s.posterGuideWarn]}>Este póster no es 2:3 ({picked.width}×{picked.height}): se verá completo, pero {picked.width / picked.height > 2 / 3 ? 'más bajo' : 'más estrecho'} que los demás. Para que quede igual, súbelo en 2:3 (1080×1620; en Canva: Cambiar tamaño).</Text>
               ) : picked ? (
-                <Text style={[s.posterGuide, s.posterGuideOk]}>Formato correcto ({picked.width}×{picked.height}): se verá a la misma altura que los demás pósteres.</Text>
+                <Text style={[s.posterGuide, s.posterGuideOk]}>Formato correcto 2:3 ({picked.width}×{picked.height}): llenará el marco igual que los demás pósteres.</Text>
               ) : (
-                <Text style={s.posterGuideHint}>Ideal: póster vertical 4:5 (1080×1350) o 2:3 (1080×1620).</Text>
+                <Text style={s.posterGuideHint}>Formato ideal: 2:3 (1080×1620).</Text>
               )}
               <Group header="Imagen"><InputRow label="URL de la imagen" value={imageUrl} onChangeText={setImageUrl} placeholder="https://…" autoCapitalize="none" keyboardType="url" /></Group>
               <Group header="Texto"><InputRow label="Nombre" value={title} onChangeText={setTitle} placeholder="Nombre de la invitada" /><InputRow label="Título" value={subtitle} onChangeText={setSubtitle} placeholder="Nombre del encuentro" /></Group>
