@@ -102,6 +102,7 @@ export default function AdminDashboard() {
   const [sortMode, setSortMode] = useState('newest');
   const [pageSize, setPageSize] = useState('25');
   const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [viewingMember, setViewingMember] = useState<Member | null>(null);
   const [memberForm, setMemberForm] = useState<MemberForm>({
     nombre: '', apellido: '', email: '', telefono: '', pais_residencia: '', comunidad: '', cristiana: '',
     fecha_nacimiento: '', pais_nacimiento: '', estatus_matrimonial: '', hijos: 0, comments: '',
@@ -196,20 +197,9 @@ export default function AdminDashboard() {
   const canReadPrivate = canExport;
   const canManageRecords = access.isSuperAdmin;
   const openMember = (member: Member) => {
-    if (!canManageRecords) {
-      const detail = [
-        `Residencia: ${member.pais_residencia || '—'}`,
-        `Comunidad: ${member.comunidad || '—'}`, `Cristiana: ${member.cristiana || '—'}`,
-        ...(canReadPrivate ? [member.email || '', member.telefono || '', `Nacimiento: ${fmtDate(member.fecha_nacimiento)}`, `País de nacimiento: ${member.pais_nacimiento || '—'}`] : []),
-      ].filter(Boolean).join('\n');
-      const buttons = [
-        canReadPrivate && member.email ? { text: 'Correo', onPress: () => { void Linking.openURL(`mailto:${member.email}`); } } : null,
-        canReadPrivate && member.telefono ? { text: 'Llamar', onPress: () => { void Linking.openURL(`tel:${member.telefono!.replace(/[^+\d]/g, '')}`); } } : null,
-        canReadPrivate && member.telefono ? { text: 'WhatsApp', onPress: () => { void Linking.openURL(`https://wa.me/${member.telefono!.replace(/\D/g, '')}`); } } : null,
-      ].filter((button): button is { text: string; onPress: () => void } => button !== null);
-      Alert.alert(`${member.nombre} ${member.apellido}`.trim(), detail, buttons);
-      return;
-    }
+    // Read-only roles get a detail sheet (a system alert without buttons cannot
+    // be dismissed on Android and blocked the app).
+    if (!canManageRecords) { setViewingMember(member); return; }
     setMemberForm({
       nombre: member.nombre ?? '', apellido: member.apellido ?? '', email: member.email ?? '', telefono: member.telefono ?? '',
       pais_residencia: member.pais_residencia ?? '', comunidad: member.comunidad ?? '', cristiana: member.cristiana ?? '',
@@ -462,6 +452,44 @@ export default function AdminDashboard() {
         ) : null}
         {!canExport ? <Text style={s.permissionNote}>La exportación está disponible para Manager y Super Admin.</Text> : null}
       </ScrollView>
+      <SheetModal visible={!!viewingMember} onRequestClose={() => setViewingMember(null)}>
+        <View style={{ flex: 1, backgroundColor: C.bg }}>
+          <View style={s.modalBar}>
+            <View style={{ width: 70 }} />
+            <Text style={s.modalTitle}>Registro</Text>
+            <Pressable hitSlop={10} onPress={() => setViewingMember(null)} style={{ width: 70, alignItems: 'flex-end' }}><Text style={[s.modalAction, s.modalActionStrong]}>Cerrar</Text></Pressable>
+          </View>
+          {viewingMember ? (
+            <ScrollView contentContainerStyle={s.formPage}>
+              <View style={s.memberHero}>
+                <View style={s.memberAvatar}><Text style={s.memberInitials}>{`${viewingMember.nombre?.[0] ?? ''}${viewingMember.apellido?.[0] ?? ''}`.toUpperCase()}</Text></View>
+                <Text style={s.memberName}>{`${viewingMember.nombre ?? ''} ${viewingMember.apellido ?? ''}`.trim()}</Text>
+                {viewingMember.comunidad ? <Text style={s.memberMeta}>{viewingMember.comunidad}</Text> : null}
+              </View>
+              {canReadPrivate && (viewingMember.email || viewingMember.telefono) ? (
+                <View style={s.memberActions}>
+                  {viewingMember.email ? <Pressable onPress={() => void Linking.openURL(`mailto:${viewingMember.email}`)} style={({ pressed }) => [s.memberAction, pressed && { opacity: 0.7 }]}><Ionicons name="mail" size={20} color={C.wine} /><Text style={s.memberActionText}>Correo</Text></Pressable> : null}
+                  {viewingMember.telefono ? <Pressable onPress={() => void Linking.openURL(`tel:${viewingMember.telefono!.replace(/[^+\d]/g, '')}`)} style={({ pressed }) => [s.memberAction, pressed && { opacity: 0.7 }]}><Ionicons name="call" size={20} color={C.wine} /><Text style={s.memberActionText}>Llamar</Text></Pressable> : null}
+                  {viewingMember.telefono ? <Pressable onPress={() => void Linking.openURL(`https://wa.me/${viewingMember.telefono!.replace(/\D/g, '')}`)} style={({ pressed }) => [s.memberAction, pressed && { opacity: 0.7 }]}><Ionicons name="logo-whatsapp" size={20} color={C.wine} /><Text style={s.memberActionText}>WhatsApp</Text></Pressable> : null}
+                </View>
+              ) : null}
+              <Group header="Comunidad">
+                <Row icon="home-outline" label="Residencia" value={viewingMember.pais_residencia || '—'} chevron={false} />
+                <Row icon="people-outline" label="Comunidad" value={viewingMember.comunidad || '—'} chevron={false} />
+                <Row icon="heart-outline" label="Cristiana" value={viewingMember.cristiana || '—'} chevron={false} />
+              </Group>
+              {canReadPrivate ? (
+                <Group header="Contacto y datos personales">
+                  <Row icon="mail-outline" label="Correo" sub={viewingMember.email || '—'} chevron={false} />
+                  <Row icon="call-outline" label="Teléfono" sub={viewingMember.telefono || '—'} chevron={false} />
+                  <Row icon="calendar-outline" label="Nacimiento" value={fmtDate(viewingMember.fecha_nacimiento)} chevron={false} />
+                  <Row icon="flag-outline" label="País de nacimiento" value={viewingMember.pais_nacimiento || '—'} chevron={false} />
+                </Group>
+              ) : null}
+            </ScrollView>
+          ) : null}
+        </View>
+      </SheetModal>
       <SheetModal visible={!!editingMember} onRequestClose={closeMemberEditor}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
           <View style={s.modalBar}>
@@ -549,6 +577,14 @@ const s = StyleSheet.create({
   modalAction: { fontFamily: sans, fontSize: 15, color: C.wine },
   modalActionStrong: { fontWeight: '700' },
   modalTitle: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink },
+  memberHero: { alignItems: 'center', paddingTop: 8, paddingBottom: 20, gap: 6 },
+  memberAvatar: { width: 76, height: 76, borderRadius: 38, backgroundColor: C.blush, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  memberInitials: { fontFamily: sans, fontSize: 28, fontWeight: '700', color: C.wine },
+  memberName: { fontFamily: sans, fontSize: 22, fontWeight: '700', color: C.ink, textAlign: 'center' },
+  memberMeta: { fontFamily: sans, fontSize: 15, color: C.muted, textAlign: 'center' },
+  memberActions: { flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 18 },
+  memberAction: { flex: 1, maxWidth: 110, alignItems: 'center', gap: 6, paddingVertical: 12, borderRadius: 16, backgroundColor: C.card, borderWidth: StyleSheet.hairlineWidth, borderColor: C.line },
+  memberActionText: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.wine },
   formPage: { padding: 18, paddingBottom: 54 },
   formLead: { fontFamily: sans, color: C.muted, fontSize: 14, lineHeight: 20, marginTop: 6 },
   commentsInput: { minHeight: 96, textAlignVertical: 'top', fontFamily: sans, fontSize: 16, color: C.ink, paddingVertical: 8 },

@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
-import { AccessibilityInfo, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Platform, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withSpring, withTiming,
 } from 'react-native-reanimated';
@@ -17,6 +17,12 @@ const BG = '#FFF7F6'; // same as the native splash
 const LOGO = 240; // same width as the native splash image
 const K = LOGO / 1024;
 const MIN_VISIBLE_MS = 1700;
+// Android's splash API masks the image to a circle, so its splash image is the
+// same logo shrunk to fit inside it (splash-icon-android.png) and centred. The
+// overlay matches it: 0.61 scale, and the logo's centre moved to the middle.
+const ANDROID = Platform.OS === 'android';
+const BASE_SCALE = ANDROID ? 0.61 : 1;
+const BASE_SHIFT = ANDROID ? (512 - 476) * BASE_SCALE * K : 0;
 
 /**
  * Branded launch overlay. It starts pixel-identical to the native splash; then
@@ -61,7 +67,7 @@ export function LaunchScreen() {
   }, [grow, sway, soil, progress, exit]);
 
   const layer = useAnimatedStyle(() => ({ opacity: 1 - exit.value }));
-  const group = useAnimatedStyle(() => ({ transform: [{ scale: 1 + exit.value * 0.12 }] }));
+  const group = useAnimatedStyle(() => ({ transform: [{ translateY: BASE_SHIFT }, { scale: BASE_SCALE * (1 + exit.value * 0.12) }] }));
   const flower = useAnimatedStyle(() => ({
     transform: [{ rotate: `${sway.value * (1 - exit.value)}deg` }, { scaleY: grow.value }, { scaleX: 2 - grow.value * 1 }],
   }));
