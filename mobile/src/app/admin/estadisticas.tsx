@@ -88,7 +88,7 @@ export default function Estadisticas() {
   const seg = stats?.seguimiento ?? {};
 
   return (
-    <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.wine} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
+    <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.wine} colors={[C.wine]} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
       {error ? <Group footer={error}><Row icon="alert-circle" label="No se pudieron cargar las estadísticas" chevron={false} /></Group> : null}
       {!stats && !error ? <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} /> : null}
       {stats ? <>

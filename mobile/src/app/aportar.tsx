@@ -8,6 +8,7 @@ import { GiveHeader } from '@/components/prayer-card';
 import { Screen, tapFeedback, useAsync } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { api, type CuentaAporte } from '@/lib/api';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 // Same PayPal donate button the website uses.
 const PAYPAL_DONATE = 'https://www.paypal.com/donate/?hosted_button_id=ZVN8VQZ622B7W';
@@ -63,7 +64,8 @@ function OtherMethod({ cuenta }: { cuenta: CuentaAporte }) {
 }
 
 export default function Aportar() {
-  const { data } = useAsync(api.cuentasAporte);
+  const { data, reload } = useAsync(api.cuentasAporte);
+  const pull = usePullToRefresh(reload);
   const paypal = data?.find(isPayPal);
   const others = (data ?? []).filter((c) => !isPayPal(c));
   const paypalLink = paypal?.link && /^https:\/\//i.test(paypal.link) ? paypal.link : PAYPAL_DONATE;
@@ -86,7 +88,7 @@ export default function Aportar() {
   };
 
   return (
-    <Screen topInset={false}>
+    <Screen topInset={false} onRefresh={pull.onRefresh} refreshing={pull.refreshing}>
       <View style={s.page}>
         <GiveHeader />
 

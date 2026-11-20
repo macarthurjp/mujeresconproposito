@@ -8,6 +8,7 @@ import { C, sans } from '@/constants/theme';
 import { canAdmin } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 const TARGETS = [
   { value: '', label: 'Todas' },
@@ -26,6 +27,7 @@ export default function Avisos() {
   const [reach, setReach] = useState<number | null>(null);
   const [emailReach, setEmailReach] = useState<number | null>(null);
   const [byEmail, setByEmail] = useState(false);
+  const [reachKey, setReachKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<Sent[]>([]);
   const allowed = canAdmin(access,'notices','view');
@@ -36,6 +38,8 @@ export default function Avisos() {
     setHistory((data ?? []) as Sent[]);
   }, []);
 
+  const pull = usePullToRefresh(async () => { setReachKey((k) => k + 1); await loadHistory(); });
+
   useEffect(() => {
     // The reach preview only needs module access (the server checks notices.view for dryRun).
     if (!allowed) return;
@@ -43,7 +47,7 @@ export default function Avisos() {
     void supabase.functions.invoke('send-broadcast', { body: { titulo: 'x', mensaje: 'x', comunidad: target || null, dryRun: true } })
       .then(({ data }) => { if (!alive) return; setReach(typeof data?.destinatarios === 'number' ? data.destinatarios : null); setEmailReach(typeof data?.correos === 'number' ? data.correos : null); });
     return () => { alive = false; };
-  }, [allowed, target]);
+  }, [allowed, target, reachKey]);
 
   useEffect(() => {
     if (!allowed) return;
@@ -88,7 +92,7 @@ export default function Avisos() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled" refreshControl={pull.control}>
         {canSend ? <Text style={s.intro}>Envía una notificación al teléfono de la comunidad. Úsalo para avisos importantes: cambios de horario, eventos especiales o mensajes urgentes.</Text>
           : <Group footer="Puedes consultar los avisos enviados. Para enviar avisos necesitas el permiso «Enviar avisos»."><Row icon="eye-outline" label="Acceso de solo lectura" chevron={false} /></Group>}
 

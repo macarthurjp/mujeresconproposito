@@ -99,7 +99,7 @@ export function Screen({
       contentContainerStyle={{ paddingTop: (topInset ? insets.top : 0) + 16, paddingBottom: insets.bottom + TAB_BAR_SPACE }}
       onScroll={reportScroll}
       scrollEventThrottle={100}
-      refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.wine} /> : undefined}>
+      refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.wine} colors={[C.wine]} progressBackgroundColor="#ffffff" /> : undefined}>
       {Children.toArray(children).map((child, index) => <Reveal key={index} index={index}>{child}</Reveal>)}
     </ScrollView>
   );

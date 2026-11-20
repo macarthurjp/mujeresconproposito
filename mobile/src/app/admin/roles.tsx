@@ -13,6 +13,7 @@ import {
 } from '@/lib/admin';
 import { useAdmin } from '@/lib/use-admin';
 import { SheetModal } from '@/components/sheet-modal';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 type Assignment = { user_id: string; role_id: string; assigned_at: string };
 
@@ -100,6 +101,7 @@ export default function AdminRoles() {
     const [r, p, a, u] = await Promise.all([listAdminRoles(), listAllAdminRolePermissions(), listAdminRoleAssignments(), listUsers()]);
     setRoles(r); setRolePerms(p); setAssignments(a as Assignment[]); setUsers(u); setLoaded(true);
   }, []);
+  const pull = usePullToRefresh(refresh);
   useEffect(() => {
     if (ready && access?.isSuperAdmin && !access.isRevoked) {
       void Promise.resolve().then(refresh).catch((e) => Alert.alert('No se pudo cargar Roles y permisos', e instanceof Error ? e.message : ''));
@@ -212,7 +214,7 @@ export default function AdminRoles() {
 
   return <>
     <Stack.Screen options={{ title: 'Roles y permisos', headerRight: () => <Pressable accessibilityLabel="Crear rol" onPress={() => openRoleSheet(null)} hitSlop={12}><Ionicons name="add-circle" size={28} color={C.wine} /></Pressable> }} />
-    <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled" refreshControl={pull.control}>
       {!loaded ? <ActivityIndicator color={C.wine} style={{ marginTop: 30 }} /> : <>
         {/* Step 1 — people */}
         <Text style={s.section}>Asignar rol</Text>

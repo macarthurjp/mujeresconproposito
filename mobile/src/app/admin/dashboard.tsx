@@ -400,7 +400,7 @@ export default function AdminDashboard() {
           <Text style={s.exportText}>{exporting ? 'Preparando…' : 'Exportar'}</Text>
         </Pressable>
       ) : undefined }} />
-      <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={loading && members.length > 0} onRefresh={() => void load()} tintColor={C.wine} />}>
+      <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={loading && members.length > 0} onRefresh={() => void load()} tintColor={C.wine} colors={[C.wine]} />}>
         <View style={s.heading}>
           <Text style={s.kicker}>PANEL DE COMUNIDAD</Text>
           <Text style={s.title}>Registros</Text>

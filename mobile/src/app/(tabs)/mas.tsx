@@ -11,6 +11,7 @@ import { COMMUNITIES, disableMeetingAlerts, enableMeetingAlerts, getDevicePrefs,
 import { WheelPicker } from '@/components/wheel-picker';
 import { canAdmin } from '@/lib/admin';
 import { useAdmin } from '@/lib/use-admin';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 type Item = { icon: keyof typeof Ionicons.glyphMap; label: string; hint?: string; onPress: () => void };
 
@@ -103,6 +104,8 @@ export default function Mas() {
     }
   }
 
+  const pull = usePullToRefresh(refreshPreferences);
+
   useFocusEffect(useCallback(() => {
     refreshPreferences().catch(() => {});
   }, [refreshPreferences]));
@@ -172,7 +175,7 @@ export default function Mas() {
           : 'Activa avisos para no perderte las reuniones.';
 
   return (
-    <Screen>
+    <Screen onRefresh={pull.onRefresh} refreshing={pull.refreshing}>
       <View style={s.container}>
         <Eyebrow>Preferencias</Eyebrow>
         <Title>Más</Title>

@@ -15,6 +15,7 @@ import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 import { addGalleryPhoto, canAdmin, listGalleryAlbums, listGalleryPhotos, removeGalleryPhoto, reorderGalleryAlbum, saveGalleryPhoto, setGalleryCover, uploadImage, type GalleryPhoto, type GalleryRegion } from '@/lib/admin';
 import { SheetModal } from '@/components/sheet-modal';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 const REGIONS = [
   { value: 'usa', label: 'Estados Unidos' },
@@ -53,6 +54,13 @@ export default function AdminGaleria() {
     catch (error) { Alert.alert('No se pudo cargar la galería', error instanceof Error ? error.message : ''); }
     finally { setManagedLoading(false); }
   };
+
+  const refreshAll = async () => {
+    const [list, galleryPhotos] = await Promise.all([listGalleryAlbums(region), listGalleryPhotos(region)]);
+    setAlbums(list);
+    setManaged(galleryPhotos);
+  };
+  const pull = usePullToRefresh(refreshAll);
 
   useEffect(() => {
     if (!canAdmin(access,'gallery','view')) return;
@@ -158,7 +166,7 @@ export default function AdminGaleria() {
           ) : null,
         }}
       />
-      <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={s.page} keyboardShouldPersistTaps="handled" refreshControl={pull.control}>
         <View style={s.modeSwitch}>
           {canAdmin(access,'gallery','view') || canAdmin(access,'gallery','edit') ? <Pressable onPress={() => { setMode('manage'); void loadManaged(); }} style={[s.modeOption, mode === 'manage' && s.modeSelected]}><Text style={[s.modeText, mode === 'manage' && s.modeTextSelected]}>Administrar galería</Text></Pressable> : null}
           {canAdmin(access,'gallery','add') ? <Pressable onPress={() => setMode('upload')} style={[s.modeOption, mode === 'upload' && s.modeSelected]}><Text style={[s.modeText, mode === 'upload' && s.modeTextSelected]}>Subir fotos</Text></Pressable> : null}

@@ -108,9 +108,17 @@ export function canAccessAdminPanel(access: Access | null): access is Access {
   return Boolean(access && !access.isRevoked && (access.isSuperAdmin || access.permissions.length > 0 || access.modulePermissions.length > 0));
 }
 
-/** Starts a provider sign-in in the OS authentication session and returns to the app scheme. */
-/** Which OAuth providers are enabled in Supabase Auth (public endpoint). */
+/**
+ * Access is by invitation only: admins invited by email sign in with email and
+ * password. Apple/Google sign-in stays implemented but switched off; set this
+ * to true to bring it back (providers must also be enabled in Supabase Auth).
+ * See docs/auth.md.
+ */
+export const OAUTH_PROVIDERS_ENABLED = false;
+
+/** Which OAuth providers can be offered: the app switch AND Supabase Auth (public endpoint). */
 export async function enabledProviders(): Promise<{ apple: boolean; google: boolean }> {
+  if (!OAUTH_PROVIDERS_ENABLED) return { apple: false, google: false };
   const response = await fetch(`${SUPABASE_PROJECT.url}/auth/v1/settings`, {
     headers: { apikey: SUPABASE_PROJECT.key },
   });
@@ -118,7 +126,9 @@ export async function enabledProviders(): Promise<{ apple: boolean; google: bool
   return { apple: Boolean(external.apple), google: Boolean(external.google) };
 }
 
+/** Starts a provider sign-in in the OS authentication session and returns to the app scheme. */
 export async function signInWithProvider(provider: 'apple' | 'google') {
+  if (!OAUTH_PROVIDERS_ENABLED) throw new Error('El acceso es solo con el correo de tu invitación.');
   const redirectTo = Linking.createURL('auth/callback');
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,

@@ -148,7 +148,7 @@ export default function Correos() {
     <>
       <ScrollView
         contentContainerStyle={s.page}
-        refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.wine} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
+        refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.wine} colors={[C.wine]} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
         <View style={s.hero}>
           <View style={s.heroIcon}><Ionicons name="mail-unread" size={26} color="#fff" /></View>
           <Text style={s.heroTitle}>¿Quién recibe los formularios?</Text>

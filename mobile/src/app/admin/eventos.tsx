@@ -96,7 +96,7 @@ export default function AdminEventos() {
           ) : null,
         }}
       />
-      <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={loading && !!items} onRefresh={load} tintColor={C.wine} />}>
+      <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={loading && !!items} onRefresh={load} tintColor={C.wine} colors={[C.wine]} />}>
         {!items ? <ActivityIndicator color={C.wine} style={{ marginTop: 40 }} /> : null}
         {items && !items.length ? (
           <View style={s.empty}>

@@ -56,7 +56,7 @@ export default function Home() {
       refreshControl={
         <RefreshControl
           refreshing={false}
-          tintColor={C.wine}
+          tintColor={C.wine} colors={[C.wine]}
           onRefresh={() => { eventos.reload(); destacadas.reload(); galeria.reload(); videos.reload(); birthdays.reload(); }}
         />
       }>

@@ -30,7 +30,7 @@ export function AdminLogin() {
   const [bioLabel, setBioLabel] = useState('Face ID');
   const [biometricLoginAvailable, setBiometricLoginAvailable] = useState(false);
   const [busy, setBusy] = useState(false);
-  // Only show Apple/Google when enabled in Supabase Auth (public settings endpoint).
+  // Apple/Google only when switched on in the app (OAUTH_PROVIDERS_ENABLED) and enabled in Supabase Auth.
   const [providers, setProviders] = useState<{ apple: boolean; google: boolean }>({ apple: false, google: false });
 
   useEffect(() => {
@@ -126,7 +126,7 @@ export function AdminLogin() {
         <View style={s.hero}>
           <View style={s.lock}><Ionicons name="shield-checkmark" size={30} color="#fff" /></View>
           <Text style={s.title}>Panel privado</Text>
-          <Text style={s.copy}>Inicia sesión en la app con una cuenta autorizada para administración o dashboard.</Text>
+          <Text style={s.copy}>Acceso solo por invitación. Inicia sesión con el correo en el que recibiste tu invitación.</Text>
         </View>
         <Group>
           <InputRow label="Correo" value={email} onChangeText={setEmail} placeholder="nombre@correo.com" keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="username" />

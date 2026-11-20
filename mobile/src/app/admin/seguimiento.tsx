@@ -125,7 +125,7 @@ export default function Seguimiento() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.wine} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
+      <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={refreshing} tintColor={C.wine} colors={[C.wine]} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
         <Text style={s.intro}>Que ninguna nueva hermana se quede sin respuesta. Marca a quién ya contactaste y cómo va.</Text>
         <View style={s.tabs}>
           {ESTADOS.map((e) => (
