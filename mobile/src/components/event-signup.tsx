@@ -4,8 +4,9 @@ import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { C, sans, serif } from '@/constants/theme';
+import { C, sans } from '@/constants/theme';
 import { api, type Destacada } from '@/lib/api';
+import { isOnlinePlace, openInMaps } from '@/lib/places';
 
 import { tapFeedback } from './ui';
 
@@ -185,9 +186,9 @@ function EventDetailsSheetInner({ destacada, onClose, onViewPoster }: { destacad
   const when = eventWhen(destacada);
   const rows = [
     when ? { icon: 'calendar-outline' as const, label: 'Fecha y hora', value: when } : null,
-    destacada.lugar ? { icon: 'location-outline' as const, label: 'Lugar', value: destacada.lugar } : null,
+    destacada.lugar ? { icon: 'location-outline' as const, label: 'Lugar', value: destacada.lugar, onPress: isOnlinePlace(destacada.lugar) ? undefined : () => openInMaps(destacada.lugar as string) } : null,
     destacada.cupo ? { icon: 'people-outline' as const, label: 'Plazas', value: signup.left === null ? `${destacada.cupo} plazas` : signup.full ? 'Completo' : `${signup.left} de ${destacada.cupo} disponibles` } : null,
-  ].filter(Boolean) as { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }[];
+  ].filter(Boolean) as { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; onPress?: () => void }[];
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.bg }}>
@@ -211,10 +212,20 @@ function EventDetailsSheetInner({ destacada, onClose, onViewPoster }: { destacad
                   {rows.map((row, i) => (
                     <View key={row.label}>
                       {i ? <View style={s.sep} /> : null}
-                      <View style={s.detailRow}>
+                      <Pressable
+                        disabled={!row.onPress}
+                        onPress={row.onPress}
+                        accessibilityRole={row.onPress ? 'button' : undefined}
+                        accessibilityHint={row.onPress ? 'Abre la dirección en Mapas' : undefined}
+                        style={({ pressed }) => [s.detailRow, pressed && { backgroundColor: C.fill }]}>
                         <View style={s.detailIcon}><Ionicons name={row.icon} size={17} color={C.wine} /></View>
-                        <View style={{ flex: 1 }}><Text style={s.detailLabel}>{row.label}</Text><Text style={s.detailValue}>{row.value}</Text></View>
-                      </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={s.detailLabel}>{row.label}</Text>
+                          <Text style={[s.detailValue, row.onPress && s.detailLink]}>{row.value}</Text>
+                          {row.onPress ? <Text style={s.detailHint}>Abrir en Mapas</Text> : null}
+                        </View>
+                        {row.onPress ? <Ionicons name="navigate-circle-outline" size={22} color={C.wine} /> : null}
+                      </Pressable>
                     </View>
                   ))}
                 </View>
@@ -240,28 +251,30 @@ const s = StyleSheet.create({
   detailTagText: { fontFamily: sans, fontSize: 11, fontWeight: '800', letterSpacing: 1.2, color: C.wine },
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
   detailIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: C.blush },
-  detailLabel: { fontFamily: sans, fontSize: 12, color: C.muted },
-  detailValue: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink, marginTop: 1 },
+  detailLabel: { fontFamily: sans, fontSize: 13, color: C.muted },
+  detailValue: { fontFamily: sans, fontSize: 16, color: C.ink, marginTop: 2, letterSpacing: -0.2 },
+  detailLink: { color: C.wine },
+  detailHint: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 2 },
   posterLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 18, paddingVertical: 10 },
   posterLinkText: { fontFamily: sans, fontSize: 14, fontWeight: '600', color: C.wine },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: C.wine, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.35)', boxShadow: '0 4px 14px rgba(0,0,0,0.28)' },
   badgeText: { fontFamily: sans, fontSize: 11, fontWeight: '700', color: '#fff' },
   box: { gap: 8, paddingHorizontal: 14, paddingBottom: 14 },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  info: { fontFamily: sans, fontSize: 13, color: C.ink, flexShrink: 1 },
+  info: { fontFamily: sans, fontSize: 15, color: C.ink, flexShrink: 1 },
   button: { minHeight: 46, borderRadius: 14, backgroundColor: C.wine, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   buttonFull: { backgroundColor: C.fill },
   buttonDone: { backgroundColor: 'rgba(47,125,79,0.1)' },
-  buttonText: { fontFamily: sans, fontSize: 15, fontWeight: '700', color: '#fff' },
-  places: { fontFamily: sans, fontSize: 12, color: C.muted, textAlign: 'center' },
+  buttonText: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: '#fff' },
+  places: { fontFamily: sans, fontSize: 13, color: C.muted, textAlign: 'center' },
   bar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 10 },
   barTitle: { fontFamily: sans, fontSize: 17, fontWeight: '600', color: C.ink },
   cancel: { fontFamily: sans, fontSize: 17, color: C.wine },
   done: { fontFamily: sans, fontSize: 17, fontWeight: '700', color: C.wine },
   page: { padding: 18, paddingBottom: 60 },
-  eventName: { fontFamily: serif, fontSize: 26, lineHeight: 31, color: C.ink },
-  eventSub: { fontFamily: sans, fontSize: 15, color: C.muted, marginTop: 4 },
-  eventWhen: { fontFamily: sans, fontSize: 13, fontWeight: '600', color: C.wine, marginTop: 8 },
+  eventName: { fontFamily: sans, fontSize: 28, lineHeight: 33, fontWeight: '700', letterSpacing: -0.6, color: C.ink },
+  eventSub: { fontFamily: sans, fontSize: 16, lineHeight: 23, color: C.muted, marginTop: 4 },
+  eventWhen: { fontFamily: sans, fontSize: 15, fontWeight: '600', color: C.wine, marginTop: 8 },
   card: { marginTop: 18, backgroundColor: C.card, borderRadius: 14, overflow: 'hidden' },
   input: { minHeight: 50, paddingHorizontal: 16, fontFamily: sans, fontSize: 16, color: C.ink },
   sep: { height: StyleSheet.hairlineWidth, backgroundColor: C.separator, marginLeft: 16 },
@@ -270,5 +283,5 @@ const s = StyleSheet.create({
   stepHint: { fontFamily: sans, fontSize: 12, color: C.muted, marginTop: 1 },
   stepBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: C.fill, alignItems: 'center', justifyContent: 'center' },
   stepValue: { fontFamily: sans, fontSize: 18, fontWeight: '700', color: C.ink, minWidth: 22, textAlign: 'center' },
-  privacy: { fontFamily: sans, fontSize: 12, color: C.muted, marginTop: 14, marginLeft: 4 },
+  privacy: { fontFamily: sans, fontSize: 13, lineHeight: 18, color: C.muted, marginTop: 14, marginLeft: 4 },
 });

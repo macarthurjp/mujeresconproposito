@@ -6,6 +6,7 @@ import * as Sharing from 'expo-sharing';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
+import { AddressInput } from '@/components/address-input';
 import { DateField } from '@/components/date-field';
 import { C, sans } from '@/constants/theme';
 import { canAdmin } from '@/lib/admin';
@@ -202,7 +203,7 @@ export default function AdminInscripciones() {
                 <View style={{ flex: 1 }}><Text style={s.fieldLabel}>Fecha del evento</Text><DateField value={draftDate} onChange={setDraftDate} title="Fecha del evento" placeholder="Seleccionar fecha" minimumDate={new Date(2000, 0, 1)} maximumDate={new Date(2100, 0, 1)} defaultDate={new Date()} /></View>
                 <View style={s.timeField}><Text style={s.fieldLabel}>Hora</Text><TextInput value={draftTime} onChangeText={setDraftTime} placeholder="18:30" placeholderTextColor="#a58e88" style={s.input} keyboardType="numbers-and-punctuation" /></View>
               </View>
-              <Text style={s.fieldLabel}>Lugar</Text><TextInput value={draftPlace} onChangeText={setDraftPlace} placeholder="Dirección o En línea" placeholderTextColor="#a58e88" style={s.input} />
+              <Text style={s.fieldLabel}>Lugar</Text><AddressInput value={draftPlace} onChangeText={setDraftPlace} />
               <Text style={s.fieldLabel}>Plazas</Text><TextInput value={draftCapacity} onChangeText={(value) => setDraftCapacity(value.replace(/\D/g, ''))} placeholder="Sin límite" placeholderTextColor="#a58e88" style={s.input} keyboardType="number-pad" />
               <Pressable disabled={saving} onPress={() => void saveSettings(item)} style={[s.save, saving && { opacity: 0.55 }]}><Text style={s.saveText}>{saving ? 'Guardando…' : 'Guardar configuración'}</Text></Pressable>
               <Text style={s.audit}>{item.modificado_at ? `Modificado ${dateLabel(item.modificado_at)}${item.modificado_por_nombre ? ` · ${item.modificado_por_nombre}` : ''}` : item.creado_at ? `Agregado ${dateLabel(item.creado_at)}${item.creado_por_nombre ? ` · ${item.creado_por_nombre}` : ''}` : 'Sin registro de cambios anterior al control editorial.'}</Text>

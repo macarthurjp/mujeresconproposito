@@ -5,6 +5,7 @@
 // plus the email provider secrets used by _shared/email.ts.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { formatDateEs, infoTable, messageBlock, renderEmail } from "../_shared/email-layout.ts";
+import { devotionalFields, devotionalSummaryHtml } from "../_shared/devotional-email.ts";
 import { sendEmail } from "../_shared/email.ts";
 import { timingSafeEqual } from "../_shared/expo-push.ts";
 import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
@@ -16,6 +17,7 @@ const BATCH = 20;
 
 type Row = {
   id: number;
+  devotional_id: number | null;
   event_type: string;
   recipients: string[];
   attempts: number;
@@ -69,7 +71,7 @@ Deno.serve(async (req) => {
     });
     const { data, error } = await admin
       .from("devocional_email_outbox")
-      .select("id,event_type,recipients,attempts,payload")
+      .select("id,event_type,devotional_id,recipients,attempts,payload")
       .is("sent_at", null)
       .lt("attempts", MAX_ATTEMPTS)
       .lte("available_at", new Date().toISOString())
@@ -87,6 +89,11 @@ Deno.serve(async (req) => {
         continue;
       }
       const titulo = row.payload.titulo || "Tu devocional";
+      // Current copy of the devotional, so the author sees what the email is about.
+      const { data: article } = await admin.from("devocionales")
+        .select("titulo,versiculo,contenido,contenido_html,introduccion_html,resumen,categorias,imagen_url,cover_alt,pending_content")
+        .eq("id", row.devotional_id ?? -1).maybeSingle();
+      const summary = article ? devotionalSummaryHtml(devotionalFields(article as Record<string, unknown>)) : infoTable([{ label: "Devocional", value: titulo, accent: true }]);
       const note = copy.showNote && row.payload.nota ? row.payload.nota : "";
       try {
         for (const to of row.recipients) {
@@ -99,7 +106,7 @@ Deno.serve(async (req) => {
               eyebrow: "Tus devocionales",
               title: copy.title,
               intro: copy.intro,
-              body: infoTable([{ label: "Devocional", value: titulo, accent: true }]) + (note ? messageBlock("Nota de la revisora", note) : ""),
+              body: (note ? messageBlock("Nota de la revisora", note) : "") + summary,
               actions: copy.action ? [copy.action] : [],
               footer: "Aviso para autoras de Mujeres con Propósito",
             }),

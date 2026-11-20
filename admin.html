@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="assets/css/style.css?v=20260729-css-split-1" />
   <link rel="stylesheet" href="assets/css/admin.css?v=20261117-ui-polish-1" />
   <link rel="stylesheet" href="assets/css/brand.css?v=20261115-3" />
-  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261119-confetti-3" />
+  <link rel="stylesheet" href="assets/css/admin-premium.css?v=20261120-fixes-5" />
   <link rel="stylesheet" href="assets/css/app-parity.css?v=20261119-signup-tag-1" />
 </head>
 <body class="mcp-brand admin-locked auth-pending" data-admin-page="true">
@@ -634,8 +634,8 @@
                 <div class="admin-devotional-actions">
                   <button type="button" class="admin-preview-btn" id="adminDevocionalPreview"><i class="fa-regular fa-eye"></i> Vista previa</button>
                   <button type="submit" class="admin-draft-btn" data-dev-save="draft">Guardar borrador</button>
-                  <button type="submit" class="btn admin-submit-btn" data-dev-save="submit" hidden>Enviar a revisión</button>
-                  <button type="submit" class="btn admin-publish-btn" data-dev-save="publish" hidden>Publicar Devocional</button>
+                  <button type="submit" class="btn admin-submit-btn" data-dev-save="submit" data-dirty-ignore hidden>Enviar a revisión</button>
+                  <button type="submit" class="btn admin-publish-btn" data-dev-save="publish" data-dirty-ignore hidden>Publicar Devocional</button>
                   <button type="button" class="admin-edit-cancel" id="adminDevocionalCancel" hidden>Cancelar edición</button>
                 </div>
                 <div id="adminDevocionalMsg" class="form-message" style="display:none;"></div>
@@ -941,13 +941,14 @@
   <script src="assets/js/social-auth.js?v=20261115-2"></script>
   <script src="assets/js/admin-permissions.js?v=20261117-1"></script>
   <script src="assets/js/main.js?v=20261119-signup-tag-1"></script>
-  <script src="assets/js/devocionales-admin.js?v=20261119-v2-1"></script>
+  <script src="assets/js/devocionales-admin.js?v=20261120-fixes-2"></script>
   <script src="assets/js/promo-banner-admin.js?v=20261119-confetti-1"></script>
   <script src="assets/js/confetti-admin.js?v=20261119-1"></script>
   <script src="assets/js/roles-admin.js?v=20261117-save-state-1"></script>
-  <script src="assets/js/community-admin.js?v=20261117-premium-pass-1"></script>
+  <script src="assets/js/community-admin.js?v=20261120-fixes-1"></script>
+  <script src="assets/js/address-autocomplete.js?v=20261120-1"></script>
   <script src="assets/js/recipients-admin.js?v=20261117-save-state-1"></script>
   <script src="assets/js/admin-shell.js?v=20261114-1"></script>
-  <script src="assets/js/form-dirty-state.js?v=20261117-review-fix-1"></script>
+  <script src="assets/js/form-dirty-state.js?v=20261120-fixes-2"></script>
 </body>
 </html>

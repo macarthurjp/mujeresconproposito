@@ -333,7 +333,58 @@
 </html>`;
   }
 
-  async function openPreview() {
+  // Preview data for a saved article (used by reviewers to read the pending copy).
+  function previewFromArticle(article) {
+    const f = pendingFields(article);
+    return {
+      titulo: f.titulo || "Sin título",
+      autora: article.autora || "Autora",
+      fecha: article.pending_fecha_publicacion || article.fecha_publicacion || article.updated_at,
+      categorias: f.categorias || [],
+      versiculo: f.versiculo || "",
+      introduccionHtml: cleanRichHtml(f.introduccion_html || ""),
+      contenidoHtml: cleanRichHtml(f.contenido_html || (f.contenido ? `<p>${escapeHtml(f.contenido)}</p>` : "")),
+      oracionHtml: f.oracion_html ? cleanRichHtml(f.oracion_html) : "",
+      coverAlt: f.cover_alt || "",
+      imagenUrl: f.imagen_url || ""
+    };
+  }
+
+  /** Modal with a roomy textarea for the reviewer's note. Resolves to the text or null. */
+  function askChangesNote(title) {
+    return new Promise((resolve) => {
+      const previous = document.activeElement;
+      const wrap = document.createElement("div");
+      wrap.className = "admin-changes-overlay";
+      wrap.innerHTML = `
+        <div class="admin-changes-dialog" role="dialog" aria-modal="true" aria-labelledby="adminChangesTitle">
+          <span class="admin-dashboard-kicker">SOLICITAR CAMBIOS</span>
+          <h3 id="adminChangesTitle">${escapeHtml(title)}</h3>
+          <p>Explica con detalle qué debe ajustar la autora. Ella recibirá esta nota por correo y en el historial; tú no modificas su texto.</p>
+          <label for="adminChangesNote" class="sr-only">Nota para la autora</label>
+          <textarea id="adminChangesNote" rows="9" maxlength="2000" placeholder="Ej.: En el segundo párrafo, el versículo citado es Salmo 27:14, no 27:13. Podrías añadir una aplicación práctica al final…"></textarea>
+          <div class="admin-changes-meta"><span data-count>0 / 2000</span></div>
+          <div class="admin-changes-actions">
+            <button type="button" class="admin-changes-cancel" data-cancel>Cancelar</button>
+            <button type="button" class="btn" data-send disabled><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar a la autora</button>
+          </div>
+        </div>`;
+      document.body.appendChild(wrap);
+      const area = wrap.querySelector("textarea");
+      const send = wrap.querySelector("[data-send]");
+      const count = wrap.querySelector("[data-count]");
+      const close = (value) => { wrap.remove(); document.removeEventListener("keydown", onKey, true); previous?.focus?.(); resolve(value); };
+      const onKey = (event) => { if (event.key === "Escape") { event.preventDefault(); close(null); } };
+      area.addEventListener("input", () => { count.textContent = `${area.value.length} / 2000`; send.disabled = !area.value.trim(); });
+      wrap.querySelector("[data-cancel]").addEventListener("click", () => close(null));
+      wrap.addEventListener("click", (event) => { if (event.target === wrap) close(null); });
+      send.addEventListener("click", () => close(area.value.trim()));
+      document.addEventListener("keydown", onKey, true);
+      requestAnimationFrame(() => area.focus());
+    });
+  }
+
+  async function openPreview(article) {
     previewReturnFocus = document.activeElement;
     const overlay = $("adminDevocionalPreviewOverlay");
     const iframe = $("adminDevocionalPreviewIframe");
@@ -341,8 +392,8 @@
     overlay.hidden = false;
     document.body.style.overflow = "hidden";
     try {
-      const article = await collectPreviewArticle();
-      iframe.srcdoc = buildPreviewDocument(article);
+      const data = article && article.id ? previewFromArticle(article) : await collectPreviewArticle();
+      iframe.srcdoc = buildPreviewDocument(data);
       $("adminDevocionalPreviewClose")?.focus();
     } catch (error) {
       closePreview();
@@ -655,6 +706,7 @@
           <small>${escapeHtml(fields.autora)} · enviado ${escapeHtml(formattedDate(article.updated_at))}${fields.categorias?.length ? ` · ${escapeHtml(fields.categorias.join(", "))}` : ""}</small>
         </div>
         <div class="admin-item-actions">
+          <button type="button" data-dev-review-action="read"><i class="fa-regular fa-eye" aria-hidden="true"></i> Leer devocional</button>
           ${article.estado === "pendiente_revision" ? `<button type="button" data-dev-review-action="claim">Tomar revisión</button>` : assigned ? `<button type="button" data-dev-review-action="request-changes">Solicitar cambios</button><button type="button" data-dev-review-action="release">Liberar revisión</button><div class="admin-devotional-approve-row"><input type="datetime-local" data-dev-approve-fecha value="${escapeHtml(defaultFecha)}"/><button type="button" class="btn" data-dev-review-action="approve">Aprobar y publicar</button></div>` : `<span>Revisión asignada a otra persona</span>`}
         </div>
         ${historyToggleHtml(article.id)}
@@ -925,6 +977,11 @@
     if (!article) return;
     const action = button.dataset.devReviewAction;
 
+    if (action === "read") {
+      if (article) openPreview(article);
+      return;
+    }
+
     if (action === "claim") {
       button.disabled = true;
       try {
@@ -954,7 +1011,7 @@
     }
 
     if (action === "request-changes") {
-      const nota = window.prompt("¿Qué cambios necesita este devocional?");
+      const nota = await askChangesNote(pendingFields(article || {}).titulo || "este devocional");
       if (nota === null) return;
       if (!nota.trim()) { message("Escribe una nota explicando los cambios solicitados.", false); return; }
       button.disabled = true;
