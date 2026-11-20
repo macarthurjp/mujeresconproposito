@@ -1394,3 +1394,10 @@ body.mcp-brand .admin-main .ci-event-row:has(.address-suggestions:not([hidden]))
 body.mcp-brand .admin-main .admin-review-reading { padding: 24px clamp(18px, 4vw, 40px) !important; margin: 4px 0 0 !important; }
 body.mcp-brand .admin-main .admin-review-reading, body.mcp-brand .admin-main .admin-review-reading * { text-align: left !important; }
 body.mcp-brand .admin-main .admin-review-verse { margin: 0 0 18px !important; }
+/* Decision bar: one baseline, single borders */
+body.mcp-brand .admin-main .admin-review-decision { align-items: center !important; }
+body.mcp-brand .admin-main .admin-review-decision > *, body.mcp-brand .admin-main .admin-review-decision .btn { margin: 0 !important; align-self: center !important; }
+body.mcp-brand .admin-main .admin-review-decision > button, body.mcp-brand .admin-main .admin-review-date input { height: 46px !important; min-height: 46px !important; box-sizing: border-box; }
+body.mcp-brand .admin-main .admin-review-decision .admin-review-secondary { border: 1px solid rgba(169, 80, 69, .3) !important; box-shadow: none !important; outline: none; padding: 0 18px !important; }
+body.mcp-brand .admin-main .admin-review-decision .admin-review-secondary:focus-visible { outline: 3px solid rgba(169, 80, 69, .18); outline-offset: 2px; }
+body.mcp-brand .admin-main .admin-review-decision .admin-review-ghost { height: auto !important; min-height: 46px !important; border: 0 !important; box-shadow: none !important; padding: 0 6px !important; }
