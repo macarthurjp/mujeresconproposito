@@ -32,6 +32,8 @@
   }
 
   function capture(form) {
+    // Forms added a moment ago (edit modals) may not be registered yet.
+    if (!states.has(form)) init();
     const state = states.get(form);
     if (!state) return;
     if (state.wasHidden && !form.closest("[hidden]")) {
@@ -95,6 +97,18 @@
       observer.observe(form, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     });
   }
+
+  // Take the baseline before any interaction. Safari does not focus file
+  // inputs (or buttons) on click, so focusin alone missed the moment before a
+  // photo was picked and "Guardar" stayed disabled.
+  document.addEventListener("pointerdown", (event) => {
+    const form = event.target.closest?.(formSelector);
+    if (form) capture(form);
+  }, true);
+  document.addEventListener("keydown", (event) => {
+    const form = event.target.closest?.(formSelector);
+    if (form) capture(form);
+  }, true);
 
   document.addEventListener("focusin", (event) => {
     const form = event.target.closest?.(formSelector);
