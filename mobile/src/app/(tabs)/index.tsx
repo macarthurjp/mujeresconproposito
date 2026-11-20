@@ -339,7 +339,8 @@ const s = StyleSheet.create({
   aboutDetailCard: { padding: 18, borderRadius: 20, backgroundColor: C.paper, borderWidth: 1, borderColor: C.line, gap: 8 },
   aboutDetailTitle: { color: C.ink, fontFamily: serif, fontSize: 21 },
   aboutParagraphText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'justify' },
-  aboutDetailText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'justify' },
+  // Short list items: justifying a 2-line phrase in a narrow column only stretches the spaces.
+  aboutDetailText: { color: C.muted, fontSize: 15, lineHeight: 22, flexShrink: 1, textAlign: 'left' },
   aboutValuesList: { gap: 8 },
   aboutValue: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   aboutValueCopy: { flex: 1, gap: 3 },
