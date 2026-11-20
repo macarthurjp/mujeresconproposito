@@ -6,9 +6,10 @@ type EmailPayload = {
   html: string;
   text?: string;
   replyTo?: string;
+  headers?: Record<string, string>;
 };
 
-export async function sendEmail({ to, subject, html, text, replyTo }: EmailPayload) {
+export async function sendEmail({ to, subject, html, text, replyTo, headers }: EmailPayload) {
   const apiKey = requiredEnv("BREVO_API_KEY");
   const sender = parseSender(requiredEnv("EMAIL_FROM"));
 
@@ -25,6 +26,7 @@ export async function sendEmail({ to, subject, html, text, replyTo }: EmailPaylo
       htmlContent: html,
       textContent: text,
       replyTo: replyTo ? { email: replyTo } : undefined,
+      headers,
     }),
   });
 

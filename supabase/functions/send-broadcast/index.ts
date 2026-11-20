@@ -1,10 +1,15 @@
 // Push message from the admin panel to every device, or to one community.
-// Only Super Admins (checked server-side). Body: { titulo, mensaje, comunidad? , dryRun? }
+// Needs notices.send (notices.view for dryRun). Body: { titulo, mensaje, comunidad?, porCorreo?, dryRun? }
+// porCorreo also emails everyone registered through Únete (that community, or all),
+// except people who unsubscribed.
 //
 // Secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { sendEmail } from "../_shared/email.ts";
+import { esc, paragraph, renderEmail } from "../_shared/email-layout.ts";
 import { sendExpoPush } from "../_shared/expo-push.ts";
+import { unsubscribeLinks } from "../_shared/unsubscribe.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -24,6 +29,61 @@ function communityFromTimeZone(tz?: string | null): string | null {
   if (/^Europe\//.test(zone) || /^Atlantic\/(Canary|Madeira|Azores)$/.test(zone)) return "Europa";
   if (US_ZONES.test(zone)) return "Estados Unidos";
   return null;
+}
+
+type Person = { email: string; nombre: string };
+
+/** Registered people (Únete) of a community, or all; one per email; minus unsubscribed. */
+// deno-lint-ignore no-explicit-any
+async function emailRecipients(admin: any, comunidad: string | null): Promise<Person[]> {
+  let query = admin.from("unirse").select("email,nombre,comunidad");
+  if (comunidad) query = query.eq("comunidad", comunidad);
+  const [{ data: rows, error }, { data: optedOut, error: optError }] = await Promise.all([
+    query, admin.from("email_unsubscribes").select("email"),
+  ]);
+  if (error) throw error;
+  if (optError) throw optError;
+  const skip = new Set((optedOut ?? []).map((r: { email: string }) => r.email));
+  const people = new Map<string, Person>();
+  for (const r of rows ?? []) {
+    const email = String(r.email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || skip.has(email) || people.has(email)) continue;
+    people.set(email, { email, nombre: String(r.nombre || "").trim().split(/\s+/)[0] || "" });
+  }
+  return [...people.values()];
+}
+
+/** The notice as a branded email, one per person (each with its own unsubscribe link). */
+async function sendNoticeEmails(people: Person[], titulo: string, mensaje: string, comunidad: string | null) {
+  let delivered = 0;
+  const queue = [...people];
+  const worker = async () => {
+    for (let p = queue.shift(); p; p = queue.shift()) {
+      try {
+        const links = await unsubscribeLinks(p.email);
+        const greeting = p.nombre ? `Hola, ${p.nombre}:` : "Hola:";
+        await sendEmail({
+          to: p.email,
+          subject: titulo,
+          text: [greeting, "", mensaje, "", "Mujeres con Propósito", "https://mcp930.org", "", `Para dejar de recibir estos avisos por correo: ${links.page}`].join("\n"),
+          headers: { "List-Unsubscribe": `<${links.oneClick}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+          html: renderEmail({
+            preheader: mensaje.slice(0, 120),
+            eyebrow: comunidad ? `Aviso · ${comunidad}` : "Aviso de la comunidad",
+            title: titulo,
+            body: paragraph(esc(greeting)) + paragraph(esc(mensaje).replace(/\n/g, "<br>")),
+            actions: [{ label: "Visitar la comunidad", url: "https://mcp930.org" }],
+            footnote: `Recibes este correo porque te registraste en Mujeres con Propósito. <a href="${esc(links.page)}" style="color:#a64b43;">Dejar de recibir avisos por correo</a>.`,
+          }),
+        });
+        delivered += 1;
+      } catch (error) {
+        console.error("notice email failed", p.email.replace(/^(.).*@/, "$1***@"), error);
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(5, queue.length) }, worker));
+  return delivered;
 }
 
 Deno.serve(async (req) => {
@@ -52,14 +112,16 @@ Deno.serve(async (req) => {
     const tokens = (devices ?? [])
       .filter((d) => !comunidad || (d.comunidad ? d.comunidad === comunidad : communityFromTimeZone(d.zona_horaria) === comunidad))
       .map((d) => d.token as string);
-    if (body.dryRun) return json({ ok: true, dryRun: true, destinatarios: tokens.length });
+    const people = await emailRecipients(admin, comunidad);
+    if (body.dryRun) return json({ ok: true, dryRun: true, destinatarios: tokens.length, correos: people.length });
 
     const { sent, dead } = tokens.length
       ? await sendExpoPush(tokens.map((to) => ({ to, title: titulo, body: mensaje, data: { type: "broadcast" } })))
       : { sent: 0, dead: [] as string[] };
     if (dead.length) await admin.from("push_tokens").update({ activo: false }).in("token", dead);
-    await admin.from("push_broadcasts").insert({ titulo, mensaje, comunidad, enviados: sent, enviado_por: user.id });
-    return json({ ok: true, enviados: sent, destinatarios: tokens.length });
+    const correos = body.porCorreo ? await sendNoticeEmails(people, titulo, mensaje, comunidad) : 0;
+    await admin.from("push_broadcasts").insert({ titulo, mensaje, comunidad, enviados: sent, correos, enviado_por: user.id });
+    return json({ ok: true, enviados: sent, destinatarios: tokens.length, correos });
   } catch (error) {
     console.error(error);
     return json({ ok: false, error: error instanceof Error ? error.message : String(error) }, 500);

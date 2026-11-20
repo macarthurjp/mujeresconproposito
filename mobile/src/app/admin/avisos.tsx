@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Group, Row } from '@/components/form';
+import { Group, Row, SwitchRow } from '@/components/form';
 import { tapFeedback } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import { canAdmin } from '@/lib/admin';
@@ -16,7 +16,7 @@ const TARGETS = [
   { value: 'República Dominicana', label: 'Rep. Dominicana' },
 ];
 
-type Sent = { id: number; titulo: string; mensaje: string; comunidad: string | null; enviados: number; created_at: string };
+type Sent = { id: number; titulo: string; mensaje: string; comunidad: string | null; enviados: number; correos: number | null; created_at: string };
 
 export default function Avisos() {
   const { access } = useAdmin();
@@ -24,13 +24,15 @@ export default function Avisos() {
   const [mensaje, setMensaje] = useState('');
   const [target, setTarget] = useState('');
   const [reach, setReach] = useState<number | null>(null);
+  const [emailReach, setEmailReach] = useState<number | null>(null);
+  const [byEmail, setByEmail] = useState(false);
   const [busy, setBusy] = useState(false);
   const [history, setHistory] = useState<Sent[]>([]);
   const allowed = canAdmin(access,'notices','view');
   const canSend = canAdmin(access,'notices','send');
 
   const loadHistory = useCallback(async () => {
-    const { data } = await supabase.from('push_broadcasts').select('id,titulo,mensaje,comunidad,enviados,created_at').order('created_at', { ascending: false }).limit(10);
+    const { data } = await supabase.from('push_broadcasts').select('id,titulo,mensaje,comunidad,enviados,correos,created_at').order('created_at', { ascending: false }).limit(10);
     setHistory((data ?? []) as Sent[]);
   }, []);
 
@@ -39,14 +41,14 @@ export default function Avisos() {
     if (!allowed) return;
     let alive = true;
     void supabase.functions.invoke('send-broadcast', { body: { titulo: 'x', mensaje: 'x', comunidad: target || null, dryRun: true } })
-      .then(({ data }) => { if (alive) setReach(typeof data?.destinatarios === 'number' ? data.destinatarios : null); });
+      .then(({ data }) => { if (!alive) return; setReach(typeof data?.destinatarios === 'number' ? data.destinatarios : null); setEmailReach(typeof data?.correos === 'number' ? data.correos : null); });
     return () => { alive = false; };
   }, [allowed, target]);
 
   useEffect(() => {
     if (!allowed) return;
     let alive = true;
-    void supabase.from('push_broadcasts').select('id,titulo,mensaje,comunidad,enviados,created_at').order('created_at', { ascending: false }).limit(10)
+    void supabase.from('push_broadcasts').select('id,titulo,mensaje,comunidad,enviados,correos,created_at').order('created_at', { ascending: false }).limit(10)
       .then(({ data }) => { if (alive) setHistory((data ?? []) as Sent[]); });
     return () => { alive = false; };
   }, [allowed]);
@@ -66,16 +68,18 @@ export default function Avisos() {
 
   const send = () => {
     if (titulo.trim().length < 3 || mensaje.trim().length < 3) return Alert.alert('Completa el aviso', 'Escribe un título y un mensaje.');
-    const who = target ? `la comunidad de ${target}` : 'todas las personas con la app';
-    Alert.alert('Enviar aviso', `Se enviará a ${who}${reach !== null ? ` (${reach} ${reach === 1 ? 'dispositivo' : 'dispositivos'})` : ''}. ¿Continuar?`, [
+    const who = target ? `la comunidad de ${target}` : 'todas';
+    const devices = reach !== null ? `${reach} ${reach === 1 ? 'dispositivo' : 'dispositivos'}` : '';
+    const emails = byEmail && emailReach !== null ? `${emailReach} ${emailReach === 1 ? 'correo' : 'correos'}` : '';
+    Alert.alert('Enviar aviso', `Se enviará a ${who}${devices || emails ? ` (${[devices, emails].filter(Boolean).join(' y ')})` : ''}. ¿Continuar?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Enviar', onPress: async () => {
         setBusy(true);
-        const { data, error } = await supabase.functions.invoke('send-broadcast', { body: { titulo: titulo.trim(), mensaje: mensaje.trim(), comunidad: target || null } });
+        const { data, error } = await supabase.functions.invoke('send-broadcast', { body: { titulo: titulo.trim(), mensaje: mensaje.trim(), comunidad: target || null, porCorreo: byEmail } });
         setBusy(false);
         if (error || !data?.ok) return Alert.alert('No se pudo enviar', data?.error || error?.message || 'Inténtalo de nuevo.');
         tapFeedback();
-        Alert.alert('Aviso enviado', `Entregado a ${data.enviados} ${data.enviados === 1 ? 'dispositivo' : 'dispositivos'}.`);
+        Alert.alert('Aviso enviado', `Entregado a ${data.enviados} ${data.enviados === 1 ? 'dispositivo' : 'dispositivos'}${byEmail ? ` y ${data.correos} ${data.correos === 1 ? 'correo' : 'correos'}` : ''}.`);
         setTitulo(''); setMensaje('');
         void loadHistory();
       } },
@@ -99,6 +103,9 @@ export default function Avisos() {
           ))}
         </View>
         <Text style={s.reach}>{reach === null ? 'Calculando destinatarios…' : `${reach} ${reach === 1 ? 'dispositivo recibirá' : 'dispositivos recibirán'} el aviso`}{target ? ' (según la comunidad elegida en la app o, si no eligieron, la zona horaria del teléfono)' : ''}</Text>
+        <Group footer={emailReach === null ? undefined : `${emailReach} ${emailReach === 1 ? 'persona registrada' : 'personas registradas'} en Únete${target ? ` de ${target}` : ''} lo recibirán por correo, aunque no tengan la app.`}>
+          <SwitchRow icon="mail-outline" label="Enviar también por correo" value={byEmail} onValueChange={setByEmail} />
+        </Group>
 
         <Text style={s.label}>Título</Text>
         <TextInput value={titulo} onChangeText={setTitulo} maxLength={80} placeholder="Ej. Cambio de horario hoy" placeholderTextColor="#a58e88" style={s.input} />
@@ -124,7 +131,7 @@ export default function Avisos() {
           <Group header="Enviados recientemente" footer={canSend ? 'Toca un aviso para eliminarlo del historial.' : undefined}>
             {history.map((h) => (
               <Row key={h.id} icon="paper-plane-outline" label={h.titulo}
-                sub={`${new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(h.created_at)).replace('.', '')} · ${h.comunidad || 'Todas'} · ${h.enviados} entregados`}
+                sub={`${new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(h.created_at)).replace('.', '')} · ${h.comunidad || 'Todas'} · ${h.enviados} entregados${h.correos ? ` · ${h.correos} correos` : ''}`}
                 onPress={canSend ? () => removeFromHistory(h) : undefined} chevron={false} />
             ))}
           </Group>
