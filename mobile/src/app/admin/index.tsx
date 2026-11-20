@@ -11,6 +11,7 @@ import {
   getBiometricLoginAvailable, getSessionPassword, rememberSessionPassword, saveBiometricAdminCredentials,
 } from '@/lib/app-preferences';
 import { useAdmin } from '@/lib/use-admin';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 const JOIN_URL = 'https://mcp930.org/?form=unirse';
 const shareJoin = () => {
@@ -21,6 +22,7 @@ const shareJoin = () => {
 
 export default function AdminHome() {
   const { access, ready, refresh } = useAdmin();
+  const pull = usePullToRefresh(refresh);
   const [bioSupported, setBioSupported] = useState(false);
   const [bioOn, setBioOn] = useState(false);
   const [bioLabel, setBioLabel] = useState('Face ID');
@@ -90,7 +92,7 @@ export default function AdminHome() {
   const hasAnyModule = access.isSuperAdmin || canEvents || canGallery || canContent || canNotices || canDevotionals || canReadDashboard || canFollowup;
 
   return (
-    <ScrollView contentContainerStyle={a.page}>
+    <ScrollView contentContainerStyle={a.page} refreshControl={pull.control}>
       <View style={a.profile}>
         <View style={a.avatar}><Text style={a.avatarText}>{name.charAt(0).toUpperCase()}</Text></View>
         <View style={{ flex: 1 }}>

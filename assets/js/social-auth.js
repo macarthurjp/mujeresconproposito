@@ -1,4 +1,8 @@
 (function initializeMcpSocialAuth() {
+  // Access is by invitation only (admins invited by email). Apple/Google
+  // sign-in stays implemented but switched off; to bring it back set this to
+  // true (and keep the providers enabled in Supabase Auth). See docs/auth.md.
+  const OAUTH_ENABLED = false;
   const PENDING_KEY = "mcp-social-login-pending";
   const PENDING_TTL = 10 * 60 * 1000;
 
@@ -31,6 +35,7 @@
   }
 
   async function signIn(client, provider, button, onError) {
+    if (!OAUTH_ENABLED) { onError?.("El acceso es solo con el correo de tu invitación."); return; }
     if (!client || !button || button.disabled) return;
     const original = button.innerHTML;
     button.disabled = true;
@@ -78,6 +83,7 @@
     if (!groups.length) return;
     const setVisible = (el, on) => { if (el) el.hidden = !on; };
     groups.forEach((g) => { setVisible(g, false); setVisible(g.previousElementSibling?.classList.contains("social-login-divider") ? g.previousElementSibling : null, false); });
+    if (!OAUTH_ENABLED) return;
     try {
       const supabase = window.McpSupabase;
       if (!supabase?.hasSupabaseConfig?.()) return;
@@ -96,7 +102,7 @@
     } catch (_) { /* Keep them hidden if the check fails. */ }
   }
 
-  window.McpSocialAuth = { signIn, authorizeReturnedUser, clearPending };
+  window.McpSocialAuth = { enabled: OAUTH_ENABLED, signIn, authorizeReturnedUser, clearPending };
   showCallbackError();
   hideDisabledProviders();
 })();

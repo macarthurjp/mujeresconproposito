@@ -15,6 +15,7 @@ import { canAdmin, uploadImage } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 import { SheetModal } from '@/components/sheet-modal';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 type Kind = 'destacadas' | 'youtube' | 'banner';
 type Item = {
@@ -108,6 +109,7 @@ export default function AdminContenido() {
   }, [kind]);
 
   useFocusEffect(useCallback(() => { if (canAdmin(access,'content','view')) void load(); }, [access, load]));
+  const pull = usePullToRefresh(load);
 
   const beginEdit = (item?: Item) => {
     setModalVisible(true);
@@ -238,7 +240,7 @@ export default function AdminContenido() {
       <Stack.Screen options={{ title: kind === 'youtube' ? 'YouTube' : kind === 'banner' ? 'Banner' : 'Destacadas', headerRight: () => kind !== 'banner' && (canAdmin(access,'content','create') || canAdmin(access,'content','edit')) ? (
         <Pressable accessibilityLabel="Nueva publicación" onPress={() => beginEdit()} hitSlop={12} style={{ paddingHorizontal: 8 }}><Ionicons name="add-circle" size={27} color={C.wine} /></Pressable>
       ) : null }} />
-      <ScrollView contentContainerStyle={s.page} refreshControl={undefined}>
+      <ScrollView contentContainerStyle={s.page} refreshControl={pull.control}>
         <Text style={s.kicker}>CENTRO DE GESTIÓN</Text>
         <Text style={s.title}>Contenido</Text>
         <Text style={s.subtitle}>Publica y organiza las historias que aparecen en la comunidad.</Text>

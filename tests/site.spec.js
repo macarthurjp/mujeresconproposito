@@ -141,6 +141,22 @@ test("private login and password reset keep only the intended controls", async (
   await expect(page.locator("button")).toHaveCount(1);
 });
 
+test("private access is invitation-only: Apple and Google stay hidden even if the providers are enabled", async ({ page }) => {
+  // Simulate Supabase Auth reporting both providers as enabled: the UI must still hide them.
+  await page.route("**/auth/v1/settings", (route) => route.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({ external: { apple: true, google: true, email: true }, disable_signup: true }),
+  }));
+  for (const [path, card] of [["/admin.html", "#adminLoginCard"], ["/dashboard.html", "#dashboardLoginCard, .private-access-card"]]) {
+    await page.goto(path);
+    await expect(page.locator(card).first()).toContainText("solo por invitación");
+    await page.waitForTimeout(300);
+    await expect(page.locator(".social-login-apple:visible, .social-login-google:visible")).toHaveCount(0);
+    await expect(page.locator(".social-login-divider:visible")).toHaveCount(0);
+    expect(await page.evaluate(() => window.McpSocialAuth?.enabled)).toBe(false);
+  }
+});
+
 test("admin includes the devotional editorial workspace", async ({ page }) => {
   await page.goto("/admin.html");
   await expect(page.locator('[data-admin-tab="devocionales"]')).toHaveCount(1);

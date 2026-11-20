@@ -15,6 +15,7 @@ import { canAdmin, uploadImage } from '@/lib/admin';
 import { supabase } from '@/lib/supabase';
 import { useAdmin } from '@/lib/use-admin';
 import { SheetModal } from '@/components/sheet-modal';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 type Article = { id: number; slug: string; titulo: string; resumen: string; contenido: string; introduccion_html?: string; contenido_html?: string; versiculo: string; categorias: string[]; autora: string; imagen_url: string; estado: string; publicado: boolean; fecha_publicacion: string | null; created_by: string; updated_at?: string; reviewer_id?: string | null; pending_content?: Record<string, unknown> | null; pending_fecha_publicacion?: string | null; cover_alt?: string | null; oracion_html?: string | null };
 type HistoryEntry = { id: number; accion: string; nota?: string | null; actor_email?: string | null; created_at: string };
@@ -127,6 +128,7 @@ export default function AdminDevocionales() {
     finally { setLoading(false); }
   }, [access]);
 
+  const pull = usePullToRefresh(load);
   useFocusEffect(useCallback(() => {
     if (access && !access.isRevoked && (access.isSuperAdmin || canAdmin(access,'devotionals','view'))) void load();
   }, [access, load]));
@@ -332,7 +334,7 @@ export default function AdminDevocionales() {
   return (
     <>
       <Stack.Screen options={{ title: 'Devocionales', headerRight: () => editor || access.isSuperAdmin ? <Pressable accessibilityRole="button" accessibilityLabel="Nuevo devocional" onPress={() => open()} hitSlop={12} style={{ paddingHorizontal: 8 }}><Ionicons name="add-circle" size={27} color={C.wine} /></Pressable> : null }} />
-      <ScrollView contentContainerStyle={s.page}>
+      <ScrollView contentContainerStyle={s.page} refreshControl={pull.control}>
         <Text style={s.kicker}>{reviewer ? 'REVISIÓN EDITORIAL' : 'CENTRO EDITORIAL'}</Text>
         <Text style={s.title}>{reviewer ? 'Por revisar' : 'Devocionales'}</Text>
         <Text style={s.subtitle}>{editor ? 'Escribe y envía tus reflexiones al equipo para su revisión.' : reviewer ? 'Revisa las reflexiones enviadas por el equipo.' : 'Administra los artículos de la comunidad.'}</Text>

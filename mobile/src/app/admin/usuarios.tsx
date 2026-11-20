@@ -269,7 +269,7 @@ export default function AdminUsuarios() {
           </Pressable>
         ),
       }} />
-      <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={loading && !!users} onRefresh={load} tintColor={C.wine} />} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={s.page} refreshControl={<RefreshControl refreshing={loading && !!users} onRefresh={load} tintColor={C.wine} colors={[C.wine]} />} keyboardShouldPersistTaps="handled">
         <View style={s.search}>
           <Ionicons name="search" size={16} color={C.muted} />
           <TextInput value={query} onChangeText={setQuery} placeholder="Buscar por nombre o correo" placeholderTextColor="#b3a3a0" autoCapitalize="none" style={s.searchInput} />

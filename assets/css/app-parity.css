@@ -468,6 +468,7 @@ html body.theme-premium[class] .p-notif-icon { padding: 0 !important; background
 .social-login-divider { display: flex; align-items: center; gap: 14px; margin: 20px 0 14px; color: var(--b-muted); font-size: .82rem; font-weight: 650; }
 .social-login-divider::before, .social-login-divider::after { content: ""; height: 1px; flex: 1; background: var(--b-line); }
 .social-login-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.social-login-divider[hidden], .social-login-actions[hidden], .social-login-btn[hidden] { display: none !important; }
 .social-login-btn {
   display: inline-flex; min-height: 54px; align-items: center; justify-content: center; gap: 10px;
   border: 1px solid var(--b-line-strong); border-radius: 16px; background: rgba(255,255,255,.88); color: var(--b-ink);

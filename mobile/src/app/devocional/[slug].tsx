@@ -9,6 +9,7 @@ import { Button, ErrorNote, Loading, Screen, useAsync , tapFeedback } from '@/co
 import { C, sans, serif, SITE_URL } from '@/constants/theme';
 import { api, formatDate, htmlToParagraphs } from '@/lib/api';
 import { getFavorites, getNote, saveNote, toggleFavorite } from '@/lib/devotional-library';
+import { usePullToRefresh } from '@/components/pull-refresh';
 
 function formattedText(value: string, style: object): ReactNode {
   const tokens = value.split(/(\*\*.+?\*\*|\*.+?\*|__.+?__|~~.+?~~)/g);
@@ -24,6 +25,7 @@ function formattedText(value: string, style: object): ReactNode {
 export default function DevocionalDetalle() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { data, error, loading, reload } = useAsync(() => api.devocional(String(slug)));
+  const pull = usePullToRefresh(reload);
 
   const paragraphs = data
     ? [...htmlToParagraphs(data.introduccion_html), ...htmlToParagraphs(data.contenido_html)]
@@ -50,7 +52,7 @@ export default function DevocionalDetalle() {
   };
 
   return (
-    <Screen topInset={false}>
+    <Screen topInset={false} onRefresh={pull.onRefresh} refreshing={pull.refreshing}>
       <Stack.Screen options={{ title: 'Lectura', headerShadowVisible: false, headerStyle: { backgroundColor: C.bg }, headerTintColor: C.wine }} />
       {loading ? <Loading /> : null}
       {error ? <View style={{ paddingHorizontal: 22, paddingTop: 14 }}><ErrorNote message={error} onRetry={reload} /></View> : null}

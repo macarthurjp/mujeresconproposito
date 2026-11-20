@@ -162,7 +162,7 @@ export default function AdminInscripciones() {
         data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={s.list}
-        refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => void load()} tintColor={C.wine} />}
+        refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => void load()} tintColor={C.wine} colors={[C.wine]} />}
         ListHeaderComponent={<>
           <Text style={s.kicker}>CENTRO DE GESTIÓN</Text>
           <Text style={s.title}>Inscripciones</Text>
