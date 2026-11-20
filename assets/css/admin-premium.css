@@ -1413,3 +1413,9 @@ body.mcp-brand .admin-main .ci-email-toggle input { flex: none; width: 20px; hei
 body.mcp-brand .admin-main .ci-email-toggle span { display: grid; gap: 3px; }
 body.mcp-brand .admin-main .ci-email-toggle strong { color: var(--a-ink, #3f2623); font-size: 14.5px; }
 body.mcp-brand .admin-main .ci-email-toggle small { color: var(--a-muted, #7a605d); font-size: 13px; line-height: 1.45; font-weight: 400; }
+
+/* Destacadas: poster format guidance under the file picker */
+.poster-guide { margin: 8px 0 0; padding: 9px 12px; border-radius: 12px; font-size: 13px; line-height: 1.45; font-weight: 500; }
+.poster-guide.is-ok { color: #2f6b46; background: #edf7f0; }
+.poster-guide.is-warn { color: #8a5a12; background: #fdf4e3; }
+.poster-guide[hidden] { display: none !important; }

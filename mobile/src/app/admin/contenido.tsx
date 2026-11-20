@@ -315,6 +315,13 @@ export default function AdminContenido() {
                 />
               ) : null}
               <Pressable style={s.pickButton} onPress={() => void pickPhoto()}><Ionicons name="image-outline" size={18} color={C.wine} /><Text style={s.pickText}>{picked || imageUrl ? 'Cambiar póster' : 'Elegir póster del carrete'}</Text></Pressable>
+              {picked && Math.abs(picked.width / picked.height - 2 / 3) > 0.03 ? (
+                <Text style={[s.posterGuide, s.posterGuideWarn]}>Este póster no es 2:3 ({picked.width}×{picked.height}): se verá completo, pero {picked.width / picked.height > 2 / 3 ? 'más bajo' : 'más estrecho'} que los demás. Para que quede igual, súbelo en 2:3 (1080×1620; en Canva: Cambiar tamaño).</Text>
+              ) : picked ? (
+                <Text style={[s.posterGuide, s.posterGuideOk]}>Formato correcto 2:3 ({picked.width}×{picked.height}): llenará el marco igual que los demás pósteres.</Text>
+              ) : (
+                <Text style={s.posterGuideHint}>Formato ideal: 2:3 (1080×1620).</Text>
+              )}
               <Group header="Imagen"><InputRow label="URL de la imagen" value={imageUrl} onChangeText={setImageUrl} placeholder="https://…" autoCapitalize="none" keyboardType="url" /></Group>
               <Group header="Texto"><InputRow label="Nombre" value={title} onChangeText={setTitle} placeholder="Nombre de la invitada" /><InputRow label="Título" value={subtitle} onChangeText={setSubtitle} placeholder="Nombre del encuentro" /></Group>
               <Group header="Confirmación de asistencia" footer={signups ? 'Se mostrará el botón “Inscribirme” en la web y la app. Al apagarlo se cierra la inscripción, pero la lista de inscritas se conserva. Deja las plazas vacías si no hay límite.' : 'Apagado: la destacada se muestra solo como anuncio, sin botón. Enciéndelo únicamente para actividades que necesiten confirmar quién asistirá.'}>
@@ -368,7 +375,7 @@ const s = StyleSheet.create({
   toggle: { minHeight: 54, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, toggleLabel: { fontFamily: sans, fontSize: 15, fontWeight: '500', color: C.ink },
   saveButton: { minHeight: 48, margin: 14, borderRadius: 14, backgroundColor: C.wine, alignItems: 'center', justifyContent: 'center' }, saveText: { fontFamily: sans, color: '#fff', fontWeight: '700', fontSize: 15 },
   modalBar: { height: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderColor: C.line }, modalTitle: { fontFamily: sans, fontSize: 16, fontWeight: '600', color: C.ink }, modalAction: { fontFamily: sans, fontSize: 15, color: C.wine },
-  preview: { width: '100%', borderRadius: 20, backgroundColor: C.sand, marginBottom: 12 }, pickButton: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'center', padding: 12 }, pickText: { fontFamily: sans, fontSize: 14, fontWeight: '600', color: C.wine },
+  preview: { width: '100%', borderRadius: 20, backgroundColor: C.sand, marginBottom: 12 }, pickButton: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'center', padding: 12 }, pickText: { fontFamily: sans, fontSize: 14, fontWeight: '600', color: C.wine }, posterGuide: { fontFamily: sans, fontSize: 13, lineHeight: 19, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, marginBottom: 12, overflow: 'hidden' }, posterGuideOk: { color: '#2f6b46', backgroundColor: '#edf7f0' }, posterGuideWarn: { color: '#8a5a12', backgroundColor: '#fdf4e3' }, posterGuideHint: { fontFamily: sans, fontSize: 12, color: C.muted, textAlign: 'center', marginTop: -4, marginBottom: 12 },
   bannerPreview: { marginHorizontal: 16, marginBottom: 14, padding: 14, borderRadius: 18, backgroundColor: C.sand, gap: 12 },
   bannerPreviewTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bannerPreviewKicker: { fontFamily: sans, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: C.wine },
