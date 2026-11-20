@@ -24,7 +24,9 @@
     const dirty = state.baseline !== null && JSON.stringify(readForm(form)) !== state.baseline;
     state.dirty = dirty;
     saveButtons(form).forEach((button) => {
-      button.disabled = state.submitting || !dirty;
+      // Actions such as "Enviar a revisión" or "Publicar" are valid without
+      // unsaved changes (e.g. resubmitting a draft saved a moment ago).
+      button.disabled = state.submitting || (!dirty && !button.hasAttribute("data-dirty-ignore"));
       button.setAttribute("aria-disabled", String(button.disabled));
     });
   }
@@ -76,9 +78,17 @@
       form.addEventListener("reset", () => {
         window.setTimeout(() => markSaved(form), 0);
       });
+      // React to a status message once, when it appears or changes. A message
+      // that simply stays on screen must not re-mark the form as saved on every
+      // later edit (typing in a rich editor mutates the form subtree).
+      let lastMessage = "";
       const observer = new MutationObserver(() => {
         const message = form.querySelector(".form-message:not([hidden])");
-        if (!message || !message.textContent.trim() || message.classList.contains("is-progress")) return;
+        const visible = message && message.textContent.trim() && getComputedStyle(message).display !== "none";
+        const signature = visible ? `${message.className}|${message.textContent.trim()}` : "";
+        if (signature === lastMessage) return;
+        lastMessage = signature;
+        if (!visible || message.classList.contains("is-progress")) return;
         if (message.classList.contains("ok")) markSaved(form);
         else if (message.classList.contains("err")) markFailed(form);
       });

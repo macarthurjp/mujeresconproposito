@@ -70,7 +70,7 @@
           <div class="ci-event-panel" data-panel="settings" hidden><form class="ci-event-form">
             <label class="ci-check ci-wide"><input type="checkbox" name="abierta" ${e.inscripcion_abierta ? "checked" : ""}/> <span>Requiere inscripción<small>${e.inscripcion_abierta ? "Se muestra el botón “Inscribirme”." : "Solo anuncio, sin botón."}</small></span></label>
             <label class="ci-when-on">Fecha y hora<input type="datetime-local" name="fecha" value="${dateVal}" /></label>
-            <label class="ci-when-on">Lugar<input type="text" name="lugar" value="${esc(e.lugar || "")}" placeholder="Dirección o “En línea”" /></label>
+            <label class="ci-when-on ci-address-field">Lugar<input type="text" name="lugar" value="${esc(e.lugar || "")}" placeholder="Escribe una dirección o “En línea”" data-address-autocomplete /></label>
             <label class="ci-when-on">Plazas<input type="number" name="cupo" min="1" value="${e.cupo || ""}" placeholder="Sin límite" /></label>
             <button type="submit" class="btn">Guardar configuración</button>
           </form>${audit(e)}</div>

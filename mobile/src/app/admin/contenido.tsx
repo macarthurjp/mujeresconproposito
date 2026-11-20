@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platfor
 
 import { tapFeedback } from '@/components/ui';
 import { FieldRow, Group, InputRow, Row } from '@/components/form';
+import { AddressInput } from '@/components/address-input';
 import { DateField } from '@/components/date-field';
 import { C, sans } from '@/constants/theme';
 import { AdminGestureRow } from '@/components/admin-gesture-row';
@@ -309,7 +310,7 @@ export default function AdminContenido() {
                 {signups ? <>
                   <FieldRow label="Fecha del evento"><DateField title="Fecha del evento" value={eventDate} onChange={setEventDate} minimumDate={new Date(2024, 0, 1)} maximumDate={new Date(2035, 11, 31)} defaultDate={new Date()} placeholder="Elige la fecha" /></FieldRow>
                   <InputRow label="Hora (opcional)" value={eventTime} onChangeText={setEventTime} placeholder="18:30" keyboardType="numbers-and-punctuation" />
-                  <InputRow label="Lugar (opcional)" value={place} onChangeText={setPlace} placeholder="Dirección o “En línea”" />
+                  <FieldRow label="Lugar (opcional)"><AddressInput value={place} onChangeText={setPlace} /></FieldRow>
                   <InputRow label="Plazas (opcional)" value={capacity} onChangeText={(v) => setCapacity(v.replace(/\D/g, ''))} placeholder="Sin límite" keyboardType="number-pad" />
                 </> : null}
               </Group>

@@ -1,4 +1,5 @@
-import { infoTable, renderEmail } from "../_shared/email-layout.ts";
+import { formatDateEs, infoTable, renderEmail } from "../_shared/email-layout.ts";
+import { devotionalFields, devotionalSummaryHtml, excerpt } from "../_shared/devotional-email.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { corsHeaders, jsonResponse, requiredEnv } from "../_shared/http.ts";
 import { escapeHtml, sendEmail } from "../_shared/email.ts";
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
 
     const { data: devocional, error: devocionalError } = await admin
       .from("devocionales")
-      .select("id,slug,estado,created_by,autora,pending_content")
+      .select("id,slug,estado,created_by,autora,pending_content,pending_fecha_publicacion,titulo,versiculo,contenido,contenido_html,categorias,imagen_url,cover_alt,publicado")
       .eq("id", devocionalId)
       .maybeSingle();
     if (devocionalError) throw devocionalError;
@@ -70,8 +71,10 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, notified: 0, warning: "No hay revisores configurados para notificar." });
     }
 
-    const pending = (devocional.pending_content || {}) as Record<string, unknown>;
-    const titulo = String(pending.titulo || "Sin título").trim();
+    const fields = devotionalFields(devocional as Record<string, unknown>);
+    const titulo = String(fields.titulo || "Sin título").trim();
+    const fechaPrevista = devocional.pending_fecha_publicacion ? formatDateEs(String(devocional.pending_fecha_publicacion)) : "";
+    const resumen = excerpt(fields, 220);
     const autora = String(devocional.autora || "").trim();
     const adminUrl = "https://mcp930.org/admin.html";
     const safeTitulo = escapeHtml(titulo);
@@ -87,6 +90,8 @@ Deno.serve(async (req) => {
             `${autora || "Un editor"} envió un devocional a revisión.`,
             "",
             `Título: ${titulo}`,
+            fields.versiculo ? `Versículo: ${fields.versiculo}` : "",
+            resumen ? `\n${resumen}` : "",
             "",
             `Revísalo aquí: ${adminUrl}`,
           ].join("\n"),
@@ -95,12 +100,13 @@ Deno.serve(async (req) => {
             eyebrow: "Flujo editorial",
             title: "Nuevo devocional en revisión",
             intro: `${autora || "Una editora"} envió un devocional para tu revisión.`,
-            body: infoTable([
-              { label: "Título", value: titulo, accent: true },
-              { label: "Autora", value: autora },
+            body: devotionalSummaryHtml(fields) + infoTable([
+              { label: "Autora", value: autora || "Una editora" },
+              { label: "Tipo", value: devocional.publicado ? "Cambios a un devocional publicado" : "Devocional nuevo" },
+              { label: "Publicación prevista", value: fechaPrevista },
             ]),
-            actions: [{ label: "Revisar devocional", url: adminUrl }],
-            footnote: "Ábrelo en el panel de administración, pestaña Devocionales.",
+            actions: [{ label: "Leer y revisar", url: adminUrl }],
+            footnote: "En el panel: Devocionales → Cola de revisión → «Leer devocional» y luego «Tomar revisión».",
             footer: "Aviso interno para revisoras",
           }),
         })

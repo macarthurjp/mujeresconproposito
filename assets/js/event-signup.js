@@ -29,6 +29,18 @@
     document.body.appendChild(a); a.click(); a.remove();
   }
 
+  // Online events (Zoom, "En línea", a link…) have no address to open.
+  function isOnlinePlace(text) {
+    var t = String(text || "").trim().toLowerCase();
+    return !t || /^https?:\/\//.test(t) || /\b(zoom|en l[ií]nea|online|google meet|meet|teams|virtual|youtube)\b/.test(t);
+  }
+  // Apple devices open Apple Maps; everything else opens Google Maps (app if installed).
+  function mapsUrl(address) {
+    var q = encodeURIComponent(String(address).trim());
+    var apple = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+    return apple ? "https://maps.apple.com/?q=" + q : "https://www.google.com/maps/search/?api=1&query=" + q;
+  }
+
   function open(item) {
     var past = item.fechaEvento && new Date(item.fechaEvento) < new Date();
     var already = signed().indexOf(String(item.id)) !== -1;
@@ -41,7 +53,9 @@
       '<div><span class="es-eyebrow">Evento especial</span><h3 id="esTitle">' + esc(item.nombre) + "</h3>" + (item.titulo ? "<p>" + esc(item.titulo) + "</p>" : "") + "</div></div>" +
       '<ul class="es-facts">' +
       (item.fechaEvento ? '<li><i class="fa-regular fa-calendar" aria-hidden="true"></i>' + esc(fmtDate(item.fechaEvento)) + "</li>" : "") +
-      (item.lugar ? '<li><i class="fa-solid fa-location-dot" aria-hidden="true"></i>' + esc(item.lugar) + "</li>" : "") +
+      (item.lugar ? (isOnlinePlace(item.lugar)
+        ? '<li><i class="fa-solid fa-location-dot" aria-hidden="true"></i>' + esc(item.lugar) + "</li>"
+        : '<li><i class="fa-solid fa-location-dot" aria-hidden="true"></i><a class="es-map-link" href="' + esc(mapsUrl(item.lugar)) + '" target="_blank" rel="noopener">' + esc(item.lugar) + ' <span>Abrir en Mapas <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></span></a></li>') : "") +
       '<li class="es-places" hidden><i class="fa-solid fa-user-group" aria-hidden="true"></i><span></span></li></ul>' +
       '<div class="es-body"></div></div>';
     document.body.appendChild(root);

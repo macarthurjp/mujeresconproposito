@@ -1333,3 +1333,33 @@ body.mcp-brand .admin-main .admin-confetti-label .admin-optional { color: var(--
   body.mcp-brand .admin-main .admin-confetti-actions > button { width: 100%; justify-content: center; }
   body.mcp-brand .admin-main .admin-confetti-head p { font-size: 13.5px; }
 }
+
+/* Reviewer: request-changes dialog */
+.admin-changes-overlay { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 16px; background: rgba(42, 22, 22, .42); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.admin-changes-dialog { width: min(100%, 620px); max-height: calc(100vh - 32px); overflow: auto; box-sizing: border-box; padding: 26px; border-radius: 24px; background: #fff; box-shadow: 0 30px 80px rgba(42, 22, 22, .3); text-align: left; }
+.admin-changes-dialog h3 { margin: 6px 0 8px; color: var(--a-ink, #3f2623); font-size: 22px; line-height: 1.25; }
+.admin-changes-dialog p { margin: 0 0 16px; color: var(--a-muted, #6d5250); font-size: 14px; line-height: 1.55; }
+.admin-changes-dialog textarea { box-sizing: border-box; width: 100%; min-height: 190px; padding: 14px 16px; border: 1px solid #eadbd8; border-radius: 16px; font: inherit; font-size: 15px; line-height: 1.55; color: var(--a-ink, #3f2623); resize: vertical; }
+.admin-changes-dialog textarea:focus { outline: 3px solid rgba(169, 80, 69, .13); border-color: var(--a-wine, #a64b43); }
+.admin-changes-meta { display: flex; justify-content: flex-end; margin-top: 6px; color: var(--a-muted, #6d5250); font-size: 12px; }
+.admin-changes-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.admin-changes-actions .btn[disabled] { opacity: .45; cursor: not-allowed; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+@media (max-width: 560px) { .admin-changes-dialog { padding: 20px; border-radius: 20px; } .admin-changes-actions { flex-direction: column-reverse; } .admin-changes-actions > button { width: 100%; } }
+
+/* Address suggestions (data-address-autocomplete) */
+.ci-address-field { position: relative; }
+.address-suggestions { position: absolute; left: 0; right: 0; top: 100%; z-index: 40; margin: 6px 0 0; padding: 4px; list-style: none; border: 1px solid #eadbd8; border-radius: 14px; background: #fff; box-shadow: 0 18px 40px rgba(63, 38, 35, .14); }
+.address-suggestions li { padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--a-ink, #3f2623); cursor: pointer; text-align: left; }
+.address-suggestions li:hover { background: #fbf3f1; }
+.address-suggestions li.address-credit { padding: 4px 12px 6px; font-size: 11px; color: var(--a-muted, #6d5250); cursor: default; text-align: right; }
+.address-suggestions li.address-credit:hover { background: none; }
+.admin-changes-actions > button { min-height: 46px !important; height: auto !important; width: auto; padding: 0 22px !important; border-radius: 999px !important; display: inline-flex; align-items: center; justify-content: center; gap: 8px; aspect-ratio: auto !important; }
+.admin-changes-actions .admin-draft-btn { background: #fff !important; color: var(--a-wine, #a64b43) !important; border: 1px solid rgba(169, 80, 69, .25) !important; box-shadow: none !important; }
+/* Let the suggestions overflow the event card instead of being clipped. */
+body.mcp-brand .admin-main .ci-event-row:has(.address-suggestions:not([hidden])) { overflow: visible !important; position: relative; z-index: 5; }
+.admin-changes-actions .admin-changes-cancel { font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; background: #fff; color: var(--a-wine, #a64b43); border: 1px solid rgba(169, 80, 69, .25); }
+.admin-changes-actions .admin-changes-cancel:hover { background: #fbf3f1; }
+.admin-changes-actions { align-items: center; }
+.admin-changes-actions > button { height: 46px !important; line-height: 1 !important; align-self: center; box-sizing: border-box; }
+.admin-changes-actions > button { margin: 0 !important; }
