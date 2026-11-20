@@ -53,6 +53,17 @@ export default function Avisos() {
 
   if (!allowed) return <ScrollView contentContainerStyle={s.page}><Group footer="Tu cuenta no tiene acceso a este módulo."><Row icon="lock-closed" label="Sin acceso" chevron={false} /></Group></ScrollView>;
 
+  // Only the history entry is removed: phones that received the notice keep it.
+  const removeFromHistory = (h: Sent) => Alert.alert(h.titulo, 'Un aviso enviado no se puede editar ni retirar de los teléfonos que ya lo recibieron. ¿Quieres eliminarlo del historial?', [
+    { text: 'Cancelar', style: 'cancel' },
+    { text: 'Eliminar del historial', style: 'destructive', onPress: async () => {
+      const { error } = await supabase.from('push_broadcasts').delete().eq('id', h.id);
+      if (error) return Alert.alert('No se pudo eliminar', error.message);
+      tapFeedback();
+      void loadHistory();
+    } },
+  ]);
+
   const send = () => {
     if (titulo.trim().length < 3 || mensaje.trim().length < 3) return Alert.alert('Completa el aviso', 'Escribe un título y un mensaje.');
     const who = target ? `la comunidad de ${target}` : 'todas las personas con la app';
@@ -87,7 +98,7 @@ export default function Avisos() {
             </Pressable>
           ))}
         </View>
-        <Text style={s.reach}>{reach === null ? 'Calculando destinatarios…' : `${reach} ${reach === 1 ? 'dispositivo recibirá' : 'dispositivos recibirán'} el aviso`}{target ? ' (personas que eligieron esta comunidad en la app)' : ''}</Text>
+        <Text style={s.reach}>{reach === null ? 'Calculando destinatarios…' : `${reach} ${reach === 1 ? 'dispositivo recibirá' : 'dispositivos recibirán'} el aviso`}{target ? ' (según la comunidad elegida en la app o, si no eligieron, la zona horaria del teléfono)' : ''}</Text>
 
         <Text style={s.label}>Título</Text>
         <TextInput value={titulo} onChangeText={setTitulo} maxLength={80} placeholder="Ej. Cambio de horario hoy" placeholderTextColor="#a58e88" style={s.input} />
@@ -110,10 +121,11 @@ export default function Avisos() {
         </> : null}
 
         {history.length ? (
-          <Group header="Enviados recientemente">
+          <Group header="Enviados recientemente" footer={canSend ? 'Toca un aviso para eliminarlo del historial.' : undefined}>
             {history.map((h) => (
               <Row key={h.id} icon="paper-plane-outline" label={h.titulo}
-                sub={`${new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(h.created_at)).replace('.', '')} · ${h.comunidad || 'Todas'} · ${h.enviados} entregados`} chevron={false} />
+                sub={`${new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(h.created_at)).replace('.', '')} · ${h.comunidad || 'Todas'} · ${h.enviados} entregados`}
+                onPress={canSend ? () => removeFromHistory(h) : undefined} chevron={false} />
             ))}
           </Group>
         ) : !canSend ? <Text style={s.reach}>Todavía no se han enviado avisos.</Text> : null}

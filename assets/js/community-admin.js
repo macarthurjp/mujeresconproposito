@@ -293,14 +293,15 @@
       $("ciReach").textContent = `${data.destinatarios} ${data.destinatarios === 1 ? "dispositivo recibirá" : "dispositivos recibirán"} el aviso.`;
     } catch { $("ciReach").textContent = "No se pudo calcular el alcance."; }
   }
+  let canDeleteHistory = false;
   async function loadHistory() {
     const history = $("ciHistory");
     if (!history) return;
     history.setAttribute("aria-busy", "true");
     try {
-      const { data, error } = await client().from("push_broadcasts").select("titulo,mensaje,comunidad,enviados,created_at").order("created_at", { ascending: false }).limit(10);
+      const { data, error } = await client().from("push_broadcasts").select("id,titulo,mensaje,comunidad,enviados,created_at").order("created_at", { ascending: false }).limit(10);
       if (error) throw error;
-      history.innerHTML = (data || []).map((h) => `<article class="ci-history-row"><span class="ci-history-icon" aria-hidden="true"><i class="fa-solid fa-paper-plane"></i></span><div><strong>${esc(h.titulo)}</strong><span>${esc(h.mensaje)}</span><small><span>${fmt(h.created_at)}</span><span>${esc(h.comunidad || "Todas")}</span><span>${Number(h.enviados) || 0} entregados</span></small></div></article>`).join("") || '<div class="admin-empty">Todavía no se ha enviado ningún aviso.</div>';
+      history.innerHTML = (data || []).map((h) => `<article class="ci-history-row"><span class="ci-history-icon" aria-hidden="true"><i class="fa-solid fa-paper-plane"></i></span><div><strong>${esc(h.titulo)}</strong><span>${esc(h.mensaje)}</span><small><span>${fmt(h.created_at)}</span><span>${esc(h.comunidad || "Todas")}</span><span>${Number(h.enviados) || 0} entregados</span></small></div>${canDeleteHistory ? `<button type="button" class="ci-history-delete" data-broadcast-delete="${Number(h.id)}" aria-label="Eliminar «${esc(h.titulo)}» del historial" title="Eliminar del historial"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>` : ""}</article>`).join("") || '<div class="admin-empty">Todavía no se ha enviado ningún aviso.</div>';
     } catch (error) {
       history.innerHTML = `<div class="admin-empty">No se pudo cargar el historial: ${esc(error.message)} <button type="button" class="ci-retry-btn" id="ciHistoryRetry">Reintentar</button></div>`;
       $("ciHistoryRetry")?.addEventListener("click", loadHistory);
@@ -308,6 +309,16 @@
       history.removeAttribute("aria-busy");
     }
   }
+  // Removes a sent notice from the history only: phones that received it keep it.
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest?.("[data-broadcast-delete]");
+    if (!button) return;
+    if (!window.confirm("¿Eliminar este aviso del historial?\n\nSolo se quita de esta lista: los teléfonos que ya lo recibieron lo conservan.")) return;
+    button.disabled = true;
+    const { error } = await client().from("push_broadcasts").delete().eq("id", Number(button.dataset.broadcastDelete));
+    if (error) { button.disabled = false; window.alert(`No se pudo eliminar: ${error.message}`); return; }
+    await loadHistory();
+  });
 
   // ---------------- Estadísticas ----------------
   async function loadStats() {
@@ -406,6 +417,7 @@
     wire();
     // Notices: access without the send permission is read-only (history only).
     const canSend = can("notices", "send");
+    canDeleteHistory = canSend;
     const form = $("ciBroadcastForm");
     if (form) form.closest(".ci-broadcast").hidden = !canSend;
     const readOnlyNote = document.getElementById("ciReadOnlyNote");
