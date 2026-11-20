@@ -12,7 +12,7 @@ import { getFavorites, getNote, saveNote, toggleFavorite } from '@/lib/devotiona
 
 function formattedText(value: string, style: object): ReactNode {
   const tokens = value.split(/(\*\*.+?\*\*|\*.+?\*|__.+?__|~~.+?~~)/g);
-  return <Text style={style}>{tokens.map((token, index) => {
+  return <Text style={style} textBreakStrategy="simple">{tokens.map((token, index) => {
     if (token.startsWith('**') && token.endsWith('**')) return <Text key={index} style={{ fontWeight: '800' }}>{token.slice(2, -2)}</Text>;
     if (token.startsWith('__') && token.endsWith('__')) return <Text key={index} style={{ textDecorationLine: 'underline' }}>{token.slice(2, -2)}</Text>;
     if (token.startsWith('~~') && token.endsWith('~~')) return <Text key={index} style={{ textDecorationLine: 'line-through' }}>{token.slice(2, -2)}</Text>;
