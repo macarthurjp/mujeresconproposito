@@ -290,7 +290,9 @@
   async function updateReach() {
     try {
       const data = await invokeBroadcast({ titulo: "x", mensaje: "x", comunidad: $("ciTarget").value || null, dryRun: true });
-      $("ciReach").textContent = `${data.destinatarios} ${data.destinatarios === 1 ? "dispositivo recibirá" : "dispositivos recibirán"} el aviso.`;
+      $("ciReach").textContent = `${data.destinatarios} ${data.destinatarios === 1 ? "dispositivo con la app recibirá" : "dispositivos con la app recibirán"} el aviso.`;
+      const n = Number(data.correos) || 0;
+      $("ciEmailReach").textContent = `${n} ${n === 1 ? "persona registrada" : "personas registradas"} en Únete${$("ciTarget").value ? ` de ${$("ciTarget").value}` : ""} lo recibirán por correo, aunque no tengan la app.`;
     } catch { $("ciReach").textContent = "No se pudo calcular el alcance."; }
   }
   let canDeleteHistory = false;
@@ -299,9 +301,9 @@
     if (!history) return;
     history.setAttribute("aria-busy", "true");
     try {
-      const { data, error } = await client().from("push_broadcasts").select("id,titulo,mensaje,comunidad,enviados,created_at").order("created_at", { ascending: false }).limit(10);
+      const { data, error } = await client().from("push_broadcasts").select("id,titulo,mensaje,comunidad,enviados,correos,created_at").order("created_at", { ascending: false }).limit(10);
       if (error) throw error;
-      history.innerHTML = (data || []).map((h) => `<article class="ci-history-row"><span class="ci-history-icon" aria-hidden="true"><i class="fa-solid fa-paper-plane"></i></span><div><strong>${esc(h.titulo)}</strong><span>${esc(h.mensaje)}</span><small><span>${fmt(h.created_at)}</span><span>${esc(h.comunidad || "Todas")}</span><span>${Number(h.enviados) || 0} entregados</span></small></div>${canDeleteHistory ? `<button type="button" class="ci-history-delete" data-broadcast-delete="${Number(h.id)}" aria-label="Eliminar «${esc(h.titulo)}» del historial" title="Eliminar del historial"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>` : ""}</article>`).join("") || '<div class="admin-empty">Todavía no se ha enviado ningún aviso.</div>';
+      history.innerHTML = (data || []).map((h) => `<article class="ci-history-row"><span class="ci-history-icon" aria-hidden="true"><i class="fa-solid fa-paper-plane"></i></span><div><strong>${esc(h.titulo)}</strong><span>${esc(h.mensaje)}</span><small><span>${fmt(h.created_at)}</span><span>${esc(h.comunidad || "Todas")}</span><span>${Number(h.enviados) || 0} entregados</span>${Number(h.correos) ? `<span>${Number(h.correos)} correos</span>` : ""}</small></div>${canDeleteHistory ? `<button type="button" class="ci-history-delete" data-broadcast-delete="${Number(h.id)}" aria-label="Eliminar «${esc(h.titulo)}» del historial" title="Eliminar del historial"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>` : ""}</article>`).join("") || '<div class="admin-empty">Todavía no se ha enviado ningún aviso.</div>';
     } catch (error) {
       history.innerHTML = `<div class="admin-empty">No se pudo cargar el historial: ${esc(error.message)} <button type="button" class="ci-retry-btn" id="ciHistoryRetry">Reintentar</button></div>`;
       $("ciHistoryRetry")?.addEventListener("click", loadHistory);
@@ -387,14 +389,15 @@
     $("ciBroadcastForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const target = $("ciTarget").value;
-      if (!window.confirm(`¿Enviar este aviso a ${target ? `la comunidad de ${target}` : "todas las personas con la app"}?`)) {
+      const byEmail = $("ciByEmail").checked;
+      if (!window.confirm(`¿Enviar este aviso a ${target ? `la comunidad de ${target}` : "todas"}${byEmail ? ", por la app y por correo" : " por la app"}?`)) {
         window.setTimeout(() => window.McpFormDirty?.markFailed(e.target), 0);
         return;
       }
       const btn = e.submitter; if (btn) btn.disabled = true;
       try {
-        const data = await invokeBroadcast({ titulo: $("ciTitle").value.trim(), mensaje: $("ciMessage").value.trim(), comunidad: target || null });
-        toast("success", "Aviso enviado", `Entregado a ${data.enviados} dispositivos.`);
+        const data = await invokeBroadcast({ titulo: $("ciTitle").value.trim(), mensaje: $("ciMessage").value.trim(), comunidad: target || null, porCorreo: byEmail });
+        toast("success", "Aviso enviado", `Entregado a ${data.enviados} dispositivos${byEmail ? ` y ${data.correos} correos` : ""}.`);
         e.target.reset(); sync(); loadHistory();
         window.McpFormDirty?.markSaved(e.target);
       } catch (err) {

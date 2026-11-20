@@ -1,0 +1,11 @@
+{
+  "name": "Mujeres con Propósito",
+  "short_name": "MCP930",
+  "icons": [
+    { "src": "/assets/images/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/images/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#faf5f4",
+  "background_color": "#faf5f4",
+  "display": "browser"
+}

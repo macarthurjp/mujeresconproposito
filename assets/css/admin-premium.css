@@ -1406,3 +1406,10 @@ body.mcp-brand .admin-main .admin-review-decision .admin-review-ghost { height: 
 body.mcp-brand .admin-main .ci-history-delete { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(169, 80, 69, .14); border-radius: 12px; color: #9c5149; background: #fff; cursor: pointer; transition: background .15s ease, color .15s ease; }
 body.mcp-brand .admin-main .ci-history-delete:hover { color: #fff; background: #b8473e; border-color: #b8473e; }
 body.mcp-brand .admin-main .ci-history-delete:disabled { opacity: .5; cursor: default; }
+
+/* "Enviar también por correo" */
+body.mcp-brand .admin-main .ci-email-toggle { display: flex !important; flex-direction: row !important; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid rgba(169, 80, 69, .12); border-radius: 16px; background: #fffbfa; cursor: pointer; }
+body.mcp-brand .admin-main .ci-email-toggle input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--a-wine, #a64b43); }
+body.mcp-brand .admin-main .ci-email-toggle span { display: grid; gap: 3px; }
+body.mcp-brand .admin-main .ci-email-toggle strong { color: var(--a-ink, #3f2623); font-size: 14.5px; }
+body.mcp-brand .admin-main .ci-email-toggle small { color: var(--a-muted, #7a605d); font-size: 13px; line-height: 1.45; font-weight: 400; }

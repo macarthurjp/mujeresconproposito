@@ -77,3 +77,8 @@ entrypoint = "./functions/form-fallback-token/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/send-devotional-updates/index.ts"
+
+[functions.email-unsubscribe]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/email-unsubscribe/index.ts"
