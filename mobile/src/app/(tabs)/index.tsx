@@ -112,7 +112,7 @@ export default function Home() {
 
       {/* About */}
       <Section eyebrow="Nosotras" title="¿Quiénes somos?" band>
-        <Text textBreakStrategy="simple" style={ui.body}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
+        <Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={ui.body}>Somos una comunidad internacional cristiana de mujeres que crecen en la fe, caminan juntas y se impulsan a vivir su propósito y transformar su entorno.</Text>
         <View style={s.aboutCards}>
           {[
             { icon: 'leaf-outline' as const, title: 'Misión', copy: 'Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades.' },
@@ -121,7 +121,7 @@ export default function Home() {
             <View key={card.title} style={s.aboutCard}>
               <View style={s.aboutCardIcon}><Ionicons name={card.icon} size={18} color={C.wine} /></View>
               <Text style={s.aboutCardTitle}>{card.title}</Text>
-              <Text textBreakStrategy="simple" style={s.aboutCardText}>{card.copy}</Text>
+              <Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={s.aboutCardText}>{card.copy}</Text>
             </View>
           ))}
         </View>
@@ -264,8 +264,8 @@ export default function Home() {
           <Pressable onPress={() => setAboutVisible(false)} accessibilityRole="button" accessibilityLabel="Cerrar" hitSlop={12} style={s.aboutClose}><Ionicons name="close" size={22} color={C.ink} /></Pressable>
         </View>
         <ScrollView contentContainerStyle={s.aboutModalContent} showsVerticalScrollIndicator={false}>
-          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Misión</Text><Text textBreakStrategy="simple" style={s.aboutParagraphText}>Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades; fomentando sus dones y talentos.</Text></View>
-          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Visión</Text><Text textBreakStrategy="simple" style={s.aboutParagraphText}>Ser una comunidad internacional de mujeres transformadas por Dios, que caminan en su propósito, crecen integralmente y generan un impacto social que transforma vidas, familias y comunidades.</Text></View>
+          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Misión</Text><Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={s.aboutParagraphText}>Inspirar y equipar a mujeres para crecer en la fe, vivir su propósito y transformar sus vidas, familias y comunidades; fomentando sus dones y talentos.</Text></View>
+          <View style={s.aboutDetailCard}><Text style={s.aboutDetailTitle}>Visión</Text><Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={s.aboutParagraphText}>Ser una comunidad internacional de mujeres transformadas por Dios, que caminan en su propósito, crecen integralmente y generan un impacto social que transforma vidas, familias y comunidades.</Text></View>
           <View style={s.aboutDetailCard}>
             <Text style={s.aboutDetailTitle}>Nuestros valores</Text>
             <View style={s.aboutValuesList}>{[
@@ -274,7 +274,7 @@ export default function Home() {
               ['Hermandad', 'Nos acompañamos, apoyamos y fortalecemos unas a otras.'],
               ['Transparencia', 'Actuamos con apertura, integridad y claridad en nuestras relaciones y recursos.'],
               ['Honestidad', 'Vivimos y nos relacionamos con verdad, respeto y coherencia.'],
-            ].map(([title, copy]) => <View key={title} style={s.aboutValue}><View style={s.aboutValueDot} /><View style={s.aboutValueCopy}><Text style={s.aboutValueName}>{title}</Text><Text textBreakStrategy="simple" style={s.aboutDetailText}>{copy}</Text></View></View>)}</View>
+            ].map(([title, copy]) => <View key={title} style={s.aboutValue}><View style={s.aboutValueDot} /><View style={s.aboutValueCopy}><Text style={s.aboutValueName}>{title}</Text><Text textBreakStrategy="highQuality" android_hyphenationFrequency="full" style={s.aboutDetailText}>{copy}</Text></View></View>)}</View>
           </View>
         </ScrollView>
       </View>
