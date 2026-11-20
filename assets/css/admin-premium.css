@@ -1231,7 +1231,7 @@ body.mcp-brand .admin-main .ci-preview-note { margin: 0 !important; color: rgba(
 body.mcp-brand .admin-main .ci-history-heading p { margin: 6px 0 0 !important; padding: 0 !important; }
 body.mcp-brand .admin-main #ciHistory { display: grid; gap: 10px; margin-top: 18px; }
 body.mcp-brand .admin-main .ci-history-row {
-  display: grid !important; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px !important;
+  display: grid !important; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 16px !important;
   border: 1px solid rgba(169, 80, 69, .09) !important; border-radius: 18px; background: #fffbfa;
 }
 body.mcp-brand .admin-main .ci-history-icon { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 13px; color: var(--a-wine); background: #f8e7e3; font-size: 14px; }
@@ -1401,3 +1401,8 @@ body.mcp-brand .admin-main .admin-review-decision > button, body.mcp-brand .admi
 body.mcp-brand .admin-main .admin-review-decision .admin-review-secondary { border: 1px solid rgba(169, 80, 69, .3) !important; box-shadow: none !important; outline: none; padding: 0 18px !important; }
 body.mcp-brand .admin-main .admin-review-decision .admin-review-secondary:focus-visible { outline: 3px solid rgba(169, 80, 69, .18); outline-offset: 2px; }
 body.mcp-brand .admin-main .admin-review-decision .admin-review-ghost { height: auto !important; min-height: 46px !important; border: 0 !important; box-shadow: none !important; padding: 0 6px !important; }
+
+/* Delete a sent notice from the history (the phones keep it). */
+body.mcp-brand .admin-main .ci-history-delete { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid rgba(169, 80, 69, .14); border-radius: 12px; color: #9c5149; background: #fff; cursor: pointer; transition: background .15s ease, color .15s ease; }
+body.mcp-brand .admin-main .ci-history-delete:hover { color: #fff; background: #b8473e; border-color: #b8473e; }
+body.mcp-brand .admin-main .ci-history-delete:disabled { opacity: .5; cursor: default; }
