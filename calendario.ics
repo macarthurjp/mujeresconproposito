@@ -121,12 +121,12 @@ END:VEVENT
 BEGIN:VEVENT
 UID:evento-5@mcp930.org
 DTSTAMP:20260619T204957Z
-DTSTART;TZID=America/Santo_Domingo:20260103T150000
+DTSTART;TZID=America/Santo_Domingo:20260103T140000
 DURATION:PT1H
 RRULE:FREQ=WEEKLY;BYDAY=SA
 SUMMARY:Propósito Kids
 DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: S
- ábados · 3:00 PM\nMás información: https://mcp930.org/#events
+ ábado · 14h\nMás información: https://mcp930.org/#events
 URL:https://meet.google.com/hoi-rdok-sym
 LOCATION:https://meet.google.com/hoi-rdok-sym
 END:VEVENT
