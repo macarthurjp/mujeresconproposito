@@ -63,7 +63,7 @@ async function submitJoin(payload: Record<string, unknown>) {
   return result;
 }
 
-async function submitContact(payload: { nombre: string; email: string; mensaje: string; destino: string; turnstileToken: string }) {
+async function submitContact(payload: { nombre: string; email: string; mensaje: string; turnstileToken: string }) {
   assertConfigured();
   const response = await fetch(`${SUPABASE_URL}/functions/v1/submit-contact`, {
     method: 'POST',
