@@ -130,4 +130,19 @@ DESCRIPTION:Únete aquí: https://meet.google.com/hoi-rdok-sym\nHorario: S
 URL:https://meet.google.com/hoi-rdok-sym
 LOCATION:https://meet.google.com/hoi-rdok-sym
 END:VEVENT
+BEGIN:VEVENT
+UID:cumple-20261129-angela@mcp930.org
+DTSTAMP:20260101T000000Z
+DTSTART;VALUE=DATE:20261129
+DTEND;VALUE=DATE:20261130
+SUMMARY:🎂 Cumpleaños de Angela
+DESCRIPTION:Hoy celebramos el cumpleaños de Angela. ¡No olvides felicitar
+ la!
+TRANSP:TRANSPARENT
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Mañana es el cumpleaños de Angela
+TRIGGER:-PT15H
+END:VALARM
+END:VEVENT
 END:VCALENDAR
