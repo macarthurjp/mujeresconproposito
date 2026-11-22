@@ -151,7 +151,13 @@ supabase functions deploy <nombre> --project-ref jkunywiyiyidhyodsbfh --no-verif
 ```
 
 ### Cambiar quién recibe los formularios
-Panel → **Destinatarios de correo** (web o app). Si un grupo está vacío, se usa el correo principal (`CONTACT_EMAIL`).
+Panel → **Destinatarios de correo** (web o app). Cada grupo muestra quién recibe **hoy**:
+- Si un grupo no tiene a nadie activo, aparece el correo principal (`CONTACT_EMAIL`) con la etiqueta «Principal». La pantalla lo lee con `manage-users` (acción `form_recipients_fallback`, solo Super Admin).
+- Las comunidades muestran también a quienes reciben «Todas las comunidades».
+- Al añadir el primer destinatario a un grupo que usaba el principal, el principal se guarda también en la lista para que no deje de recibir sin querer; luego se puede pausar o quitar.
+
+### Notificaciones en la app (campana de Inicio)
+La campana de **Inicio** abre *Notificaciones*: los avisos, reuniones, contenido nuevo y cumpleaños que llegaron a ese teléfono. Se guardan en el propio teléfono (no hay inicio de sesión) durante 90 días, máximo 60. Al abrirla se marcan como leídas, se vacía la bandeja del sistema y se pone a 0 el número del icono de la app. Si alguien descarta una notificación desde la bandeja sin abrir la app, esa no queda en la lista. Código: `mobile/src/lib/notification-inbox.ts` y `mobile/src/app/notificaciones.tsx`.
 
 ### Añadir a alguien al equipo
 Panel → **Usuarios y roles** → *Crear nuevo usuario* → elegir permisos. Le llega una invitación por correo para crear su contraseña.

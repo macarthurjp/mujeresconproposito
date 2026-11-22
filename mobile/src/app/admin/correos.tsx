@@ -6,7 +6,7 @@ import { FieldRow, Group, InputRow, Row } from '@/components/form';
 import { tapFeedback, useAsync } from '@/components/ui';
 import { C, sans } from '@/constants/theme';
 import {
-  addRecipient, COMMUNITIES, listRecipients, removeRecipient, setRecipientActive, type Recipient, type RecipientForm,
+  addRecipient, COMMUNITIES, getFallbackRecipients, listRecipients, receiversOf, removeRecipient, setRecipientActive, type Recipient, type RecipientForm,
 } from '@/lib/recipients';
 import { useAdmin } from '@/lib/use-admin';
 import { SheetModal } from '@/components/sheet-modal';
@@ -43,7 +43,7 @@ function Segmented<T extends string>({ options, value, onChange }: { options: { 
   );
 }
 
-function AddSheet({ initial, onClose, onSaved }: { initial: Target; onClose: () => void; onSaved: () => void }) {
+function AddSheet({ initial, items, fallback, onClose, onSaved }: { initial: Target; items: Recipient[]; fallback: string[] | null; onClose: () => void; onSaved: () => void }) {
   const [form, setForm] = useState<RecipientForm>(initial.form);
   const [comunidad, setComunidad] = useState<string>(initial.comunidad ?? 'all');
   const [email, setEmail] = useState('');
@@ -53,9 +53,12 @@ function AddSheet({ initial, onClose, onSaved }: { initial: Target; onClose: () 
   const save = async () => {
     setBusy(true);
     try {
-      await addRecipient({ form, comunidad: comunidad === 'all' ? null : comunidad, email, nombre });
+      const target = comunidad === 'all' || form === 'contact' ? null : comunidad;
+      const keep = receiversOf(items, form, target).usesFallback ? fallback ?? [] : [];
+      const kept = await addRecipient({ form, comunidad: target, email, nombre, keep });
       onSaved();
       onClose();
+      if (kept.length) Alert.alert('El correo principal sigue recibiendo', `${kept.join(', ')} también recibirá este formulario. Puedes pausarlo o quitarlo cuando quieras.`);
     } catch (e) {
       Alert.alert('No se pudo añadir', e instanceof Error ? e.message : '');
     } finally {
@@ -99,6 +102,21 @@ function AddSheet({ initial, onClose, onSaved }: { initial: Target; onClose: () 
   );
 }
 
+function FallbackRow({ email, note }: { email: string | null; note: string }) {
+  return (
+    <View style={[s.row, { backgroundColor: '#fdf8f6' }]}>
+      <View style={[s.avatar, { backgroundColor: '#efe6e3' }]}>
+        {email ? <Text style={[s.avatarText, { color: C.muted }]}>{email.slice(0, 1).toUpperCase()}</Text> : <Ionicons name="file-tray" size={16} color={C.muted} />}
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={s.email} numberOfLines={1}>{email ?? 'Correo principal de la organización'}</Text>
+        <Text style={s.sub} numberOfLines={2}>{note}</Text>
+      </View>
+      <View style={s.badge}><Text style={s.badgeText}>Principal</Text></View>
+    </View>
+  );
+}
+
 function RecipientRow({ r, onChanged }: { r: Recipient; onChanged: () => Promise<void> }) {
   // Optimistic value while the update is in flight; falls back to the server value.
   const [pending, setPending] = useState<boolean | null>(null);
@@ -137,6 +155,7 @@ function RecipientRow({ r, onChanged }: { r: Recipient; onChanged: () => Promise
 export default function Correos() {
   const { access } = useAdmin();
   const { data: items, error, reload: load } = useAsync(listRecipients);
+  const { data: fallback } = useAsync(getFallbackRecipients);
   const [refreshing, setRefreshing] = useState(false);
   const [adding, setAdding] = useState<Target | null>(null);
 
@@ -160,15 +179,19 @@ export default function Correos() {
 
         {items ? SECTIONS.map((section) => {
           const list = items.filter((r) => sameTarget(r, section.target));
+          const { inherited, usesFallback } = receiversOf(items, section.target.form, section.target.comunidad);
+          const note = section.key === 'join-all' ? 'Correo principal · recibe los registros sin otro destinatario' : 'Correo principal · recibe ahora';
+          const inheritedText = inherited.length ? `${list.some((r) => r.active) ? 'También reciben' : 'Reciben'} (Todas las comunidades): ${inherited.map((r) => r.email).join(', ')}.` : '';
           return (
-            <Group key={section.key} header={section.header} footer={list.length ? section.footer : `${section.footer} Si está vacío, se envía al correo principal.`}>
+            <Group key={section.key} header={section.header} footer={[section.footer, inheritedText].filter(Boolean).join(' ')}>
               {list.map((r) => <RecipientRow key={r.id} r={r} onChanged={load} />)}
+              {usesFallback ? (fallback?.length ? fallback.map((f) => <FallbackRow key={f} email={f} note={note} />) : <FallbackRow email={null} note="Recibe ahora · se usa mientras el grupo esté vacío" />) : null}
               <Row icon="add" tint={section.tint} label="Añadir correo" onPress={() => setAdding(section.target)} />
             </Group>
           );
         }) : null}
       </ScrollView>
-      {adding ? <AddSheet initial={adding} onClose={() => setAdding(null)} onSaved={() => void load()} /> : null}
+      {adding ? <AddSheet initial={adding} items={items ?? []} fallback={fallback ?? null} onClose={() => setAdding(null)} onSaved={() => void load()} /> : null}
     </>
   );
 }
@@ -184,6 +207,8 @@ const s = StyleSheet.create({
   avatarText: { fontFamily: sans, fontSize: 15, fontWeight: '700', color: C.wine },
   email: { fontFamily: sans, fontSize: 16, color: C.ink, letterSpacing: -0.2 },
   sub: { fontFamily: sans, fontSize: 13, color: C.muted, marginTop: 2 },
+  badge: { paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999, backgroundColor: '#f3ebe9' },
+  badgeText: { fontFamily: sans, fontSize: 12, fontWeight: '600', color: '#765f5b' },
   trash: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   sheetBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 10 },
   sheetTitle: { fontFamily: sans, fontSize: 17, fontWeight: '600', color: C.ink },

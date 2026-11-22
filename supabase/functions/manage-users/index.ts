@@ -74,6 +74,15 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: true, users });
     }
 
+    // Read-only: the CONTACT_EMAIL backup address(es) that receive a form when
+    // its group in "Destinatarios de correo" has no active recipient.
+    if (action === "form_recipients_fallback") {
+      const fallback = Array.from(new Set(
+        String(Deno.env.get("CONTACT_EMAIL") || "").split(",").map(normalizeEmail).filter(Boolean),
+      ));
+      return jsonResponse({ ok: true, fallback });
+    }
+
     if (action === "invite") {
       const email = normalizeEmail(body.email);
       const nombre = normalizeNombre(body.nombre);

@@ -19,8 +19,25 @@ import { Button, Card, Eyebrow, tapFeedback, ErrorNote, Reveal, Section, styles 
 import { C, TAB_BAR_SPACE, serif, sans } from '@/constants/theme';
 import { api, type Foto } from '@/lib/api';
 import { getShowHomeActivities } from '@/lib/app-preferences';
+import { useUnreadCount } from '@/lib/notification-inbox';
 import { albumsFor, GALLERY_REGIONS as galleryRegions, type Album, type RegionKey } from '@/lib/gallery';
 import { SheetModal } from '@/components/sheet-modal';
+
+/** Opens Notificaciones; the count matches what this phone received and hasn't seen. */
+function InboxBell() {
+  const unread = useUnreadCount();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={unread ? `Notificaciones, ${unread} sin leer` : 'Notificaciones'}
+      hitSlop={6}
+      onPress={() => { tapFeedback(); router.push('/notificaciones' as never); }}
+      style={({ pressed }) => [s.bell, pressed && { transform: [{ scale: 0.94 }], backgroundColor: '#fff' }]}>
+      <Ionicons name={unread ? 'notifications' : 'notifications-outline'} size={22} color={C.wine} />
+      {unread ? <View style={s.bellBadge}><Text style={s.bellBadgeText}>{unread > 9 ? '9+' : unread}</Text></View> : null}
+    </Pressable>
+  );
+}
 
 export default function Home() {
   const insets = useSafeAreaInsets();
@@ -69,10 +86,11 @@ export default function Home() {
             <Image source={require('@/assets/images/mcp-mark.png')} style={s.markImage} contentFit="contain" />
             <View pointerEvents="none" style={s.markRim} />
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={s.brand}>Mujeres con Propósito</Text>
             <Text style={s.brandSub}>930 A.S.B.L.</Text>
           </View>
+          <InboxBell />
         </View></Reveal>
         <Reveal index={1}><Eyebrow>Comunidad cristiana internacional</Eyebrow></Reveal>
         <Reveal index={2}><Title size={34} editorial>
@@ -292,6 +310,9 @@ const s = StyleSheet.create({
   // The PNG includes transparent padding; keep it inside the badge so the full mark shows.
   markImage: { width: 64, height: 64 },
   markRim: { ...StyleSheet.absoluteFill, borderRadius: 19, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  bell: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 1, borderColor: 'rgba(166,75,67,0.12)', boxShadow: '0 4px 12px rgba(105,44,41,0.1)' },
+  bellBadge: { position: 'absolute', top: -3, right: -3, minWidth: 20, height: 20, paddingHorizontal: 5, borderRadius: 10, backgroundColor: C.live, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#f9e1dc' },
+  bellBadgeText: { color: '#fff', fontFamily: sans, fontSize: 11, fontWeight: '700' },
   brand: { fontFamily: serif, color: C.ink, fontSize: 18 },
   brandSub: { color: C.muted, fontSize: 10, letterSpacing: 2, marginTop: 2 },
   heroCopy: { color: 'rgba(63,38,35,0.86)', fontFamily: serif, fontSize: 19, lineHeight: 28, marginTop: 14, paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: C.gold },
