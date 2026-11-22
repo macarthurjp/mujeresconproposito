@@ -10,8 +10,6 @@
   // localStorage.mcp930.localSupabase with the isolated URL and anon key first.
   const SUPABASE_URL = isLocalOrigin ? String(localConfig?.url || "").trim() : PRODUCTION_SUPABASE_URL;
   const SUPABASE_ANON_KEY = isLocalOrigin ? String(localConfig?.anonKey || "").trim() : PRODUCTION_SUPABASE_ANON_KEY;
-  const CONTACT_EMAILS = ["mujeresconproposito930@gmail.com", "ing.arthur03@gmail.com"];
-  const CONTACT_EMAIL = CONTACT_EMAILS.join(", ");
 
   const IMAGE_UPLOAD_PROFILES = {
     eventos: { maxWidth: 512, maxHeight: 512, quality: 0.82 },
@@ -72,7 +70,6 @@
       nombre: payload.nombre,
       email: payload.email,
       mensaje: payload.mensaje,
-      destino: payload.destino,
       source: "web"
     });
   }
@@ -143,8 +140,7 @@
     return invokeEmailEdgeFunction("send-contact-email", {
       nombre: payload.nombre || "",
       email: payload.email || "",
-      mensaje: payload.mensaje || "",
-      destino: payload.destino || CONTACT_EMAIL
+      mensaje: payload.mensaje || ""
     });
   }
 
@@ -250,7 +246,6 @@
   }
 
   window.McpSupabase = {
-    CONTACT_EMAIL,
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
     getSupabaseBrowserClient,

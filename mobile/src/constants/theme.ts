@@ -43,4 +43,3 @@ export const YOUTUBE_URL = 'https://www.youtube.com/@MujeresconProposito930';
 export const SOUNDCLOUD_URL = 'https://soundcloud.com/mujeresconproposito930/sets/mujeres-con-proposito-porcion';
 export const INSTAGRAM_URL = 'https://instagram.com/mujeresconproposito930';
 export const FACEBOOK_URL = 'https://facebook.com/mujeresconproposito930';
-export const CONTACT_EMAIL = 'contacto@mcp930.org';

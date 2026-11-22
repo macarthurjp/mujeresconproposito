@@ -5,7 +5,7 @@ import { Alert, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, Vie
 
 import { HumanCheck } from '@/components/human-check';
 import { Button, Card, Eyebrow, Screen, Title, styles as ui } from '@/components/ui';
-import { C, CONTACT_EMAIL } from '@/constants/theme';
+import { C } from '@/constants/theme';
 import { api } from '@/lib/api';
 
 export default function Contacto() {
@@ -36,7 +36,6 @@ export default function Contacto() {
         nombre: nombre.trim(),
         email: email.trim().toLowerCase(),
         mensaje: prayer ? `🙏 Petición de oración\n\n${mensaje.trim()}` : mensaje.trim(),
-        destino: CONTACT_EMAIL,
         turnstileToken,
       });
       setNombre('');

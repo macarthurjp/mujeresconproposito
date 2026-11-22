@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   const {
-    CONTACT_EMAIL,
     getSupabaseBrowserClient,
     getTodayBirthdaysFromEdgeFunction,
     hasSupabaseConfig,
@@ -5511,7 +5510,6 @@ if (contactForm) {
 
     const payload = {
       action: "contact",
-      destino: CONTACT_EMAIL,
       nombre: document.getElementById("cNombre")?.value.trim() || "",
       email: document.getElementById("cEmail")?.value.trim() || "",
       mensaje: document.getElementById("cMensaje")?.value.trim() || ""
