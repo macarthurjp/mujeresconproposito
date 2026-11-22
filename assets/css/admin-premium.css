@@ -740,6 +740,13 @@ body.mcp-brand .admin-main .admin-role-row .admin-permission-group { min-width: 
 .admin-recipient-remove { width: 34px; height: 34px; border-radius: 50%; border: 0; background: transparent; color: #d64545; cursor: pointer; flex: none; }
 .admin-recipient-remove:hover { background: rgba(214, 69, 69, 0.08); }
 .admin-recipient-empty { padding: 14px 20px; font-size: 14px; color: var(--a-muted); }
+/* CONTACT_EMAIL backup: who receives today while a group has no active recipient. */
+.admin-recipient.is-fallback { background: #fdf8f6; }
+.admin-recipient.is-fallback .admin-recipient-avatar { background: #efe6e3; color: #7a605d; }
+.admin-recipient-badge { flex: none; padding: 4px 10px; border-radius: 999px; background: #f3ebe9; color: #765f5b; font-size: 12px; font-weight: 600; }
+.admin-recipient-inherited { display: flex; align-items: flex-start; gap: 10px; padding: 12px 20px; border-top: 1px solid var(--a-line); font-size: 13px; line-height: 1.45; color: var(--a-muted); overflow-wrap: anywhere; }
+.admin-recipient-inherited i { margin-top: 3px; color: #b9a19c; }
+.admin-recipient-inherited strong { color: var(--a-ink); font-weight: 600; }
 @media (max-width: 560px) {
   .admin-recipient-group .admin-recipient-head { flex-wrap: wrap; }
   .admin-recipient-add { margin-left: 52px; }
@@ -1409,8 +1416,10 @@ body.mcp-brand .admin-main .ci-history-delete:disabled { opacity: .5; cursor: de
 
 /* "Enviar también por correo" */
 body.mcp-brand .admin-main .ci-email-toggle { display: flex !important; flex-direction: row !important; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid rgba(169, 80, 69, .12); border-radius: 16px; background: #fffbfa; cursor: pointer; }
-body.mcp-brand .admin-main .ci-email-toggle input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--a-wine, #a64b43); }
-body.mcp-brand .admin-main .ci-email-toggle span { display: grid; gap: 3px; }
+/* The generic .admin-form input rule (admin.css, !important) turned this checkbox into a 56px text field. */
+body[data-admin-page="true"] .admin-main .admin-form .ci-email-toggle input[type="checkbox"],
+body[data-admin-page="true"] .admin-main .admin-form .ci-check input[type="checkbox"] { flex: none !important; width: 20px !important; max-width: 20px !important; height: 20px !important; min-height: 20px !important; margin: 2px 0 0 !important; padding: 0 !important; border: 0 !important; border-radius: 6px !important; box-shadow: none !important; background: none !important; accent-color: var(--a-wine, #a64b43); cursor: pointer; }
+body.mcp-brand .admin-main .ci-email-toggle span { display: grid; flex: 1; min-width: 0; gap: 3px; }
 body.mcp-brand .admin-main .ci-email-toggle strong { color: var(--a-ink, #3f2623); font-size: 14.5px; }
 body.mcp-brand .admin-main .ci-email-toggle small { color: var(--a-muted, #7a605d); font-size: 13px; line-height: 1.45; font-weight: 400; }
 

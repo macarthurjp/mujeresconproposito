@@ -11,6 +11,7 @@
 
   let initialized = false;
   let rows = [];
+  let fallback = null; // CONTACT_EMAIL addresses, or null when unknown
   const $ = (id) => document.getElementById(id);
 
   function client() {
@@ -28,20 +29,45 @@
     return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   }
 
+  // Who really gets each group's e-mails today, mirroring getRecipients() in
+  // supabase/functions/_shared/recipients.ts: a community also inherits the
+  // "Todas las comunidades" recipients, and CONTACT_EMAIL (the backup) only
+  // receives when nobody active matches.
+  const activeIn = (form, comunidad) => rows.filter((r) => r.active && r.form === form && (r.comunidad || null) === comunidad);
+  function receivers(group) {
+    const own = activeIn(group.form, group.comunidad);
+    const inherited = group.form === "join" && group.comunidad ? activeIn("join", null) : [];
+    return { inherited, usesFallback: !own.length && !inherited.length };
+  }
+
+  function fallbackRow(group) {
+    const note = group.form === "join" && !group.comunidad ? "Correo principal · recibe los registros sin otro destinatario" : "Correo principal · recibe ahora";
+    if (fallback === null) {
+      return `<li class="admin-recipient is-fallback"><span class="admin-recipient-avatar"><i class="fa-solid fa-inbox" aria-hidden="true"></i></span><span class="admin-recipient-copy"><strong>Correo principal de la organización</strong><small>Recibe ahora · se usa mientras el grupo esté vacío</small></span></li>`;
+    }
+    return fallback.map((email) => `
+          <li class="admin-recipient is-fallback">
+            <span class="admin-recipient-avatar">${esc(email.charAt(0).toUpperCase())}</span>
+            <span class="admin-recipient-copy"><strong>${esc(email)}</strong><small>${esc(note)}</small></span>
+            <span class="admin-recipient-badge">Principal</span>
+          </li>`).join("");
+  }
+
   function render() {
     const list = $("adminRecipientsList");
     if (!list) return;
     list.innerHTML = GROUPS.map((group) => {
       const items = rows.filter((r) => r.form === group.form && (r.comunidad || null) === group.comunidad);
-      const body = items.length
-        ? items.map((r) => `
+      const { inherited, usesFallback } = receivers(group);
+      const body = items.map((r) => `
           <li class="admin-recipient${r.active ? "" : " is-paused"}">
             <span class="admin-recipient-avatar">${esc((r.nombre || r.email).charAt(0).toUpperCase())}</span>
             <span class="admin-recipient-copy"><strong>${esc(r.email)}</strong><small>${esc(r.nombre || (r.active ? "Activo" : "En pausa"))}</small></span>
             <button type="button" class="admin-switch" role="switch" aria-checked="${r.active ? "true" : "false"}" data-recipient-toggle="${esc(r.id)}" aria-label="Activo ${esc(r.email)}" title="${r.active ? "Recibe correos · tocar para pausar" : "En pausa · tocar para activar"}"><span class="admin-switch-track" aria-hidden="true"></span><span class="admin-switch-label">${r.active ? "Activo" : "Pausa"}</span></button>
             <button type="button" class="admin-recipient-remove" data-recipient-remove="${esc(r.id)}" aria-label="Quitar ${esc(r.email)}"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>
           </li>`).join("")
-        : `<li class="admin-recipient-empty">Sin destinatarios: se usa el correo principal.</li>`;
+        + (usesFallback ? fallbackRow(group) : "")
+        + (inherited.length ? `<li class="admin-recipient-inherited"><i class="fa-solid fa-arrow-turn-down fa-rotate-270" aria-hidden="true"></i><span>${items.some((r) => r.active) ? "También reciben" : "Reciben"} (Todas las comunidades): <strong>${inherited.map((r) => esc(r.email)).join(", ")}</strong></span></li>` : "");
       return `
         <section class="admin-card admin-recipient-group">
           <div class="admin-recipient-head"><span class="admin-recipient-icon" style="background:${group.tint}"><i class="fa-solid ${group.icon}" aria-hidden="true"></i></span><div><h4>${esc(group.title)}</h4><p>${esc(group.hint)}</p></div>
@@ -51,11 +77,23 @@
     }).join("");
   }
 
+  // CONTACT_EMAIL is a server secret; the Super Admin reads it through manage-users.
+  async function loadFallback() {
+    try {
+      const { data, error } = await client().functions.invoke("manage-users", { body: { action: "form_recipients_fallback" } });
+      if (error || !data?.ok || !Array.isArray(data.fallback)) throw error || new Error(data?.error || "sin datos");
+      fallback = data.fallback;
+    } catch (error) {
+      console.warn("No se pudo leer el correo principal", error);
+      fallback = null;
+    }
+  }
+
   async function load() {
-    const { data, error } = await client()
+    const [{ data, error }] = await Promise.all([client()
       .from("notification_recipients")
       .select("id,form,comunidad,email,nombre,active")
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: true }), fallback === null ? loadFallback() : null]);
     if (error) throw error;
     rows = data || [];
     render();
@@ -77,17 +115,19 @@
     }
     if (button) button.disabled = true;
     try {
-      const { error } = await client().from("notification_recipients").insert({
-        form,
-        comunidad: form === "join" ? ($("adminRecipientComunidad").value || null) : null,
-        email,
-        nombre: $("adminRecipientNombre").value.trim() || null,
-      });
+      const comunidad = form === "join" ? ($("adminRecipientComunidad").value || null) : null;
+      // Adding the first recipient would silently cut the backup address off
+      // this group, so it is kept as an explicit row the admin can remove later.
+      const keep = receivers({ form, comunidad }).usesFallback && fallback?.length ? fallback.filter((f) => f !== email) : [];
+      const { error } = await client().from("notification_recipients").insert([
+        { form, comunidad, email, nombre: $("adminRecipientNombre").value.trim() || null },
+        ...keep.map((f) => ({ form, comunidad, email: f, nombre: "Correo principal" })),
+      ]);
       if (error) throw new Error(error.code === "23505" ? "Ese correo ya recibe este formulario." : error.message);
       $("adminRecipientEmail").value = "";
       $("adminRecipientNombre").value = "";
       await load();
-      toast("success", "Destinatario añadido", email);
+      toast("success", "Destinatario añadido", keep.length ? `${email}. El correo principal (${keep.join(", ")}) sigue recibiendo; puedes pausarlo o quitarlo.` : email);
       window.McpFormDirty?.markSaved(event.target);
     } catch (error) {
       toast("error", "No se pudo añadir", error?.message);

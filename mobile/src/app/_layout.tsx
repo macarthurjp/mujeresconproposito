@@ -4,12 +4,13 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 import { CelebrationConfetti } from '@/components/celebration-confetti';
 import { LaunchScreen } from '@/components/launch-screen';
 import { C } from '@/constants/theme';
 import { loadLiveActivitiesPreference } from '@/lib/live-activity';
+import { recordNotification, syncFromTray } from '@/lib/notification-inbox';
 import { configureNotificationChannels, handleNotificationResponse, refreshNotificationRegistration } from '@/lib/notifications';
 
 SplashScreen.preventAutoHideAsync();
@@ -26,12 +27,23 @@ function NotificationResponder() {
     refreshNotificationRegistration().catch(() => {});
   }, []);
 
+  // Inbox (Inicio → campana): keep a copy of every notification this phone gets.
+  useEffect(() => {
+    void syncFromTray().catch(() => {});
+    const received = Notifications.addNotificationReceivedListener((n) => { void recordNotification(n).catch(() => {}); });
+    const appState = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void syncFromTray().catch(() => {});
+    });
+    return () => { received.remove(); appState.remove(); };
+  }, []);
+
   // Covers both a cold start from a notification and taps while running.
   useEffect(() => {
     if (!lastResponse) return;
     const id = lastResponse.notification.request.identifier + lastResponse.actionIdentifier;
     if (handled.current === id) return;
     handled.current = id;
+    void recordNotification(lastResponse.notification, true).catch(() => {});
     handleNotificationResponse(lastResponse)
       .then(() => Notifications.clearLastNotificationResponseAsync())
       .catch(() => {});
@@ -69,6 +81,7 @@ export default function RootLayout() {
         <Stack.Screen name="aportar" options={{ title: 'Donar' }} />
         <Stack.Screen name="contacto" options={{ title: 'Contacto' }} />
         <Stack.Screen name="avisos-cumpleanos" options={{ title: 'Avisos de cumpleaños' }} />
+        <Stack.Screen name="notificaciones" options={{ title: 'Notificaciones' }} />
         <Stack.Screen name="join" options={{ headerShown: false }} />
         <Stack.Screen name="admin" options={{ headerShown: false }} />
       </Stack>
