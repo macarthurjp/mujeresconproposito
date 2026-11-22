@@ -510,13 +510,15 @@ test("super admin manages contact and join e-mail recipients by community", asyn
     const builder = () => {
       const q = {
         select: () => q, order: () => Promise.resolve({ data: rows.map((r) => ({ ...r })), error: null }),
-        insert: (value) => { window.__recipientWrites.push(["insert", value]); rows.push({ id: String(rows.length + 1), active: true, ...value }); return Promise.resolve({ error: null }); },
+        insert: (value) => { window.__recipientWrites.push(["insert", value]); [].concat(value).forEach((v) => rows.push({ id: String(rows.length + 1), active: true, ...v })); return Promise.resolve({ error: null }); },
         update: (value) => ({ eq: (_c, id) => { window.__recipientWrites.push(["update", id, value]); Object.assign(rows.find((r) => r.id === id), value); return Promise.resolve({ error: null }); } }),
         delete: () => ({ eq: () => Promise.resolve({ error: null }) }),
       };
       return q;
     };
-    window.McpSupabase.getSupabaseBrowserClient = () => ({ from: builder });
+    // manage-users exposes the CONTACT_EMAIL backup to the Super Admin.
+    const functions = { invoke: (name, { body }) => Promise.resolve(name === "manage-users" && body.action === "form_recipients_fallback" ? { data: { ok: true, fallback: ["principal@example.org"] }, error: null } : { data: null, error: new Error("unexpected") }) };
+    window.McpSupabase.getSupabaseBrowserClient = () => ({ from: builder, functions });
     document.getElementById("adminLoginCard").style.display = "none";
     document.getElementById("adminDashboard").style.display = "block";
     document.body.classList.remove("admin-locked");
@@ -529,7 +531,12 @@ test("super admin manages contact and join e-mail recipients by community", asyn
   await expect(groups).toHaveCount(5);
   await expect(groups.nth(0)).toContainText("contacto@example.org");
   await expect(groups.filter({ hasText: "Únete · Europa" })).toContainText("europa@example.org");
-  await expect(groups.filter({ hasText: "Únete · Estados Unidos" })).toContainText("se usa el correo principal");
+  // Empty groups show who really receives today: the backup address.
+  await expect(groups.nth(0)).not.toContainText("principal@example.org");
+  await expect(groups.filter({ hasText: "Únete · Estados Unidos" })).toContainText("principal@example.org");
+  await expect(groups.filter({ hasText: "Únete · Estados Unidos" }).locator(".admin-recipient-badge")).toHaveText("Principal");
+  // RD only has a paused recipient, so the backup still receives.
+  await expect(groups.filter({ hasText: "Únete · República Dominicana" })).toContainText("principal@example.org");
 
   // "Añadir" on the Europa group preselects Únete + Europa.
   await groups.filter({ hasText: "Únete · Europa" }).getByRole("button", { name: "Añadir" }).click();
@@ -540,7 +547,20 @@ test("super admin manages contact and join e-mail recipients by community", asyn
   await expect(groups.filter({ hasText: "Únete · Europa" })).toContainText("lider.eu@example.org");
 
   await page.getByRole("switch", { name: "Activo rd@example.org" }).click();
+  await expect(groups.filter({ hasText: "Únete · República Dominicana" })).not.toContainText("principal@example.org");
+
+  // First recipient of a group that relied on the backup: the backup is kept too.
+  await groups.filter({ hasText: "Únete · Todas las comunidades" }).getByRole("button", { name: "Añadir" }).click();
+  await page.fill("#adminRecipientEmail", "todas@example.org");
+  await page.locator("#adminRecipientForm button[type=submit]").click();
+  await expect(groups.filter({ hasText: "Únete · Estados Unidos" })).toContainText("Reciben (Todas las comunidades): todas@example.org, principal@example.org");
+  await expect(groups.filter({ hasText: "Únete · Europa" })).toContainText("También reciben (Todas las comunidades)");
+
   const writes = await page.evaluate(() => window.__recipientWrites);
-  expect(writes[0]).toEqual(["insert", { form: "join", comunidad: "Europa", email: "lider.eu@example.org", nombre: null }]);
+  expect(writes[0]).toEqual(["insert", [{ form: "join", comunidad: "Europa", email: "lider.eu@example.org", nombre: null }]]);
   expect(writes[1]).toEqual(["update", "3", { active: true }]);
+  expect(writes[2]).toEqual(["insert", [
+    { form: "join", comunidad: null, email: "todas@example.org", nombre: null },
+    { form: "join", comunidad: null, email: "principal@example.org", nombre: "Correo principal" },
+  ]]);
 });
